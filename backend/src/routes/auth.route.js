@@ -1,0 +1,56 @@
+import { Router } from "express";
+import {
+  registerController,
+  loginController,
+  getMeController,
+  logoutController,
+  verifyEmailController,
+} from "../controllers/auth.controller.js";
+import {
+  registerValidator,
+  loginValidator,
+} from "../validators/user.validatore.js";
+
+import { authMiddleware } from "../middlewares/auth.middleware.js";
+
+const router = Router();
+/**
+ * @access Public
+ * @desc Register a new user
+ * @Api /api/auth/register
+ */
+router.post("/register", registerValidator, registerController);
+
+/**
+ * @access Public
+ * @desc Login a user
+ * @Api /api/auth/login
+ */
+
+router.post("/login", loginValidator, loginController);
+
+/**
+ *  @access Private
+ *  @desc Get the currently logged-in user
+ *  @Api /api/auth/me
+ */
+
+router.get("/me", authMiddleware, getMeController);
+
+/**
+ *  @access Private
+ *  @desc Logout the currently logged-in user
+ *  @Api /api/auth/logout
+ */
+
+router.post("/logout", authMiddleware, logoutController);
+
+/**
+ *  @access Private
+ *  @desc Verify email address
+ *  @Api /api/auth/verify-email/:userId/:token
+ */
+
+router.get("/verify-email/:userId/:token", verifyEmailController);
+
+export default router;

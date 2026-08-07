@@ -1,0 +1,92 @@
+import express from "express";
+import morgan from "morgan";
+import cookieParser from "cookie-parser";
+import path from "path";
+import { fileURLToPath } from "url";
+import authRoutes from "./routes/auth.route.js";
+import userRoutes from "./routes/user.route.js";
+import categoryRouter from "./routes/category.routes.js";
+import courseRouter from "./routes/course.routes.js";
+import moduleRouter from "./routes/module.route.js";
+import lectureRouter from "./routes/lecture.route.js";
+import enrollmentRouter from "./routes/enrollment.routes.js";
+import lectureProgressRouter from "./routes/lectureProgress.routes.js";
+import reviewRouter from "./routes/review.route.js";
+import wishlistRouter from "./routes/wishlist.route.js";
+import cartRouter from "./routes/cart.route.js";
+import couponRouter from "./routes/coupon.route.js";
+import checkoutRouter from "./routes/checkout.route.js";
+import orderRouter from "./routes/order.routes.js";
+import studentRoutes from "./routes/student.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
+import adminLiveRoutes from "./routes/adminLive.routes.js";
+import adminCouponRoutes from "./routes/adminCoupon.routes.js";
+import adminAnalyticsRoutes from "./routes/adminAnalytics.routes.js";
+import adminAuditRoutes from "./routes/adminAudit.routes.js";
+import certificateRoutes from "./routes/certificate.routes.js";
+import adminCertificateRoutes from "./routes/adminCertificate.routes.js";
+import instructorQuizRoutes from "./routes/instructorQuiz.routes.js";
+import studentQuizRoutes from "./routes/studentQuiz.routes.js";
+import instructorAssignmentRoutes from "./routes/instructorAssignment.routes.js";
+import studentAssignmentRoutes from "./routes/studentAssignment.routes.js";
+import instructorAnnouncementRoutes from "./routes/instructorAnnouncement.routes.js";
+import studentAnnouncementRoutes from "./routes/studentAnnouncement.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
+import instructorLiveClassRoutes from "./routes/instructorLiveClass.routes.js";
+import studentLiveClassRoutes from "./routes/studentLiveClass.routes.js";
+
+import { notFoundHandler } from "./middlewares/notFound.middleware.js";
+import { errorHandler } from "./middlewares/error.middleware.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+
+// Middleware
+app.use(morgan("dev"));
+app.use(express.json());
+app.use(cookieParser());
+
+// Serve static uploaded files (videos & documents fallback)
+app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
+
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "Welcome to the Vertex LMS API" });
+});
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/categories", categoryRouter);
+app.use("/api/student", studentRoutes);
+app.use("/api/admin", adminRoutes);
+
+app.use("/api/courses", courseRouter);
+app.use("/api/modules", moduleRouter);
+app.use("/api/lectures", lectureRouter);
+
+app.use("/api/enrollments", enrollmentRouter);
+app.use("/api", lectureProgressRouter);
+app.use("/api", reviewRouter);
+app.use("/api", wishlistRouter);
+app.use("/api/cart", cartRouter);
+app.use("/api", couponRouter);
+app.use("/api", checkoutRouter);
+app.use("/api/orders", orderRouter);
+app.use("/api/admin/live-classes", adminLiveRoutes);
+app.use("/api/admin/coupons", adminCouponRoutes);
+app.use("/api/admin/analytics", adminAnalyticsRoutes);
+app.use("/api/admin/audit-logs", adminAuditRoutes);
+app.use("/api/instructor/quizzes", instructorQuizRoutes);
+app.use("/api/certificates", certificateRoutes);
+app.use("/api/admin/certificates", adminCertificateRoutes);
+app.use("/api/student/quizzes", studentQuizRoutes);
+app.use("/api/instructor/assignments", instructorAssignmentRoutes);
+app.use("/api/instructor/announcements", instructorAnnouncementRoutes);
+app.use("/api/student/assignments", studentAssignmentRoutes);
+app.use("/api/student/announcements", studentAnnouncementRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/instructor/live-classes", instructorLiveClassRoutes);
+app.use("/api/student/live-classes", studentLiveClassRoutes);
+app.use(notFoundHandler);
+app.use(errorHandler);
+export default app;
