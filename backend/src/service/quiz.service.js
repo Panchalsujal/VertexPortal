@@ -15,6 +15,7 @@ import {
   parseNumberQuery,
   parseEnumQuery,
   parseSortQuery,
+  parseDateRange,
 } from "../utils/queryParser.js";
 
 import { escapeRegex } from "../utils/search.js";
@@ -5185,37 +5186,25 @@ export async function instructorSubmitQuizAttempt({
     );
   }
 
-  const attempt =
-    await QuizAttempt.findOne({
-      _id: attemptId,
-      quiz: quizId,
-    });
+  const attempt = await QuizAttempt.findOne({
+    _id: attemptId,
+    quiz: quizId,
+  });
 
   if (!attempt) {
-    throw new ApiError(
-      404,
-      "Quiz attempt not found",
-    );
+    throw new ApiError(404, "Quiz attempt not found");
   }
 
-  if (
-    ["submitted", "evaluated"].includes(
-      attempt.status,
-    )
-  ) {
+  if (["submitted", "evaluated"].includes(attempt.status)) {
     return {
       attempt,
       changed: false,
-      message:
-        "Quiz attempt is already submitted",
+      message: "Quiz attempt is already submitted",
     };
   }
 
   if (attempt.status !== "in_progress") {
-    throw new ApiError(
-      409,
-      `Quiz attempt is ${attempt.status}`,
-    );
+    throw new ApiError(409, `Quiz attempt is ${attempt.status}`);
   }
 
   const result = await submitQuizAttempt({
@@ -5228,8 +5217,7 @@ export async function instructorSubmitQuizAttempt({
   return {
     attempt: result.attempt,
     changed: true,
-    message:
-      "Quiz attempt submitted successfully by instructor",
+    message: "Quiz attempt submitted successfully by instructor",
   };
 }
 
@@ -5241,19 +5229,10 @@ export async function updateQuizResultSettings({
   validateObjectId(instructorId, "instructor ID");
   validateObjectId(quizId, "quiz ID");
 
-  const {
-    showResultImmediately,
-    showCorrectAnswers,
-  } = payload || {};
+  const { showResultImmediately, showCorrectAnswers } = payload || {};
 
-  if (
-    showResultImmediately === undefined &&
-    showCorrectAnswers === undefined
-  ) {
-    throw new ApiError(
-      400,
-      "At least one result setting is required",
-    );
+  if (showResultImmediately === undefined && showCorrectAnswers === undefined) {
+    throw new ApiError(400, "At least one result setting is required");
   }
 
   const quiz = await Quiz.findOne({
@@ -5272,20 +5251,14 @@ export async function updateQuizResultSettings({
     quiz.showResultImmediately =
       typeof showResultImmediately === "boolean"
         ? showResultImmediately
-        : parseBooleanQuery(
-            showResultImmediately,
-            "showResultImmediately",
-          );
+        : parseBooleanQuery(showResultImmediately, "showResultImmediately");
   }
 
   if (showCorrectAnswers !== undefined) {
     quiz.showCorrectAnswers =
       typeof showCorrectAnswers === "boolean"
         ? showCorrectAnswers
-        : parseBooleanQuery(
-            showCorrectAnswers,
-            "showCorrectAnswers",
-          );
+        : parseBooleanQuery(showCorrectAnswers, "showCorrectAnswers");
   }
 
   await quiz.save();
@@ -5293,10 +5266,7 @@ export async function updateQuizResultSettings({
   return quiz;
 }
 
-export async function deleteQuiz({
-  instructorId,
-  quizId,
-}) {
+export async function deleteQuiz({ instructorId, quizId }) {
   validateObjectId(instructorId, "instructor ID");
   validateObjectId(quizId, "quiz ID");
 
@@ -5312,10 +5282,7 @@ export async function deleteQuiz({
     );
   }
 
-  if (
-    quiz.status === "archived" &&
-    quiz.isActive === false
-  ) {
+  if (quiz.status === "archived" && quiz.isActive === false) {
     return {
       quiz,
       changed: false,
@@ -5337,11 +5304,7 @@ export async function deleteQuiz({
   };
 }
 
-
-export async function restoreQuiz({
-  instructorId,
-  quizId,
-}) {
+export async function restoreQuiz({ instructorId, quizId }) {
   validateObjectId(instructorId, "instructor ID");
   validateObjectId(quizId, "quiz ID");
 
@@ -5357,10 +5320,7 @@ export async function restoreQuiz({
     );
   }
 
-  if (
-    quiz.status === "draft" &&
-    quiz.isActive === true
-  ) {
+  if (quiz.status === "draft" && quiz.isActive === true) {
     return {
       quiz,
       changed: false,
@@ -5382,11 +5342,7 @@ export async function restoreQuiz({
   };
 }
 
-
-export async function getQuizAnalytics({
-  instructorId,
-  quizId,
-}) {
+export async function getQuizAnalytics({ instructorId, quizId }) {
   validateObjectId(instructorId, "instructor ID");
   validateObjectId(quizId, "quiz ID");
 
@@ -5394,7 +5350,8 @@ export async function getQuizAnalytics({
     _id: quizId,
     instructor: instructorId,
   })
-    .select(`
+    .select(
+      `
       title
       course
       totalQuestions
@@ -5403,7 +5360,8 @@ export async function getQuizAnalytics({
       maxAttempts
       status
       isPublished
-    `)
+    `,
+    )
     .populate({
       path: "course",
       select: "title slug thumbnailUrl",
@@ -5417,18 +5375,11 @@ export async function getQuizAnalytics({
     );
   }
 
-  const [
-    attemptStatsResult,
-    questionStats,
-    topAttempts,
-  ] = await Promise.all([
+  const [attemptStatsResult, questionStats, topAttempts] = await Promise.all([
     QuizAttempt.aggregate([
       {
         $match: {
-          quiz:
-            new mongoose.Types.ObjectId(
-              quizId,
-            ),
+          quiz: new mongoose.Types.ObjectId(quizId),
         },
       },
       {
@@ -5447,10 +5398,7 @@ export async function getQuizAnalytics({
             $sum: {
               $cond: [
                 {
-                  $eq: [
-                    "$status",
-                    "evaluated",
-                  ],
+                  $eq: ["$status", "evaluated"],
                 },
                 1,
                 0,
@@ -5464,16 +5412,10 @@ export async function getQuizAnalytics({
                 {
                   $and: [
                     {
-                      $eq: [
-                        "$status",
-                        "evaluated",
-                      ],
+                      $eq: ["$status", "evaluated"],
                     },
                     {
-                      $eq: [
-                        "$isPassed",
-                        true,
-                      ],
+                      $eq: ["$isPassed", true],
                     },
                   ],
                 },
@@ -5487,10 +5429,7 @@ export async function getQuizAnalytics({
             $avg: {
               $cond: [
                 {
-                  $eq: [
-                    "$status",
-                    "evaluated",
-                  ],
+                  $eq: ["$status", "evaluated"],
                 },
                 "$percentage",
                 null,
@@ -5523,10 +5462,7 @@ export async function getQuizAnalytics({
     QuizAnswer.aggregate([
       {
         $match: {
-          quiz:
-            new mongoose.Types.ObjectId(
-              quizId,
-            ),
+          quiz: new mongoose.Types.ObjectId(quizId),
 
           evaluatedAt: {
             $ne: null,
@@ -5545,10 +5481,7 @@ export async function getQuizAnalytics({
             $sum: {
               $cond: [
                 {
-                  $eq: [
-                    "$isCorrect",
-                    true,
-                  ],
+                  $eq: ["$isCorrect", true],
                 },
                 1,
                 0,
@@ -5560,10 +5493,7 @@ export async function getQuizAnalytics({
             $sum: {
               $cond: [
                 {
-                  $eq: [
-                    "$isCorrect",
-                    false,
-                  ],
+                  $eq: ["$isCorrect", false],
                 },
                 1,
                 0,
@@ -5592,17 +5522,13 @@ export async function getQuizAnalytics({
           questionId: "$_id",
           _id: 0,
 
-          questionText:
-            "$question.questionText",
+          questionText: "$question.questionText",
 
-          questionType:
-            "$question.questionType",
+          questionType: "$question.questionType",
 
-          marks:
-            "$question.marks",
+          marks: "$question.marks",
 
-          order:
-            "$question.order",
+          order: "$question.order",
 
           totalResponses: 1,
           correctResponses: 1,
@@ -5612,18 +5538,12 @@ export async function getQuizAnalytics({
           accuracyRate: {
             $cond: [
               {
-                $gt: [
-                  "$totalResponses",
-                  0,
-                ],
+                $gt: ["$totalResponses", 0],
               },
               {
                 $multiply: [
                   {
-                    $divide: [
-                      "$correctResponses",
-                      "$totalResponses",
-                    ],
+                    $divide: ["$correctResponses", "$totalResponses"],
                   },
                   100,
                 ],
@@ -5644,7 +5564,8 @@ export async function getQuizAnalytics({
       quiz: quizId,
       status: "evaluated",
     })
-      .select(`
+      .select(
+        `
         student
         attemptNumber
         obtainedMarks
@@ -5653,11 +5574,11 @@ export async function getQuizAnalytics({
         isPassed
         timeSpentInSeconds
         submittedAt
-      `)
+      `,
+      )
       .populate({
         path: "student",
-        select:
-          "fullName email avatarUrl",
+        select: "fullName email avatarUrl",
       })
       .sort({
         percentage: -1,
@@ -5667,32 +5588,26 @@ export async function getQuizAnalytics({
       .lean(),
   ]);
 
-  const stats =
-    attemptStatsResult[0] ?? {
-      totalAttempts: 0,
-      uniqueStudentCount: 0,
-      evaluatedAttempts: 0,
-      passedAttempts: 0,
-      averagePercentage: 0,
-      averageTimeSpent: 0,
-      highestPercentage: 0,
-      lowestPercentage: 0,
-    };
+  const stats = attemptStatsResult[0] ?? {
+    totalAttempts: 0,
+    uniqueStudentCount: 0,
+    evaluatedAttempts: 0,
+    passedAttempts: 0,
+    averagePercentage: 0,
+    averageTimeSpent: 0,
+    highestPercentage: 0,
+    lowestPercentage: 0,
+  };
 
   const failedAttempts = Math.max(
-    (stats.evaluatedAttempts ?? 0) -
-      (stats.passedAttempts ?? 0),
+    (stats.evaluatedAttempts ?? 0) - (stats.passedAttempts ?? 0),
     0,
   );
 
   const passRate =
     stats.evaluatedAttempts > 0
       ? Number(
-          (
-            (stats.passedAttempts /
-              stats.evaluatedAttempts) *
-            100
-          ).toFixed(2),
+          ((stats.passedAttempts / stats.evaluatedAttempts) * 100).toFixed(2),
         )
       : 0;
 
@@ -5700,64 +5615,36 @@ export async function getQuizAnalytics({
     quiz,
 
     summary: {
-      totalAttempts:
-        stats.totalAttempts ?? 0,
+      totalAttempts: stats.totalAttempts ?? 0,
 
-      uniqueStudents:
-        stats.uniqueStudentCount ?? 0,
+      uniqueStudents: stats.uniqueStudentCount ?? 0,
 
-      evaluatedAttempts:
-        stats.evaluatedAttempts ?? 0,
+      evaluatedAttempts: stats.evaluatedAttempts ?? 0,
 
-      passedAttempts:
-        stats.passedAttempts ?? 0,
+      passedAttempts: stats.passedAttempts ?? 0,
 
       failedAttempts,
 
       passRate,
 
-      averagePercentage: Number(
-        (
-          stats.averagePercentage ?? 0
-        ).toFixed(2),
+      averagePercentage: Number((stats.averagePercentage ?? 0).toFixed(2)),
+
+      averageTimeSpentInSeconds: Number(
+        (stats.averageTimeSpent ?? 0).toFixed(2),
       ),
 
-      averageTimeSpentInSeconds:
-        Number(
-          (
-            stats.averageTimeSpent ?? 0
-          ).toFixed(2),
-        ),
+      highestPercentage: Number((stats.highestPercentage ?? 0).toFixed(2)),
 
-      highestPercentage: Number(
-        (
-          stats.highestPercentage ?? 0
-        ).toFixed(2),
-      ),
-
-      lowestPercentage: Number(
-        (
-          stats.lowestPercentage ?? 0
-        ).toFixed(2),
-      ),
+      lowestPercentage: Number((stats.lowestPercentage ?? 0).toFixed(2)),
     },
 
-    questionAnalytics:
-      questionStats.map((question) => ({
-        ...question,
+    questionAnalytics: questionStats.map((question) => ({
+      ...question,
 
-        averageMarks: Number(
-          (
-            question.averageMarks ?? 0
-          ).toFixed(2),
-        ),
+      averageMarks: Number((question.averageMarks ?? 0).toFixed(2)),
 
-        accuracyRate: Number(
-          (
-            question.accuracyRate ?? 0
-          ).toFixed(2),
-        ),
-      })),
+      accuracyRate: Number((question.accuracyRate ?? 0).toFixed(2)),
+    })),
 
     topAttempts,
   };
