@@ -20,7 +20,7 @@ import { authorizeRoles } from "../middlewares/authorize.middleware.js";
 
 const router = Router();
 
-router.use(authMiddleware, authorizeRoles("instructor"));
+router.use(authMiddleware, authorizeRoles("instructor", "admin"));
 router.post("/", createAssignmentController);
 router.get("/", getInstructorAssignmentsController);
 router.get("/:assignmentId", getInstructorAssignmentByIdController);

@@ -3,11 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getPublishedModules } from '../api/module.api';
 import { getPublishedLectures } from '../api/lecture.api';
 import { markLectureCompleted, getCourseProgress } from '../api/progress.api';
-import { getEnrollmentByCourse } from '../api/enrollment.api';
+import { getEnrollmentByCourse, getMyEnrollments } from '../api/enrollment.api';
 import { useAuth } from '../context/AuthContext';
 import { CurriculumAccordion } from '../components/course/CurriculumAccordion';
 import { Spinner } from '../components/ui/Spinner';
-import { CheckCircle, ChevronLeft, Download, FileText, Lock, Menu, X } from 'lucide-react';
+import { Award, CheckCircle, ChevronLeft, Download, FileText, Lock, Menu, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function CoursePlayer() {
@@ -44,8 +44,25 @@ export default function CoursePlayer() {
     setLoading(true);
     try {
       // 1. Check enrollment (allow Admin or Instructor testing bypass)
-      const enrRes = await getEnrollmentByCourse(courseId).catch(() => ({ data: { enrolled: false } }));
-      if (!enrRes.data?.enrolled && !isAdminOrInstructor) {
+      let isEnrolled = isAdminOrInstructor;
+      if (!isEnrolled && user) {
+        try {
+          const enrRes = await getEnrollmentByCourse(courseId);
+          if (enrRes.data?.enrolled || enrRes.data?.enrollment || enrRes.data?.data?.enrollment) {
+            isEnrolled = true;
+          }
+        } catch {
+          try {
+            const myEnrRes = await getMyEnrollments();
+            const list = myEnrRes.data.enrollments || myEnrRes.data.data?.enrollments || [];
+            isEnrolled = list.some(e => String(e.course?._id || e.course) === String(courseId));
+          } catch {
+            isEnrolled = false;
+          }
+        }
+      }
+
+      if (!isEnrolled) {
         toast.error('You are not enrolled in this course');
         navigate('/courses');
         return;
@@ -129,6 +146,16 @@ export default function CoursePlayer() {
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+          {Number(progressPct) >= 100 && (
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => navigate('/certificates')}
+              style={{ background: 'var(--color-success)', borderColor: 'var(--color-success)' }}
+              title="View Certificate"
+            >
+              <Award size={14} /> Certificate
+            </button>
+          )}
           <div className="progress-bar-wrap" style={{ width: 120 }}>
             <div className="progress-bar-fill" style={{ width: `${progressPct}%` }} />
           </div>

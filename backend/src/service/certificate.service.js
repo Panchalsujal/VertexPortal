@@ -88,16 +88,16 @@ export async function issueCertificate({ studentId, courseId, enrollmentId }) {
 
         resourceType: "certificate",
 
-        resourceId: certificate._id,
+        resourceId: existingCertificate._id,
 
         courseId: enrollment.course._id,
 
-        actionUrl: `${process.env.FRONTEND_URL}/student/certificates/${certificate._id}`,
+        actionUrl: `${process.env.FRONTEND_URL || ""}/certificates`,
 
         metadata: {
-          certificateNumber: certificate.certificateNumber,
+          certificateNumber: existingCertificate.certificateNumber,
 
-          verificationCode: certificate.verificationCode,
+          verificationCode: existingCertificate.verificationCode,
         },
       });
     } catch (error) {
@@ -209,6 +209,25 @@ export async function issueCertificate({ studentId, courseId, enrollmentId }) {
     await markCertificateIssued({
       enrollmentId: enrollment._id,
     });
+
+    try {
+      await dispatchNotification({
+        userId: enrollment.student._id,
+        title: "Certificate issued",
+        message: `Your certificate for "${enrollment.course.title}" is now available.`,
+        type: "certificate",
+        resourceType: "certificate",
+        resourceId: certificate._id,
+        courseId: enrollment.course._id,
+        actionUrl: `${process.env.FRONTEND_URL || ""}/certificates`,
+        metadata: {
+          certificateNumber: certificate.certificateNumber,
+          verificationCode: certificate.verificationCode,
+        },
+      });
+    } catch (error) {
+      console.error("Certificate notification failed:", error);
+    }
 
     return {
       certificate,
@@ -324,16 +343,25 @@ export async function getCertificateById({ certificateId, studentId }) {
 }
 
 export async function verifyCertificate(verificationCode) {
-  const normalizedCode = String(verificationCode || "")
-    .trim()
-    .toLowerCase();
+  const rawCode = String(verificationCode || "").trim();
 
-  if (!normalizedCode) {
+  if (!rawCode) {
     throw new ApiError(400, "Verification code is required");
   }
 
+  const queryConditions = [
+    { verificationCode: rawCode.toLowerCase() },
+    { verificationCode: rawCode },
+    { certificateNumber: rawCode.toUpperCase() },
+    { certificateNumber: rawCode },
+  ];
+
+  if (mongoose.Types.ObjectId.isValid(rawCode)) {
+    queryConditions.push({ _id: rawCode });
+  }
+
   const certificate = await Certificate.findOne({
-    verificationCode: normalizedCode,
+    $or: queryConditions,
   })
     .select(
       `
@@ -882,23 +910,42 @@ export async function getCertificateIssueQueue(query = {}) {
 }
 
 export async function bulkRetryCertificateIssues(enrollmentIds) {
-  if (!Array.isArray(enrollmentIds) || enrollmentIds.length === 0) {
-    throw new ApiError(400, "At least one enrollment ID is required");
+  let idsToProcess = enrollmentIds;
+
+  if (!Array.isArray(idsToProcess) || idsToProcess.length === 0) {
+    const queue = await Enrollment.find({
+      status: "completed",
+      progressPercentage: { $gte: 100 },
+      certificateStatus: { $in: ["pending", "failed"] },
+    })
+      .limit(20)
+      .select("_id")
+      .lean();
+
+    idsToProcess = queue.map((e) => e._id.toString());
   }
 
-  /*
-   * Ek request me bahut zyada PDF generation aur
-   * ImageKit uploads avoid karne ke liye maximum 20.
-   */
-  if (enrollmentIds.length > 20) {
-    throw new ApiError(
-      400,
-      "Maximum 20 certificate retries are allowed per request",
-    );
+  if (idsToProcess.length === 0) {
+    return {
+      summary: {
+        requested: 0,
+        eligible: 0,
+        successful: 0,
+        failed: 0,
+        newlyCreated: 0,
+        alreadyExisting: 0,
+      },
+      results: [],
+      message: "No pending or failed certificate issuances found in queue",
+    };
+  }
+
+  if (idsToProcess.length > 20) {
+    idsToProcess = idsToProcess.slice(0, 20);
   }
 
   const uniqueEnrollmentIds = [
-    ...new Set(enrollmentIds.map((id) => String(id).trim())),
+    ...new Set(idsToProcess.map((id) => String(id).trim())),
   ];
 
   for (const enrollmentId of uniqueEnrollmentIds) {

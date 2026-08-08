@@ -267,6 +267,32 @@ export const downloadCertificateController = asyncHandler(async (req, res) => {
     requesterRole: req.user.role,
   });
 
+  const downloadUrl = result.downloadUrl;
+  const fileName = `Certificate-${result.certificateNumber || 'completion'}.pdf`;
+
+  if (downloadUrl.startsWith("data:application/pdf;base64,")) {
+    const base64Data = downloadUrl.replace("data:application/pdf;base64,", "");
+    const pdfBuffer = Buffer.from(base64Data, "base64");
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    return res.send(pdfBuffer);
+  }
+
+  if (downloadUrl.startsWith("http://") || downloadUrl.startsWith("https://")) {
+    try {
+      const response = await fetch(downloadUrl);
+      if (response.ok) {
+        const arrayBuffer = await response.arrayBuffer();
+        const pdfBuffer = Buffer.from(arrayBuffer);
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+        return res.send(pdfBuffer);
+      }
+    } catch (err) {
+      console.error("PDF CDN fetch error, falling back to JSON downloadUrl:", err);
+    }
+  }
+
   return res.status(200).json({
     success: true,
     message: "Certificate download URL fetched successfully",

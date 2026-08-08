@@ -6,7 +6,7 @@ import { getPublishedLectures } from '../api/lecture.api';
 import { getCourseReviews, createReview, updateReview, deleteReview, getMyReview } from '../api/review.api';
 import { addToCart } from '../api/cart.api';
 import { addToWishlist, removeFromWishlist, getWishlistStatus } from '../api/wishlist.api';
-import { getEnrollmentByCourse } from '../api/enrollment.api';
+import { getEnrollmentByCourse, createEnrollment } from '../api/enrollment.api';
 import { useAuth } from '../context/AuthContext';
 import { Spinner } from '../components/ui/Spinner';
 import { StarRating } from '../components/ui/StarRating';
@@ -32,6 +32,7 @@ export default function CourseDetail() {
   const [modules, setModules] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [myReview, setMyReview] = useState(null);
+  const [isEnrolled, setIsEnrolled] = useState(false);
   const [enrollment, setEnrollment] = useState(null);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -70,13 +71,17 @@ export default function CourseDetail() {
       setReviews(revData);
 
       if (user) {
+        const isStaff = user.role === 'admin' || user.role === 'instructor';
         const [wishRes, enrRes, myRevRes] = await Promise.all([
           getWishlistStatus(c._id).catch(() => null),
-          user.role === 'student' ? getEnrollmentByCourse(c._id).catch(() => null) : Promise.resolve(null),
+          getEnrollmentByCourse(c._id).catch(() => null),
           user.role === 'student' ? getMyReview(c._id).catch(() => null) : Promise.resolve(null),
         ]);
         setIsWishlisted(wishRes?.data?.isInWishlist ?? wishRes?.data?.data?.isInWishlist ?? false);
-        setEnrollment(enrRes?.data?.enrollment || enrRes?.data?.data?.enrollment || null);
+        const enrData = enrRes?.data;
+        const enrolledFlag = isStaff || !!(enrData?.enrolled || enrData?.enrollment || enrData?.data?.enrollment);
+        setIsEnrolled(enrolledFlag);
+        setEnrollment(enrData?.enrollment || enrData?.data?.enrollment || null);
         const userRev = myRevRes?.data?.review || myRevRes?.data?.data?.review;
         if (userRev) {
           setMyReview(userRev);
@@ -101,8 +106,35 @@ export default function CourseDetail() {
       await addToCart(course._id);
       toast.success('Added to cart!');
       navigate('/cart');
-    } catch (err) { toast.error(err.message); }
-    finally { setCartLoading(false); }
+    } catch (err) {
+      if (err.message?.toLowerCase().includes('already enrolled')) {
+        toast.success('You are already enrolled! Redirecting...');
+        navigate(`/learn/${course._id}`);
+      } else {
+        toast.error(err.message);
+      }
+    } finally {
+      setCartLoading(false);
+    }
+  };
+
+  const handleFreeEnroll = async () => {
+    if (!user) { navigate('/login'); return; }
+    setCartLoading(true);
+    try {
+      await createEnrollment(course._id);
+      toast.success('Successfully enrolled!');
+      navigate(`/learn/${course._id}`);
+    } catch (err) {
+      if (err.message?.toLowerCase().includes('already enrolled')) {
+        toast.success('You are already enrolled! Redirecting...');
+        navigate(`/learn/${course._id}`);
+      } else {
+        toast.error(err.message);
+      }
+    } finally {
+      setCartLoading(false);
+    }
   };
 
   const handleWishlist = async () => {
@@ -215,7 +247,7 @@ export default function CourseDetail() {
                 )}
               </div>
 
-              {enrollment ? (
+              {isEnrolled || enrollment ? (
                 <a
                   href={`/learn/${course._id}`}
                   className="btn btn-primary"
@@ -224,31 +256,45 @@ export default function CourseDetail() {
                 >
                   <Play size={18} fill="white" /> Continue Learning
                 </a>
-              ) : user?.role === 'student' ? (
+              ) : user?.role === 'student' || !user ? (
                 <>
-                  <button
-                    className="btn btn-primary"
-                    style={{ width: '100%', justifyContent: 'center', marginBottom: '0.75rem' }}
-                    onClick={handleAddToCart}
-                    disabled={cartLoading}
-                    id="add-to-cart-btn"
-                  >
-                    {cartLoading ? <div className="spinner spinner-sm" /> : <><ShoppingCart size={18} /> Add to Cart</>}
-                  </button>
-                  <button
-                    className="btn btn-secondary"
-                    style={{ width: '100%', justifyContent: 'center' }}
-                    onClick={handleWishlist}
-                    id="wishlist-btn"
-                  >
-                    <Heart size={16} fill={isWishlisted ? 'var(--color-error)' : 'none'} color={isWishlisted ? 'var(--color-error)' : 'currentColor'} />
-                    {isWishlisted ? 'In Wishlist' : 'Add to Wishlist'}
-                  </button>
+                  {effectivePrice === 0 ? (
+                    <button
+                      className="btn btn-primary"
+                      style={{ width: '100%', justifyContent: 'center', marginBottom: '0.75rem' }}
+                      onClick={handleFreeEnroll}
+                      disabled={cartLoading}
+                      id="free-enroll-btn"
+                    >
+                      {cartLoading ? <div className="spinner spinner-sm" /> : <><Play size={18} /> Enroll for Free</>}
+                    </button>
+                  ) : (
+                    <button
+                      className="btn btn-primary"
+                      style={{ width: '100%', justifyContent: 'center', marginBottom: '0.75rem' }}
+                      onClick={handleAddToCart}
+                      disabled={cartLoading}
+                      id="add-to-cart-btn"
+                    >
+                      {cartLoading ? <div className="spinner spinner-sm" /> : <><ShoppingCart size={18} /> Add to Cart</>}
+                    </button>
+                  )}
+                  {user ? (
+                    <button
+                      className="btn btn-secondary"
+                      style={{ width: '100%', justifyContent: 'center' }}
+                      onClick={handleWishlist}
+                      id="wishlist-btn"
+                    >
+                      <Heart size={16} fill={isWishlisted ? 'var(--color-error)' : 'none'} color={isWishlisted ? 'var(--color-error)' : 'currentColor'} />
+                      {isWishlisted ? 'In Wishlist' : 'Add to Wishlist'}
+                    </button>
+                  ) : (
+                    <a href="/login" className="btn btn-ghost btn-sm" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}>
+                      Login to access course options
+                    </a>
+                  )}
                 </>
-              ) : !user ? (
-                <a href="/login" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                  Login to Enroll
-                </a>
               ) : null}
 
               {/* Includes */}

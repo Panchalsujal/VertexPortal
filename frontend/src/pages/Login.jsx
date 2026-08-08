@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { GraduationCap, Eye, EyeOff, LogIn } from 'lucide-react';
 import { login as loginApi } from '../api/auth.api';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../store/slices/authSlice';
 import toast from 'react-hot-toast';
 
 export default function Login() {

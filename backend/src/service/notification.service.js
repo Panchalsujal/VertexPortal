@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+import Enrollment from "../models/enrollment.model.js";
 import Notification from "../models/notification.model.js";
 import NotificationPreference from "../models/notificationPreference.model.js";
 
@@ -302,6 +303,48 @@ export async function dispatchNotification({
     email:
       emailResult,
   };
+}
+
+export async function notifyCourseEnrolledStudents({
+  courseId,
+  title,
+  message,
+  type = "system",
+  resourceType = null,
+  resourceId = null,
+  actionUrl = "",
+  metadata = null,
+}) {
+  if (!courseId) return;
+
+  try {
+    const enrollments = await Enrollment.find({
+      course: courseId,
+      status: { $in: ["active", "completed"] },
+    }).select("student").lean();
+
+    if (!enrollments || enrollments.length === 0) return;
+
+    const studentIds = enrollments.map(e => e.student.toString());
+
+    await Promise.allSettled(
+      studentIds.map(studentId =>
+        dispatchNotification({
+          userId: studentId,
+          title,
+          message,
+          type,
+          resourceType,
+          resourceId,
+          courseId,
+          actionUrl,
+          metadata,
+        })
+      )
+    );
+  } catch (err) {
+    console.error("Failed to notify course enrolled students:", err);
+  }
 }
 
 /*

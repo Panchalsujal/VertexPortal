@@ -11,17 +11,29 @@ export async function uploadCertificatePdf({ pdfBuffer, certificateNumber }) {
 
   const fileName = `${certificateNumber}-${timestamp}.pdf`;
 
-  const uploadResult = await imagekit.upload({
-    file: pdfBuffer.toString("base64"),
-    fileName,
-    folder: "/vertexportal/certificates",
-    useUniqueFileName: false,
-    overwriteFile: true,
-    tags: ["certificate", "course-completion"],
-  });
+  try {
+    const uploadResult = await imagekit.upload({
+      file: pdfBuffer.toString("base64"),
+      fileName,
+      folder: "/vertexportal/certificates",
+      useUniqueFileName: false,
+      overwriteFile: true,
+      tags: ["certificate", "course-completion"],
+    });
 
-  return {
-    certificateUrl: uploadResult.url,
-    certificateFileId: uploadResult.fileId,
-  };
+    return {
+      certificateUrl: uploadResult.url,
+      certificateFileId: uploadResult.fileId,
+    };
+  } catch (error) {
+    console.warn(
+      "ImageKit certificate upload failed; using Data URI fallback:",
+      error.message,
+    );
+    const dataUri = `data:application/pdf;base64,${pdfBuffer.toString("base64")}`;
+    return {
+      certificateUrl: dataUri,
+      certificateFileId: `fallback-${timestamp}`,
+    };
+  }
 }

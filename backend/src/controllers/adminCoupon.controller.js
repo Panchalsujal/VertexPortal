@@ -1,4 +1,5 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
+import Coupon from "../models/coupon.model.js";
 
 import {
   createCoupon,
@@ -174,7 +175,23 @@ export const restoreCouponController = asyncHandler(async (req, res) => {
 
 export const toggleCouponStatusController = asyncHandler(async (req, res) => {
   const { couponId } = req.params;
-  const { isActive } = req.body || {};
+  let { isActive } = req.body || {};
+
+  // If isActive not provided, auto-toggle by reading the current coupon
+  if (typeof isActive !== "boolean") {
+    if (isActive === "true") {
+      isActive = true;
+    } else if (isActive === "false") {
+      isActive = false;
+    } else {
+      // Auto-toggle: fetch current status and flip it
+      const existing = await Coupon.findById(couponId).select("isActive").lean();
+      if (!existing) {
+        return res.status(404).json({ success: false, message: "Coupon not found" });
+      }
+      isActive = !existing.isActive;
+    }
+  }
 
   const result = await updateCouponStatus({
     couponId,

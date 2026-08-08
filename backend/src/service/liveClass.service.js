@@ -8,6 +8,7 @@ import Enrollment from "../models/enrollment.model.js";
 
 import { validateObjectId } from "../utils/validator.js";
 import { ApiError } from "../utils/ApiError.js";
+import { notifyCourseEnrolledStudents } from "./notification.service.js";
 
 import { getPagination, buildPaginationMeta } from "../utils/pagination.js";
 
@@ -58,7 +59,7 @@ function normalizeMeetingUrl(value) {
   return parsedUrl.toString();
 }
 
-export async function createLiveClass({ instructorId, payload }) {
+export async function createLiveClass({ instructorId, userRole, payload }) {
   validateObjectId(instructorId, "instructor ID");
 
   const {
@@ -169,11 +170,15 @@ export async function createLiveClass({ instructorId, payload }) {
       ? recordingEnabled
       : parseBooleanQuery(recordingEnabled, "recordingEnabled");
 
-  const course = await Course.findOne({
+  const courseQuery = {
     _id: courseId,
-    instructor: instructorId,
     isActive: true,
-  })
+  };
+  if (userRole !== "admin") {
+    courseQuery.instructor = instructorId;
+  }
+
+  const course = await Course.findOne(courseQuery)
     .select(
       `
       title
@@ -188,7 +193,7 @@ export async function createLiveClass({ instructorId, payload }) {
   if (!course) {
     throw new ApiError(
       404,
-      "Course not found or you are not the course instructor",
+      "Course not found or you are not authorized to create live classes for this course",
     );
   }
 
@@ -292,19 +297,30 @@ export async function createLiveClass({ instructorId, payload }) {
 
     recordingEnabled: parsedRecordingEnabled ?? false,
 
-    status: "draft",
+    status: payload?.status || "scheduled",
 
-    isPublished: false,
+    isPublished: true,
 
-    publishedAt: null,
+    publishedAt: new Date(),
 
     isActive: true,
+  });
+
+  // Notify all enrolled students (in-app & email)
+  notifyCourseEnrolledStudents({
+    courseId: courseId,
+    type: "live_class",
+    title: `Live Class Scheduled: ${normalizedTitle}`,
+    message: `A new live class "${normalizedTitle}" has been scheduled for your course ${course.title || ''} on ${parsedStartsAt.toLocaleString()}.`,
+    resourceType: "live_class",
+    resourceId: liveClass._id,
+    actionUrl: `/student/live-classes`,
   });
 
   return liveClass;
 }
 
-export async function getInstructorLiveClasses({ instructorId, query = {} }) {
+export async function getInstructorLiveClasses({ instructorId, userRole, query = {} }) {
   validateObjectId(instructorId, "instructor ID");
 
   const {
@@ -319,9 +335,10 @@ export async function getInstructorLiveClasses({ instructorId, query = {} }) {
 
   const { page, limit, skip } = getPagination(query);
 
-  const filter = {
-    instructor: instructorId,
-  };
+  const filter = {};
+  if (userRole !== "admin") {
+    filter.instructor = instructorId;
+  }
 
   const searchFilter = buildSearchFilter(search, ["title", "description"]);
 
@@ -448,15 +465,18 @@ export async function getInstructorLiveClasses({ instructorId, query = {} }) {
 
 export async function getInstructorLiveClassById({
   instructorId,
+  userRole,
   liveClassId,
 }) {
   validateObjectId(instructorId, "instructor ID");
   validateObjectId(liveClassId, "live class ID");
 
-  const liveClass = await LiveClass.findOne({
-    _id: liveClassId,
-    instructor: instructorId,
-  })
+  const filter = { _id: liveClassId };
+  if (userRole !== "admin") {
+    filter.instructor = instructorId;
+  }
+
+  const liveClass = await LiveClass.findOne(filter)
     .select("+meetingPassword")
     .populate({
       path: "course",
@@ -479,7 +499,7 @@ export async function getInstructorLiveClassById({
   return liveClass;
 }
 
-export async function cancelLiveClass({ instructorId, liveClassId, reason }) {
+export async function cancelLiveClass({ instructorId, userRole, liveClassId, reason }) {
   validateObjectId(instructorId, "instructor ID");
   validateObjectId(liveClassId, "live class ID");
 
@@ -496,10 +516,12 @@ export async function cancelLiveClass({ instructorId, liveClassId, reason }) {
     );
   }
 
-  const liveClass = await LiveClass.findOne({
-    _id: liveClassId,
-    instructor: instructorId,
-  });
+  const filter = { _id: liveClassId };
+  if (userRole !== "admin") {
+    filter.instructor = instructorId;
+  }
+
+  const liveClass = await LiveClass.findOne(filter);
 
   if (!liveClass) {
     throw new ApiError(404, "Live class not found");
@@ -534,6 +556,7 @@ export async function cancelLiveClass({ instructorId, liveClassId, reason }) {
 
 export async function updateLiveClassStatus({
   instructorId,
+  userRole,
   liveClassId,
   status,
 }) {
@@ -546,10 +569,12 @@ export async function updateLiveClassStatus({
     "Live class status",
   );
 
-  const liveClass = await LiveClass.findOne({
-    _id: liveClassId,
-    instructor: instructorId,
-  });
+  const filter = { _id: liveClassId };
+  if (userRole !== "admin") {
+    filter.instructor = instructorId;
+  }
+
+  const liveClass = await LiveClass.findOne(filter);
 
   if (!liveClass) {
     throw new ApiError(404, "Live class not found");
@@ -658,7 +683,7 @@ export async function updateLiveClassStatus({
   };
 }
 
-export async function updateLiveClass({ instructorId, liveClassId, payload }) {
+export async function updateLiveClass({ instructorId, userRole, liveClassId, payload }) {
   validateObjectId(instructorId, "instructor ID");
   validateObjectId(liveClassId, "live class ID");
 
@@ -666,10 +691,12 @@ export async function updateLiveClass({ instructorId, liveClassId, payload }) {
     throw new ApiError(400, "At least one field is required for update");
   }
 
-  const liveClass = await LiveClass.findOne({
-    _id: liveClassId,
-    instructor: instructorId,
-  }).select("+meetingPassword");
+  const filter = { _id: liveClassId };
+  if (userRole !== "admin") {
+    filter.instructor = instructorId;
+  }
+
+  const liveClass = await LiveClass.findOne(filter).select("+meetingPassword");
 
   if (!liveClass) {
     throw new ApiError(404, "Live class not found");

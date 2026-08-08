@@ -10,13 +10,14 @@ import { buildSearchFilter } from "../utils/search.js";
 import AssignmentSubmission from "../models/assignmentSubmission.model.js";
 import User from "../models/user.model.js";
 import { escapeRegex } from "../utils/search.js";
-import { dispatchNotification } from "./notification.service.js";
+import { dispatchNotification, notifyCourseEnrolledStudents } from "./notification.service.js";
 import { uploadAssignmentSubmissionFiles } from "./assignmentUpload.service.js";
 import {
   parseBooleanQuery,
   parseEnumQuery,
   parseSortQuery,
   parseDateRange,
+  parseNumberQuery,
 } from "../utils/queryParser.js";
 import { validateObjectId } from "../utils/validator.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -89,7 +90,7 @@ function parseAllowedFileTypes(value) {
   ];
 }
 
-export async function createAssignment({ instructorId, payload }) {
+export async function createAssignment({ instructorId, userRole, payload }) {
   validateObjectId(instructorId, "instructor ID");
 
   const {
@@ -261,11 +262,15 @@ export async function createAssignment({ instructorId, payload }) {
 
   const instructorObjectId = new mongoose.Types.ObjectId(instructorId);
 
-  const course = await Course.findOne({
+  const courseQuery = {
     _id: courseObjectId,
-    instructor: instructorObjectId,
     isActive: true,
-  })
+  };
+  if (userRole !== "admin") {
+    courseQuery.instructor = instructorObjectId;
+  }
+
+  const course = await Course.findOne(courseQuery)
     .select(
       `
       title
@@ -280,7 +285,7 @@ export async function createAssignment({ instructorId, payload }) {
   if (!course) {
     throw new ApiError(
       404,
-      "Course not found or you are not the course instructor",
+      "Course not found or you are not authorized to create assignments for this course",
     );
   }
 
@@ -386,16 +391,27 @@ export async function createAssignment({ instructorId, payload }) {
 
     maxFileSizeInBytes: parsedMaxFileSize,
 
-    status: "draft",
-    isPublished: false,
-    publishedAt: null,
+    status: payload?.status || (payload?.isPublished === false ? "draft" : "published"),
+    isPublished: payload?.status === "draft" || payload?.isPublished === false ? false : true,
+    publishedAt: payload?.status === "draft" || payload?.isPublished === false ? null : new Date(),
     isActive: true,
+  });
+
+  // Notify all enrolled students (in-app & email)
+  notifyCourseEnrolledStudents({
+    courseId: courseObjectId,
+    type: "assignment",
+    title: `New Assignment: ${normalizedTitle}`,
+    message: `A new assignment "${normalizedTitle}" has been posted for your course ${course.title || ''}. Due: ${parsedDueAt ? new Date(parsedDueAt).toLocaleDateString() : 'N/A'}.`,
+    resourceType: "assignment",
+    resourceId: assignment._id,
+    actionUrl: `/student/assignments`,
   });
 
   return assignment;
 }
 
-export async function getInstructorAssignments({ instructorId, query = {} }) {
+export async function getInstructorAssignments({ instructorId, userRole, query = {} }) {
   validateObjectId(instructorId, "instructor ID");
 
   const {
@@ -414,9 +430,10 @@ export async function getInstructorAssignments({ instructorId, query = {} }) {
 
   const { page, limit, skip } = getPagination(query);
 
-  const filter = {
-    instructor: instructorId,
-  };
+  const filter = {};
+  if (userRole !== "admin") {
+    filter.instructor = instructorId;
+  }
 
   const searchFilter = buildSearchFilter(search, [
     "title",
@@ -636,16 +653,19 @@ export async function getInstructorAssignments({ instructorId, query = {} }) {
 
 export async function getInstructorAssignmentById({
   instructorId,
+  userRole,
   assignmentId,
 }) {
   validateObjectId(instructorId, "instructor ID");
 
   validateObjectId(assignmentId, "assignment ID");
 
-  const assignment = await Assignment.findOne({
-    _id: assignmentId,
-    instructor: instructorId,
-  })
+  const findQuery = { _id: assignmentId };
+  if (userRole !== "admin") {
+    findQuery.instructor = instructorId;
+  }
+
+  const assignment = await Assignment.findOne(findQuery)
     .populate({
       path: "course",
       select: `
@@ -887,6 +907,7 @@ export async function getInstructorAssignmentById({
 
 export async function updateAssignment({
   instructorId,
+  userRole,
   assignmentId,
   payload,
 }) {
@@ -897,15 +918,17 @@ export async function updateAssignment({
     throw new ApiError(400, "At least one field is required for update");
   }
 
-  const assignment = await Assignment.findOne({
-    _id: assignmentId,
-    instructor: instructorId,
-  });
+  const findQuery = { _id: assignmentId };
+  if (userRole !== "admin") {
+    findQuery.instructor = instructorId;
+  }
+
+  const assignment = await Assignment.findOne(findQuery);
 
   if (!assignment) {
     throw new ApiError(
       404,
-      "Assignment not found or you are not the assignment instructor",
+      "Assignment not found or you are not authorized to update this assignment",
     );
   }
 
@@ -1196,6 +1219,7 @@ export async function updateAssignment({
 
 export async function updateAssignmentStatus({
   instructorId,
+  userRole,
   assignmentId,
   status,
 }) {
@@ -1209,15 +1233,17 @@ export async function updateAssignmentStatus({
     "Assignment status",
   );
 
-  const assignment = await Assignment.findOne({
-    _id: assignmentId,
-    instructor: instructorId,
-  });
+  const findQuery = { _id: assignmentId };
+  if (userRole !== "admin") {
+    findQuery.instructor = instructorId;
+  }
+
+  const assignment = await Assignment.findOne(findQuery);
 
   if (!assignment) {
     throw new ApiError(
       404,
-      "Assignment not found or you are not the assignment instructor",
+      "Assignment not found or you are not authorized to update this assignment status",
     );
   }
 
@@ -1403,19 +1429,21 @@ export async function updateAssignmentStatus({
   };
 }
 
-export async function deleteAssignment({ instructorId, assignmentId }) {
+export async function deleteAssignment({ instructorId, userRole, assignmentId }) {
   validateObjectId(instructorId, "instructor ID");
   validateObjectId(assignmentId, "assignment ID");
 
-  const assignment = await Assignment.findOne({
-    _id: assignmentId,
-    instructor: instructorId,
-  });
+  const findQuery = { _id: assignmentId };
+  if (userRole !== "admin") {
+    findQuery.instructor = instructorId;
+  }
+
+  const assignment = await Assignment.findOne(findQuery);
 
   if (!assignment) {
     throw new ApiError(
       404,
-      "Assignment not found or you are not the assignment instructor",
+      "Assignment not found or you are not authorized to delete this assignment",
     );
   }
 
@@ -1463,19 +1491,21 @@ export async function deleteAssignment({ instructorId, assignmentId }) {
   };
 }
 
-export async function restoreAssignment({ instructorId, assignmentId }) {
+export async function restoreAssignment({ instructorId, userRole, assignmentId }) {
   validateObjectId(instructorId, "instructor ID");
   validateObjectId(assignmentId, "assignment ID");
 
-  const assignment = await Assignment.findOne({
-    _id: assignmentId,
-    instructor: instructorId,
-  });
+  const findQuery = { _id: assignmentId };
+  if (userRole !== "admin") {
+    findQuery.instructor = instructorId;
+  }
+
+  const assignment = await Assignment.findOne(findQuery);
 
   if (!assignment) {
     throw new ApiError(
       404,
-      "Assignment not found or you are not the assignment instructor",
+      "Assignment not found or you are not authorized to restore this assignment",
     );
   }
 
@@ -2359,6 +2389,7 @@ export async function createAssignmentSubmission({
 
 export async function getInstructorAssignmentSubmissions({
   instructorId,
+  userRole,
   assignmentId,
   query = {},
 }) {
@@ -2376,10 +2407,12 @@ export async function getInstructorAssignmentSubmissions({
 
   const { page, limit, skip } = getPagination(query);
 
-  const assignment = await Assignment.findOne({
-    _id: assignmentId,
-    instructor: instructorId,
-  })
+  const assignmentQuery = { _id: assignmentId };
+  if (userRole !== "admin") {
+    assignmentQuery.instructor = instructorId;
+  }
+
+  const assignment = await Assignment.findOne(assignmentQuery)
     .select(
       `
       title
@@ -2724,6 +2757,7 @@ export async function getInstructorAssignmentSubmissions({
 
 export async function getInstructorAssignmentSubmissionById({
   instructorId,
+  userRole,
   assignmentId,
   submissionId,
 }) {
@@ -2731,10 +2765,12 @@ export async function getInstructorAssignmentSubmissionById({
   validateObjectId(assignmentId, "assignment ID");
   validateObjectId(submissionId, "submission ID");
 
-  const assignment = await Assignment.findOne({
-    _id: assignmentId,
-    instructor: instructorId,
-  })
+  const assignmentQuery = { _id: assignmentId };
+  if (userRole !== "admin") {
+    assignmentQuery.instructor = instructorId;
+  }
+
+  const assignment = await Assignment.findOne(assignmentQuery)
     .select(
       `
       title
@@ -2877,6 +2913,7 @@ export async function getInstructorAssignmentSubmissionById({
 
 export async function gradeAssignmentSubmission({
   instructorId,
+  userRole,
   assignmentId,
   submissionId,
   payload,
@@ -2889,10 +2926,12 @@ export async function gradeAssignmentSubmission({
 
   const { marksAwarded, feedback = "", privateNote = "" } = payload || {};
 
-  const assignment = await Assignment.findOne({
-    _id: assignmentId,
-    instructor: instructorId,
-  })
+  const assignmentQuery = { _id: assignmentId };
+  if (userRole !== "admin") {
+    assignmentQuery.instructor = instructorId;
+  }
+
+  const assignment = await Assignment.findOne(assignmentQuery)
     .select(
       `
         title
@@ -3073,6 +3112,7 @@ export async function gradeAssignmentSubmission({
 
 export async function returnAssignmentSubmission({
   instructorId,
+  userRole,
   assignmentId,
   submissionId,
   returnReason,
@@ -3093,10 +3133,12 @@ export async function returnAssignmentSubmission({
     throw new ApiError(400, "Return reason cannot exceed 2000 characters");
   }
 
-  const assignment = await Assignment.findOne({
-    _id: assignmentId,
-    instructor: instructorId,
-  })
+  const assignmentQuery = { _id: assignmentId };
+  if (userRole !== "admin") {
+    assignmentQuery.instructor = instructorId;
+  }
+
+  const assignment = await Assignment.findOne(assignmentQuery)
     .select(
       `
         title
@@ -3598,15 +3640,17 @@ export async function getStudentAssignmentSubmissionById({
   };
 }
 
-export async function getAssignmentAnalytics({ instructorId, assignmentId }) {
+export async function getAssignmentAnalytics({ instructorId, userRole, assignmentId }) {
   validateObjectId(instructorId, "instructor ID");
 
   validateObjectId(assignmentId, "assignment ID");
 
-  const assignment = await Assignment.findOne({
-    _id: assignmentId,
-    instructor: instructorId,
-  })
+  const assignmentQuery = { _id: assignmentId };
+  if (userRole !== "admin") {
+    assignmentQuery.instructor = instructorId;
+  }
+
+  const assignment = await Assignment.findOne(assignmentQuery)
     .select(
       `
         title

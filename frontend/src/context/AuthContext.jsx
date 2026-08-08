@@ -1,45 +1,9 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { getMe, logout as logoutApi } from '../api/auth.api';
+// Backward-compatibility shim — AuthContext is replaced by Redux authSlice.
+// All imports of useAuth from this path continue to work unchanged.
+export { useAuth } from '../store/slices/authSlice';
 
-const AuthContext = createContext(null);
-
+// AuthProvider is no longer needed (Provider is in main.jsx) but kept as
+// a no-op so any existing JSX that wraps <AuthProvider> still compiles.
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const fetchMe = useCallback(async () => {
-    try {
-      const res = await getMe();
-      setUser(res.data.data.user);
-    } catch {
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchMe();
-  }, [fetchMe]);
-
-  const login = (userData) => setUser(userData);
-
-  const logout = async () => {
-    try { await logoutApi(); } catch { /* ignore */ }
-    setUser(null);
-  };
-
-  const refreshUser = fetchMe;
-
-  return (
-    <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
-  return ctx;
+  return children;
 }

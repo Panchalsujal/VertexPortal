@@ -1,12 +1,28 @@
 import { useState, useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { getAllCategories, createCategory, updateCategory, deleteCategory } from '../../api/category.api';
 import { getAllCoupons, createCoupon, updateCoupon, toggleCouponStatus, deleteCoupon } from '../../api/coupon.api';
+import {
+  fetchAdminCertificates,
+  issueCertificate,
+  revokeCertificate,
+  restoreCertificate,
+  regeneratePdf,
+  retryBulkCertificates,
+  selectAdminCertificates,
+  selectAdminCertificatesLoading,
+} from '../../store/slices/admin/certificatesSlice';
+import { adminDownloadCertificate } from '../../api/certificate.api';
 import { Modal } from '../../components/ui/Modal';
 import { Spinner } from '../../components/ui/Spinner';
-import { FolderPlus, Tag, Edit3, Trash2, ToggleLeft, ToggleRight, Plus, Shield } from 'lucide-react';
+import {
+  FolderPlus, Tag, Edit3, Trash2, ToggleLeft, ToggleRight, Plus, Shield,
+  Award, Download, RefreshCw, XCircle, RotateCcw, Send
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function AdminPanel() {
+  const dispatch = useAppDispatch();
   const [activeTab, setActiveTab] = useState('categories');
 
   // Category state
@@ -30,6 +46,18 @@ export default function AdminPanel() {
     usageLimit: 100,
     expiresAt: '',
   });
+
+  // Certificate state
+  const certificates = useAppSelector(selectAdminCertificates);
+  const certLoading = useAppSelector(selectAdminCertificatesLoading);
+  const [issueModalOpen, setIssueModalOpen] = useState(false);
+  const [issueForm, setIssueForm] = useState({ courseId: '', userEmail: '', enrollmentId: '' });
+  const [issuing, setIssuing] = useState(false);
+
+  // Revoke Modal State
+  const [revokeModalOpen, setRevokeModalOpen] = useState(false);
+  const [selectedCert, setSelectedCert] = useState(null);
+  const [revokeReason, setRevokeReason] = useState('');
 
   const fetchCategories = async () => {
     setCatLoading(true);
@@ -57,8 +85,9 @@ export default function AdminPanel() {
 
   useEffect(() => {
     if (activeTab === 'categories') fetchCategories();
-    else fetchCoupons();
-  }, [activeTab]);
+    else if (activeTab === 'coupons') fetchCoupons();
+    else if (activeTab === 'certificates') dispatch(fetchAdminCertificates());
+  }, [activeTab, dispatch]);
 
   // Category Handlers
   const handleSaveCategory = async (e) => {
@@ -102,6 +131,7 @@ export default function AdminPanel() {
         minOrderAmount: Number(couponForm.minOrderAmount),
         maxDiscountAmount: couponForm.maxDiscountAmount ? Number(couponForm.maxDiscountAmount) : null,
         usageLimit: couponForm.usageLimit ? Number(couponForm.usageLimit) : null,
+        expiresAt: couponForm.expiresAt ? new Date(couponForm.expiresAt).toISOString() : null,
       };
 
       if (activeCoupon) {
@@ -118,13 +148,16 @@ export default function AdminPanel() {
     }
   };
 
-  const handleToggleCoupon = async (id) => {
+  const handleToggleCoupon = async (id, currentIsActive) => {
+    // Optimistically update UI
+    setCoupons(prev => prev.map(c => c._id === id ? { ...c, isActive: !currentIsActive } : c));
     try {
-      await toggleCouponStatus(id);
-      toast.success('Coupon status updated');
-      fetchCoupons();
+      await toggleCouponStatus(id, !currentIsActive);
+      toast.success(`Coupon ${!currentIsActive ? 'activated' : 'deactivated'}`);
     } catch (err) {
-      toast.error(err.message);
+      // Revert on failure
+      setCoupons(prev => prev.map(c => c._id === id ? { ...c, isActive: currentIsActive } : c));
+      toast.error(err.response?.data?.message || err.message || 'Failed to toggle coupon');
     }
   };
 
@@ -139,6 +172,71 @@ export default function AdminPanel() {
     }
   };
 
+  // Certificate Handlers
+  const handleIssueCertificate = async (e) => {
+    e.preventDefault();
+    setIssuing(true);
+    const res = await dispatch(issueCertificate(issueForm));
+    setIssuing(false);
+    if (issueCertificate.fulfilled.match(res)) {
+      toast.success('Certificate issued successfully!');
+      setIssueModalOpen(false);
+    } else {
+      toast.error(res.payload || 'Failed to issue certificate');
+    }
+  };
+
+  const handleRevoke = async (e) => {
+    e.preventDefault();
+    if (!revokeReason.trim()) return;
+    const res = await dispatch(revokeCertificate({ id: selectedCert._id, reason: revokeReason }));
+    if (revokeCertificate.fulfilled.match(res)) {
+      toast.success('Certificate revoked');
+      setRevokeModalOpen(false);
+    } else {
+      toast.error(res.payload || 'Failed to revoke certificate');
+    }
+  };
+
+  const handleRestore = async (id) => {
+    const res = await dispatch(restoreCertificate(id));
+    if (restoreCertificate.fulfilled.match(res)) toast.success('Certificate restored');
+    else toast.error(res.payload || 'Failed to restore certificate');
+  };
+
+  const handleRegeneratePdf = async (id) => {
+    toast.loading('Regenerating PDF...', { id: 'pdf-regen' });
+    const res = await dispatch(regeneratePdf(id));
+    if (regeneratePdf.fulfilled.match(res)) toast.success('PDF regenerated!', { id: 'pdf-regen' });
+    else toast.error(res.payload || 'PDF regeneration failed', { id: 'pdf-regen' });
+  };
+
+  const handleDownloadAdminPdf = async (certId, title) => {
+    try {
+      const res = await adminDownloadCertificate(certId);
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Certificate-${title || certId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Downloaded!');
+    } catch (err) {
+      toast.error(err.message || 'Download failed');
+    }
+  };
+
+  const handleRetryBulk = async () => {
+    const res = await dispatch(retryBulkCertificates());
+    if (retryBulkCertificates.fulfilled.match(res)) {
+      toast.success(res.payload?.message || 'Bulk retry completed');
+      dispatch(fetchAdminCertificates());
+    } else {
+      toast.error(res.payload || 'Retry failed');
+    }
+  };
+
   return (
     <div className="page-wrapper">
       <div style={{ background: 'var(--color-bg-secondary)', borderBottom: '1px solid var(--color-border)', padding: '2.5rem 0' }}>
@@ -147,16 +245,27 @@ export default function AdminPanel() {
             <h1 style={{ marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Shield size={28} color="var(--color-primary-light)" /> Admin Panel
             </h1>
-            <p>Manage system categories, coupons, and global configurations</p>
+            <p>Manage system categories, coupons, certificates, and global configurations</p>
           </div>
-          {activeTab === 'categories' ? (
+          {activeTab === 'categories' && (
             <button className="btn btn-primary" onClick={() => { setActiveCat(null); setCatForm({ name: '', description: '' }); setCatModalOpen(true); }}>
               <FolderPlus size={18} /> Add Category
             </button>
-          ) : (
+          )}
+          {activeTab === 'coupons' && (
             <button className="btn btn-primary" onClick={() => { setActiveCoupon(null); setCouponForm({ code: '', discountType: 'percentage', discountValue: 10, maxDiscountAmount: '', minOrderAmount: 0, usageLimit: 100, expiresAt: '' }); setCouponModalOpen(true); }}>
               <Plus size={18} /> Create Coupon
             </button>
+          )}
+          {activeTab === 'certificates' && (
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button className="btn btn-secondary" onClick={handleRetryBulk} title="Retry Failed Issuances">
+                <RotateCcw size={16} /> Bulk Retry
+              </button>
+              <button className="btn btn-primary" onClick={() => { setIssueForm({ courseId: '', userEmail: '', enrollmentId: '' }); setIssueModalOpen(true); }}>
+                <Award size={18} /> Issue Certificate
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -169,6 +278,9 @@ export default function AdminPanel() {
           </button>
           <button className={`tab-btn ${activeTab === 'coupons' ? 'active' : ''}`} onClick={() => setActiveTab('coupons')}>
             Coupons ({coupons.length})
+          </button>
+          <button className={`tab-btn ${activeTab === 'certificates' ? 'active' : ''}`} onClick={() => setActiveTab('certificates')}>
+            <Award size={15} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Certificates ({certificates.length})
           </button>
         </div>
 
@@ -233,7 +345,7 @@ export default function AdminPanel() {
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
-                      <button className="btn btn-ghost btn-sm" onClick={() => handleToggleCoupon(cop._id)}>
+                      <button className="btn btn-ghost btn-sm" onClick={() => handleToggleCoupon(cop._id, cop.isActive)}>
                         {cop.isActive ? <ToggleRight size={18} color="var(--color-success)" /> : <ToggleLeft size={18} />}
                       </button>
                       <button className="btn btn-ghost btn-sm" onClick={() => { setActiveCoupon(cop); setCouponForm({ code: cop.code, discountType: cop.discountType, discountValue: cop.discountValue, maxDiscountAmount: cop.maxDiscountAmount || '', minOrderAmount: cop.minOrderAmount || 0, usageLimit: cop.usageLimit || '', expiresAt: cop.expiresAt ? cop.expiresAt.split('T')[0] : '' }); setCouponModalOpen(true); }}>
@@ -250,6 +362,59 @@ export default function AdminPanel() {
               <div className="empty-state">
                 <div className="empty-state-icon"><Tag size={48} /></div>
                 <h3>No coupons created</h3>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Certificates Tab */}
+        {activeTab === 'certificates' && (
+          <div>
+            {certLoading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}><Spinner /></div>
+            ) : certificates.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {certificates.map(cert => (
+                  <div key={cert._id} className="glass-card" style={{ padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
+                        <span className="badge badge-primary">{cert.course?.title || cert.courseTitle || 'Course'}</span>
+                        <span className={`badge ${cert.isRevoked ? 'badge-danger' : 'badge-success'}`}>
+                          {cert.isRevoked ? 'Revoked' : 'Active'}
+                        </span>
+                      </div>
+                      <h4 style={{ fontSize: '1rem', fontWeight: 600 }}>{cert.user?.fullName || cert.userEmail || cert.userName || 'Student'}</h4>
+                      <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
+                        Code: <code style={{ color: 'var(--color-primary-light)' }}>{cert.verificationCode || cert._id}</code>
+                        {' · '} Issued: {new Date(cert.issuedAt || cert.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <button className="btn btn-secondary btn-sm" onClick={() => handleDownloadAdminPdf(cert._id, cert.course?.title)} title="Download PDF">
+                        <Download size={14} /> PDF
+                      </button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => handleRegeneratePdf(cert._id)} title="Regenerate PDF">
+                        <RefreshCw size={14} />
+                      </button>
+                      {cert.isRevoked ? (
+                        <button className="btn btn-secondary btn-sm" onClick={() => handleRestore(cert._id)}>
+                          <RotateCcw size={14} /> Restore
+                        </button>
+                      ) : (
+                        <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-error)' }} onClick={() => { setSelectedCert(cert); setRevokeReason(''); setRevokeModalOpen(true); }}>
+                          <XCircle size={14} /> Revoke
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state">
+                <div className="empty-state-icon"><Award size={48} /></div>
+                <h3>No certificates found</h3>
+                <p>Certificates earned by students will appear here.</p>
               </div>
             )}
           </div>
@@ -301,7 +466,45 @@ export default function AdminPanel() {
               <input type="number" min="1" className="input-field" placeholder="Unlimited" value={couponForm.usageLimit} onChange={e => setCouponForm(f => ({ ...f, usageLimit: e.target.value }))} />
             </div>
           </div>
+          <div className="input-group">
+            <label className="input-label">Expiry Date</label>
+            <input type="date" className="input-field" value={couponForm.expiresAt} onChange={e => setCouponForm(f => ({ ...f, expiresAt: e.target.value }))} />
+          </div>
           <button type="submit" className="btn btn-primary" style={{ justifyContent: 'center' }}>Save Coupon</button>
+        </form>
+      </Modal>
+
+      {/* Manual Issue Certificate Modal */}
+      <Modal isOpen={issueModalOpen} onClose={() => !issuing && setIssueModalOpen(false)} title="Manually Issue Certificate">
+        <form onSubmit={handleIssueCertificate} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="input-group">
+            <label className="input-label">Course ID *</label>
+            <input type="text" className="input-field" placeholder="MongoDB Course ObjectId" value={issueForm.courseId} onChange={e => setIssueForm(f => ({ ...f, courseId: e.target.value }))} required />
+          </div>
+          <div className="input-group">
+            <label className="input-label">User Email *</label>
+            <input type="email" className="input-field" placeholder="student@example.com" value={issueForm.userEmail} onChange={e => setIssueForm(f => ({ ...f, userEmail: e.target.value }))} required />
+          </div>
+          <div className="input-group">
+            <label className="input-label">Enrollment ID (Optional)</label>
+            <input type="text" className="input-field" placeholder="MongoDB Enrollment ObjectId" value={issueForm.enrollmentId} onChange={e => setIssueForm(f => ({ ...f, enrollmentId: e.target.value }))} />
+          </div>
+          <button type="submit" className="btn btn-primary" style={{ justifyContent: 'center' }} disabled={issuing}>
+            {issuing ? <><Spinner size={16} /> Issuing…</> : <><Send size={16} /> Issue Certificate</>}
+          </button>
+        </form>
+      </Modal>
+
+      {/* Revoke Modal */}
+      <Modal isOpen={revokeModalOpen} onClose={() => setRevokeModalOpen(false)} title={`Revoke Certificate: ${selectedCert?.verificationCode || selectedCert?._id}`}>
+        <form onSubmit={handleRevoke} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="input-group">
+            <label className="input-label">Revocation Reason *</label>
+            <textarea className="input-field" rows={3} placeholder="Reason for revoking this certificate..." value={revokeReason} onChange={e => setRevokeReason(e.target.value)} required />
+          </div>
+          <button type="submit" className="btn btn-primary" style={{ background: 'var(--color-error)', borderColor: 'var(--color-error)', justifyContent: 'center' }}>
+            Confirm Revocation
+          </button>
         </form>
       </Modal>
     </div>

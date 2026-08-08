@@ -205,8 +205,7 @@ export async function sendNotificationEmail({
   }
 
   const emailEnabled =
-    preferences?.email?.[type] ??
-    false;
+    preferences ? (preferences?.email?.[type] ?? true) : true;
 
   if (!emailEnabled) {
     return {

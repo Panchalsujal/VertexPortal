@@ -55,7 +55,12 @@ export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
       await addToCart(course._id);
       toast.success('Added to cart!');
     } catch (err) {
-      toast.error(err.message);
+      if (err.message?.toLowerCase().includes('already enrolled')) {
+        toast.success('You are already enrolled! Opening course...');
+        navigate(`/learn/${course._id}`);
+      } else {
+        toast.error(err.message);
+      }
     } finally {
       setCartLoading(false);
     }

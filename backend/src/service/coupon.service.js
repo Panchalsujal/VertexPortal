@@ -86,10 +86,14 @@ export const parseCouponDate = (
   }
 
   if (value === null || value === "") {
-    throw new ApiError(
-      400,
-      `${fieldName} cannot be empty`,
-    );
+    if (required) {
+      throw new ApiError(
+        400,
+        `${fieldName} cannot be empty`,
+      );
+    }
+
+    return null;
   }
 
   const parsedDate = new Date(value);

@@ -18,6 +18,7 @@ import {
 export const createAssignmentController = asyncHandler(async (req, res) => {
   const assignment = await createAssignment({
     instructorId: req.user.id,
+    userRole: req.user.role,
     payload: req.body,
   });
 
@@ -32,6 +33,7 @@ export const getInstructorAssignmentsController = asyncHandler(
   async (req, res) => {
     const result = await getInstructorAssignments({
       instructorId: req.user.id,
+      userRole: req.user.role,
       query: req.query,
     });
 
@@ -49,6 +51,7 @@ export const getInstructorAssignmentByIdController = asyncHandler(
 
     const result = await getInstructorAssignmentById({
       instructorId: req.user.id,
+      userRole: req.user.role,
       assignmentId,
     });
 
@@ -65,6 +68,7 @@ export const updateAssignmentController = asyncHandler(async (req, res) => {
 
   const result = await updateAssignment({
     instructorId: req.user.id,
+    userRole: req.user.role,
     assignmentId,
     payload: req.body,
   });
@@ -83,6 +87,7 @@ export const updateAssignmentStatusController = asyncHandler(
 
     const result = await updateAssignmentStatus({
       instructorId: req.user.id,
+      userRole: req.user.role,
       assignmentId,
       status,
     });
@@ -100,6 +105,7 @@ export const deleteAssignmentController = asyncHandler(async (req, res) => {
 
   const result = await deleteAssignment({
     instructorId: req.user.id,
+    userRole: req.user.role,
     assignmentId,
   });
 
@@ -115,6 +121,7 @@ export const restoreAssignmentController = asyncHandler(async (req, res) => {
 
   const result = await restoreAssignment({
     instructorId: req.user.id,
+    userRole: req.user.role,
     assignmentId,
   });
 
@@ -131,6 +138,7 @@ export const getInstructorAssignmentSubmissionsController = asyncHandler(
 
     const result = await getInstructorAssignmentSubmissions({
       instructorId: req.user.id,
+      userRole: req.user.role,
       assignmentId,
       query: req.query,
     });
@@ -149,6 +157,7 @@ export const getInstructorAssignmentSubmissionByIdController = asyncHandler(
 
     const result = await getInstructorAssignmentSubmissionById({
       instructorId: req.user.id,
+      userRole: req.user.role,
       assignmentId,
       submissionId,
     });
@@ -167,6 +176,7 @@ export const gradeAssignmentSubmissionController = asyncHandler(
 
     const result = await gradeAssignmentSubmission({
       instructorId: req.user.id,
+      userRole: req.user.role,
       assignmentId,
       submissionId,
       payload: req.body,
@@ -215,6 +225,7 @@ export const returnAssignmentSubmissionController = asyncHandler(
 
     const result = await returnAssignmentSubmission({
       instructorId: req.user.id,
+      userRole: req.user.role,
       assignmentId,
       submissionId,
       returnReason,
@@ -253,6 +264,7 @@ export const getAssignmentAnalyticsController = asyncHandler(
 
     const analytics = await getAssignmentAnalytics({
       instructorId: req.user.id,
+      userRole: req.user.role,
       assignmentId,
     });
 

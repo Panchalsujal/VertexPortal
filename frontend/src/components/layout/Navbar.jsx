@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
   BookOpen, ShoppingCart, Heart, User, LogOut, Settings,
-  LayoutDashboard, ChevronDown, Menu, X, GraduationCap, Shield,
+  LayoutDashboard, ChevronDown, Menu, X, GraduationCap, Shield, Bell, Award, HelpCircle, FileText, Video, Megaphone
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -45,8 +45,23 @@ export function Navbar() {
         {/* Nav Links */}
         <ul className="navbar-nav">
           <li><NavLink to="/courses">Browse Courses</NavLink></li>
+          {user && user.role === 'student' && (
+            <>
+              <li><NavLink to="/student/live-classes">Live Classes</NavLink></li>
+              <li><NavLink to="/student/quizzes">Quizzes</NavLink></li>
+              <li><NavLink to="/student/assignments">Assignments</NavLink></li>
+              <li><NavLink to="/student/announcements">Announcements</NavLink></li>
+              <li><NavLink to="/certificates">Certificates</NavLink></li>
+            </>
+          )}
           {user && (user.role === 'instructor' || user.role === 'admin') && (
-            <li><NavLink to="/instructor/dashboard">Instructor</NavLink></li>
+            <>
+              <li><NavLink to="/instructor/dashboard">Instructor</NavLink></li>
+              <li><NavLink to="/instructor/live-classes">Live Classes</NavLink></li>
+              <li><NavLink to="/instructor/quizzes">Quizzes</NavLink></li>
+              <li><NavLink to="/instructor/assignments">Assignments</NavLink></li>
+              <li><NavLink to="/instructor/announcements">Announcements</NavLink></li>
+            </>
           )}
           {user && user.role === 'admin' && (
             <li><NavLink to="/admin">Admin</NavLink></li>
@@ -57,6 +72,10 @@ export function Navbar() {
         <div className="navbar-actions">
           {user ? (
             <>
+              {/* Notifications */}
+              <Link to="/notifications" className="navbar-icon-btn" title="Notifications">
+                <Bell size={18} />
+              </Link>
               {/* Cart */}
               {user.role === 'student' && (
                 <Link to="/cart" className="navbar-icon-btn" title="Cart">
@@ -105,6 +124,14 @@ export function Navbar() {
 
                     <Link to="/profile" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
                       <User size={16} /> Profile
+                    </Link>
+
+                    <Link to="/notifications" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                      <Bell size={16} /> Notifications
+                    </Link>
+
+                    <Link to="/certificates" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                      <Award size={16} /> My Certificates
                     </Link>
 
                     {user.role === 'student' && (
