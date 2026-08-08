@@ -158,11 +158,22 @@ export const getAllCoursesController = asyncHandler(async (req, res) => {
   const limitNumber = Math.min(Math.max(Number(limit) || 10, 1), 50);
   const skip = (pageNumber - 1) * limitNumber;
 
-  const filter = {
-    status: "published",
-    isPublished: true,
-    isActive: true,
-  };
+  const filter = {};
+
+  if (req.user && (req.user.role === "admin" || req.user.role === "instructor")) {
+    if (req.user.role === "admin") {
+      filter.isActive = true;
+    } else {
+      filter.$or = [
+        { status: "published", isPublished: true, isActive: true },
+        { instructor: req.user.id, isActive: true },
+      ];
+    }
+  } else {
+    filter.status = "published";
+    filter.isPublished = true;
+    filter.isActive = true;
+  }
 
   if (search?.trim()) {
     filter.$text = {

@@ -32,7 +32,7 @@ export default function CourseForm() {
   });
 
   useEffect(() => {
-    getAllCategories().then(r => setCategories(r.data.data?.categories || r.data.data || [])).catch(() => {});
+    getAllCategories().then(r => setCategories(r.data.categories || r.data.data?.categories || r.data.data || [])).catch(() => {});
 
     if (isEdit) {
       // Find course by ID or slug
@@ -106,8 +106,8 @@ export default function CourseForm() {
         toast.success('Course updated successfully');
       } else {
         const res = await createCourse(payload);
-        const created = res.data.data?.course || res.data.data;
-        id = created._id;
+        const created = res.data.course || res.data.data?.course || res.data.data || res.data;
+        id = created?._id;
         toast.success('Course created successfully!');
       }
 

@@ -71,12 +71,12 @@ export const getAdminCertificatesController = asyncHandler(async (req, res) => {
 export const revokeCertificateController = asyncHandler(async (req, res) => {
   const { certificateId } = req.params;
 
-  const { revocationReason } = req.body || {};
+  const { revocationReason, reason } = req.body || {};
 
   const result = await revokeCertificate({
     certificateId,
     revokedBy: req.user.id,
-    revocationReason,
+    revocationReason: revocationReason || reason,
   });
 
   if (result.changed) {

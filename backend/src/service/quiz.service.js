@@ -26,7 +26,7 @@ import { buildSearchFilter } from "../utils/search.js";
 import { randomBytes } from "node:crypto";
 import { shuffleWithSeed } from "../utils/shuffle.js";
 
-export async function createQuiz({ instructorId, payload }) {
+export async function createQuiz({ instructorId, userRole, payload }) {
   validateObjectId(instructorId, "instructor ID");
 
   const {
@@ -152,11 +152,15 @@ export async function createQuiz({ instructorId, payload }) {
 
   const instructorObjectId = new mongoose.Types.ObjectId(instructorId);
 
-  const course = await Course.findOne({
+  const courseQuery = {
     _id: courseObjectId,
-    instructor: instructorObjectId,
     isActive: true,
-  })
+  };
+  if (userRole !== "admin") {
+    courseQuery.instructor = instructorObjectId;
+  }
+
+  const course = await Course.findOne(courseQuery)
     .select("title status isPublished isActive instructor")
     .lean();
 
@@ -248,7 +252,7 @@ export async function createQuiz({ instructorId, payload }) {
   return quiz;
 }
 
-export async function addQuizQuestion({ instructorId, quizId, payload }) {
+export async function addQuizQuestion({ instructorId, userRole, quizId, payload }) {
   validateObjectId(instructorId, "instructor ID");
 
   validateObjectId(quizId, "quiz ID");
@@ -266,11 +270,15 @@ export async function addQuizQuestion({ instructorId, quizId, payload }) {
     order = null,
   } = payload || {};
 
-  const quiz = await Quiz.findOne({
+  const quizQuery = {
     _id: quizId,
-    instructor: instructorId,
     isActive: true,
-  });
+  };
+  if (userRole !== "admin") {
+    quizQuery.instructor = instructorId;
+  }
+
+  const quiz = await Quiz.findOne(quizQuery);
 
   if (!quiz) {
     throw new ApiError(
@@ -438,15 +446,17 @@ export async function addQuizQuestion({ instructorId, quizId, payload }) {
   };
 }
 
-export async function getInstructorQuizById({ instructorId, quizId }) {
+export async function getInstructorQuizById({ instructorId, userRole, quizId }) {
   validateObjectId(instructorId, "instructor ID");
 
   validateObjectId(quizId, "quiz ID");
 
-  const quiz = await Quiz.findOne({
-    _id: quizId,
-    instructor: instructorId,
-  })
+  const quizQuery = { _id: quizId };
+  if (userRole !== "admin") {
+    quizQuery.instructor = instructorId;
+  }
+
+  const quiz = await Quiz.findOne(quizQuery)
     .populate({
       path: "course",
       select: `
@@ -737,7 +747,7 @@ export async function getInstructorQuizById({ instructorId, quizId }) {
   };
 }
 
-export async function getInstructorQuizzes({ instructorId, query = {} }) {
+export async function getInstructorQuizzes({ instructorId, userRole, query = {} }) {
   validateObjectId(instructorId, "instructor ID");
 
   const {
@@ -754,9 +764,10 @@ export async function getInstructorQuizzes({ instructorId, query = {} }) {
 
   const { page, limit, skip } = getPagination(query);
 
-  const filter = {
-    instructor: instructorId,
-  };
+  const filter = {};
+  if (userRole !== "admin") {
+    filter.instructor = instructorId;
+  }
 
   const searchFilter = buildSearchFilter(search, [
     "title",
@@ -921,7 +932,7 @@ export async function getInstructorQuizzes({ instructorId, query = {} }) {
     },
   };
 }
-export async function updateQuiz({ instructorId, quizId, payload }) {
+export async function updateQuiz({ instructorId, userRole, quizId, payload }) {
   validateObjectId(instructorId, "instructor ID");
 
   validateObjectId(quizId, "quiz ID");
@@ -930,10 +941,12 @@ export async function updateQuiz({ instructorId, quizId, payload }) {
     throw new ApiError(400, "At least one field is required for update");
   }
 
-  const quiz = await Quiz.findOne({
-    _id: quizId,
-    instructor: instructorId,
-  });
+  const quizQuery = { _id: quizId };
+  if (userRole !== "admin") {
+    quizQuery.instructor = instructorId;
+  }
+
+  const quiz = await Quiz.findOne(quizQuery);
 
   if (!quiz) {
     throw new ApiError(
@@ -1212,7 +1225,7 @@ export async function updateQuiz({ instructorId, quizId, payload }) {
   };
 }
 
-export async function updateQuizStatus({ instructorId, quizId, status }) {
+export async function updateQuizStatus({ instructorId, userRole, quizId, status }) {
   validateObjectId(instructorId, "instructor ID");
 
   validateObjectId(quizId, "quiz ID");
@@ -1223,10 +1236,12 @@ export async function updateQuizStatus({ instructorId, quizId, status }) {
     "Quiz status",
   );
 
-  const quiz = await Quiz.findOne({
-    _id: quizId,
-    instructor: instructorId,
-  });
+  const quizQuery = { _id: quizId };
+  if (userRole !== "admin") {
+    quizQuery.instructor = instructorId;
+  }
+
+  const quiz = await Quiz.findOne(quizQuery);
 
   if (!quiz) {
     throw new ApiError(
@@ -1268,13 +1283,16 @@ export async function updateQuizStatus({ instructorId, quizId, status }) {
   }
 
   if (parsedStatus === "published") {
-    const course = await Course.findOne({
+    const courseQuery = {
       _id: quiz.course,
-      instructor: instructorId,
       status: "published",
       isPublished: true,
       isActive: true,
-    })
+    };
+    if (userRole !== "admin") {
+      courseQuery.instructor = instructorId;
+    }
+    const course = await Course.findOne(courseQuery)
       .select("_id title")
       .lean();
 
@@ -1461,6 +1479,7 @@ async function recalculateQuizTotals({ quizId, session = null }) {
 
 export async function updateQuizQuestion({
   instructorId,
+  userRole,
   quizId,
   questionId,
   payload,
@@ -1475,10 +1494,12 @@ export async function updateQuizQuestion({
     throw new ApiError(400, "At least one field is required for update");
   }
 
-  const quiz = await Quiz.findOne({
-    _id: quizId,
-    instructor: instructorId,
-  });
+  const quizQuery = { _id: quizId };
+  if (userRole !== "admin") {
+    quizQuery.instructor = instructorId;
+  }
+
+  const quiz = await Quiz.findOne(quizQuery);
 
   if (!quiz) {
     throw new ApiError(
@@ -1783,17 +1804,19 @@ export async function updateQuizQuestion({
   };
 }
 
-export async function deleteQuizQuestion({ instructorId, quizId, questionId }) {
+export async function deleteQuizQuestion({ instructorId, userRole, quizId, questionId }) {
   validateObjectId(instructorId, "instructor ID");
 
   validateObjectId(quizId, "quiz ID");
 
   validateObjectId(questionId, "question ID");
 
-  const quiz = await Quiz.findOne({
-    _id: quizId,
-    instructor: instructorId,
-  });
+  const quizQuery = { _id: quizId };
+  if (userRole !== "admin") {
+    quizQuery.instructor = instructorId;
+  }
+
+  const quiz = await Quiz.findOne(quizQuery);
 
   if (!quiz) {
     throw new ApiError(
@@ -1891,6 +1914,7 @@ export async function deleteQuizQuestion({ instructorId, quizId, questionId }) {
 
 export async function restoreQuizQuestion({
   instructorId,
+  userRole,
   quizId,
   questionId,
 }) {
@@ -1900,10 +1924,12 @@ export async function restoreQuizQuestion({
 
   validateObjectId(questionId, "question ID");
 
-  const quiz = await Quiz.findOne({
-    _id: quizId,
-    instructor: instructorId,
-  });
+  const quizQuery = { _id: quizId };
+  if (userRole !== "admin") {
+    quizQuery.instructor = instructorId;
+  }
+
+  const quiz = await Quiz.findOne(quizQuery);
 
   if (!quiz) {
     throw new ApiError(
@@ -4374,6 +4400,7 @@ export async function getStudentQuizAttemptById({
 
 export async function getInstructorQuizAttempts({
   instructorId,
+  userRole,
   quizId,
   query = {},
 }) {
@@ -4394,10 +4421,12 @@ export async function getInstructorQuizAttempts({
 
   const { page, limit, skip } = getPagination(query);
 
-  const quiz = await Quiz.findOne({
-    _id: quizId,
-    instructor: instructorId,
-  })
+  const quizQuery = { _id: quizId };
+  if (userRole !== "admin") {
+    quizQuery.instructor = instructorId;
+  }
+
+  const quiz = await Quiz.findOne(quizQuery)
     .select(
       `
       title
@@ -4800,6 +4829,7 @@ export async function getInstructorQuizAttempts({
 
 export async function getInstructorQuizAttemptById({
   instructorId,
+  userRole,
   quizId,
   attemptId,
 }) {
@@ -4807,10 +4837,12 @@ export async function getInstructorQuizAttemptById({
   validateObjectId(quizId, "quiz ID");
   validateObjectId(attemptId, "attempt ID");
 
-  const quiz = await Quiz.findOne({
-    _id: quizId,
-    instructor: instructorId,
-  })
+  const quizQuery = { _id: quizId };
+  if (userRole !== "admin") {
+    quizQuery.instructor = instructorId;
+  }
+
+  const quiz = await Quiz.findOne(quizQuery)
     .select(
       `
       title
@@ -4981,6 +5013,7 @@ export async function getInstructorQuizAttemptById({
 
 export async function evaluateQuizAnswerManually({
   instructorId,
+  userRole,
   quizId,
   attemptId,
   answerId,
@@ -4993,10 +5026,11 @@ export async function evaluateQuizAnswerManually({
 
   const { marksAwarded, isCorrect, evaluatorComment = "" } = payload || {};
 
-  const quiz = await Quiz.findOne({
-    _id: quizId,
-    instructor: instructorId,
-  }).lean();
+  const quizQuery = { _id: quizId };
+  if (userRole !== "admin") {
+    quizQuery.instructor = instructorId;
+  }
+  const quiz = await Quiz.findOne(quizQuery).lean();
 
   if (!quiz) {
     throw new ApiError(
@@ -5167,6 +5201,7 @@ async function recalculateQuizAttemptScore({ attemptId }) {
 
 export async function instructorSubmitQuizAttempt({
   instructorId,
+  userRole,
   quizId,
   attemptId,
 }) {
@@ -5174,10 +5209,11 @@ export async function instructorSubmitQuizAttempt({
   validateObjectId(quizId, "quiz ID");
   validateObjectId(attemptId, "attempt ID");
 
-  const quiz = await Quiz.findOne({
-    _id: quizId,
-    instructor: instructorId,
-  }).lean();
+  const quizQuery = { _id: quizId };
+  if (userRole !== "admin") {
+    quizQuery.instructor = instructorId;
+  }
+  const quiz = await Quiz.findOne(quizQuery).lean();
 
   if (!quiz) {
     throw new ApiError(
@@ -5266,14 +5302,16 @@ export async function updateQuizResultSettings({
   return quiz;
 }
 
-export async function deleteQuiz({ instructorId, quizId }) {
+export async function deleteQuiz({ instructorId, userRole, quizId }) {
   validateObjectId(instructorId, "instructor ID");
   validateObjectId(quizId, "quiz ID");
 
-  const quiz = await Quiz.findOne({
-    _id: quizId,
-    instructor: instructorId,
-  });
+  const quizQuery = { _id: quizId };
+  if (userRole !== "admin") {
+    quizQuery.instructor = instructorId;
+  }
+
+  const quiz = await Quiz.findOne(quizQuery);
 
   if (!quiz) {
     throw new ApiError(
@@ -5304,14 +5342,16 @@ export async function deleteQuiz({ instructorId, quizId }) {
   };
 }
 
-export async function restoreQuiz({ instructorId, quizId }) {
+export async function restoreQuiz({ instructorId, userRole, quizId }) {
   validateObjectId(instructorId, "instructor ID");
   validateObjectId(quizId, "quiz ID");
 
-  const quiz = await Quiz.findOne({
-    _id: quizId,
-    instructor: instructorId,
-  });
+  const quizQuery = { _id: quizId };
+  if (userRole !== "admin") {
+    quizQuery.instructor = instructorId;
+  }
+
+  const quiz = await Quiz.findOne(quizQuery);
 
   if (!quiz) {
     throw new ApiError(
@@ -5342,14 +5382,16 @@ export async function restoreQuiz({ instructorId, quizId }) {
   };
 }
 
-export async function getQuizAnalytics({ instructorId, quizId }) {
+export async function getQuizAnalytics({ instructorId, userRole, quizId }) {
   validateObjectId(instructorId, "instructor ID");
   validateObjectId(quizId, "quiz ID");
 
-  const quiz = await Quiz.findOne({
-    _id: quizId,
-    instructor: instructorId,
-  })
+  const quizQuery = { _id: quizId };
+  if (userRole !== "admin") {
+    quizQuery.instructor = instructorId;
+  }
+
+  const quiz = await Quiz.findOne(quizQuery)
     .select(
       `
       title

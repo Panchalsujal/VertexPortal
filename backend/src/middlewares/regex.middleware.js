@@ -1,3 +1,5 @@
+import Course  from "../models/course.model.js";
+
 export function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

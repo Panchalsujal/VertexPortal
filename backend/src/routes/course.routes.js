@@ -10,16 +10,16 @@ import {
   updateCourseThumbnailController,
   archiveCourseController,
 } from "../controllers/course.controller.js";
-import { authMiddleware } from "../middlewares/auth.middleware.js";
+import { authMiddleware, optionalAuthMiddleware } from "../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../middlewares/authorize.middleware.js";
 
 const router = Router();
 /**
- * @access Public
- * @desc Get all published courses
+ * @access Public (Optional Auth for instructor/admin)
+ * @desc Get all published courses (or all/draft courses if instructor/admin)
  * @api GET /api/courses
  */
-router.get("/", getAllCoursesController);
+router.get("/", optionalAuthMiddleware, getAllCoursesController);
 
 /**
  * @access Admin, Instructor

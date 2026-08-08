@@ -22,6 +22,7 @@ import {
 export const createQuizController = asyncHandler(async (req, res) => {
   const quiz = await createQuiz({
     instructorId: req.user.id,
+    userRole: req.user.role,
     payload: req.body,
   });
 
@@ -37,6 +38,7 @@ export const addQuizQuestionController = asyncHandler(async (req, res) => {
 
   const result = await addQuizQuestion({
     instructorId: req.user.id,
+    userRole: req.user.role,
     quizId,
     payload: req.body,
   });
@@ -55,6 +57,7 @@ export const getInstructorQuizByIdController = asyncHandler(
 
     const result = await getInstructorQuizById({
       instructorId: req.user.id,
+      userRole: req.user.role,
       quizId,
     });
 
@@ -69,6 +72,7 @@ export const getInstructorQuizByIdController = asyncHandler(
 export const getInstructorQuizzesController = asyncHandler(async (req, res) => {
   const result = await getInstructorQuizzes({
     instructorId: req.user.id,
+    userRole: req.user.role,
     query: req.query,
   });
 
@@ -84,6 +88,7 @@ export const updateQuizController = asyncHandler(async (req, res) => {
 
   const result = await updateQuiz({
     instructorId: req.user.id,
+    userRole: req.user.role,
     quizId,
     payload: req.body,
   });
@@ -101,6 +106,7 @@ export const updateQuizStatusController = asyncHandler(async (req, res) => {
 
   const result = await updateQuizStatus({
     instructorId: req.user.id,
+    userRole: req.user.role,
     quizId,
     status,
   });
@@ -117,6 +123,7 @@ export const updateQuizQuestionController = asyncHandler(async (req, res) => {
 
   const result = await updateQuizQuestion({
     instructorId: req.user.id,
+    userRole: req.user.role,
     quizId,
     questionId,
     payload: req.body,
@@ -135,6 +142,7 @@ export const deleteQuizQuestionController = asyncHandler(async (req, res) => {
 
   const result = await deleteQuizQuestion({
     instructorId: req.user.id,
+    userRole: req.user.role,
     quizId,
     questionId,
   });
@@ -160,6 +168,7 @@ export const restoreQuizQuestionController = asyncHandler(async (req, res) => {
 
   const result = await restoreQuizQuestion({
     instructorId: req.user.id,
+    userRole: req.user.role,
     quizId,
     questionId,
   });
@@ -191,6 +200,7 @@ export const getInstructorQuizAttemptsController = asyncHandler(
 
     const result = await getInstructorQuizAttempts({
       instructorId: req.user.id,
+      userRole: req.user.role,
       quizId,
       query: req.query,
     });
@@ -209,6 +219,7 @@ export const getInstructorQuizAttemptByIdController = asyncHandler(
 
     const result = await getInstructorQuizAttemptById({
       instructorId: req.user.id,
+      userRole: req.user.role,
       quizId,
       attemptId,
     });
@@ -226,6 +237,7 @@ export const evaluateQuizAnswerController = asyncHandler(async (req, res) => {
 
   const result = await evaluateQuizAnswerManually({
     instructorId: req.user.id,
+    userRole: req.user.role,
     quizId,
     attemptId,
     answerId,
@@ -246,6 +258,7 @@ export const instructorSubmitQuizAttemptController = asyncHandler(
 
     const result = await instructorSubmitQuizAttempt({
       instructorId: req.user.id,
+      userRole: req.user.role,
       quizId,
       attemptId,
     });
@@ -264,6 +277,7 @@ export const updateQuizResultSettingsController = asyncHandler(
 
     const quiz = await updateQuizResultSettings({
       instructorId: req.user.id,
+      userRole: req.user.role,
       quizId,
       payload: req.body,
     });
@@ -281,6 +295,7 @@ export const deleteQuizController = asyncHandler(async (req, res) => {
 
   const result = await deleteQuiz({
     instructorId: req.user.id,
+    userRole: req.user.role,
     quizId,
   });
 
@@ -296,6 +311,7 @@ export const restoreQuizController = asyncHandler(async (req, res) => {
 
   const result = await restoreQuiz({
     instructorId: req.user.id,
+    userRole: req.user.role,
     quizId,
   });
 
@@ -311,6 +327,7 @@ export const getQuizAnalyticsController = asyncHandler(async (req, res) => {
 
   const analytics = await getQuizAnalytics({
     instructorId: req.user.id,
+    userRole: req.user.role,
     quizId,
   });
 
