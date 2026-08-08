@@ -252,12 +252,11 @@ quizQuestionSchema.pre("validate", function (next) {
     if (
       !Array.isArray(this.acceptedAnswers) ||
       this.acceptedAnswers.length === 0
-    ) {
-      return next(
-        new Error(
+    ){
+
+       new Error(
           "Short answer question requires at least one accepted answer",
-        ),
-      );
+        )
     }
 
     this.options = [];
@@ -275,11 +274,9 @@ quizQuestionSchema.pre("validate", function (next) {
     ];
 
     if (this.acceptedAnswers.length === 0) {
-      return next(
-        new Error(
+      new Error(
           "Short answer question requires a valid accepted answer",
-        ),
-      );
+        )
     }
 
     this.correctAnswerText =
