@@ -140,8 +140,8 @@ export default function InstructorQuizzes() {
     setDetailLoading(true);
     try {
       const res = await getQuizAttempt(selectedQuizForAttempts._id, attempt._id);
-      const detail = res.data.attempt || res.data.data?.attempt || res.data;
-      setAttemptDetail(detail);
+      // API spreads result: { quiz, attempt, answers, evaluationSummary }
+      setAttemptDetail(res.data);
     } catch (err) {
       toast.error(err.response?.data?.message || err.message || 'Failed to load attempt');
     } finally {
@@ -152,9 +152,9 @@ export default function InstructorQuizzes() {
   const openEvalModal = (answer) => {
     setEvalAnswer(answer);
     setEvalForm({
-      marksAwarded: answer.marksAwarded ?? 0,
-      isCorrect: answer.isCorrect ?? false,
-      evaluatorComment: answer.evaluatorComment ?? '',
+      marksAwarded: answer.evaluation?.marksAwarded ?? 0,
+      isCorrect: answer.evaluation?.isCorrect ?? false,
+      evaluatorComment: answer.evaluation?.evaluatorComment ?? '',
     });
     setEvalModalOpen(true);
   };
@@ -173,7 +173,7 @@ export default function InstructorQuizzes() {
       setEvalModalOpen(false);
       // Reload detail
       const res = await getQuizAttempt(selectedQuizForAttempts._id, selectedAttempt._id);
-      setAttemptDetail(res.data.attempt || res.data.data?.attempt || res.data);
+      setAttemptDetail(res.data);
     } catch (err) {
       toast.error(err.response?.data?.message || err.message || 'Evaluation failed');
     } finally {
@@ -272,7 +272,9 @@ export default function InstructorQuizzes() {
   // ATTEMPT DETAIL + MARKING VIEW
   // ─────────────────────────────────────────────────────────────────────────────
   if (view === 'attempt-detail') {
-    const answers = attemptDetail?.answers || attemptDetail?.quizAnswers || [];
+    // answers array is at top level of API response
+    const answers = attemptDetail?.answers || [];
+    const attemptMeta = attemptDetail?.attempt || selectedAttempt;
     return (
       <div className="page-wrapper">
         <div style={{ background: 'var(--color-bg-secondary)', borderBottom: '1px solid var(--color-border)', padding: '2.5rem 0' }}>
@@ -281,15 +283,15 @@ export default function InstructorQuizzes() {
               <ChevronLeft size={16} /> Back to Submissions
             </button>
             <h1 style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>
-              Attempt — {selectedAttempt?.student?.fullName || 'Student'}
+              Attempt — {attemptMeta?.student?.fullName || selectedAttempt?.student?.fullName || 'Student'}
             </h1>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-              <span className={`badge ${attemptStatusColor(selectedAttempt?.status)}`}>{selectedAttempt?.status}</span>
-              <span>{attemptDetail?.obtainedMarks ?? '—'} / {attemptDetail?.totalMarks ?? '—'} marks</span>
-              {attemptDetail?.percentage != null && <span>{attemptDetail.percentage}%</span>}
-              {attemptDetail?.isPassed != null && (
-                <span style={{ color: attemptDetail.isPassed ? 'var(--color-success)' : 'var(--color-error)' }}>
-                  {attemptDetail.isPassed ? '✓ Passed' : '✗ Failed'}
+              <span className={`badge ${attemptStatusColor(attemptMeta?.status || selectedAttempt?.status)}`}>{attemptMeta?.status || selectedAttempt?.status}</span>
+              <span>{attemptMeta?.obtainedMarks ?? selectedAttempt?.obtainedMarks ?? '—'} / {attemptMeta?.totalMarks ?? selectedAttempt?.totalMarks ?? '—'} marks</span>
+              {(attemptMeta?.percentage ?? selectedAttempt?.percentage) != null && <span>{attemptMeta?.percentage ?? selectedAttempt?.percentage}%</span>}
+              {(attemptMeta?.isPassed ?? selectedAttempt?.isPassed) != null && (
+                <span style={{ color: (attemptMeta?.isPassed ?? selectedAttempt?.isPassed) ? 'var(--color-success)' : 'var(--color-error)' }}>
+                  {(attemptMeta?.isPassed ?? selectedAttempt?.isPassed) ? '✓ Passed' : '✗ Failed'}
                 </span>
               )}
             </div>
@@ -302,39 +304,43 @@ export default function InstructorQuizzes() {
           ) : answers.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {answers.map((ans, idx) => {
-                const needsManualMark = ans.question?.questionType === 'short_answer' && !ans.evaluatedAt;
+                // Answer shape: { _id, question:{questionText,questionType,marks}, response:{answerText,selectedOptionIds,isAnswered}, evaluation:{isCorrect,marksAwarded,maxMarks,evaluatedAt,evaluatorComment} }
+                const needsManualMark = ans.question?.questionType === 'short_answer' && !ans.evaluation?.evaluatedAt;
+                const studentAnswer = ans.response?.answerText ||
+                  (ans.response?.selectedOptionIds?.length
+                    ? ans.question?.options?.filter(o => ans.response.selectedOptionIds.includes(String(o._id))).map(o => o.text).join(', ')
+                    : null) || '(no answer)';
                 return (
-                  <div key={ans._id} className="glass-card" style={{ padding: '1.25rem', borderLeft: `3px solid ${ans.isCorrect === true ? 'var(--color-success)' : ans.isCorrect === false ? 'var(--color-error)' : 'var(--color-border)'}` }}>
+                  <div key={ans._id} className="glass-card" style={{ padding: '1.25rem', borderLeft: `3px solid ${ans.evaluation?.isCorrect === true ? 'var(--color-success)' : ans.evaluation?.isCorrect === false ? 'var(--color-error)' : 'var(--color-border)'}` }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                       <p style={{ fontWeight: 600, flex: 1 }}>
                         Q{idx + 1}. {ans.question?.questionText || 'Question'}
+                        <span style={{ fontWeight: 400, fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: 8 }}>({ans.question?.questionType})</span>
                       </p>
                       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        {ans.isCorrect === true && <CheckCircle size={18} color="var(--color-success)" />}
-                        {ans.isCorrect === false && <XCircle size={18} color="var(--color-error)" />}
-                        {ans.isCorrect == null && <Clock size={18} color="var(--text-muted)" />}
+                        {ans.evaluation?.isCorrect === true && <CheckCircle size={18} color="var(--color-success)" />}
+                        {ans.evaluation?.isCorrect === false && <XCircle size={18} color="var(--color-error)" />}
+                        {ans.evaluation?.isCorrect == null && <Clock size={18} color="var(--text-muted)" />}
                         <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>
-                          {ans.marksAwarded ?? '—'} / {ans.maxMarks ?? ans.question?.marks ?? '—'} marks
+                          {ans.evaluation?.marksAwarded ?? '—'} / {ans.evaluation?.maxMarks ?? ans.question?.marks ?? '—'} marks
                         </span>
                       </div>
                     </div>
 
                     <div style={{ marginTop: '0.75rem', fontSize: '0.875rem' }}>
                       <span style={{ color: 'var(--text-muted)' }}>Student answer: </span>
-                      <span style={{ fontWeight: 500 }}>
-                        {ans.answerText || ans.selectedOptionText || ans.selectedOption?.text || '(no answer)'}
-                      </span>
+                      <span style={{ fontWeight: 500 }}>{studentAnswer}</span>
                     </div>
 
-                    {ans.evaluatorComment && (
+                    {ans.evaluation?.evaluatorComment && (
                       <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: '0.5rem', fontStyle: 'italic' }}>
-                        Comment: {ans.evaluatorComment}
+                        Comment: {ans.evaluation.evaluatorComment}
                       </p>
                     )}
 
-                    {(needsManualMark || ['submitted', 'evaluated'].includes(selectedAttempt?.status)) && (
+                    {(['submitted', 'evaluated'].includes(attemptMeta?.status || selectedAttempt?.status)) && (
                       <button
-                        className={`btn btn-sm ${needsManualMark ? 'btn-primary' : 'btn-secondary'} `}
+                        className={`btn btn-sm ${needsManualMark ? 'btn-primary' : 'btn-secondary'}`}
                         style={{ marginTop: '0.75rem' }}
                         onClick={() => openEvalModal(ans)}
                       >
@@ -358,10 +364,13 @@ export default function InstructorQuizzes() {
             <div style={{ background: 'var(--color-bg-secondary)', padding: '0.75rem', borderRadius: 'var(--radius-md)', fontSize: '0.875rem' }}>
               <p style={{ fontWeight: 600, marginBottom: '0.375rem' }}>{evalAnswer?.question?.questionText}</p>
               <p style={{ color: 'var(--text-muted)' }}>
-                Student: <strong>{evalAnswer?.answerText || evalAnswer?.selectedOptionText || '(no answer)'}</strong>
+                Student: <strong>{evalAnswer?.response?.answerText ||
+                  (evalAnswer?.response?.selectedOptionIds?.length
+                    ? evalAnswer?.question?.options?.filter(o => evalAnswer.response.selectedOptionIds.includes(String(o._id))).map(o => o.text).join(', ')
+                    : null) || '(no answer)'}</strong>
               </p>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>
-                Max marks: {evalAnswer?.maxMarks ?? evalAnswer?.question?.marks ?? '—'}
+                Max marks: {evalAnswer?.evaluation?.maxMarks ?? evalAnswer?.question?.marks ?? '—'}
               </p>
             </div>
 
@@ -370,7 +379,7 @@ export default function InstructorQuizzes() {
                 <label className="input-label">Marks Awarded *</label>
                 <input
                   type="number" min="0"
-                  max={evalAnswer?.maxMarks ?? evalAnswer?.question?.marks ?? 100}
+                  max={evalAnswer?.evaluation?.maxMarks ?? evalAnswer?.question?.marks ?? 100}
                   step="0.5"
                   className="input-field"
                   value={evalForm.marksAwarded}
