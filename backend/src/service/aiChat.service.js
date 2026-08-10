@@ -62,30 +62,79 @@ function extractAssistantText(content) {
 
 /*
  * ============================================
- * BUILD RAG CONTEXT
+ * BUILD GROUPED RAG CONTEXT
  * ============================================
+ *
+ * Same resource ke multiple chunks ko
+ * same Source number milega.
  */
-
 function buildRagContext(results) {
   if (!Array.isArray(results) || results.length === 0) {
     return "";
   }
 
-  return results
-    .map((result, index) => {
+  const groupedSources = new Map();
+
+  for (const result of results) {
+    const resourceType = String(result.resourceType || "");
+
+    const resourceId = String(result.resourceId || "");
+
+    if (!resourceType || !resourceId) {
+      continue;
+    }
+
+    const key = `${resourceType}:${resourceId}`;
+
+    if (!groupedSources.has(key)) {
+      groupedSources.set(key, {
+        resourceType,
+
+        resourceId,
+
+        title: result.title || "",
+
+        chunks: [],
+      });
+    }
+
+    const source = groupedSources.get(key);
+
+    source.chunks.push({
+      content: String(result.content || "").trim(),
+
+      score: Number(result.score || 0),
+
+      chunkIndex: result.chunkIndex,
+    });
+  }
+
+  return Array.from(groupedSources.values())
+    .map((source, index) => {
+      /*
+       * Highest score first.
+       */
+      const chunks = [...source.chunks].sort((a, b) => b.score - a.score);
+
+      const combinedContent = chunks
+        .map((chunk, chunkIndex) =>
+          [`Chunk ${chunkIndex + 1}:`, chunk.content].join("\n"),
+        )
+        .join("\n\n");
+
       return [
         `[Source ${index + 1}]`,
 
-        `Title: ${result.title || ""}`,
+        `Title: ${source.title}`,
 
-        `Type: ${result.resourceType || ""}`,
+        `Type: ${source.resourceType}`,
 
-        result.lecture ? `Lecture ID: ${result.lecture}` : null,
+        `Resource ID: ${source.resourceId}`,
 
-        `Content: ${result.content || ""}`,
-      ]
-        .filter(Boolean)
-        .join("\n");
+        `Content:`,
+
+        combinedContent,
+      ].join("\n");
     })
     .join("\n\n");
 }
