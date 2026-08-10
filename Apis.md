@@ -38,6 +38,18 @@
 29. [Admin — Audit Log APIs](#29-admin--audit-log-apis)
 30. [Admin — Certificate APIs](#30-admin--certificate-apis)
 31. [Admin — Live Class APIs](#31-admin--live-class-apis)
+32. [Discussion APIs](#32-discussion-apis)
+33. [Discussion Report APIs](#33-discussion-report-apis)
+34. [Admin — Discussion Report APIs](#34-admin--discussion-report-apis)
+35. [Student Notes APIs](#35-student-notes-apis)
+36. [Instructor Dashboard APIs](#36-instructor-dashboard-apis)
+37. [Admin Dashboard APIs](#37-admin-dashboard-apis)
+38. [Admin — Users APIs](#38-admin--users-apis)
+39. [Admin — Orders APIs](#39-admin--orders-apis)
+40. [Admin — Courses APIs](#40-admin--courses-apis)
+41. [AI Assistant APIs](#41-ai-assistant-apis)
+42. [RAG — Knowledge Search APIs](#42-rag--knowledge-search-apis)
+43. [RAG — Indexing APIs](#43-rag--indexing-apis)
 
 ---
 
@@ -2149,6 +2161,54 @@
 
 ---
 
+### POST `/api/student/live-classes/:liveClassId/leave`
+
+**Access:** Student
+
+**URL Params:** `liveClassId`
+
+**Request:** No body required.
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Left live class successfully"
+}
+```
+
+---
+
+### GET `/api/student/live-classes/:liveClassId/resources`
+
+**Access:** Student
+
+**URL Params:** `liveClassId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": { "resources": [ { "title": "string", "url": "string", "type": "string" } ] }
+}
+```
+
+---
+
+### GET `/api/student/live-classes/attendance/history`
+
+**Access:** Student
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": { "history": [ { "liveClassId": "string", "joinedAt": "ISO date", "leftAt": "ISO date" } ] }
+}
+```
+
+---
+
 ## 22. Instructor Quiz APIs
 
 > Base: `/api/instructor/quizzes`
@@ -2933,6 +2993,92 @@
 {
   "success": true,
   "message": "Live class cancelled"
+}
+```
+
+---
+
+### GET `/api/instructor/live-classes/:liveClassId/analytics`
+
+**Access:** Instructor, Admin
+
+**URL Params:** `liveClassId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": {
+    "totalAttendees": 0,
+    "avgDuration": 0,
+    "peakConcurrentUsers": 0
+  }
+}
+```
+
+---
+
+### GET `/api/instructor/live-classes/:liveClassId/attendance`
+
+**Access:** Instructor, Admin
+
+**URL Params:** `liveClassId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": {
+    "attendance": [
+      { "studentId": "string", "studentName": "string", "joinedAt": "ISO date", "leftAt": "ISO date" }
+    ]
+  }
+}
+```
+
+---
+
+### GET `/api/instructor/live-classes/:liveClassId/attendance/analytics`
+
+**Access:** Instructor, Admin
+
+**URL Params:** `liveClassId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": {
+    "totalJoined": 0,
+    "avgSessionDuration": 0,
+    "dropOffRate": 0
+  }
+}
+```
+
+---
+
+### PATCH `/api/instructor/live-classes/:liveClassId/resources`
+
+**Access:** Instructor, Admin
+
+**URL Params:** `liveClassId`
+
+**Request Body:**
+```json
+{
+  "resources": [
+    { "title": "string (required)", "url": "string (required)", "type": "string (optional)" }
+  ]
+}
+```
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Resources updated successfully",
+  "liveClass": { "...updated live class with resources..." }
 }
 ```
 
@@ -3732,4 +3878,1478 @@
 
 ---
 
+## 32. Discussion APIs
+
+> Base: `/api/discussions`
+
+---
+
+### POST `/api/discussions`
+
+**Access:** Student, Instructor, Admin
+
+**Request Body:**
+```json
+{
+  "title": "string (required)",
+  "body": "string (required)",
+  "courseId": "string (required)",
+  "lectureId": "string (optional)",
+  "tags": ["string (optional)"]
+}
+```
+
+**Response `201`:**
+```json
+{
+  "success": true,
+  "message": "Discussion created successfully",
+  "discussion": { "...discussion object..." }
+}
+```
+
+---
+
+### GET `/api/discussions`
+
+**Access:** Student, Instructor, Admin
+
+**Query Params (optional):** `courseId`, `lectureId`, `page`, `limit`, `search`, `tag`, `resolved`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Discussions fetched successfully",
+  "discussions": [ { "...discussion objects..." } ],
+  "pagination": { "page": 1, "limit": 20, "total": 0, "pages": 1 }
+}
+```
+
+---
+
+### GET `/api/discussions/:discussionId`
+
+**Access:** Student, Instructor, Admin
+
+**URL Params:** `discussionId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Discussion fetched successfully",
+  "discussion": { "...discussion object with replies..." }
+}
+```
+
+---
+
+### PATCH `/api/discussions/:discussionId`
+
+**Access:** Discussion owner, Instructor, Admin
+
+**URL Params:** `discussionId`
+
+**Request Body:**
+```json
+{
+  "title": "string (optional)",
+  "body": "string (optional)",
+  "tags": ["string (optional)"]
+}
+```
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Discussion updated successfully",
+  "discussion": { "...updated discussion object..." }
+}
+```
+
+---
+
+### DELETE `/api/discussions/:discussionId`
+
+**Access:** Discussion owner, Instructor, Admin
+
+**URL Params:** `discussionId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Discussion deleted successfully",
+  "discussionId": "string"
+}
+```
+
+---
+
+### POST `/api/discussions/:discussionId/replies`
+
+**Access:** Student, Instructor, Admin
+
+**URL Params:** `discussionId`
+
+**Request Body:**
+```json
+{
+  "content": "string (required)"
+}
+```
+
+**Response `201`:**
+```json
+{
+  "success": true,
+  "message": "Reply created successfully",
+  "reply": { "...reply object..." },
+  "discussion": { "...updated discussion..." }
+}
+```
+
+---
+
+### PATCH `/api/discussions/:discussionId/replies/:replyId`
+
+**Access:** Reply owner, Instructor, Admin
+
+**URL Params:** `discussionId`, `replyId`
+
+**Request Body:**
+```json
+{
+  "content": "string (required)"
+}
+```
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Reply updated successfully",
+  "reply": { "...updated reply object..." }
+}
+```
+
+---
+
+### DELETE `/api/discussions/:discussionId/replies/:replyId`
+
+**Access:** Reply owner, Instructor, Admin
+
+**URL Params:** `discussionId`, `replyId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Reply deleted successfully",
+  "replyId": "string",
+  "discussion": { "...updated discussion..." }
+}
+```
+
+---
+
+### PATCH `/api/discussions/:discussionId/replies/:replyId/accept`
+
+**Access:** Discussion owner, Instructor, Admin
+
+**URL Params:** `discussionId`, `replyId`
+
+**Request:** No body required.
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Answer accepted successfully",
+  "changed": true,
+  "reply": { "...reply object..." },
+  "discussion": { "...updated discussion..." }
+}
+```
+
+---
+
+### PATCH `/api/discussions/:discussionId/resolved`
+
+**Access:** Discussion owner, Instructor, Admin
+
+**URL Params:** `discussionId`
+
+**Request Body:**
+```json
+{
+  "isResolved": "boolean (required)"
+}
+```
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Discussion status updated",
+  "discussion": { "...updated discussion..." }
+}
+```
+
+---
+
+### PATCH `/api/discussions/:discussionId/moderation`
+
+**Access:** Instructor, Admin
+
+**URL Params:** `discussionId`
+
+**Request Body:**
+```json
+{
+  "isPinned": "boolean (optional)",
+  "isLocked": "boolean (optional)"
+}
+```
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Discussion moderation updated",
+  "discussion": { "...updated discussion..." }
+}
+```
+
+---
+
+### POST `/api/discussions/:discussionId/upvote`
+
+**Access:** Student, Instructor, Admin
+
+**URL Params:** `discussionId`
+
+**Request:** No body required.
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Vote toggled",
+  "upvoted": true,
+  "upvoteCount": 5
+}
+```
+
+---
+
+### POST `/api/discussions/:discussionId/replies/:replyId/upvote`
+
+**Access:** Student, Instructor, Admin
+
+**URL Params:** `discussionId`, `replyId`
+
+**Request:** No body required.
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Vote toggled",
+  "upvoted": true,
+  "upvoteCount": 3
+}
+```
+
+---
+
+### GET `/api/discussions/:discussionId/votes`
+
+**Access:** Student, Instructor, Admin
+
+**URL Params:** `discussionId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "discussionUpvoted": true,
+  "replyVotes": { "replyId": true }
+}
+```
+
+---
+
+## 33. Discussion Report APIs
+
+> Base: `/api/discussion-reports`
+
+---
+
+### POST `/api/discussion-reports`
+
+**Access:** Student, Instructor, Admin
+
+**Request Body:**
+```json
+{
+  "discussionId": "string (required, OR replyId)",
+  "replyId": "string (optional)",
+  "reason": "spam | harassment | inappropriate | misinformation | other (required)",
+  "details": "string (optional)"
+}
+```
+
+**Response `201`:**
+```json
+{
+  "success": true,
+  "message": "Report submitted successfully",
+  "report": { "...report object..." }
+}
+```
+
+---
+
+### GET `/api/discussion-reports/my`
+
+**Access:** Student, Instructor, Admin
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "reports": [ { "...report objects submitted by current user..." } ]
+}
+```
+
+---
+
+## 34. Admin — Discussion Report APIs
+
+> Base: `/api/admin/discussion-reports`
+
+---
+
+### GET `/api/admin/discussion-reports`
+
+**Access:** Admin
+
+**Query Params (optional):** `page`, `limit`, `status` (pending | reviewing | resolved | rejected)
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "reports": [ { "...all report objects..." } ],
+  "pagination": { "page": 1, "limit": 20, "total": 0 }
+}
+```
+
+---
+
+### GET `/api/admin/discussion-reports/:reportId`
+
+**Access:** Admin
+
+**URL Params:** `reportId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "report": { "...full report with discussion/reply and reporter info..." }
+}
+```
+
+---
+
+### PATCH `/api/admin/discussion-reports/:reportId/review`
+
+**Access:** Admin
+
+**URL Params:** `reportId`
+
+**Request:** No body required.
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Report review started",
+  "report": { "...updated report..." }
+}
+```
+
+---
+
+### PATCH `/api/admin/discussion-reports/:reportId/resolve`
+
+**Access:** Admin
+
+**URL Params:** `reportId`
+
+**Request Body:**
+```json
+{
+  "resolution": "resolved | rejected (required)",
+  "adminNote": "string (optional)"
+}
+```
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Report resolved successfully",
+  "report": { "...updated report..." }
+}
+```
+
+---
+
+## 35. Student Notes APIs
+
+> Base: `/api/notes`
+
+---
+
+### POST `/api/notes`
+
+**Access:** Student
+
+**Request Body:**
+```json
+{
+  "lectureId": "string (required)",
+  "title": "string (optional)",
+  "content": "string (required)",
+  "isPinned": "boolean (optional)"
+}
+```
+
+**Response `201`:**
+```json
+{
+  "success": true,
+  "message": "Note created successfully",
+  "note": { "...note object..." }
+}
+```
+
+---
+
+### GET `/api/notes/course/:courseId`
+
+**Access:** Student
+
+**URL Params:** `courseId`
+
+**Query Params (optional):** `page`, `limit`, `lectureId`, `moduleId`, `pinned`, `search`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "notes": [ { "...note objects for the course..." } ],
+  "pagination": { "page": 1, "limit": 20, "total": 0 }
+}
+```
+
+---
+
+### GET `/api/notes/lecture/:lectureId`
+
+**Access:** Student
+
+**URL Params:** `lectureId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "notes": [ { "...note objects for the lecture..." } ]
+}
+```
+
+---
+
+### GET `/api/notes/:noteId`
+
+**Access:** Student (note owner)
+
+**URL Params:** `noteId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "note": { "...note object..." }
+}
+```
+
+---
+
+### PATCH `/api/notes/:noteId`
+
+**Access:** Student (note owner)
+
+**URL Params:** `noteId`
+
+**Request Body:**
+```json
+{
+  "title": "string (optional)",
+  "content": "string (optional)",
+  "isPinned": "boolean (optional)"
+}
+```
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Note updated successfully",
+  "note": { "...updated note object..." }
+}
+```
+
+---
+
+### DELETE `/api/notes/:noteId`
+
+**Access:** Student (note owner)
+
+**URL Params:** `noteId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Note deleted successfully"
+}
+```
+
+---
+
+## 36. Instructor Dashboard APIs
+
+> Base: `/api/instructor/dashboard`
+
+---
+
+### GET `/api/instructor/dashboard`
+
+**Access:** Instructor
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": {
+    "totalCourses": 5,
+    "totalStudents": 120,
+    "totalRevenue": 50000,
+    "avgRating": 4.5,
+    "recentEnrollments": [ { "...enrollment objects..." } ]
+  }
+}
+```
+
+---
+
+### GET `/api/instructor/dashboard/courses`
+
+**Access:** Instructor
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": {
+    "courses": [
+      {
+        "courseId": "string",
+        "title": "string",
+        "enrollments": 50,
+        "revenue": 10000,
+        "avgRating": 4.3
+      }
+    ]
+  }
+}
+```
+
+---
+
+### GET `/api/instructor/dashboard/revenue`
+
+**Access:** Instructor
+
+**Query Params (optional):** `days` (default: 30)
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": {
+    "revenue": [ { "date": "string", "amount": 0 } ],
+    "total": 0,
+    "period": "30 days"
+  }
+}
+```
+
+---
+
+### GET `/api/instructor/dashboard/live-classes`
+
+**Access:** Instructor
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": {
+    "upcoming": [ { "...live class objects..." } ],
+    "past": [ { "...live class objects..." } ]
+  }
+}
+```
+
+---
+
+## 37. Admin Dashboard APIs
+
+> Base: `/api/admin/dashboard`
+
+---
+
+### GET `/api/admin/dashboard`
+
+**Access:** Admin
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": {
+    "totalStudents": 0,
+    "totalCourses": 0,
+    "totalRevenue": 0,
+    "totalOrders": 0,
+    "recentOrders": [],
+    "recentStudents": []
+  }
+}
+```
+
+---
+
+## 38. Admin — Users APIs
+
+> Base: `/api/admin/users`
+
+---
+
+### GET `/api/admin/users/analytics`
+
+**Access:** Admin
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": {
+    "totalUsers": 0,
+    "activeUsers": 0,
+    "suspendedUsers": 0,
+    "newUsersThisMonth": 0,
+    "roleBreakdown": { "student": 0, "instructor": 0, "admin": 0 }
+  }
+}
+```
+
+---
+
+### GET `/api/admin/users`
+
+**Access:** Admin
+
+**Query Params (optional):** `page`, `limit`, `search`, `role`, `status`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": { "users": [ { "...user objects..." } ], "total": 0 }
+}
+```
+
+---
+
+### GET `/api/admin/users/:userId`
+
+**Access:** Admin
+
+**URL Params:** `userId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": { "user": { "...full user profile..." } }
+}
+```
+
+---
+
+### PATCH `/api/admin/users/:userId/activate`
+
+**Access:** Admin
+
+**URL Params:** `userId`
+
+**Request:** No body required.
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "User activated successfully"
+}
+```
+
+---
+
+### PATCH `/api/admin/users/:userId/deactivate`
+
+**Access:** Admin
+
+**URL Params:** `userId`
+
+**Request:** No body required.
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "User deactivated successfully"
+}
+```
+
+---
+
+### PATCH `/api/admin/users/:userId/suspend`
+
+**Access:** Admin
+
+**URL Params:** `userId`
+
+**Request:** No body required.
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "User suspended successfully"
+}
+```
+
+---
+
+### PATCH `/api/admin/users/:userId/status`
+
+**Access:** Admin
+
+**URL Params:** `userId`
+
+**Request Body:**
+```json
+{
+  "status": "active | inactive | suspended | banned (required)"
+}
+```
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "User status updated"
+}
+```
+
+---
+
+### PATCH `/api/admin/users/:userId/role`
+
+**Access:** Admin
+
+**URL Params:** `userId`
+
+**Request Body:**
+```json
+{
+  "role": "student | instructor | admin (required)"
+}
+```
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "User role updated"
+}
+```
+
+---
+
+## 39. Admin — Orders APIs
+
+> Base: `/api/admin/orders`
+
+---
+
+### GET `/api/admin/orders/analytics`
+
+**Access:** Admin
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": {
+    "totalOrders": 0,
+    "totalRevenue": 0,
+    "pendingOrders": 0,
+    "refundedOrders": 0
+  }
+}
+```
+
+---
+
+### GET `/api/admin/orders`
+
+**Access:** Admin
+
+**Query Params (optional):** `page`, `limit`, `status`, `search`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": { "orders": [ { "...order objects..." } ], "total": 0 }
+}
+```
+
+---
+
+### GET `/api/admin/orders/:orderId`
+
+**Access:** Admin
+
+**URL Params:** `orderId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": { "order": { "...full order with student and course info..." } }
+}
+```
+
+---
+
+### PATCH `/api/admin/orders/:orderId/cancel`
+
+**Access:** Admin
+
+**URL Params:** `orderId`
+
+**Request:** No body required.
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Order cancelled successfully"
+}
+```
+
+---
+
+### PATCH `/api/admin/orders/:orderId/failed`
+
+**Access:** Admin
+
+**URL Params:** `orderId`
+
+**Request:** No body required.
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Order marked as failed"
+}
+```
+
+---
+
+### PATCH `/api/admin/orders/:orderId/refunded`
+
+**Access:** Admin
+
+> **Note:** This does NOT execute a Razorpay refund. Use after a successful refund verification.
+
+**URL Params:** `orderId`
+
+**Request:** No body required.
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Order marked as refunded"
+}
+```
+
+---
+
+## 40. Admin — Courses APIs
+
+> Base: `/api/admin/courses`
+
+---
+
+### GET `/api/admin/courses/analytics`
+
+**Access:** Admin
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": {
+    "totalCourses": 0,
+    "publishedCourses": 0,
+    "draftCourses": 0,
+    "archivedCourses": 0,
+    "topCourses": [ { "...course with enrollment count..." } ]
+  }
+}
+```
+
+---
+
+### GET `/api/admin/courses`
+
+**Access:** Admin
+
+**Query Params (optional):** `page`, `limit`, `search`, `status`, `category`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": { "courses": [ { "...course objects..." } ], "total": 0 }
+}
+```
+
+---
+
+### GET `/api/admin/courses/:courseId`
+
+**Access:** Admin
+
+**URL Params:** `courseId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": { "course": { "...full course details..." } }
+}
+```
+
+---
+
+### PATCH `/api/admin/courses/:courseId/publish`
+
+**Access:** Admin
+
+**URL Params:** `courseId`
+
+**Request:** No body required.
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Course published successfully"
+}
+```
+
+---
+
+### PATCH `/api/admin/courses/:courseId/unpublish`
+
+**Access:** Admin
+
+**URL Params:** `courseId`
+
+**Request:** No body required.
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Course unpublished successfully"
+}
+```
+
+---
+
+### PATCH `/api/admin/courses/:courseId/activate`
+
+**Access:** Admin
+
+**URL Params:** `courseId`
+
+**Request:** No body required.
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Course activated successfully"
+}
+```
+
+---
+
+### PATCH `/api/admin/courses/:courseId/deactivate`
+
+**Access:** Admin
+
+**URL Params:** `courseId`
+
+**Request:** No body required.
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Course deactivated successfully"
+}
+```
+
+---
+
+### PATCH `/api/admin/courses/:courseId/archive`
+
+**Access:** Admin
+
+**URL Params:** `courseId`
+
+**Request:** No body required.
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Course archived successfully"
+}
+```
+
+---
+
+## 41. AI Assistant APIs
+
+> Base: `/api/ai`
+
+---
+
+### POST `/api/ai/conversations`
+
+**Access:** Student, Instructor, Admin
+
+**Request Body:**
+```json
+{
+  "title": "string (optional)",
+  "courseId": "string (optional — scopes conversation to a course)"
+}
+```
+
+**Response `201`:**
+```json
+{
+  "success": true,
+  "message": "AI conversation created successfully",
+  "conversation": {
+    "id": "string",
+    "title": "string",
+    "courseId": "string | null",
+    "createdAt": "ISO date"
+  }
+}
+```
+
+---
+
+### GET `/api/ai/conversations`
+
+**Access:** Student, Instructor, Admin
+
+**Query Params (optional):** `page`, `limit`, `archived`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "AI conversations fetched successfully",
+  "conversations": [ { "...conversation objects..." } ],
+  "pagination": { "page": 1, "limit": 20, "total": 0 }
+}
+```
+
+---
+
+### GET `/api/ai/conversations/:conversationId`
+
+**Access:** Student, Instructor, Admin (conversation owner)
+
+**URL Params:** `conversationId`
+
+**Query Params (optional):** `page`, `limit`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "AI conversation fetched successfully",
+  "conversation": { "...conversation object..." },
+  "messages": [ { "role": "user | assistant", "content": "string", "createdAt": "ISO date" } ],
+  "pagination": { "page": 1, "limit": 50, "total": 0 }
+}
+```
+
+---
+
+### POST `/api/ai/conversations/:conversationId/messages`
+
+**Access:** Student, Instructor, Admin (conversation owner)
+
+**URL Params:** `conversationId`
+
+**Request Body:**
+```json
+{
+  "message": "string (required)",
+  "lectureId": "string (optional — provides context)"
+}
+```
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "AI response generated",
+  "userMessage": { "role": "user", "content": "string" },
+  "aiMessage": { "role": "assistant", "content": "string" }
+}
+```
+
+---
+
+### PATCH `/api/ai/conversations/:conversationId/title`
+
+**Access:** Student, Instructor, Admin (conversation owner)
+
+**URL Params:** `conversationId`
+
+**Request Body:**
+```json
+{
+  "title": "string (required)"
+}
+```
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "AI conversation renamed successfully",
+  "conversation": { "...updated conversation..." }
+}
+```
+
+---
+
+### PATCH `/api/ai/conversations/:conversationId/archive`
+
+**Access:** Student, Instructor, Admin (conversation owner)
+
+**URL Params:** `conversationId`
+
+**Request Body:**
+```json
+{
+  "isArchived": "boolean (required)"
+}
+```
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "AI conversation archived/restored successfully",
+  "conversation": { "...updated conversation..." }
+}
+```
+
+---
+
+### DELETE `/api/ai/conversations/:conversationId`
+
+**Access:** Student, Instructor, Admin (conversation owner)
+
+**URL Params:** `conversationId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "AI conversation deleted",
+  "conversationId": "string"
+}
+```
+
+---
+
+## 42. RAG — Knowledge Search APIs
+
+> Base: `/api/ai/rag`
+
+---
+
+### POST `/api/ai/rag/courses/:courseId/search`
+
+**Access:** Student, Instructor, Admin
+
+**URL Params:** `courseId`
+
+**Request Body:**
+```json
+{
+  "query": "string (required)",
+  "topK": "number (optional, default: 5)"
+}
+```
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "results": [
+    {
+      "score": 0.95,
+      "text": "string",
+      "metadata": { "lectureId": "string", "moduleId": "string" }
+    }
+  ]
+}
+```
+
+---
+
+### GET `/api/ai/rag/courses/:courseId/chunks`
+
+**Access:** Student, Instructor, Admin
+
+**URL Params:** `courseId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "chunks": [ { "id": "string", "text": "string", "metadata": {} } ],
+  "total": 0
+}
+```
+
+---
+
+### POST `/api/ai/rag/resources`
+
+**Access:** Instructor, Admin
+
+**Request Body:**
+```json
+{
+  "resourceType": "lecture | module | course (required)",
+  "resourceId": "string (required)",
+  "content": "string (required)"
+}
+```
+
+**Response `201`:**
+```json
+{
+  "success": true,
+  "message": "Resource ingested into RAG index",
+  "jobId": "string"
+}
+```
+
+---
+
+### POST `/api/ai/rag/courses/:courseId/index`
+
+**Access:** Instructor, Admin
+
+**URL Params:** `courseId`
+
+**Request:** No body required.
+
+**Response `201`:**
+```json
+{
+  "success": true,
+  "message": "Course indexing started",
+  "jobId": "string"
+}
+```
+
+---
+
+### POST `/api/ai/rag/modules/:moduleId/index`
+
+**Access:** Instructor, Admin
+
+**URL Params:** `moduleId`
+
+**Request:** No body required.
+
+**Response `201`:**
+```json
+{
+  "success": true,
+  "message": "Module indexing started",
+  "jobId": "string"
+}
+```
+
+---
+
+### POST `/api/ai/rag/lectures/:lectureId/index`
+
+**Access:** Instructor, Admin
+
+**URL Params:** `lectureId`
+
+**Request:** No body required.
+
+**Response `201`:**
+```json
+{
+  "success": true,
+  "message": "Lecture indexing started",
+  "jobId": "string"
+}
+```
+
+---
+
+### DELETE `/api/ai/rag/courses/:courseId/resources/:resourceType/:resourceId`
+
+**Access:** Instructor, Admin
+
+**URL Params:** `courseId`, `resourceType` (lecture | module | course), `resourceId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Resource removed from RAG index"
+}
+```
+
+---
+
+## 43. RAG — Indexing APIs
+
+> Base: `/api/ai/indexing`
+
+---
+
+### GET `/api/ai/indexing/course/:courseId`
+
+**Access:** Instructor, Admin
+
+**URL Params:** `courseId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "jobs": [
+    {
+      "jobId": "string",
+      "resourceType": "string",
+      "resourceId": "string",
+      "status": "pending | processing | completed | failed",
+      "createdAt": "ISO date"
+    }
+  ]
+}
+```
+
+---
+
+### GET `/api/ai/indexing/:jobId`
+
+**Access:** Instructor, Admin
+
+**URL Params:** `jobId`
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "job": {
+    "jobId": "string",
+    "status": "pending | processing | completed | failed",
+    "error": "string | null",
+    "completedAt": "ISO date | null"
+  }
+}
+```
+
+---
+
+### POST `/api/ai/indexing/:jobId/retry`
+
+**Access:** Instructor, Admin
+
+**URL Params:** `jobId`
+
+**Request:** No body required.
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "message": "Indexing job retried",
+  "job": { "...updated job object..." }
+}
+```
+
+---
+
 *Last updated: August 2026 | VertexPortal LMS Backend*
+
