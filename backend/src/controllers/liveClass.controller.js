@@ -7,12 +7,13 @@ import {
   updateLiveClass,
   updateLiveClassStatus,
   cancelLiveClass,
+  getInstructorLiveClassAttendance,
+  getInstructorLiveClassAttendanceAnalytics,
 } from "../service/liveClass.service.js";
 
 export const createLiveClassController = asyncHandler(async (req, res) => {
   const liveClass = await createLiveClass({
     instructorId: req.user.id,
-    userRole: req.user.role,
     payload: req.body,
   });
 
@@ -27,7 +28,6 @@ export const getInstructorLiveClassesController = asyncHandler(
   async (req, res) => {
     const result = await getInstructorLiveClasses({
       instructorId: req.user.id,
-      userRole: req.user.role,
       query: req.query,
     });
 
@@ -45,7 +45,6 @@ export const getInstructorLiveClassByIdController = asyncHandler(
 
     const liveClass = await getInstructorLiveClassById({
       instructorId: req.user.id,
-      userRole: req.user.role,
       liveClassId,
     });
 
@@ -62,21 +61,15 @@ export const updateLiveClassController = asyncHandler(async (req, res) => {
 
   const result = await updateLiveClass({
     instructorId: req.user.id,
-
     userRole: req.user.role,
-
     liveClassId,
-
     payload: req.body,
   });
 
   return res.status(200).json({
     success: true,
-
     message: result.message,
-
     scheduleChanged: result.scheduleChanged,
-
     liveClass: result.liveClass,
   });
 });
@@ -84,37 +77,30 @@ export const updateLiveClassController = asyncHandler(async (req, res) => {
 export const updateLiveClassStatusController = asyncHandler(
   async (req, res) => {
     const { liveClassId } = req.params;
-
     const { status } = req.body || {};
 
     const result = await updateLiveClassStatus({
       instructorId: req.user.id,
-
       liveClassId,
-
       status,
     });
+
     return res.status(200).json({
       success: true,
       message: result.message,
-
       liveClass: result.liveClass,
-
-      attendanceFinalization: result.attendanceFinalization,
-
-      notificationResult: result.notificationResult,
+      attendanceFinalization: result.attendanceFinalization ?? null,
+      notificationResult: result.notificationResult ?? null,
     });
   },
 );
 
 export const cancelLiveClassController = asyncHandler(async (req, res) => {
   const { liveClassId } = req.params;
-
   const { reason } = req.body || {};
 
   const result = await cancelLiveClass({
     instructorId: req.user.id,
-    userRole: req.user.role,
     liveClassId,
     reason,
   });
@@ -122,9 +108,48 @@ export const cancelLiveClassController = asyncHandler(async (req, res) => {
   return res.status(200).json({
     success: true,
     message: result.message,
-
     liveClass: result.liveClass,
-
-    notificationResult: result.notificationResult,
+    notificationResult: result.notificationResult ?? null,
   });
 });
+
+/*
+ * Attendance list
+ */
+export const getInstructorLiveClassAttendanceController = asyncHandler(
+  async (req, res) => {
+    const { liveClassId } = req.params;
+
+    const result = await getInstructorLiveClassAttendance({
+      instructorId: req.user.id,
+      liveClassId,
+      query: req.query,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Live class attendance fetched successfully",
+      ...result,
+    });
+  },
+);
+
+/*
+ * Attendance analytics
+ */
+export const getInstructorLiveClassAttendanceAnalyticsController = asyncHandler(
+  async (req, res) => {
+    const { liveClassId } = req.params;
+
+    const analytics = await getInstructorLiveClassAttendanceAnalytics({
+      instructorId: req.user.id,
+      liveClassId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Live class attendance analytics fetched successfully",
+      analytics,
+    });
+  },
+);
