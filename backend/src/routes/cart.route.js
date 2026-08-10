@@ -15,7 +15,7 @@ const router = Router();
  * @desc Add a course to the cart
  * @access Private (Authenticated users only)
  */
-router.post("/:courseId", authMiddleware, addToCartController);
+router.post("/add/:courseId", authMiddleware, addToCartController);
 
 /** * @route GET /api/cart
  * @desc Get the user's cart

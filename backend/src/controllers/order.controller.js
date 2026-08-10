@@ -1,28 +1,56 @@
-import { createHmac } from "node:crypto";
+import {
+  createHmac,
+  timingSafeEqual,
+} from "node:crypto";
+
 import mongoose from "mongoose";
 
 import Order from "../models/order.model.js";
-import Enrollment from "../models/enrollment.model.js";
-import CartItem from "../models/cartItem.model.js";
-import Coupon from "../models/coupon.model.js";
-import CouponUsage from "../models/couponUsage.model.js";
-import Course from "../models/course.model.js";
 import razorpay from "../service/razorpay.service.js";
 
+import {
+  completePaidOrder,
+} from "../service/orderPayment.service.js";
+
+import { validateCheckout } from "../service/checkout.service.js";
 import { config } from "../config/config.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
-import { validateCheckout } from "../service/checkout.service.js";
+/*
+ * =========================================================
+ * SAFE SIGNATURE COMPARISON
+ * =========================================================
+ */
+function signaturesMatch(expected, received) {
+  const expectedBuffer = Buffer.from(String(expected || ""), "utf8");
 
+  const receivedBuffer = Buffer.from(String(received || ""), "utf8");
+
+  if (expectedBuffer.length !== receivedBuffer.length) {
+    return false;
+  }
+
+  return timingSafeEqual(expectedBuffer, receivedBuffer);
+}
+
+/*
+ * =========================================================
+ * CREATE RAZORPAY PAYMENT ORDER
+ * =========================================================
+ *
+ * POST /api/orders/create
+ */
 export const createPaymentOrderController = asyncHandler(async (req, res) => {
   const { couponCode = null } = req.body || {};
 
   /*
-   * Step 1
-   * Validate complete checkout
+   * -----------------------------------------
+   * 1. Validate checkout
+   * -----------------------------------------
    */
   const checkout = await validateCheckout({
     studentId: req.user.id,
+
     couponCode,
   });
 
@@ -30,28 +58,31 @@ export const createPaymentOrderController = asyncHandler(async (req, res) => {
     checkout;
 
   /*
-   * Step 2
-   * Free order not supported yet
+   * -----------------------------------------
+   * 2. Free order currently unsupported
+   * -----------------------------------------
    */
   if (pricing.totalAmount <= 0) {
     throw new ApiError(400, "This order does not require payment");
   }
 
   /*
-   * Step 3
-   * Create Database Order
+   * -----------------------------------------
+   * 3. Create local database order
+   * -----------------------------------------
    */
-
   const order = await Order.create({
     student: req.user.id,
 
     courses,
 
     subtotal: pricing.subtotal,
+
     discountAmount: pricing.discountAmount,
+
     totalAmount: pricing.totalAmount,
 
-    coupon: coupon?.id || null,
+    coupon: coupon?.id ?? null,
 
     orderStatus: "pending",
 
@@ -60,27 +91,48 @@ export const createPaymentOrderController = asyncHandler(async (req, res) => {
     paymentMethod: "razorpay",
   });
 
+  let razorpayOrder;
+
+  try {
+    /*
+     * ---------------------------------------
+     * 4. Create Razorpay order
+     * ---------------------------------------
+     */
+    razorpayOrder = await razorpay.orders.create({
+      amount: Math.round(pricing.totalAmount * 100),
+
+      currency: "INR",
+
+      receipt: order._id.toString(),
+
+      notes: {
+        studentId: req.user.id.toString(),
+
+        databaseOrderId: order._id.toString(),
+      },
+    });
+  } catch (error) {
+    /*
+     * Razorpay order create fail ho gaya,
+     * to local order ko failed mark karo.
+     */
+    order.orderStatus = "failed";
+
+    order.paymentStatus = "failed";
+
+    await order.save();
+
+    console.error("Razorpay order creation failed:", error);
+
+    throw new ApiError(502, "Failed to create payment order");
+  }
+
   /*
-   * Step 4
-   * Currently just return database order.
-   *
-   * Razorpay integration next step.
+   * -----------------------------------------
+   * 5. Save Razorpay order id
+   * -----------------------------------------
    */
-
-  const razorpayOrder = await razorpay.orders.create({
-    amount: Math.round(pricing.totalAmount * 100), // Razorpay amount paise me leta hai
-
-    currency: "INR",
-
-    receipt: order._id.toString(),
-
-    notes: {
-      studentId: req.user.id.toString(),
-
-      orderId: order._id.toString(),
-    },
-  });
-
   order.razorpayOrderId = razorpayOrder.id;
 
   await order.save();
@@ -99,11 +151,13 @@ export const createPaymentOrderController = asyncHandler(async (req, res) => {
 
       totalAmount: order.totalAmount,
 
-      status: order.orderStatus,
+      orderStatus: order.orderStatus,
+
+      paymentStatus: order.paymentStatus,
     },
 
     razorpay: {
-      keyId: process.env.RAZORPAY_KEY_ID,
+      keyId: config.RAZORPAY_KEY_ID,
 
       orderId: razorpayOrder.id,
 
@@ -118,14 +172,37 @@ export const createPaymentOrderController = asyncHandler(async (req, res) => {
   });
 });
 
+/*
+ * =========================================================
+ * VERIFY CHECKOUT PAYMENT
+ * =========================================================
+ *
+ * POST /api/orders/verify
+ *
+ * Body:
+ * {
+ *   databaseOrderId,
+ *   razorpay_order_id,
+ *   razorpay_payment_id,
+ *   razorpay_signature
+ * }
+ */
 export const verifyPaymentController = asyncHandler(async (req, res) => {
   const {
     databaseOrderId,
+
     razorpay_order_id,
+
     razorpay_payment_id,
+
     razorpay_signature,
   } = req.body || {};
 
+  /*
+   * -----------------------------------------
+   * 1. Required fields
+   * -----------------------------------------
+   */
   if (
     !databaseOrderId ||
     !razorpay_order_id ||
@@ -135,12 +212,23 @@ export const verifyPaymentController = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Payment verification details are required");
   }
 
+  /*
+   * -----------------------------------------
+   * 2. Validate local order id
+   * -----------------------------------------
+   */
   if (!mongoose.Types.ObjectId.isValid(databaseOrderId)) {
     throw new ApiError(400, "Invalid database order ID");
   }
 
+  /*
+   * -----------------------------------------
+   * 3. Find student's local order
+   * -----------------------------------------
+   */
   const order = await Order.findOne({
     _id: databaseOrderId,
+
     student: req.user.id,
   });
 
@@ -149,222 +237,62 @@ export const verifyPaymentController = asyncHandler(async (req, res) => {
   }
 
   /*
-   * Idempotency:
-   * Same successful verification request dobara aaye,
-   * to duplicate enrollment/coupon usage create nahi hoga.
+   * -----------------------------------------
+   * 4. Already paid = idempotent success
+   * -----------------------------------------
    */
   if (order.paymentStatus === "paid") {
     return res.status(200).json({
       success: true,
+
       message: "Payment is already verified",
+
       order,
     });
   }
 
+  /*
+   * -----------------------------------------
+   * 5. Razorpay order ID must match
+   * -----------------------------------------
+   */
   if (order.razorpayOrderId !== razorpay_order_id) {
     throw new ApiError(400, "Razorpay order ID does not match");
   }
 
   /*
-   * Signature:
-   * razorpay_order_id|razorpay_payment_id
+   * Razorpay requires signature generation
+   * using the order id stored on the server
+   * + payment id.
    */
-  const expectedSignature = createHmac("sha256", config.RAZORPAY_SECRET_ID
-
-  )
-    .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+  const expectedSignature = createHmac("sha256", config.RAZORPAY_SECRET_ID)
+    .update(`${order.razorpayOrderId}|${razorpay_payment_id}`)
     .digest("hex");
 
-  if (expectedSignature !== razorpay_signature) {
+  if (!signaturesMatch(expectedSignature, razorpay_signature)) {
     throw new ApiError(400, "Payment signature verification failed");
   }
 
-  const session = await mongoose.startSession();
+  /*
+   * -----------------------------------------
+   * 6. Shared fulfillment
+   * -----------------------------------------
+   */
+  const paidOrder = await completePaidOrder({
+    orderId: order._id,
 
-  try {
-    await session.withTransaction(async () => {
-      const transactionOrder = await Order.findOne({
-        _id: databaseOrderId,
-        student: req.user.id,
-      }).session(session);
+    razorpayOrderId: order.razorpayOrderId,
 
-      if (!transactionOrder) {
-        throw new ApiError(404, "Order not found");
-      }
+    razorpayPaymentId: razorpay_payment_id,
 
-      /*
-       * Transaction ke andar dobara check.
-       * Concurrent verification requests se protection.
-       */
-      if (transactionOrder.paymentStatus === "paid") {
-        return;
-      }
-
-      transactionOrder.orderStatus = "paid";
-      transactionOrder.paymentStatus = "paid";
-      transactionOrder.razorpayPaymentId = razorpay_payment_id;
-      transactionOrder.razorpaySignature = razorpay_signature;
-      transactionOrder.paidAt = new Date();
-
-      await transactionOrder.save({ session });
-
-      const newlyEnrolledCourseIds = [];
-
-      for (const item of transactionOrder.courses) {
-        const existingEnrollment = await Enrollment.findOne({
-          student: req.user.id,
-          course: item.course,
-        }).session(session);
-
-        if (existingEnrollment) {
-          if (
-            existingEnrollment.status === "cancelled" ||
-            existingEnrollment.status === "expired"
-          ) {
-            existingEnrollment.status = "active";
-            existingEnrollment.enrolledAt = new Date();
-            existingEnrollment.expiresAt = null;
-
-            await existingEnrollment.save({
-              session,
-            });
-
-            newlyEnrolledCourseIds.push(item.course);
-          }
-
-          continue;
-        }
-
-        await Enrollment.create(
-          [
-            {
-              student: req.user.id,
-              course: item.course,
-              status: "active",
-            },
-          ],
-          { session },
-        );
-
-        newlyEnrolledCourseIds.push(item.course);
-      }
-
-      /*
-       * Course enrollment count sirf new/reactivated
-       * enrollments ke liye increment hoga.
-       */
-      if (newlyEnrolledCourseIds.length > 0) {
-        await Course.updateMany(
-          {
-            _id: {
-              $in: newlyEnrolledCourseIds,
-            },
-          },
-          {
-            $inc: {
-              enrolledStudentsCount: 1,
-            },
-          },
-          {
-            session,
-          },
-        );
-      }
-
-      /*
-       * Coupon usage
-       */
-      if (transactionOrder.coupon) {
-        const coupon = await Coupon.findOne({
-          _id: transactionOrder.coupon,
-          isDeleted: false,
-        }).session(session);
-
-        if (!coupon) {
-          throw new ApiError(400, "Coupon linked with order was not found");
-        }
-
-        const existingUsage = await CouponUsage.exists({
-          order: transactionOrder._id,
-        }).session(session);
-
-        if (!existingUsage) {
-          const studentUsageCount = await CouponUsage.countDocuments({
-            coupon: coupon._id,
-            student: req.user.id,
-          }).session(session);
-
-          const perUserLimit = Number(coupon.perUserLimit) || 1;
-
-          if (studentUsageCount >= perUserLimit) {
-            throw new ApiError(
-              400,
-              "Coupon per-user usage limit has been reached",
-            );
-          }
-
-          if (
-            coupon.usageLimit !== null &&
-            coupon.usageCount >= coupon.usageLimit
-          ) {
-            throw new ApiError(400, "Coupon usage limit has been reached");
-          }
-
-          await CouponUsage.create(
-            [
-              {
-                coupon: coupon._id,
-                student: req.user.id,
-                order: transactionOrder._id,
-                discountAmount: transactionOrder.discountAmount,
-              },
-            ],
-            { session },
-          );
-
-          coupon.usageCount += 1;
-
-          await coupon.save({ session });
-        }
-      }
-
-      /*
-       * Purchased courses cart se remove.
-       */
-      const purchasedCourseIds = transactionOrder.courses.map(
-        (item) => item.course,
-      );
-
-      await CartItem.deleteMany(
-        {
-          student: req.user.id,
-          course: {
-            $in: purchasedCourseIds,
-          },
-        },
-        {
-          session,
-        },
-      );
-    });
-  } finally {
-    await session.endSession();
-  }
-
-  const paidOrder = await Order.findById(databaseOrderId)
-    .populate({
-      path: "courses.course",
-      select: "title slug thumbnailUrl instructor",
-    })
-    .populate({
-      path: "coupon",
-      select: "code discountType discountValue",
-    })
-    .lean();
+    razorpaySignature: razorpay_signature,
+  });
 
   return res.status(200).json({
     success: true,
+
     message: "Payment verified and enrollment completed successfully",
+
     order: paidOrder,
   });
 });
