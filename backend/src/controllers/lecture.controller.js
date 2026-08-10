@@ -17,6 +17,7 @@ import {
   ingestLectureForRag,
   deleteRagResource,
 } from "../service/rag.service.js";
+import { indexLectureDocumentForRag } from "../service/documentRag.service.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -868,8 +869,23 @@ export const uploadLectureDocumentController = asyncHandler(
       });
     }
 
+    /*
+     * Only PDF support for AI extraction.
+     */
+    const isPdf =
+      req.file.mimetype === "application/pdf" ||
+      req.file.originalname?.toLowerCase().endsWith(".pdf");
+
+    if (!isPdf) {
+      return res.status(400).json({
+        success: false,
+        message: "Only PDF documents are supported",
+      });
+    }
+
     const lecture = await Lecture.findOne({
       _id: lectureId,
+
       isActive: true,
     });
 
@@ -880,8 +896,16 @@ export const uploadLectureDocumentController = asyncHandler(
       });
     }
 
+    if (lecture.type !== "document") {
+      return res.status(400).json({
+        success: false,
+        message: "Lecture type must be document before uploading a PDF",
+      });
+    }
+
     const course = await Course.findOne({
       _id: lecture.course,
+
       isActive: true,
     }).select("instructor");
 
@@ -903,7 +927,9 @@ export const uploadLectureDocumentController = asyncHandler(
       });
     }
 
-    // Delete previous document on ImageKit if exists
+    /*
+     * Delete old ImageKit document.
+     */
     if (lecture.documentFileId) {
       try {
         await imagekit.deleteFile(lecture.documentFileId);
@@ -912,35 +938,115 @@ export const uploadLectureDocumentController = asyncHandler(
       }
     }
 
+    /*
+     * Upload PDF to ImageKit.
+     */
     const uploadedDocument = await imagekit.upload({
       file: req.file.buffer,
-      fileName: `${Date.now()}-${req.file.originalname.replace(/[^a-zA-Z0-9.-]/g, "_")}`,
+
+      fileName: `${Date.now()}-${req.file.originalname.replace(
+        /[^a-zA-Z0-9.-]/g,
+        "_",
+      )}`,
+
       folder: "/lms/course-documents",
+
       useUniqueFileName: true,
     });
 
     lecture.documentUrl = uploadedDocument.url;
+
     lecture.documentFileId = uploadedDocument.fileId;
+
     lecture.isPublished = true;
 
     await lecture.save();
 
-    // Auto-publish parent module as well
-    await CourseModule.findByIdAndUpdate(lecture.module, { isPublished: true });
+    /*
+     * Parent module auto publish.
+     */
+    await CourseModule.findByIdAndUpdate(
+      lecture.module,
+
+      {
+        isPublished: true,
+      },
+    );
+
+    /*
+     * ========================================
+     * PDF → TEXT → EMBEDDINGS → RAG
+     * ========================================
+     *
+     * Important:
+     * PDF indexing fail hone par document
+     * upload fail nahi karenge.
+     */
+    let aiIndexing = {
+      success: false,
+
+      chunksCreated: 0,
+
+      pageCount: null,
+
+      message: "AI indexing not completed",
+    };
+
+    try {
+      const ragResult = await indexLectureDocumentForRag({
+        userId: req.user.id,
+
+        userRole: req.user.role,
+
+        lectureId: lecture._id,
+
+        fileBuffer: req.file.buffer,
+
+        fileName: req.file.originalname,
+      });
+
+      aiIndexing = {
+        success: true,
+
+        chunksCreated: ragResult.chunksCreated,
+
+        pageCount: ragResult.pageCount,
+
+        message: ragResult.message,
+      };
+    } catch (error) {
+      console.error("Lecture PDF RAG indexing failed:", error);
+
+      aiIndexing = {
+        success: false,
+
+        chunksCreated: 0,
+
+        pageCount: null,
+
+        message: error.message || "AI indexing failed",
+      };
+    }
 
     return res.status(200).json({
       success: true,
+
       message: "Lecture document uploaded successfully to ImageKit",
+
       lecture: {
         _id: lecture._id,
+
         title: lecture.title,
+
         documentUrl: lecture.documentUrl,
+
         documentFileId: lecture.documentFileId,
       },
+
+      aiIndexing,
     });
   },
 );
-
 /**
  * @desc  Generate ImageKit client-side upload auth token
  *        so the browser can upload directly to ImageKit (bypasses 100MB server limit)

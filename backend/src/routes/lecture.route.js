@@ -1,3 +1,5 @@
+import Router from "express";
+
 import {
   createLectureController,
   getPublishedLecturesByModuleController,
@@ -12,18 +14,48 @@ import {
   getUploadAuthTokenController,
   updateLectureMediaUrlController,
 } from "../controllers/lecture.controller.js";
-import { authMiddleware, optionalAuthMiddleware } from "../middlewares/auth.middleware.js";
+
+import {
+  authMiddleware,
+  optionalAuthMiddleware,
+} from "../middlewares/auth.middleware.js";
+
 import { authorizeRoles } from "../middlewares/authorize.middleware.js";
+
 import { uploadLectureVideo } from "../middlewares/lectureVideo.middleware.js";
+
 import { uploadLectureDocument } from "../middlewares/lectureDocument.middleware.js";
-import Router from "express";
 
 const router = Router();
 
-// Protected media streaming (local files)
-router.get("/media/:type/:filename", optionalAuthMiddleware, streamProtectedMediaController);
+/*
+ * =====================================================
+ * PROTECTED MEDIA STREAMING
+ * =====================================================
+ *
+ * GET /api/lectures/media/:type/:filename
+ *
+ * type:
+ * videos
+ * documents
+ */
+router.get(
+  "/media/:type/:filename",
+  optionalAuthMiddleware,
+  streamProtectedMediaController,
+);
 
-// ImageKit client-side upload: generate auth token
+/*
+ * =====================================================
+ * IMAGEKIT CLIENT-SIDE UPLOAD
+ * =====================================================
+ */
+
+/*
+ * Generate ImageKit authentication token.
+ *
+ * GET /api/lectures/upload-auth-token
+ */
 router.get(
   "/upload-auth-token",
   authMiddleware,
@@ -31,7 +63,12 @@ router.get(
   getUploadAuthTokenController,
 );
 
-// ImageKit client-side upload: save resulting CDN url + fileId to DB
+/*
+ * Client-side ImageKit upload ke baad
+ * CDN URL + fileId database me save.
+ *
+ * PATCH /api/lectures/:lectureId/update-media-url
+ */
 router.patch(
   "/:lectureId/update-media-url",
   authMiddleware,
@@ -39,6 +76,13 @@ router.patch(
   updateLectureMediaUrlController,
 );
 
+/*
+ * =====================================================
+ * PUBLISH LECTURE
+ * =====================================================
+ *
+ * PATCH /api/lectures/:lectureId/publish
+ */
 router.patch(
   "/:lectureId/publish",
   authMiddleware,
@@ -46,15 +90,13 @@ router.patch(
   publishLectureController,
 );
 
-/**
- * @access Private
- * @desc Create a new lecture for a specific module
- * @Api POST /api/lectures/:moduleId/create-lecture
- * @param { moduleId: string }
- * @body { title: string, description: string, content: string, isPublished: boolean }
- * @returns { message: string, lecture: object }
+/*
+ * =====================================================
+ * CREATE LECTURE
+ * =====================================================
+ *
+ * POST /api/lectures/:moduleId/create-lecture
  */
-
 router.post(
   "/:moduleId/create-lecture",
   authMiddleware,
@@ -62,14 +104,13 @@ router.post(
   createLectureController,
 );
 
-/**
- * @access Private
- * @desc Get all lectures for a specific module (for management)
- * @Api GET /api/lectures/:moduleId/manage
- * @param { moduleId: string }
- * @returns { message: string, lectures: array }
+/*
+ * =====================================================
+ * MANAGE MODULE LECTURES
+ * =====================================================
+ *
+ * GET /api/lectures/:moduleId/manage
  */
-
 router.get(
   "/:moduleId/manage",
   authMiddleware,
@@ -77,25 +118,31 @@ router.get(
   getManageLecturesByModuleController,
 );
 
-/**
- * @access Public / Enrolled
- * @desc Get all published lectures for a specific module
- * @Api GET /api/lectures/:moduleId/lectures
- * @param { moduleId: string }
- * @returns { message: string, lectures: array }
+/*
+ * =====================================================
+ * GET PUBLISHED LECTURES
+ * =====================================================
+ *
+ * GET /api/lectures/:moduleId/lectures
+ *
+ * Public / enrolled / instructor / admin
  */
+router.get(
+  "/:moduleId/lectures",
+  optionalAuthMiddleware,
+  getPublishedLecturesByModuleController,
+);
 
-router.get("/:moduleId/lectures", optionalAuthMiddleware, getPublishedLecturesByModuleController);
-
-/**
- * @access Private
- * @desc Update a specific lecture
- * @Api PATCH /api/lectures/:lectureId/update-lecture
- * @param { lectureId: string }
- * @body { title: string, description: string, content: string, isPublished: boolean }
- * @returns { message: string, lecture: object }
+/*
+ * =====================================================
+ * UPDATE LECTURE
+ * =====================================================
+ *
+ * PATCH /api/lectures/:lectureId/update-lecture
+ *
+ * Text lecture update hone par
+ * controller RAG re-indexing bhi karega.
  */
-
 router.patch(
   "/:lectureId/update-lecture",
   authMiddleware,
@@ -103,15 +150,16 @@ router.patch(
   updateLectureController,
 );
 
-/**
- * @access Private
- * @desc Upload a video for a specific lecture
- * @Api PATCH /api/lectures/:lectureId/upload-video
- * @param { lectureId: string }
- * @body { video: file }
- * @returns { message: string, lecture: object }
+/*
+ * =====================================================
+ * VIDEO UPLOAD
+ * =====================================================
+ *
+ * PATCH /api/lectures/:lectureId/upload-video
+ *
+ * form-data:
+ * video = FILE
  */
-
 router.patch(
   "/:lectureId/upload-video",
   authMiddleware,
@@ -120,15 +168,28 @@ router.patch(
   uploadLectureVideoController,
 );
 
-/**
- * @access Private
- * @desc Upload a document for a specific lecture
- * @Api PATCH /api/lectures/:lectureId/document
- * @param { lectureId: string }
- * @body { document: file }
- * @returns { message: string, lecture: object }
+/*
+ * =====================================================
+ * DOCUMENT / PDF UPLOAD
+ * =====================================================
+ *
+ * PATCH /api/lectures/:lectureId/upload-document
+ *
+ * form-data:
+ * document = PDF
+ *
+ * Flow:
+ *
+ * PDF
+ * ↓
+ * ImageKit
+ * ↓
+ * text extraction
+ * ↓
+ * Mistral embeddings
+ * ↓
+ * ragchunks
  */
-
 router.patch(
   "/:lectureId/upload-document",
   authMiddleware,
@@ -137,14 +198,19 @@ router.patch(
   uploadLectureDocumentController,
 );
 
-/** * @access Private
- * @desc Reorder lectures within a module
- * @Api PATCH /api/lectures/:lectureId/reorder
- * @param { lectureId: string }
- * @body { newOrder: number }
- * @returns { message: string, lecture: object }
+/*
+ * =====================================================
+ * REORDER LECTURE
+ * =====================================================
+ *
+ * PATCH /api/lectures/:lectureId/reorder
+ *
+ * body:
+ * {
+ *   previousLectureId,
+ *   nextLectureId
+ * }
  */
-
 router.patch(
   "/:lectureId/reorder",
   authMiddleware,
@@ -152,18 +218,21 @@ router.patch(
   reorderLectureController,
 );
 
-/**
- * @access Private
- * @desc Archive a specific lecture
- * @Api DELETE /api/lectures/:lectureId
- * @param { lectureId: string }
- * @returns { message: string, lecture: object }
+/*
+ * =====================================================
+ * ARCHIVE LECTURE
+ * =====================================================
+ *
+ * DELETE /api/lectures/:lectureId
+ *
+ * Lecture archive hone par
+ * related RAG chunks bhi remove honge.
  */
-
 router.delete(
   "/:lectureId",
   authMiddleware,
   authorizeRoles("admin", "instructor"),
   archiveLectureController,
 );
+
 export default router;
