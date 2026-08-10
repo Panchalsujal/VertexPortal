@@ -34,6 +34,7 @@ import studentAnnouncementRoutes from "./routes/studentAnnouncement.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import instructorLiveClassRoutes from "./routes/instructorLiveClass.routes.js";
 import studentLiveClassRoutes from "./routes/studentLiveClass.routes.js";
+import discussionRoutes from "./routes/discussion.routes.js";
 
 import { notFoundHandler } from "./middlewares/notFound.middleware.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
@@ -59,7 +60,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/categories", categoryRouter);
 app.use("/api/student", studentRoutes);
 app.use("/api/admin", adminRoutes);
-
+app.use("/api/discussions", discussionRoutes);
 app.use("/api/courses", courseRouter);
 app.use("/api/modules", moduleRouter);
 app.use("/api/lectures", lectureRouter);
