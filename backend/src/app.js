@@ -41,12 +41,13 @@ import adminDashboardRoutes from "./routes/adminDashboard.routes.js";
 import adminUserRoutes from "./routes/adminUser.routes.js";
 import adminCourseRoutes from "./routes/adminCourse.routes.js";
 import adminOrderRoutes from "./routes/adminOrder.routes.js";
+import instructorDashboardRoutes from "./routes/instructorDashboard.routes.js";
 import aiAssistantRoutes from "./routes/aiAssistant.routes.js";
 import ragRoutes from "./routes/rag.routes.js";
 import ragIndexingRouter from "./routes/ragIndexing.routes.js";
 import { notFoundHandler } from "./middlewares/notFound.middleware.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
-
+import studentNoteRoutes from "./routes/studentNote.routes.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -104,6 +105,8 @@ app.use("/api/admin/courses", adminCourseRoutes);
 app.use("/api/admin/orders", adminOrderRoutes);
 app.use("/api/ai", aiAssistantRoutes);
 app.use("/api/ai/indexing", ragIndexingRouter);
+app.use("/api/notes", studentNoteRoutes);
+app.use("/api/instructor/dashboard", instructorDashboardRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
