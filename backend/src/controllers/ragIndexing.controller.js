@@ -1,129 +1,139 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
+import {
+  asyncHandler,
+} from "../utils/asyncHandler.js";
 
 import {
   getRagIndexingJob,
   getCourseRagIndexingJobs,
-  prepareRagIndexingRetry,
 } from "../service/ragIndexing.service.js";
 
-/*
- * =========================================================
- * GET SINGLE RAG INDEXING JOB
- * =========================================================
- *
- * GET /api/ai/indexing/:jobId
- *
- * Access:
- * - Admin
- * - Course instructor
- */
-
-export const getRagIndexingJobController = asyncHandler(async (req, res) => {
-  const { jobId } = req.params;
-
-  const job = await getRagIndexingJob({
-    userId: req.user.id,
-    userRole: req.user.role,
-    jobId,
-  });
-
-  return res.status(200).json({
-    success: true,
-
-    message: "RAG indexing status fetched successfully",
-
-    job,
-  });
-});
+import {
+  retryRagIndexing,
+} from "../service/ragIndexingRetry.service.js";
 
 /*
- * =========================================================
- * GET COURSE RAG INDEXING JOBS
- * =========================================================
- *
- * GET /api/ai/indexing/course/:courseId
- *
- * Query:
- *
- * ?status=failed
- * ?page=1
- * ?limit=20
- *
- * Access:
- * - Admin
- * - Course instructor
+ * =============================================
+ * GET SINGLE INDEXING JOB
+ * =============================================
  */
 
-export const getCourseRagIndexingJobsController = asyncHandler(
-  async (req, res) => {
-    const { courseId } = req.params;
+export const getRagIndexingJobController =
+  asyncHandler(
+    async (req, res) => {
+      const {
+        jobId,
+      } = req.params;
 
-    const { status = null, page = 1, limit = 20 } = req.query;
+      const job =
+        await getRagIndexingJob({
+          userId:
+            req.user.id,
 
-    const result = await getCourseRagIndexingJobs({
-      userId: req.user.id,
-      userRole: req.user.role,
+          userRole:
+            req.user.role,
 
-      courseId,
+          jobId,
+        });
 
-      status,
+      return res
+        .status(200)
+        .json({
+          success: true,
 
-      page,
-      limit,
-    });
+          message:
+            "RAG indexing status fetched successfully",
 
-    return res.status(200).json({
-      success: true,
-
-      message: "Course RAG indexing jobs fetched successfully",
-
-      jobs: result.jobs,
-
-      pagination: result.pagination,
-    });
-  },
-);
+          job,
+        });
+    },
+  );
 
 /*
- * =========================================================
- * PREPARE FAILED INDEXING JOB FOR RETRY
- * =========================================================
- *
- * POST /api/ai/indexing/:jobId/retry
- *
- * IMPORTANT:
- *
- * Abhi ye actual PDF/video ko process nahi karega.
- *
- * Ye:
- *
- * failed
- *   ↓
- * pending
- *
- * karega aur retryCount increase karega.
- *
- * Actual retry processing integration next step me aayega.
- *
- * Access:
- * - Admin
- * - Course instructor
+ * =============================================
+ * GET COURSE INDEXING JOBS
+ * =============================================
  */
 
-export const retryRagIndexingJobController = asyncHandler(async (req, res) => {
-  const { jobId } = req.params;
+export const getCourseRagIndexingJobsController =
+  asyncHandler(
+    async (req, res) => {
+      const {
+        courseId,
+      } = req.params;
 
-  const job = await prepareRagIndexingRetry({
-    userId: req.user.id,
-    userRole: req.user.role,
-    jobId,
-  });
+      const {
+        status = null,
+        page = 1,
+        limit = 20,
+      } = req.query;
 
-  return res.status(200).json({
-    success: true,
+      const result =
+        await getCourseRagIndexingJobs({
+          userId:
+            req.user.id,
 
-    message: "RAG indexing job prepared for retry successfully",
+          userRole:
+            req.user.role,
 
-    job,
-  });
-});
+          courseId,
+
+          status,
+
+          page,
+
+          limit,
+        });
+
+      return res
+        .status(200)
+        .json({
+          success: true,
+
+          message:
+            "Course RAG indexing jobs fetched successfully",
+
+          jobs:
+            result.jobs,
+
+          pagination:
+            result.pagination,
+        });
+    },
+  );
+
+/*
+ * =============================================
+ * ACTUAL RETRY
+ * =============================================
+ */
+
+export const retryRagIndexingJobController =
+  asyncHandler(
+    async (req, res) => {
+      const {
+        jobId,
+      } = req.params;
+
+      const result =
+        await retryRagIndexing({
+          userId:
+            req.user.id,
+
+          userRole:
+            req.user.role,
+
+          jobId,
+        });
+
+      return res
+        .status(200)
+        .json({
+          success: true,
+
+          message:
+            result.message,
+
+          result,
+        });
+    },
+  );

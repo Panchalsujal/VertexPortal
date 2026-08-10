@@ -50,10 +50,14 @@ router.get(
  * POST /api/ai/indexing/:jobId/retry
  */
 
+
 router.post(
   "/:jobId/retry",
   authMiddleware,
-  authorizeRoles("admin", "instructor"),
+  authorizeRoles(
+    "admin",
+    "instructor",
+  ),
   retryRagIndexingJobController,
 );
 
