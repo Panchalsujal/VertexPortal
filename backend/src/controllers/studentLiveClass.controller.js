@@ -4,6 +4,9 @@ import {
   getStudentLiveClasses,
   getStudentLiveClassById,
   joinStudentLiveClass,
+  leaveLiveClassAttendance,
+  getInstructorLiveClassAttendance,
+  getInstructorLiveClassAttendanceAnalytics,
 } from "../service/liveClass.service.js";
 
 export const getStudentLiveClassesController = asyncHandler(
@@ -54,3 +57,66 @@ export const joinStudentLiveClassController = asyncHandler(async (req, res) => {
     joinWindow: result.joinWindow,
   });
 });
+
+export const leaveStudentLiveClassController = asyncHandler(
+  async (req, res) => {
+    const { liveClassId } = req.params;
+
+    const result = await leaveLiveClassAttendance({
+      studentId: req.user.id,
+      liveClassId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+
+      attendance: {
+        id: result.attendance._id,
+
+        totalDurationInSeconds: result.attendance.totalDurationInSeconds,
+
+        attendancePercentage: result.attendance.attendancePercentage,
+
+        joinCount: result.attendance.joinCount,
+
+        status: result.attendance.status,
+      },
+    });
+  },
+);
+
+export const getInstructorLiveClassAttendanceController = asyncHandler(
+  async (req, res) => {
+    const { liveClassId } = req.params;
+
+    const result = await getInstructorLiveClassAttendance({
+      instructorId: req.user.id,
+      liveClassId,
+      query: req.query,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Live class attendance fetched successfully",
+      ...result,
+    });
+  },
+);
+
+export const getInstructorLiveClassAttendanceAnalyticsController = asyncHandler(
+  async (req, res) => {
+    const { liveClassId } = req.params;
+
+    const analytics = await getInstructorLiveClassAttendanceAnalytics({
+      instructorId: req.user.id,
+      liveClassId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Live class attendance analytics fetched successfully",
+      analytics,
+    });
+  },
+);

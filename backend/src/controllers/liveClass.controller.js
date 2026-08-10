@@ -82,15 +82,20 @@ export const updateLiveClassStatusController = asyncHandler(
 
     const result = await updateLiveClassStatus({
       instructorId: req.user.id,
-      userRole: req.user.role,
+
       liveClassId,
+
       status,
     });
-
     return res.status(200).json({
       success: true,
       message: result.message,
+
       liveClass: result.liveClass,
+
+      attendanceFinalization: result.attendanceFinalization,
+
+      notificationResult: result.notificationResult,
     });
   },
 );
@@ -110,6 +115,9 @@ export const cancelLiveClassController = asyncHandler(async (req, res) => {
   return res.status(200).json({
     success: true,
     message: result.message,
+
     liveClass: result.liveClass,
+
+    notificationResult: result.notificationResult,
   });
 });

@@ -1,26 +1,27 @@
 import mongoose from "mongoose";
-
 import LiveClass from "../models/liveClass.model.js";
 import Course from "../models/course.model.js";
 import CourseModule from "../models/courseModule.model.js";
 import Lecture from "../models/lecture.model.js";
 import Enrollment from "../models/enrollment.model.js";
-
 import { validateObjectId } from "../utils/validator.js";
 import { ApiError } from "../utils/ApiError.js";
 import { notifyCourseEnrolledStudents } from "./notification.service.js";
-
 import { getPagination, buildPaginationMeta } from "../utils/pagination.js";
-
+import LiveClassAttendance from "../models/liveClassAttendance.model.js";
 import { buildSearchFilter } from "../utils/search.js";
-
+import User from "../models/user.model.js";
+import { escapeRegex } from "../utils/search.js";
+import {
+  createBulkNotifications,
+  dispatchNotification,
+} from "./notification.service.js";
 import {
   parseBooleanQuery,
   parseEnumQuery,
   parseNumberQuery,
   parseSortQuery,
 } from "../utils/queryParser.js";
-
 const LIVE_CLASS_PROVIDERS = ["google_meet", "zoom", "livekit", "custom"];
 
 function parseLiveClassDate(value, fieldName) {
@@ -311,7 +312,7 @@ export async function createLiveClass({ instructorId, userRole, payload }) {
     courseId: courseId,
     type: "live_class",
     title: `Live Class Scheduled: ${normalizedTitle}`,
-    message: `A new live class "${normalizedTitle}" has been scheduled for your course ${course.title || ''} on ${parsedStartsAt.toLocaleString()}.`,
+    message: `A new live class "${normalizedTitle}" has been scheduled for your course ${course.title || ""} on ${parsedStartsAt.toLocaleString()}.`,
     resourceType: "live_class",
     resourceId: liveClass._id,
     actionUrl: `/student/live-classes`,
@@ -320,7 +321,11 @@ export async function createLiveClass({ instructorId, userRole, payload }) {
   return liveClass;
 }
 
-export async function getInstructorLiveClasses({ instructorId, userRole, query = {} }) {
+export async function getInstructorLiveClasses({
+  instructorId,
+  userRole,
+  query = {},
+}) {
   validateObjectId(instructorId, "instructor ID");
 
   const {
@@ -499,7 +504,12 @@ export async function getInstructorLiveClassById({
   return liveClass;
 }
 
-export async function cancelLiveClass({ instructorId, userRole, liveClassId, reason }) {
+export async function cancelLiveClass({
+  instructorId,
+  userRole,
+  liveClassId,
+  reason,
+}) {
   validateObjectId(instructorId, "instructor ID");
   validateObjectId(liveClassId, "live class ID");
 
@@ -548,8 +558,21 @@ export async function cancelLiveClass({ instructorId, userRole, liveClassId, rea
 
   await liveClass.save();
 
+  let notificationResult = null;
+
+  try {
+    notificationResult = await notifyStudentsForLiveClass({
+      liveClass,
+      event: "cancelled",
+    });
+  } catch (error) {
+    console.error("Live class cancellation notification failed:", error);
+  }
+
   return {
     liveClass,
+    notificationResult,
+
     message: "Live class cancelled successfully",
   };
 }
@@ -655,11 +678,15 @@ export async function updateLiveClassStatus({
   }
 
   if (parsedStatus === "completed") {
+    const now = new Date();
+
     liveClass.status = "completed";
+
     liveClass.isPublished = true;
+
     liveClass.isActive = true;
 
-    liveClass.endedAtActual = liveClass.endedAtActual ?? new Date();
+    liveClass.endedAtActual = liveClass.endedAtActual ?? now;
   }
 
   if (parsedStatus === "cancelled") {
@@ -677,13 +704,42 @@ export async function updateLiveClassStatus({
 
   await liveClass.save();
 
+  let attendanceFinalization = null;
+  let notificationResult = null;
+
+  if (parsedStatus === "completed") {
+    attendanceFinalization = await finalizeLiveClassAttendance({
+      liveClassId: liveClass._id,
+      liveClass,
+    });
+  }
+
+  if (["scheduled", "live", "completed"].includes(parsedStatus)) {
+    try {
+      notificationResult = await notifyStudentsForLiveClass({
+        liveClass,
+        event: parsedStatus,
+      });
+    } catch (error) {
+      console.error("Live class notification failed:", error);
+    }
+  }
+
   return {
     liveClass,
+    attendanceFinalization,
+    notificationResult,
+
     message: `Live class status updated to ${parsedStatus}`,
   };
 }
 
-export async function updateLiveClass({ instructorId, userRole, liveClassId, payload }) {
+export async function updateLiveClass({
+  instructorId,
+  userRole,
+  liveClassId,
+  payload,
+}) {
   validateObjectId(instructorId, "instructor ID");
   validateObjectId(liveClassId, "live class ID");
 
@@ -1159,6 +1215,188 @@ export async function getStudentLiveClassById({ studentId, liveClassId }) {
 
 export async function joinStudentLiveClass({ studentId, liveClassId }) {
   validateObjectId(studentId, "student ID");
+
+  validateObjectId(liveClassId, "live class ID");
+
+  const now = new Date();
+
+  /*
+   * Joinable live class fetch.
+   *
+   * meetingPassword normally hidden hai,
+   * is endpoint par explicitly select karenge.
+   */
+  const liveClass = await LiveClass.findOne({
+    _id: liveClassId,
+
+    isActive: true,
+
+    isPublished: true,
+
+    status: {
+      $in: ["scheduled", "live"],
+    },
+  })
+    .select(
+      `
+        +meetingPassword
+
+        course
+        title
+
+        provider
+
+        meetingUrl
+        meetingId
+
+        startsAt
+        endsAt
+
+        allowEarlyJoinMinutes
+
+        maxParticipants
+
+        status
+      `,
+    )
+    .lean();
+
+  if (!liveClass) {
+    throw new ApiError(404, "Live class not found or not joinable");
+  }
+
+  /*
+   * Student enrollment validation.
+   */
+  const enrollment = await Enrollment.findOne({
+    student: studentId,
+
+    course: liveClass.course,
+
+    status: {
+      $in: ["active", "completed"],
+    },
+  })
+    .select(
+      `
+        _id
+        expiresAt
+      `,
+    )
+    .lean();
+
+  if (!enrollment) {
+    throw new ApiError(403, "You are not enrolled in this course");
+  }
+
+  /*
+   * Enrollment expiry validation.
+   */
+  if (
+    enrollment.expiresAt &&
+    new Date(enrollment.expiresAt).getTime() <= now.getTime()
+  ) {
+    throw new ApiError(403, "Your course enrollment has expired");
+  }
+
+  /*
+   * Join window calculate.
+   */
+  const joinOpensAt = new Date(
+    new Date(liveClass.startsAt).getTime() -
+      (liveClass.allowEarlyJoinMinutes ?? 0) * 60 * 1000,
+  );
+
+  const joinClosesAt = new Date(liveClass.endsAt);
+
+  /*
+   * Too early.
+   */
+  if (now < joinOpensAt) {
+    throw new ApiError(
+      403,
+      `Live class can be joined ${liveClass.allowEarlyJoinMinutes ?? 0} minutes before start time`,
+    );
+  }
+
+  /*
+   * Class ended.
+   */
+  if (now >= joinClosesAt) {
+    throw new ApiError(410, "Live class has ended");
+  }
+
+  /*
+   * Ab saari security validations complete hain.
+   *
+   * Iske baad attendance record create/resume karna safe hai.
+   */
+  const attendanceResult = await joinLiveClassAttendance({
+    studentId,
+    liveClassId,
+  });
+
+  /*
+   * Meeting credentials sirf secure join endpoint
+   * ke response me return karenge.
+   */
+  return {
+    liveClass: {
+      id: liveClass._id,
+
+      title: liveClass.title,
+
+      provider: liveClass.provider,
+
+      status: liveClass.status,
+    },
+
+    meeting: {
+      url: liveClass.meetingUrl,
+
+      meetingId: liveClass.meetingId || null,
+
+      password: liveClass.meetingPassword || null,
+    },
+
+    enrollmentId: enrollment._id,
+
+    attendance: {
+      id: attendanceResult.attendance._id,
+
+      status: attendanceResult.attendance.status,
+
+      joinCount: attendanceResult.attendance.joinCount,
+
+      resumedSession: attendanceResult.resumedSession,
+    },
+
+    joinWindow: {
+      joinOpensAt,
+      joinClosesAt,
+    },
+
+    message: "Live class join access granted",
+  };
+}
+function calculateAttendancePercentage({
+  totalDurationInSeconds,
+  liveClassDurationInMinutes,
+}) {
+  const totalClassSeconds = Number(liveClassDurationInMinutes || 0) * 60;
+
+  if (totalClassSeconds <= 0) {
+    return 0;
+  }
+
+  return Math.min(
+    100,
+    Number(((totalDurationInSeconds / totalClassSeconds) * 100).toFixed(2)),
+  );
+}
+
+export async function joinLiveClassAttendance({ studentId, liveClassId }) {
+  validateObjectId(studentId, "student ID");
   validateObjectId(liveClassId, "live class ID");
 
   const now = new Date();
@@ -1173,17 +1411,12 @@ export async function joinStudentLiveClass({ studentId, liveClassId }) {
   })
     .select(
       `
-        +meetingPassword
         course
         title
-        provider
-        meetingUrl
-        meetingId
         startsAt
         endsAt
+        durationInMinutes
         allowEarlyJoinMinutes
-        maxParticipants
-        status
       `,
     )
     .lean();
@@ -1206,52 +1439,682 @@ export async function joinStudentLiveClass({ studentId, liveClassId }) {
     throw new ApiError(403, "You are not enrolled in this course");
   }
 
-  if (
-    enrollment.expiresAt &&
-    new Date(enrollment.expiresAt).getTime() <= now.getTime()
-  ) {
-    throw new ApiError(403, "Your course enrollment has expired");
-  }
-
   const joinOpensAt = new Date(
     new Date(liveClass.startsAt).getTime() -
       (liveClass.allowEarlyJoinMinutes ?? 0) * 60 * 1000,
   );
 
-  const joinClosesAt = new Date(liveClass.endsAt);
-
   if (now < joinOpensAt) {
-    throw new ApiError(
-      403,
-      `Live class can be joined ${liveClass.allowEarlyJoinMinutes} minutes before start time`,
-    );
+    throw new ApiError(403, "Live class join window has not opened yet");
   }
 
-  if (now >= joinClosesAt) {
+  if (now >= new Date(liveClass.endsAt)) {
     throw new ApiError(410, "Live class has ended");
   }
 
+  let attendance = await LiveClassAttendance.findOne({
+    liveClass: liveClassId,
+    student: studentId,
+  });
+
+  if (!attendance) {
+    attendance = await LiveClassAttendance.create({
+      liveClass: liveClassId,
+      course: liveClass.course,
+      student: studentId,
+      enrollment: enrollment._id,
+
+      firstJoinedAt: now,
+      lastJoinedAt: now,
+
+      totalDurationInSeconds: 0,
+      joinCount: 1,
+
+      isPresent: true,
+      status: "present",
+
+      sessions: [
+        {
+          joinedAt: now,
+          leftAt: null,
+          durationInSeconds: 0,
+        },
+      ],
+    });
+
+    return {
+      attendance,
+      resumedSession: false,
+      message: "Live class attendance started",
+    };
+  }
+
+  const activeSession = attendance.sessions.find(
+    (session) => session.leftAt === null,
+  );
+
+  if (activeSession) {
+    return {
+      attendance,
+      resumedSession: true,
+      message: "Student is already marked present",
+    };
+  }
+
+  attendance.sessions.push({
+    joinedAt: now,
+    leftAt: null,
+    durationInSeconds: 0,
+  });
+
+  attendance.lastJoinedAt = now;
+  attendance.joinCount += 1;
+  attendance.isPresent = true;
+  attendance.status = "present";
+
+  await attendance.save();
+
   return {
-    liveClass: {
-      id: liveClass._id,
-      title: liveClass.title,
-      provider: liveClass.provider,
+    attendance,
+    resumedSession: false,
+    message: "Live class attendance resumed",
+  };
+}
+
+export async function leaveLiveClassAttendance({ studentId, liveClassId }) {
+  validateObjectId(studentId, "student ID");
+  validateObjectId(liveClassId, "live class ID");
+
+  const now = new Date();
+
+  const liveClass = await LiveClass.findById(liveClassId)
+    .select(
+      `
+        durationInMinutes
+        status
+        endsAt
+      `,
+    )
+    .lean();
+
+  if (!liveClass) {
+    throw new ApiError(404, "Live class not found");
+  }
+
+  const attendance = await LiveClassAttendance.findOne({
+    liveClass: liveClassId,
+    student: studentId,
+  });
+
+  if (!attendance) {
+    throw new ApiError(404, "Attendance record not found");
+  }
+
+  const activeSession = [...attendance.sessions]
+    .reverse()
+    .find((session) => session.leftAt === null);
+
+  if (!activeSession) {
+    return {
+      attendance,
+      message: "Student has already left the live class",
+    };
+  }
+
+  activeSession.leftAt = now;
+
+  activeSession.durationInSeconds = Math.max(
+    0,
+    Math.floor(
+      (now.getTime() - new Date(activeSession.joinedAt).getTime()) / 1000,
+    ),
+  );
+
+  attendance.totalDurationInSeconds += activeSession.durationInSeconds;
+
+  attendance.lastLeftAt = now;
+
+  attendance.isPresent = false;
+
+  attendance.status =
+    liveClass.status === "completed" || now >= new Date(liveClass.endsAt)
+      ? "completed"
+      : "left";
+
+  attendance.attendancePercentage = calculateAttendancePercentage({
+    totalDurationInSeconds: attendance.totalDurationInSeconds,
+
+    liveClassDurationInMinutes: liveClass.durationInMinutes,
+  });
+
+  await attendance.save();
+
+  return {
+    attendance,
+    message: "Live class attendance updated successfully",
+  };
+}
+
+export async function getInstructorLiveClassAttendance({
+  instructorId,
+  liveClassId,
+  query = {},
+}) {
+  validateObjectId(instructorId, "instructor ID");
+
+  validateObjectId(liveClassId, "live class ID");
+
+  const {
+    search,
+    status,
+    isPresent,
+    sortBy = "totalDurationInSeconds",
+    order = "desc",
+  } = query;
+
+  const { page, limit, skip } = getPagination(query);
+
+  const liveClass = await LiveClass.findOne({
+    _id: liveClassId,
+    instructor: instructorId,
+  })
+    .select(
+      `
+        title
+        course
+        startsAt
+        endsAt
+        durationInMinutes
+        status
+      `,
+    )
+    .populate({
+      path: "course",
+      select: "title slug",
+    })
+    .lean();
+
+  if (!liveClass) {
+    throw new ApiError(404, "Live class not found");
+  }
+
+  const filter = {
+    liveClass: liveClassId,
+  };
+
+  const parsedStatus = parseEnumQuery(
+    status,
+    ["not_joined", "present", "left", "completed"],
+    "Attendance status",
+  );
+
+  if (parsedStatus !== undefined) {
+    filter.status = parsedStatus;
+  }
+
+  const parsedIsPresent = parseBooleanQuery(isPresent, "isPresent");
+
+  if (parsedIsPresent !== undefined) {
+    filter.isPresent = parsedIsPresent;
+  }
+
+  if (search?.trim()) {
+    const escapedSearch = escapeRegex(search.trim());
+
+    const matchingStudents = await User.find({
+      role: "student",
+
+      $or: [
+        {
+          fullName: {
+            $regex: escapedSearch,
+            $options: "i",
+          },
+        },
+        {
+          email: {
+            $regex: escapedSearch,
+            $options: "i",
+          },
+        },
+      ],
+    })
+      .select("_id")
+      .lean();
+
+    filter.student = {
+      $in: matchingStudents.map((student) => student._id),
+    };
+  }
+
+  const {
+    sortBy: selectedSortField,
+    sortOrder,
+    order: normalizedOrder,
+  } = parseSortQuery({
+    sortBy,
+    order,
+
+    allowedFields: [
+      "firstJoinedAt",
+      "lastJoinedAt",
+      "lastLeftAt",
+      "totalDurationInSeconds",
+      "attendancePercentage",
+      "joinCount",
+      "createdAt",
+      "updatedAt",
+    ],
+
+    defaultField: "totalDurationInSeconds",
+
+    defaultOrder: "desc",
+  });
+
+  const [records, totalRecords] = await Promise.all([
+    LiveClassAttendance.find(filter)
+      .populate({
+        path: "student",
+        select: "fullName email avatarUrl status isActive",
+      })
+      .populate({
+        path: "enrollment",
+        select: "status progressPercentage enrolledAt",
+      })
+      .sort({
+        [selectedSortField]: sortOrder,
+        _id: sortOrder,
+      })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+
+    LiveClassAttendance.countDocuments(filter),
+  ]);
+
+  return {
+    liveClass,
+
+    attendance: records,
+
+    pagination: buildPaginationMeta({
+      page,
+      limit,
+      totalRecords,
+    }),
+
+    filters: {
+      search: search?.trim() || null,
+      status: parsedStatus ?? null,
+      isPresent: parsedIsPresent ?? null,
+      sortBy: selectedSortField,
+      order: normalizedOrder,
+    },
+  };
+}
+
+export async function getInstructorLiveClassAttendanceAnalytics({
+  instructorId,
+  liveClassId,
+}) {
+  validateObjectId(instructorId, "instructor ID");
+
+  validateObjectId(liveClassId, "live class ID");
+
+  const liveClass = await LiveClass.findOne({
+    _id: liveClassId,
+    instructor: instructorId,
+  })
+    .select(
+      `
+        title
+        course
+        startsAt
+        endsAt
+        durationInMinutes
+        status
+      `,
+    )
+    .populate({
+      path: "course",
+      select: "title slug",
+    })
+    .lean();
+
+  if (!liveClass) {
+    throw new ApiError(404, "Live class not found");
+  }
+
+  const [totalEligibleStudents, statsResult, joinedStudentIds] =
+    await Promise.all([
+      Enrollment.countDocuments({
+        course: liveClass.course._id,
+        status: {
+          $in: ["active", "completed"],
+        },
+      }),
+
+      LiveClassAttendance.aggregate([
+        {
+          $match: {
+            liveClass: new mongoose.Types.ObjectId(liveClassId),
+          },
+        },
+
+        {
+          $group: {
+            _id: null,
+
+            totalJoinedStudents: {
+              $sum: 1,
+            },
+
+            currentlyPresent: {
+              $sum: {
+                $cond: ["$isPresent", 1, 0],
+              },
+            },
+
+            completedAttendance: {
+              $sum: {
+                $cond: [
+                  {
+                    $eq: ["$status", "completed"],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
+
+            averageDurationInSeconds: {
+              $avg: "$totalDurationInSeconds",
+            },
+
+            averageAttendancePercentage: {
+              $avg: "$attendancePercentage",
+            },
+
+            highestAttendancePercentage: {
+              $max: "$attendancePercentage",
+            },
+
+            lowestAttendancePercentage: {
+              $min: "$attendancePercentage",
+            },
+
+            totalJoinEvents: {
+              $sum: "$joinCount",
+            },
+          },
+        },
+      ]),
+
+      LiveClassAttendance.find({
+        liveClass: liveClassId,
+      })
+        .select("student")
+        .lean(),
+    ]);
+
+  const stats = statsResult[0] ?? {
+    totalJoinedStudents: 0,
+    currentlyPresent: 0,
+    completedAttendance: 0,
+    averageDurationInSeconds: 0,
+    averageAttendancePercentage: 0,
+    highestAttendancePercentage: 0,
+    lowestAttendancePercentage: 0,
+    totalJoinEvents: 0,
+  };
+
+  const joinedIds = joinedStudentIds.map((item) => item.student);
+
+  const missedStudents = await Enrollment.find({
+    course: liveClass.course._id,
+
+    status: {
+      $in: ["active", "completed"],
+    },
+
+    student: {
+      $nin: joinedIds,
+    },
+  })
+    .select("student")
+    .populate({
+      path: "student",
+      select: "fullName email avatarUrl",
+    })
+    .lean();
+
+  const attendanceRate =
+    totalEligibleStudents > 0
+      ? Number(
+          ((stats.totalJoinedStudents / totalEligibleStudents) * 100).toFixed(
+            2,
+          ),
+        )
+      : 0;
+
+  const missedCount = Math.max(
+    totalEligibleStudents - stats.totalJoinedStudents,
+    0,
+  );
+
+  return {
+    liveClass,
+
+    summary: {
+      totalEligibleStudents,
+
+      totalJoinedStudents: stats.totalJoinedStudents ?? 0,
+
+      missedStudents: missedCount,
+
+      attendanceRate,
+
+      currentlyPresent: stats.currentlyPresent ?? 0,
+
+      completedAttendance: stats.completedAttendance ?? 0,
+
+      totalJoinEvents: stats.totalJoinEvents ?? 0,
+
+      averageDurationInSeconds: Number(
+        (stats.averageDurationInSeconds ?? 0).toFixed(2),
+      ),
+
+      averageAttendancePercentage: Number(
+        (stats.averageAttendancePercentage ?? 0).toFixed(2),
+      ),
+
+      highestAttendancePercentage: Number(
+        (stats.highestAttendancePercentage ?? 0).toFixed(2),
+      ),
+
+      lowestAttendancePercentage: Number(
+        (stats.lowestAttendancePercentage ?? 0).toFixed(2),
+      ),
+    },
+
+    missedStudents: missedStudents.map((item) => item.student),
+  };
+}
+
+async function finalizeLiveClassAttendance({ liveClassId, liveClass }) {
+  const effectiveEndTime = liveClass.endedAtActual
+    ? new Date(liveClass.endedAtActual)
+    : new Date();
+
+  const attendanceRecords = await LiveClassAttendance.find({
+    liveClass: liveClassId,
+  });
+
+  for (const attendance of attendanceRecords) {
+    let addedDuration = 0;
+
+    for (const session of attendance.sessions) {
+      if (session.leftAt !== null) {
+        continue;
+      }
+
+      /*
+       * Session ko actual class end time par close karenge.
+       *
+       * Agar current time class ke scheduled endsAt se aage hai,
+       * to scheduled end time se zyada attendance count nahi karenge.
+       */
+      const scheduledEndTime = new Date(liveClass.endsAt);
+
+      const sessionEndTime =
+        effectiveEndTime < scheduledEndTime
+          ? effectiveEndTime
+          : scheduledEndTime;
+
+      session.leftAt = sessionEndTime;
+
+      session.durationInSeconds = Math.max(
+        0,
+        Math.floor(
+          (sessionEndTime.getTime() - new Date(session.joinedAt).getTime()) /
+            1000,
+        ),
+      );
+
+      addedDuration += session.durationInSeconds;
+    }
+
+    attendance.totalDurationInSeconds += addedDuration;
+
+    attendance.totalDurationInSeconds = Math.min(
+      attendance.totalDurationInSeconds,
+
+      Number(liveClass.durationInMinutes || 0) * 60,
+    );
+
+    if (attendance.sessions.length > 0) {
+      const latestClosedSession = [...attendance.sessions]
+        .reverse()
+        .find((session) => session.leftAt !== null);
+
+      attendance.lastLeftAt =
+        latestClosedSession?.leftAt ?? attendance.lastLeftAt;
+    }
+
+    attendance.isPresent = false;
+
+    attendance.status = "completed";
+
+    attendance.attendancePercentage = calculateAttendancePercentage({
+      totalDurationInSeconds: attendance.totalDurationInSeconds,
+
+      liveClassDurationInMinutes: liveClass.durationInMinutes,
+    });
+
+    await attendance.save();
+  }
+
+  return {
+    finalizedCount: attendanceRecords.length,
+  };
+}
+
+async function getActiveEnrolledStudentIds(courseId) {
+  const now = new Date();
+
+  const enrollments = await Enrollment.find({
+    course: courseId,
+    status: {
+      $in: ["active", "completed"],
+    },
+  })
+    .select("student expiresAt")
+    .lean();
+
+  return enrollments
+    .filter(
+      (enrollment) =>
+        !enrollment.expiresAt ||
+        new Date(enrollment.expiresAt).getTime() > now.getTime(),
+    )
+    .map((enrollment) => enrollment.student.toString());
+}
+
+async function notifyStudentsForLiveClass({ liveClass, event }) {
+  const studentIds = await getActiveEnrolledStudentIds(liveClass.course);
+
+  if (studentIds.length === 0) {
+    return {
+      insertedCount: 0,
+    };
+  }
+
+  let title = "";
+  let message = "";
+
+  if (event === "scheduled") {
+    title = "Live class scheduled";
+
+    message =
+      `"${liveClass.title}" has been scheduled for ` +
+      `${new Date(liveClass.startsAt).toLocaleString("en-IN")}.`;
+  }
+
+  if (event === "live") {
+    title = "Live class started";
+
+    message = `"${liveClass.title}" is live now.`;
+  }
+
+  if (event === "cancelled") {
+    title = "Live class cancelled";
+
+    message =
+      `"${liveClass.title}" has been cancelled.` +
+      (liveClass.cancellationReason
+        ? ` Reason: ${liveClass.cancellationReason}`
+        : "");
+  }
+
+  if (event === "completed") {
+    title = "Live class completed";
+
+    message = `"${liveClass.title}" has been completed.`;
+  }
+
+  if (!title || !message) {
+    return {
+      insertedCount: 0,
+    };
+  }
+
+  return createBulkNotifications({
+    userIds: studentIds,
+
+    title,
+
+    message,
+
+    type: "live_class",
+
+    resourceType: "live_class",
+
+    resourceId: liveClass._id,
+
+    courseId: liveClass.course,
+
+    actionUrl: `/student/live-classes/${liveClass._id}`,
+
+    metadata: {
+      liveClassId: liveClass._id.toString(),
+
+      event,
+
+      startsAt: liveClass.startsAt,
+
+      endsAt: liveClass.endsAt,
+
       status: liveClass.status,
     },
-
-    meeting: {
-      url: liveClass.meetingUrl,
-      meetingId: liveClass.meetingId || null,
-      password: liveClass.meetingPassword || null,
-    },
-
-    enrollmentId: enrollment._id,
-
-    joinWindow: {
-      joinOpensAt,
-      joinClosesAt,
-    },
-
-    message: "Live class join access granted",
-  };
+  });
 }
