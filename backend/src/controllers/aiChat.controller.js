@@ -1,38 +1,86 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
+import {
+  asyncHandler,
+} from "../utils/asyncHandler.js";
 
-import { generateAiAnswer } from "../service/aiChat.service.js";
+import {
+  generateAiAnswer,
+} from "../service/aiChat.service.js";
 
 /*
- * Send question and generate AI response.
+ * ============================================
+ * SEND QUESTION + GENERATE AI RESPONSE
+ * ============================================
+ *
+ * POST /api/ai/conversations/:conversationId/messages
+ *
+ * Body:
+ * {
+ *   content: string,
+ *
+ *   // optional RAG scope
+ *   moduleId?: string,
+ *   lectureId?: string,
+ *   resourceType?: string
+ * }
  */
-export const generateAiAnswerController = asyncHandler(async (req, res) => {
-  const { conversationId } = req.params;
+export const generateAiAnswerController =
+  asyncHandler(
+    async (req, res) => {
+      const {
+        conversationId,
+      } = req.params;
 
-  const { content } = req.body || {};
+      const {
+        content,
 
-  const result = await generateAiAnswer({
-    userId: req.user.id,
+        moduleId = null,
 
-    userRole: req.user.role,
+        lectureId = null,
 
-    conversationId,
+        resourceType = null,
+      } = req.body || {};
 
-    content,
-  });
+      const result =
+        await generateAiAnswer({
+          userId:
+            req.user.id,
 
-  return res.status(201).json({
-    success: true,
+          userRole:
+            req.user.role,
 
-    message: "AI response generated successfully",
+          conversationId,
 
-    userMessage: result.userMessage,
+          content,
 
-    assistantMessage: result.assistantMessage,
+          moduleId,
 
-    sources: result.sources,
+          lectureId,
 
-    retrieval: result.retrieval,
+          resourceType,
+        });
 
-    model: result.model,
-  });
-});
+      return res
+        .status(201)
+        .json({
+          success: true,
+
+          message:
+            "AI response generated successfully",
+
+          userMessage:
+            result.userMessage,
+
+          assistantMessage:
+            result.assistantMessage,
+
+          sources:
+            result.sources,
+
+          retrieval:
+            result.retrieval,
+
+          model:
+            result.model,
+        });
+    },
+  );

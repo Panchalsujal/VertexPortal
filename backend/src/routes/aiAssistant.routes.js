@@ -1,6 +1,4 @@
-import {
-  Router,
-} from "express";
+import { Router } from "express";
 
 import {
   createAiConversationController,
@@ -11,51 +9,60 @@ import {
   deleteAiConversationController,
 } from "../controllers/aiAssistant.controller.js";
 
-import {
-  generateAiAnswerController,
-} from "../controllers/aiChat.controller.js";
+import { generateAiAnswerController } from "../controllers/aiChat.controller.js";
 
-import {
-  authMiddleware,
-} from "../middlewares/auth.middleware.js";
+import { authMiddleware } from "../middlewares/auth.middleware.js";
 
-import {
-  authorizeRoles,
-} from "../middlewares/authorize.middleware.js";
+import { authorizeRoles } from "../middlewares/authorize.middleware.js";
 
-const router =
-  Router();
+const router = Router();
 
+/*
+ * All AI assistant routes require auth.
+ */
 router.use(
   authMiddleware,
 
-  authorizeRoles(
-    "student",
-    "instructor",
-    "admin",
-  ),
+  authorizeRoles("student", "instructor", "admin"),
 );
 
 /*
- * Create conversation
+ * ============================================
+ * CREATE CONVERSATION
+ * ============================================
+ *
+ * POST /api/ai/conversations
  */
-router.post(
-  "/conversations",
-  createAiConversationController,
-);
+router.post("/conversations", createAiConversationController);
 
 /*
- * Conversation listing
+ * ============================================
+ * GET MY CONVERSATIONS
+ * ============================================
+ *
+ * GET /api/ai/conversations
  */
-router.get(
-  "/conversations",
-  getMyAiConversationsController,
-);
+router.get("/conversations", getMyAiConversationsController);
 
 /*
- * ====================================
- * MAIN AI CHAT ENDPOINT
- * ====================================
+ * ============================================
+ * SEND MESSAGE + GENERATE AI RESPONSE
+ * ============================================
+ *
+ * POST /api/ai/conversations/:conversationId/messages
+ *
+ * IMPORTANT:
+ * Ye ab old addAiUserMessageController use nahi karta.
+ *
+ * Flow:
+ *
+ * user message
+ * ↓
+ * RAG search
+ * ↓
+ * Mistral
+ * ↓
+ * assistant message
  */
 router.post(
   "/conversations/:conversationId/messages",
@@ -63,7 +70,11 @@ router.post(
 );
 
 /*
- * Rename
+ * ============================================
+ * RENAME CONVERSATION
+ * ============================================
+ *
+ * PATCH /api/ai/conversations/:conversationId/title
  */
 router.patch(
   "/conversations/:conversationId/title",
@@ -71,7 +82,11 @@ router.patch(
 );
 
 /*
- * Archive / restore
+ * ============================================
+ * ARCHIVE / RESTORE
+ * ============================================
+ *
+ * PATCH /api/ai/conversations/:conversationId/archive
  */
 router.patch(
   "/conversations/:conversationId/archive",
@@ -79,19 +94,21 @@ router.patch(
 );
 
 /*
- * Conversation + messages
+ * ============================================
+ * GET CONVERSATION + MESSAGES
+ * ============================================
+ *
+ * GET /api/ai/conversations/:conversationId
  */
-router.get(
-  "/conversations/:conversationId",
-  getAiConversationByIdController,
-);
+router.get("/conversations/:conversationId", getAiConversationByIdController);
 
 /*
- * Delete
+ * ============================================
+ * DELETE CONVERSATION
+ * ============================================
+ *
+ * DELETE /api/ai/conversations/:conversationId
  */
-router.delete(
-  "/conversations/:conversationId",
-  deleteAiConversationController,
-);
+router.delete("/conversations/:conversationId", deleteAiConversationController);
 
 export default router;

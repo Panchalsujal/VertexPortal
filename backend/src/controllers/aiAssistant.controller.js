@@ -1,180 +1,248 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
+import {
+  asyncHandler,
+} from "../utils/asyncHandler.js";
 
 import {
   createAiConversation,
   getMyAiConversations,
   getAiConversationById,
-  addAiUserMessage,
   renameAiConversation,
   updateAiConversationArchive,
   deleteAiConversation,
 } from "../service/aiAssistant.service.js";
 
 /*
- * Create conversation
+ * ============================================
+ * CREATE AI CONVERSATION
+ * ============================================
+ *
+ * POST /api/ai/conversations
  */
-export const createAiConversationController = asyncHandler(async (req, res) => {
-  const conversation = await createAiConversation({
-    userId: req.user.id,
+export const createAiConversationController =
+  asyncHandler(
+    async (req, res) => {
+      const conversation =
+        await createAiConversation({
+          userId:
+            req.user.id,
 
-    userRole: req.user.role,
+          userRole:
+            req.user.role,
 
-    payload: req.body,
-  });
+          payload:
+            req.body,
+        });
 
-  return res.status(201).json({
-    success: true,
+      return res
+        .status(201)
+        .json({
+          success: true,
 
-    message: "AI conversation created successfully",
+          message:
+            "AI conversation created successfully",
 
-    conversation,
-  });
-});
+          conversation,
+        });
+    },
+  );
 
 /*
- * Conversation listing
+ * ============================================
+ * GET MY AI CONVERSATIONS
+ * ============================================
+ *
+ * GET /api/ai/conversations
  */
-export const getMyAiConversationsController = asyncHandler(async (req, res) => {
-  const result = await getMyAiConversations({
-    userId: req.user.id,
+export const getMyAiConversationsController =
+  asyncHandler(
+    async (req, res) => {
+      const result =
+        await getMyAiConversations({
+          userId:
+            req.user.id,
 
-    query: req.query,
-  });
+          query:
+            req.query,
+        });
 
-  return res.status(200).json({
-    success: true,
+      return res
+        .status(200)
+        .json({
+          success: true,
 
-    message: "AI conversations fetched successfully",
+          message:
+            "AI conversations fetched successfully",
 
-    ...result,
-  });
-});
+          conversations:
+            result.conversations,
+
+          pagination:
+            result.pagination,
+        });
+    },
+  );
 
 /*
- * Conversation details
+ * ============================================
+ * GET SINGLE CONVERSATION + MESSAGES
+ * ============================================
+ *
+ * GET /api/ai/conversations/:conversationId
  */
-export const getAiConversationByIdController = asyncHandler(
-  async (req, res) => {
-    const { conversationId } = req.params;
+export const getAiConversationByIdController =
+  asyncHandler(
+    async (req, res) => {
+      const {
+        conversationId,
+      } = req.params;
 
-    const result = await getAiConversationById({
-      userId: req.user.id,
+      const result =
+        await getAiConversationById({
+          userId:
+            req.user.id,
 
-      conversationId,
+          conversationId,
 
-      query: req.query,
-    });
+          query:
+            req.query,
+        });
 
-    return res.status(200).json({
-      success: true,
+      return res
+        .status(200)
+        .json({
+          success: true,
 
-      message: "AI conversation fetched successfully",
+          message:
+            "AI conversation fetched successfully",
 
-      ...result,
-    });
-  },
-);
+          conversation:
+            result.conversation,
+
+          messages:
+            result.messages,
+
+          pagination:
+            result.pagination,
+        });
+    },
+  );
 
 /*
- * Add user message
+ * ============================================
+ * RENAME CONVERSATION
+ * ============================================
+ *
+ * PATCH /api/ai/conversations/:conversationId/title
  */
-export const addAiUserMessageController = asyncHandler(async (req, res) => {
-  const { conversationId } = req.params;
+export const renameAiConversationController =
+  asyncHandler(
+    async (req, res) => {
+      const {
+        conversationId,
+      } = req.params;
 
-  const { content } = req.body || {};
+      const {
+        title,
+      } = req.body || {};
 
-  const result = await addAiUserMessage({
-    userId: req.user.id,
+      const conversation =
+        await renameAiConversation({
+          userId:
+            req.user.id,
 
-    userRole: req.user.role,
+          conversationId,
 
-    conversationId,
+          title,
+        });
 
-    content,
-  });
+      return res
+        .status(200)
+        .json({
+          success: true,
 
-  return res.status(201).json({
-    success: true,
+          message:
+            "AI conversation renamed successfully",
 
-    message: "Message added successfully",
-
-    userMessage: result.message,
-
-    conversation: result.conversation,
-  });
-});
+          conversation,
+        });
+    },
+  );
 
 /*
- * Rename
+ * ============================================
+ * ARCHIVE / UNARCHIVE CONVERSATION
+ * ============================================
+ *
+ * PATCH /api/ai/conversations/:conversationId/archive
  */
-export const renameAiConversationController = asyncHandler(async (req, res) => {
-  const { conversationId } = req.params;
+export const updateAiConversationArchiveController =
+  asyncHandler(
+    async (req, res) => {
+      const {
+        conversationId,
+      } = req.params;
 
-  const { title } = req.body || {};
+      const {
+        isArchived,
+      } = req.body || {};
 
-  const conversation = await renameAiConversation({
-    userId: req.user.id,
+      const conversation =
+        await updateAiConversationArchive({
+          userId:
+            req.user.id,
 
-    conversationId,
+          conversationId,
 
-    title,
-  });
+          isArchived,
+        });
 
-  return res.status(200).json({
-    success: true,
+      return res
+        .status(200)
+        .json({
+          success: true,
 
-    message: "AI conversation renamed successfully",
+          message:
+            isArchived
+              ? "AI conversation archived successfully"
+              : "AI conversation restored successfully",
 
-    conversation,
-  });
-});
+          conversation,
+        });
+    },
+  );
 
 /*
- * Archive / restore
+ * ============================================
+ * DELETE CONVERSATION
+ * ============================================
+ *
+ * DELETE /api/ai/conversations/:conversationId
  */
-export const updateAiConversationArchiveController = asyncHandler(
-  async (req, res) => {
-    const { conversationId } = req.params;
+export const deleteAiConversationController =
+  asyncHandler(
+    async (req, res) => {
+      const {
+        conversationId,
+      } = req.params;
 
-    const { isArchived } = req.body || {};
+      const result =
+        await deleteAiConversation({
+          userId:
+            req.user.id,
 
-    const conversation = await updateAiConversationArchive({
-      userId: req.user.id,
+          conversationId,
+        });
 
-      conversationId,
+      return res
+        .status(200)
+        .json({
+          success: true,
 
-      isArchived,
-    });
+          message:
+            result.message,
 
-    return res.status(200).json({
-      success: true,
-
-      message: isArchived
-        ? "AI conversation archived successfully"
-        : "AI conversation restored successfully",
-
-      conversation,
-    });
-  },
-);
-
-/*
- * Delete
- */
-export const deleteAiConversationController = asyncHandler(async (req, res) => {
-  const { conversationId } = req.params;
-
-  const result = await deleteAiConversation({
-    userId: req.user.id,
-
-    conversationId,
-  });
-
-  return res.status(200).json({
-    success: true,
-
-    message: result.message,
-
-    conversationId: result.conversationId,
-  });
-});
+          conversationId:
+            result.conversationId,
+        });
+    },
+  );

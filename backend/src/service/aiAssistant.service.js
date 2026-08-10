@@ -2,29 +2,44 @@ import mongoose from "mongoose";
 
 import AiConversation from "../models/aiConversation.model.js";
 import AiMessage from "../models/aiMessage.model.js";
+
 import Enrollment from "../models/enrollment.model.js";
 import Course from "../models/course.model.js";
 
-import { validateObjectId } from "../utils/validator.js";
+import {
+  validateObjectId,
+} from "../utils/validator.js";
 
-import { getPagination, buildPaginationMeta } from "../utils/pagination.js";
+import {
+  getPagination,
+  buildPaginationMeta,
+} from "../utils/pagination.js";
 
-import { ApiError } from "../utils/ApiError.js";
+import {
+  ApiError,
+} from "../utils/ApiError.js";
 
 /*
  * =========================================
  * Course access validation
  * =========================================
  */
-async function validateCourseAccess({ userId, userRole, courseId }) {
-  validateObjectId(courseId, "course ID");
+async function validateCourseAccess({
+  userId,
+  userRole,
+  courseId,
+}) {
+  validateObjectId(
+    courseId,
+    "course ID",
+  );
 
-  const course = await Course.findOne({
-    _id: courseId,
-    isActive: true,
-  })
-    .select(
-      `
+  const course =
+    await Course.findOne({
+      _id: courseId,
+      isActive: true,
+    })
+      .select(`
         _id
         title
         slug
@@ -32,12 +47,14 @@ async function validateCourseAccess({ userId, userRole, courseId }) {
         status
         isPublished
         isActive
-      `,
-    )
-    .lean();
+      `)
+      .lean();
 
   if (!course) {
-    throw new ApiError(404, "Course not found");
+    throw new ApiError(
+      404,
+      "Course not found",
+    );
   }
 
   /*
@@ -48,11 +65,17 @@ async function validateCourseAccess({ userId, userRole, courseId }) {
   }
 
   /*
-   * Instructor own course.
+   * Instructor only own course.
    */
   if (userRole === "instructor") {
-    if (course.instructor.toString() !== String(userId)) {
-      throw new ApiError(403, "You do not have access to this course");
+    if (
+      course.instructor.toString() !==
+      String(userId)
+    ) {
+      throw new ApiError(
+        403,
+        "You do not have access to this course",
+      );
     }
 
     return course;
@@ -62,75 +85,116 @@ async function validateCourseAccess({ userId, userRole, courseId }) {
    * Student enrollment required.
    */
   if (userRole === "student") {
-    const enrollment = await Enrollment.findOne({
-      student: userId,
-      course: courseId,
+    const enrollment =
+      await Enrollment.findOne({
+        student: userId,
 
-      status: {
-        $in: ["active", "completed"],
-      },
-    })
-      .select("_id expiresAt")
-      .lean();
+        course: courseId,
+
+        status: {
+          $in: [
+            "active",
+            "completed",
+          ],
+        },
+      })
+        .select(
+          "_id expiresAt",
+        )
+        .lean();
 
     if (!enrollment) {
-      throw new ApiError(403, "You are not enrolled in this course");
+      throw new ApiError(
+        403,
+        "You are not enrolled in this course",
+      );
     }
 
     if (
       enrollment.expiresAt &&
-      new Date(enrollment.expiresAt).getTime() <= Date.now()
+      new Date(
+        enrollment.expiresAt,
+      ).getTime() <= Date.now()
     ) {
-      throw new ApiError(403, "Your course enrollment has expired");
+      throw new ApiError(
+        403,
+        "Your course enrollment has expired",
+      );
     }
 
     return course;
   }
 
-  throw new ApiError(403, "You do not have access to this course");
+  throw new ApiError(
+    403,
+    "You do not have access to this course",
+  );
 }
 
 /*
  * =========================================
- * Create new AI conversation
+ * Create AI conversation
  * =========================================
  */
-export async function createAiConversation({ userId, userRole, payload }) {
-  validateObjectId(userId, "user ID");
+export async function createAiConversation({
+  userId,
+  userRole,
+  payload,
+}) {
+  validateObjectId(
+    userId,
+    "user ID",
+  );
 
-  const { courseId = null, title = "" } = payload || {};
+  const {
+    courseId = null,
+    title = "",
+  } = payload || {};
 
   let course = null;
 
   if (courseId) {
-    course = await validateCourseAccess({
-      userId,
-      userRole,
-      courseId,
+    course =
+      await validateCourseAccess({
+        userId,
+        userRole,
+        courseId,
+      });
+  }
+
+  const normalizedTitle =
+    String(title || "").trim();
+
+  if (
+    normalizedTitle.length >
+    200
+  ) {
+    throw new ApiError(
+      400,
+      "Conversation title cannot exceed 200 characters",
+    );
+  }
+
+  const conversation =
+    await AiConversation.create({
+      user: userId,
+
+      course:
+        course?._id ?? null,
+
+      title:
+        normalizedTitle ||
+        "New conversation",
+
+      messageCount: 0,
+
+      lastMessageAt:
+        new Date(),
+
+      isArchived: false,
+
+      isActive: true,
     });
-  }
-
-  const normalizedTitle = String(title || "").trim();
-
-  if (normalizedTitle.length > 200) {
-    throw new ApiError(400, "Conversation title cannot exceed 200 characters");
-  }
-
-  const conversation = await AiConversation.create({
-    user: userId,
-
-    course: course?._id ?? null,
-
-    title: normalizedTitle || "New conversation",
-
-    messageCount: 0,
-
-    lastMessageAt: new Date(),
-
-    isArchived: false,
-
-    isActive: true,
-  });
 
   return conversation;
 }
@@ -140,12 +204,26 @@ export async function createAiConversation({ userId, userRole, payload }) {
  * Get current user's conversations
  * =========================================
  */
-export async function getMyAiConversations({ userId, query = {} }) {
-  validateObjectId(userId, "user ID");
+export async function getMyAiConversations({
+  userId,
+  query = {},
+}) {
+  validateObjectId(
+    userId,
+    "user ID",
+  );
 
-  const { course, archived = "false" } = query;
+  const {
+    course,
+    archived = "false",
+  } = query;
 
-  const { page, limit, skip } = getPagination(query);
+  const {
+    page,
+    limit,
+    skip,
+  } =
+    getPagination(query);
 
   const filter = {
     user: userId,
@@ -153,42 +231,54 @@ export async function getMyAiConversations({ userId, query = {} }) {
   };
 
   if (course) {
-    validateObjectId(course, "course ID");
+    validateObjectId(
+      course,
+      "course ID",
+    );
 
-    filter.course = course;
+    filter.course =
+      course;
   }
 
-  if (archived === "true") {
-    filter.isArchived = true;
-  } else {
-    filter.isArchived = false;
-  }
+  filter.isArchived =
+    archived === "true";
 
-  const [conversations, totalRecords] = await Promise.all([
-    AiConversation.find(filter)
-      .populate({
-        path: "course",
-        select: "title slug thumbnailUrl",
-      })
-      .sort({
-        lastMessageAt: -1,
-        createdAt: -1,
-      })
-      .skip(skip)
-      .limit(limit)
-      .lean(),
+  const [
+    conversations,
+    totalRecords,
+  ] =
+    await Promise.all([
+      AiConversation.find(
+        filter,
+      )
+        .populate({
+          path: "course",
 
-    AiConversation.countDocuments(filter),
-  ]);
+          select:
+            "title slug thumbnailUrl",
+        })
+        .sort({
+          lastMessageAt: -1,
+          createdAt: -1,
+        })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+
+      AiConversation.countDocuments(
+        filter,
+      ),
+    ]);
 
   return {
     conversations,
 
-    pagination: buildPaginationMeta({
-      page,
-      limit,
-      totalRecords,
-    }),
+    pagination:
+      buildPaginationMeta({
+        page,
+        limit,
+        totalRecords,
+      }),
   };
 }
 
@@ -202,166 +292,84 @@ export async function getAiConversationById({
   conversationId,
   query = {},
 }) {
-  validateObjectId(userId, "user ID");
+  validateObjectId(
+    userId,
+    "user ID",
+  );
 
-  validateObjectId(conversationId, "conversation ID");
+  validateObjectId(
+    conversationId,
+    "conversation ID",
+  );
 
-  const conversation = await AiConversation.findOne({
-    _id: conversationId,
-    user: userId,
-    isActive: true,
-  })
-    .populate({
-      path: "course",
-      select: "title slug thumbnailUrl",
+  const conversation =
+    await AiConversation.findOne({
+      _id: conversationId,
+
+      user: userId,
+
+      isActive: true,
     })
-    .lean();
+      .populate({
+        path: "course",
+
+        select:
+          "title slug thumbnailUrl",
+      })
+      .lean();
 
   if (!conversation) {
-    throw new ApiError(404, "AI conversation not found");
+    throw new ApiError(
+      404,
+      "AI conversation not found",
+    );
   }
 
-  const { page, limit, skip } = getPagination(query);
+  const {
+    page,
+    limit,
+    skip,
+  } =
+    getPagination(query);
 
-  const [messages, totalRecords] = await Promise.all([
-    AiMessage.find({
-      conversation: conversationId,
+  const messageFilter = {
+    conversation:
+      conversationId,
 
-      isActive: true,
-    })
-      .sort({
-        createdAt: 1,
-      })
-      .skip(skip)
-      .limit(limit)
-      .lean(),
+    isActive: true,
+  };
 
-    AiMessage.countDocuments({
-      conversation: conversationId,
+  const [
+    messages,
+    totalRecords,
+  ] =
+    await Promise.all([
+      AiMessage.find(
+        messageFilter,
+      )
+        .sort({
+          createdAt: 1,
+        })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
 
-      isActive: true,
-    }),
-  ]);
+      AiMessage.countDocuments(
+        messageFilter,
+      ),
+    ]);
 
   return {
     conversation,
 
     messages,
 
-    pagination: buildPaginationMeta({
-      page,
-      limit,
-      totalRecords,
-    }),
-  };
-}
-
-/*
- * =========================================
- * Add user message
- *
- * IMPORTANT:
- * Abhi ye sirf conversation/message persistence
- * karega.
- *
- * Next RAG step me:
- *
- * user question
- *   ↓
- * retrieve course context
- *   ↓
- * LLM
- *   ↓
- * assistant message
- *
- * add karenge.
- * =========================================
- */
-export async function addAiUserMessage({
-  userId,
-  userRole,
-  conversationId,
-  content,
-}) {
-  validateObjectId(userId, "user ID");
-
-  validateObjectId(conversationId, "conversation ID");
-
-  const normalizedContent = String(content || "").trim();
-
-  if (!normalizedContent) {
-    throw new ApiError(400, "Message is required");
-  }
-
-  if (normalizedContent.length > 10000) {
-    throw new ApiError(400, "Message cannot exceed 10000 characters");
-  }
-
-  const conversation = await AiConversation.findOne({
-    _id: conversationId,
-    user: userId,
-    isActive: true,
-  });
-
-  if (!conversation) {
-    throw new ApiError(404, "AI conversation not found");
-  }
-
-  /*
-   * Course-linked conversation hai
-   * to access dobara validate.
-   */
-  if (conversation.course) {
-    await validateCourseAccess({
-      userId,
-      userRole,
-      courseId: conversation.course,
-    });
-  }
-
-  const now = new Date();
-
-  const message = await AiMessage.create({
-    conversation: conversation._id,
-
-    user: userId,
-
-    course: conversation.course ?? null,
-
-    role: "user",
-
-    content: normalizedContent,
-
-    sources: [],
-
-    metadata: null,
-
-    isActive: true,
-  });
-
-  conversation.messageCount += 1;
-
-  conversation.lastMessageAt = now;
-
-  /*
-   * First message se automatic title.
-   */
-  if (
-    conversation.messageCount === 1 &&
-    (!conversation.title || conversation.title === "New conversation")
-  ) {
-    conversation.title =
-      normalizedContent.length > 60
-        ? `${normalizedContent.slice(0, 57)}...`
-        : normalizedContent;
-  }
-
-  await conversation.save();
-
-  return {
-    message,
-
-    conversation,
+    pagination:
+      buildPaginationMeta({
+        page,
+        limit,
+        totalRecords,
+      }),
   };
 }
 
@@ -369,8 +377,6 @@ export async function addAiUserMessage({
  * =========================================
  * Internal helper:
  * Save assistant response
- *
- * Next RAG service isi helper ko use karega.
  * =========================================
  */
 export async function saveAiAssistantMessage({
@@ -380,49 +386,90 @@ export async function saveAiAssistantMessage({
   sources = [],
   metadata = null,
 }) {
-  validateObjectId(conversationId, "conversation ID");
+  validateObjectId(
+    conversationId,
+    "conversation ID",
+  );
 
-  validateObjectId(userId, "user ID");
+  validateObjectId(
+    userId,
+    "user ID",
+  );
 
-  const normalizedContent = String(content || "").trim();
+  const normalizedContent =
+    String(content || "").trim();
 
   if (!normalizedContent) {
-    throw new ApiError(400, "Assistant message content is required");
+    throw new ApiError(
+      400,
+      "Assistant message content is required",
+    );
   }
 
-  const conversation = await AiConversation.findOne({
-    _id: conversationId,
+  if (
+    normalizedContent.length >
+    50000
+  ) {
+    throw new ApiError(
+      400,
+      "Assistant message cannot exceed 50000 characters",
+    );
+  }
 
-    user: userId,
+  const conversation =
+    await AiConversation.findOne({
+      _id:
+        conversationId,
 
-    isActive: true,
-  });
+      user:
+        userId,
+
+      isActive:
+        true,
+    });
 
   if (!conversation) {
-    throw new ApiError(404, "AI conversation not found");
+    throw new ApiError(
+      404,
+      "AI conversation not found",
+    );
   }
 
-  const message = await AiMessage.create({
-    conversation: conversation._id,
+  const message =
+    await AiMessage.create({
+      conversation:
+        conversation._id,
 
-    user: userId,
+      user:
+        userId,
 
-    course: conversation.course ?? null,
+      course:
+        conversation.course ??
+        null,
 
-    role: "assistant",
+      role:
+        "assistant",
 
-    content: normalizedContent,
+      content:
+        normalizedContent,
 
-    sources: Array.isArray(sources) ? sources : [],
+      sources:
+        Array.isArray(sources)
+          ? sources
+          : [],
 
-    metadata: metadata ?? null,
+      metadata:
+        metadata ?? null,
 
-    isActive: true,
-  });
+      isActive:
+        true,
+    });
 
-  conversation.messageCount += 1;
+  conversation.messageCount +=
+    1;
 
-  conversation.lastMessageAt = new Date();
+  conversation.lastMessageAt =
+    new Date();
 
   await conversation.save();
 
@@ -434,43 +481,72 @@ export async function saveAiAssistantMessage({
  * Rename conversation
  * =========================================
  */
-export async function renameAiConversation({ userId, conversationId, title }) {
-  validateObjectId(userId, "user ID");
-
-  validateObjectId(conversationId, "conversation ID");
-
-  const normalizedTitle = String(title || "").trim();
-
-  if (normalizedTitle.length < 1) {
-    throw new ApiError(400, "Conversation title is required");
-  }
-
-  if (normalizedTitle.length > 200) {
-    throw new ApiError(400, "Conversation title cannot exceed 200 characters");
-  }
-
-  const conversation = await AiConversation.findOneAndUpdate(
-    {
-      _id: conversationId,
-
-      user: userId,
-
-      isActive: true,
-    },
-
-    {
-      $set: {
-        title: normalizedTitle,
-      },
-    },
-
-    {
-      new: true,
-    },
+export async function renameAiConversation({
+  userId,
+  conversationId,
+  title,
+}) {
+  validateObjectId(
+    userId,
+    "user ID",
   );
 
+  validateObjectId(
+    conversationId,
+    "conversation ID",
+  );
+
+  const normalizedTitle =
+    String(title || "").trim();
+
+  if (!normalizedTitle) {
+    throw new ApiError(
+      400,
+      "Conversation title is required",
+    );
+  }
+
+  if (
+    normalizedTitle.length >
+    200
+  ) {
+    throw new ApiError(
+      400,
+      "Conversation title cannot exceed 200 characters",
+    );
+  }
+
+  const conversation =
+    await AiConversation.findOneAndUpdate(
+      {
+        _id:
+          conversationId,
+
+        user:
+          userId,
+
+        isActive:
+          true,
+      },
+
+      {
+        $set: {
+          title:
+            normalizedTitle,
+        },
+      },
+
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+
   if (!conversation) {
-    throw new ApiError(404, "AI conversation not found");
+    throw new ApiError(
+      404,
+      "AI conversation not found",
+    );
   }
 
   return conversation;
@@ -478,7 +554,7 @@ export async function renameAiConversation({ userId, conversationId, title }) {
 
 /*
  * =========================================
- * Archive / unarchive
+ * Archive / unarchive conversation
  * =========================================
  */
 export async function updateAiConversationArchive({
@@ -486,36 +562,56 @@ export async function updateAiConversationArchive({
   conversationId,
   isArchived,
 }) {
-  validateObjectId(userId, "user ID");
-
-  validateObjectId(conversationId, "conversation ID");
-
-  if (typeof isArchived !== "boolean") {
-    throw new ApiError(400, "isArchived must be boolean");
-  }
-
-  const conversation = await AiConversation.findOneAndUpdate(
-    {
-      _id: conversationId,
-
-      user: userId,
-
-      isActive: true,
-    },
-
-    {
-      $set: {
-        isArchived,
-      },
-    },
-
-    {
-      new: true,
-    },
+  validateObjectId(
+    userId,
+    "user ID",
   );
 
+  validateObjectId(
+    conversationId,
+    "conversation ID",
+  );
+
+  if (
+    typeof isArchived !==
+    "boolean"
+  ) {
+    throw new ApiError(
+      400,
+      "isArchived must be boolean",
+    );
+  }
+
+  const conversation =
+    await AiConversation.findOneAndUpdate(
+      {
+        _id:
+          conversationId,
+
+        user:
+          userId,
+
+        isActive:
+          true,
+      },
+
+      {
+        $set: {
+          isArchived,
+        },
+      },
+
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+
   if (!conversation) {
-    throw new ApiError(404, "AI conversation not found");
+    throw new ApiError(
+      404,
+      "AI conversation not found",
+    );
   }
 
   return conversation;
@@ -525,65 +621,92 @@ export async function updateAiConversationArchive({
  * =========================================
  * Delete conversation
  *
- * Soft delete conversation + messages.
+ * Soft-delete conversation + messages.
  * =========================================
  */
-export async function deleteAiConversation({ userId, conversationId }) {
-  validateObjectId(userId, "user ID");
+export async function deleteAiConversation({
+  userId,
+  conversationId,
+}) {
+  validateObjectId(
+    userId,
+    "user ID",
+  );
 
-  validateObjectId(conversationId, "conversation ID");
+  validateObjectId(
+    conversationId,
+    "conversation ID",
+  );
 
-  const session = await mongoose.startSession();
+  const session =
+    await mongoose.startSession();
 
   try {
     let deletedConversationId;
 
-    await session.withTransaction(async () => {
-      const conversation = await AiConversation.findOne({
-        _id: conversationId,
+    await session.withTransaction(
+      async () => {
+        const conversation =
+          await AiConversation.findOne({
+            _id:
+              conversationId,
 
-        user: userId,
+            user:
+              userId,
 
-        isActive: true,
-      }).session(session);
+            isActive:
+              true,
+          }).session(session);
 
-      if (!conversation) {
-        throw new ApiError(404, "AI conversation not found");
-      }
+        if (!conversation) {
+          throw new ApiError(
+            404,
+            "AI conversation not found",
+          );
+        }
 
-      conversation.isActive = false;
+        conversation.isActive =
+          false;
 
-      conversation.isArchived = true;
+        conversation.isArchived =
+          true;
 
-      await conversation.save({
-        session,
-      });
-
-      await AiMessage.updateMany(
-        {
-          conversation: conversationId,
-
-          isActive: true,
-        },
-
-        {
-          $set: {
-            isActive: false,
-          },
-        },
-
-        {
+        await conversation.save({
           session,
-        },
-      );
+        });
 
-      deletedConversationId = conversation._id;
-    });
+        await AiMessage.updateMany(
+          {
+            conversation:
+              conversationId,
+
+            isActive:
+              true,
+          },
+
+          {
+            $set: {
+              isActive:
+                false,
+            },
+          },
+
+          {
+            session,
+          },
+        );
+
+        deletedConversationId =
+          conversation._id;
+      },
+    );
 
     return {
-      conversationId: deletedConversationId,
+      conversationId:
+        deletedConversationId,
 
-      message: "AI conversation deleted successfully",
+      message:
+        "AI conversation deleted successfully",
     };
   } finally {
     await session.endSession();

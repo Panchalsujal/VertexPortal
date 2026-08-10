@@ -589,6 +589,13 @@ export async function searchCourseKnowledge({
 
   query,
 
+  /*
+   * Optional scope filters.
+   */
+  moduleId = null,
+  lectureId = null,
+  resourceType = null,
+
   limit = DEFAULT_SEARCH_LIMIT,
 
   minimumScore = DEFAULT_MINIMUM_SCORE,
@@ -598,9 +605,9 @@ export async function searchCourseKnowledge({
   maxContextCharacters = DEFAULT_MAX_CONTEXT_CHARACTERS,
 }) {
   /*
-   * ----------------------------------
-   * Course access
-   * ----------------------------------
+   * ==================================
+   * COURSE ACCESS
+   * ==================================
    */
   await validateRagCourseAccess({
     userId,
@@ -609,9 +616,9 @@ export async function searchCourseKnowledge({
   });
 
   /*
-   * ----------------------------------
-   * Query validation
-   * ----------------------------------
+   * ==================================
+   * QUERY VALIDATION
+   * ==================================
    */
   const normalizedQuery = String(query || "").trim();
 
@@ -620,37 +627,111 @@ export async function searchCourseKnowledge({
   }
 
   /*
-   * ----------------------------------
-   * Limit validation
-   * ----------------------------------
+   * ==================================
+   * OPTIONAL FILTER VALIDATION
+   * ==================================
+   */
+  if (moduleId) {
+    validateObjectId(moduleId, "module ID");
+  }
+
+  if (lectureId) {
+    validateObjectId(lectureId, "lecture ID");
+  }
+
+  let parsedResourceType;
+
+  if (resourceType) {
+    parsedResourceType = parseEnumQuery(
+      resourceType,
+      RESOURCE_TYPES,
+      "RAG resource type",
+    );
+  }
+
+  /*
+   * ==================================
+   * VERIFY MODULE BELONGS TO COURSE
+   * ==================================
+   */
+  if (moduleId) {
+    const moduleExists = await CourseModule.exists({
+      _id: moduleId,
+
+      course: courseId,
+
+      isActive: true,
+    });
+
+    if (!moduleExists) {
+      throw new ApiError(404, "Course module not found");
+    }
+  }
+
+  /*
+   * ==================================
+   * VERIFY LECTURE BELONGS TO COURSE
+   * ==================================
+   */
+  let scopedLecture = null;
+
+  if (lectureId) {
+    scopedLecture = await Lecture.findOne({
+      _id: lectureId,
+
+      course: courseId,
+
+      isActive: true,
+    })
+      .select("_id course module type")
+      .lean();
+
+    if (!scopedLecture) {
+      throw new ApiError(404, "Lecture not found in this course");
+    }
+
+    /*
+     * Agar moduleId + lectureId dono aaye,
+     * lecture same module ka hona chahiye.
+     */
+    if (moduleId && String(scopedLecture.module) !== String(moduleId)) {
+      throw new ApiError(400, "Lecture does not belong to the selected module");
+    }
+  }
+
+  /*
+   * ==================================
+   * LIMIT
+   * ==================================
    */
   const parsedLimit = Math.min(
     Math.max(Number(limit) || DEFAULT_SEARCH_LIMIT, 1),
+
     MAX_SEARCH_LIMIT,
   );
 
   /*
-   * ----------------------------------
-   * Minimum score
-   * ----------------------------------
+   * ==================================
+   * MINIMUM SCORE
+   * ==================================
    */
   const parsedMinimumScore = Number.isFinite(Number(minimumScore))
     ? Number(minimumScore)
     : DEFAULT_MINIMUM_SCORE;
 
   /*
-   * ----------------------------------
-   * Relative score drop
-   * ----------------------------------
+   * ==================================
+   * RELATIVE SCORE DROP
+   * ==================================
    */
   const parsedRelativeScoreDrop = Number.isFinite(Number(relativeScoreDrop))
     ? Math.max(Number(relativeScoreDrop), 0)
     : DEFAULT_RELATIVE_SCORE_DROP;
 
   /*
-   * ----------------------------------
-   * Context size
-   * ----------------------------------
+   * ==================================
+   * CONTEXT SIZE
+   * ==================================
    */
   const parsedMaxContextCharacters = Number.isFinite(
     Number(maxContextCharacters),
@@ -659,31 +740,114 @@ export async function searchCourseKnowledge({
     : DEFAULT_MAX_CONTEXT_CHARACTERS;
 
   /*
-   * ----------------------------------
-   * Query embedding
-   * ----------------------------------
+   * ==================================
+   * RESOURCE INTENT DETECTION
+   * ==================================
+   *
+   * Ye HARD filter nahi hai.
+   *
+   * User explicitly resourceType nahi
+   * bhejta to query ke words se preference
+   * detect karenge.
+   */
+  const lowerQuery = normalizedQuery.toLowerCase();
+
+  let preferredResourceType = null;
+
+  if (!parsedResourceType) {
+    const mentionsVideo =
+      /\b(video|watch|watched|transcript|speaker|interviewer|lecture)\b/i.test(
+        normalizedQuery,
+      );
+
+    const mentionsDocument =
+      /\b(pdf|document|file|uploaded document|uploaded pdf)\b/i.test(
+        normalizedQuery,
+      );
+
+    const mentionsNote = /\b(note|notes)\b/i.test(normalizedQuery);
+
+    const mentionsModule = /\b(module|chapter|section)\b/i.test(
+      normalizedQuery,
+    );
+
+    if (mentionsVideo) {
+      preferredResourceType = "lecture";
+    } else if (mentionsDocument) {
+      preferredResourceType = "document";
+    } else if (mentionsNote) {
+      preferredResourceType = "note";
+    } else if (mentionsModule) {
+      preferredResourceType = "module";
+    }
+  }
+
+  /*
+   * ==================================
+   * QUERY EMBEDDING
+   * ==================================
    */
   const queryEmbedding = await generateEmbedding(normalizedQuery);
 
   /*
-   * Hum final required limit se
-   * thode extra candidates retrieve
-   * karenge.
+   * More candidates retrieve karenge
+   * because baad me:
    *
-   * Baad me JS side par:
+   * - scope
+   * - preference
+   * - score
+   * - duplicate
+   * - context
    *
-   * - relative filtering
-   * - duplicates
-   * - context limit
-   *
-   * apply honge.
+   * processing hoga.
    */
-  const vectorLimit = Math.min(Math.max(parsedLimit * 3, 12), 50);
+  const vectorLimit = Math.min(Math.max(parsedLimit * 5, 20), 50);
 
   /*
-   * ----------------------------------
-   * MongoDB Vector Search
-   * ----------------------------------
+   * ==================================
+   * VECTOR FILTER
+   * ==================================
+   */
+  const vectorFilter = {
+    course: new mongoose.Types.ObjectId(courseId),
+
+    isActive: true,
+  };
+
+  /*
+   * Specific lecture:
+   *
+   * HARD scope.
+   *
+   * Is case me unrelated PDF/note
+   * bilkul nahi aayega.
+   */
+  if (lectureId) {
+    vectorFilter.lecture = new mongoose.Types.ObjectId(lectureId);
+  }
+
+  /*
+   * Specific module:
+   *
+   * HARD scope.
+   */
+  if (moduleId) {
+    vectorFilter.module = new mongoose.Types.ObjectId(moduleId);
+  }
+
+  /*
+   * Explicit resourceType:
+   *
+   * HARD filter.
+   */
+  if (parsedResourceType) {
+    vectorFilter.resourceType = parsedResourceType;
+  }
+
+  /*
+   * ==================================
+   * VECTOR SEARCH
+   * ==================================
    */
   const rawResults = await RagChunk.aggregate([
     {
@@ -698,11 +862,7 @@ export async function searchCourseKnowledge({
 
         limit: vectorLimit,
 
-        filter: {
-          course: new mongoose.Types.ObjectId(courseId),
-
-          isActive: true,
-        },
+        filter: vectorFilter,
       },
     },
 
@@ -734,10 +894,6 @@ export async function searchCourseKnowledge({
       },
     },
 
-    /*
-     * First-level absolute
-     * relevance filtering.
-     */
     {
       $match: {
         score: {
@@ -759,41 +915,119 @@ export async function searchCourseKnowledge({
 
   /*
    * ==================================
+   * RESOURCE-AWARE RERANKING
+   * ==================================
+   *
+   * IMPORTANT:
+   *
+   * Vector score ko DB me modify nahi
+   * karenge.
+   *
+   * Sirf application-level rankingScore
+   * banega.
+   */
+  const RESOURCE_PREFERENCE_BOOST = 0.025;
+
+  const rankedResults = rawResults
+    .map((result) => {
+      const vectorScore = Number(result.score || 0);
+
+      let preferenceBoost = 0;
+
+      /*
+       * Explicit resourceType already
+       * hard-filtered hai, so boost ki
+       * need nahi.
+       */
+      if (
+        !parsedResourceType &&
+        preferredResourceType &&
+        result.resourceType === preferredResourceType
+      ) {
+        preferenceBoost = RESOURCE_PREFERENCE_BOOST;
+      }
+
+      /*
+       * Specific lecture scope already
+       * hard-filtered hai.
+       */
+      const rankingScore = vectorScore + preferenceBoost;
+
+      return {
+        ...result,
+
+        /*
+         * Original vector score sources
+         * me preserve hoga.
+         */
+        score: vectorScore,
+
+        rankingScore,
+
+        preferenceBoost,
+      };
+    })
+    .sort((a, b) => b.rankingScore - a.rankingScore);
+
+  /*
+   * ==================================
    * RELATIVE SCORE FILTER
    * ==================================
    *
-   * Example:
+   * IMPORTANT:
    *
-   * top result = 0.90
-   * drop       = 0.05
+   * Relative threshold ORIGINAL vector
+   * similarity par based rahega.
    *
-   * threshold  = 0.85
-   *
-   * 0.90 ✅
-   * 0.88 ✅
-   * 0.86 ✅
-   * 0.82 ❌
+   * Resource preference weak semantic
+   * results ko artificially relevant
+   * nahi bana sakti.
    */
-  const topScore = Number(rawResults[0].score);
+  const highestVectorScore = Math.max(
+    ...rankedResults.map((result) => Number(result.score)),
+  );
 
   const relativeThreshold = Math.max(
     parsedMinimumScore,
 
-    topScore - parsedRelativeScoreDrop,
+    highestVectorScore - parsedRelativeScoreDrop,
   );
 
-  const relevantResults = rawResults.filter(
+  let relevantResults = rankedResults.filter(
     (result) => Number(result.score) >= relativeThreshold,
   );
 
   /*
    * ==================================
-   * EXACT DUPLICATE REMOVAL
+   * PREFERRED RESOURCE PRIORITY
    * ==================================
    *
-   * Same resource + same chunk
-   * accidentally duplicate ho to
-   * LLM ko twice nahi bhejenge.
+   * Agar query clearly "video" bolti hai
+   * aur relevant lecture result available
+   * hai, lecture result ko top me priority.
+   *
+   * Lekin unrelated low-score lecture ko
+   * force nahi karenge because relative
+   * filter already apply ho chuka hai.
+   */
+  if (preferredResourceType && !parsedResourceType && !lectureId) {
+    relevantResults.sort((a, b) => {
+      const aPreferred = a.resourceType === preferredResourceType ? 1 : 0;
+
+      const bPreferred = b.resourceType === preferredResourceType ? 1 : 0;
+
+      if (aPreferred !== bPreferred) {
+        return bPreferred - aPreferred;
+      }
+
+      return b.rankingScore - a.rankingScore;
+    });
+  }
+
+  /*
+   * ==================================
+   * EXACT DUPLICATE REMOVAL
+   * ==================================
    */
   const seenChunks = new Set();
 
@@ -819,30 +1053,57 @@ export async function searchCourseKnowledge({
 
   /*
    * ==================================
-   * CONTEXT SIZE CONTROL
+   * RESOURCE DIVERSITY
    * ==================================
    *
-   * Long PDF/video ke 20 chunks
-   * accidentally LLM prompt me
-   * nahi jayenge.
+   * Ek hi PDF ke saare 6 chunks context
+   * consume na kar dein.
+   *
+   * Specific lecture search me ye limit
+   * apply nahi karenge because same lecture
+   * ke multiple chunks genuinely required
+   * ho sakte hain.
+   */
+  let diversifiedResults = uniqueResults;
+
+  if (!lectureId) {
+    const MAX_CHUNKS_PER_RESOURCE = 3;
+
+    const resourceCounts = new Map();
+
+    diversifiedResults = uniqueResults.filter((result) => {
+      const key = [String(result.resourceType), String(result.resourceId)].join(
+        ":",
+      );
+
+      const currentCount = resourceCounts.get(key) || 0;
+
+      if (currentCount >= MAX_CHUNKS_PER_RESOURCE) {
+        return false;
+      }
+
+      resourceCounts.set(key, currentCount + 1);
+
+      return true;
+    });
+  }
+
+  /*
+   * ==================================
+   * CONTEXT SIZE CONTROL
+   * ==================================
    */
   const finalResults = [];
 
   let totalCharacters = 0;
 
-  for (const result of uniqueResults) {
+  for (const result of diversifiedResults) {
     if (finalResults.length >= parsedLimit) {
       break;
     }
 
     const contentLength = String(result.content || "").length;
 
-    /*
-     * First result ko always allow.
-     *
-     * Baaki results context limit
-     * exceed kare to stop.
-     */
     if (
       finalResults.length > 0 &&
       totalCharacters + contentLength > parsedMaxContextCharacters
@@ -850,7 +1111,13 @@ export async function searchCourseKnowledge({
       break;
     }
 
-    finalResults.push(result);
+    /*
+     * Internal ranking fields response
+     * me expose nahi karenge.
+     */
+    const { rankingScore, preferenceBoost, ...cleanResult } = result;
+
+    finalResults.push(cleanResult);
 
     totalCharacters += contentLength;
   }
