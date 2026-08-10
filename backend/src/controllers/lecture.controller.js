@@ -13,19 +13,16 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import imagekit from "../service/imagekit.js";
 import Enrollment from "../models/enrollment.model.js";
 import { config } from "../config/config.js";
-
+import {
+  ingestLectureForRag,
+  deleteRagResource,
+} from "../service/rag.service.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const ORDER_GAP = 1000;
 
-const ALLOWED_LECTURE_TYPES = [
-  "video",
-  "text",
-  "document",
-  "quiz",
-  "live",
-];
+const ALLOWED_LECTURE_TYPES = ["video", "text", "document", "quiz", "live"];
 
 export const createLectureController = asyncHandler(async (req, res) => {
   const { moduleId } = req.params;
@@ -70,10 +67,7 @@ export const createLectureController = asyncHandler(async (req, res) => {
   // 4. Validate duration
   const normalizedDuration = Number(durationInSeconds);
 
-  if (
-    !Number.isFinite(normalizedDuration) ||
-    normalizedDuration < 0
-  ) {
+  if (!Number.isFinite(normalizedDuration) || normalizedDuration < 0) {
     return res.status(400).json({
       success: false,
       message: "durationInSeconds must be a valid non-negative number",
@@ -115,8 +109,7 @@ export const createLectureController = asyncHandler(async (req, res) => {
   }
 
   // 8. Check ownership
-  const isOwner =
-    course.instructor.toString() === req.user.id.toString();
+  const isOwner = course.instructor.toString() === req.user.id.toString();
 
   const isAdmin = req.user.role === "admin";
 
@@ -152,9 +145,7 @@ export const createLectureController = asyncHandler(async (req, res) => {
     .select("order")
     .lean();
 
-  const nextOrder = lastLecture
-    ? lastLecture.order + ORDER_GAP
-    : ORDER_GAP;
+  const nextOrder = lastLecture ? lastLecture.order + ORDER_GAP : ORDER_GAP;
 
   // 11. Create lecture
   const lecture = await Lecture.create({
@@ -218,10 +209,31 @@ export const createLectureController = asyncHandler(async (req, res) => {
   ]);
 
   course.totalLectures = courseStats?.totalLectures || 0;
-  course.totalDurationInSeconds =
-    courseStats?.totalDurationInSeconds || 0;
+  course.totalDurationInSeconds = courseStats?.totalDurationInSeconds || 0;
 
   await course.save();
+
+  /*
+   * Auto RAG indexing
+   *
+   * Abhi sirf text lecture ko automatically
+   * index karenge because uska actual content
+   * database me available hai.
+   *
+   * RAG failure ki wajah se lecture creation
+   * fail nahi hona chahiye.
+   */
+  if (lecture.type === "text" && String(lecture.content || "").trim()) {
+    try {
+      await ingestLectureForRag({
+        userId: req.user.id,
+        userRole: req.user.role,
+        lectureId: lecture._id,
+      });
+    } catch (error) {
+      console.error("Lecture RAG indexing failed:", error);
+    }
+  }
 
   return res.status(201).json({
     success: true,
@@ -366,8 +378,7 @@ export const getManageLecturesByModuleController = asyncHandler(
       });
     }
 
-    const isOwner =
-      course.instructor.toString() === req.user.id.toString();
+    const isOwner = course.instructor.toString() === req.user.id.toString();
 
     const isAdmin = req.user.role === "admin";
 
@@ -397,7 +408,6 @@ export const getManageLecturesByModuleController = asyncHandler(
     });
   },
 );
-
 
 export const updateLectureController = asyncHandler(async (req, res) => {
   const { lectureId } = req.params;
@@ -469,8 +479,7 @@ export const updateLectureController = asyncHandler(async (req, res) => {
   }
 
   // 5. Permission check
-  const isOwner =
-    course.instructor.toString() === req.user.id.toString();
+  const isOwner = course.instructor.toString() === req.user.id.toString();
 
   const isAdmin = req.user.role === "admin";
 
@@ -521,16 +530,13 @@ export const updateLectureController = asyncHandler(async (req, res) => {
     if (!ALLOWED_LECTURE_TYPES.includes(type)) {
       return res.status(400).json({
         success: false,
-        message: `Lecture type must be one of: ${ALLOWED_LECTURE_TYPES.join(
-          ", ",
-        )}`,
+        message: `Lecture type must be one of: ${ALLOWED_LECTURE_TYPES.join(", ")}`,
       });
     }
 
     lecture.type = type;
   }
 
-  // Final type after possible update
   const finalLectureType = type || lecture.type;
 
   // 9. Update content
@@ -540,9 +546,7 @@ export const updateLectureController = asyncHandler(async (req, res) => {
 
   if (
     finalLectureType === "text" &&
-    !String(
-      content !== undefined ? content : lecture.content,
-    ).trim()
+    !String(content !== undefined ? content : lecture.content).trim()
   ) {
     return res.status(400).json({
       success: false,
@@ -551,8 +555,7 @@ export const updateLectureController = asyncHandler(async (req, res) => {
   }
 
   /*
-   * Type change hone par unrelated content clear karna.
-   * Isse stale file/content references nahi rahengi.
+   * Type change hone par unrelated content clear.
    */
   if (type !== undefined) {
     if (type !== "text") {
@@ -574,10 +577,7 @@ export const updateLectureController = asyncHandler(async (req, res) => {
   if (durationInSeconds !== undefined) {
     const normalizedDuration = Number(durationInSeconds);
 
-    if (
-      !Number.isFinite(normalizedDuration) ||
-      normalizedDuration < 0
-    ) {
+    if (!Number.isFinite(normalizedDuration) || normalizedDuration < 0) {
       return res.status(400).json({
         success: false,
         message: "durationInSeconds must be a valid non-negative number",
@@ -623,10 +623,7 @@ export const updateLectureController = asyncHandler(async (req, res) => {
         });
       }
 
-      if (
-        lecture.type === "text" &&
-        !String(lecture.content || "").trim()
-      ) {
+      if (lecture.type === "text" && !String(lecture.content || "").trim()) {
         return res.status(400).json({
           success: false,
           message: "Text content is required before publishing",
@@ -637,24 +634,70 @@ export const updateLectureController = asyncHandler(async (req, res) => {
     lecture.isPublished = isPublished;
   }
 
-  const previousDuration = lecture.durationInSeconds;
-
+  // 13. Save lecture
   await lecture.save();
 
-  // 13. Recalculate module statistics
+  /*
+   * 14. Re-index RAG only when
+   * AI-relevant fields change.
+   */
+  const shouldReindexRag =
+    title !== undefined ||
+    description !== undefined ||
+    content !== undefined ||
+    type !== undefined;
+
+  if (shouldReindexRag) {
+    try {
+      if (lecture.type === "text" && String(lecture.content || "").trim()) {
+        await ingestLectureForRag({
+          userId: req.user.id,
+
+          userRole: req.user.role,
+
+          lectureId: lecture._id,
+        });
+      } else {
+        /*
+         * Agar lecture pehle text tha
+         * aur ab dusre type me convert hua,
+         * old RAG chunks remove karo.
+         */
+        await deleteRagResource({
+          userId: req.user.id,
+
+          userRole: req.user.role,
+
+          courseId: lecture.course,
+
+          resourceType: "lecture",
+
+          resourceId: lecture._id,
+        });
+      }
+    } catch (error) {
+      console.error("Lecture RAG re-indexing failed:", error);
+    }
+  }
+
+  // 15. Recalculate module statistics
   const [moduleStats] = await Lecture.aggregate([
     {
       $match: {
         module: lecture.module,
+
         isActive: true,
       },
     },
+
     {
       $group: {
         _id: null,
+
         totalLectures: {
           $sum: 1,
         },
+
         totalDurationInSeconds: {
           $sum: "$durationInSeconds",
         },
@@ -662,28 +705,36 @@ export const updateLectureController = asyncHandler(async (req, res) => {
     },
   ]);
 
-  await CourseModule.findByIdAndUpdate(lecture.module, {
-    $set: {
-      totalLectures: moduleStats?.totalLectures || 0,
-      totalDurationInSeconds:
-        moduleStats?.totalDurationInSeconds || 0,
-    },
-  });
+  await CourseModule.findByIdAndUpdate(
+    lecture.module,
 
-  // 14. Recalculate course statistics
+    {
+      $set: {
+        totalLectures: moduleStats?.totalLectures || 0,
+
+        totalDurationInSeconds: moduleStats?.totalDurationInSeconds || 0,
+      },
+    },
+  );
+
+  // 16. Recalculate course statistics
   const [courseStats] = await Lecture.aggregate([
     {
       $match: {
         course: lecture.course,
+
         isActive: true,
       },
     },
+
     {
       $group: {
         _id: null,
+
         totalLectures: {
           $sum: 1,
         },
+
         totalDurationInSeconds: {
           $sum: "$durationInSeconds",
         },
@@ -691,13 +742,17 @@ export const updateLectureController = asyncHandler(async (req, res) => {
     },
   ]);
 
-  await Course.findByIdAndUpdate(lecture.course, {
-    $set: {
-      totalLectures: courseStats?.totalLectures || 0,
-      totalDurationInSeconds:
-        courseStats?.totalDurationInSeconds || 0,
+  await Course.findByIdAndUpdate(
+    lecture.course,
+
+    {
+      $set: {
+        totalLectures: courseStats?.totalLectures || 0,
+
+        totalDurationInSeconds: courseStats?.totalDurationInSeconds || 0,
+      },
     },
-  });
+  );
 
   return res.status(200).json({
     success: true,
@@ -747,8 +802,7 @@ export const uploadLectureVideoController = asyncHandler(async (req, res) => {
     });
   }
 
-  const isOwner =
-    course.instructor.toString() === req.user.id.toString();
+  const isOwner = course.instructor.toString() === req.user.id.toString();
 
   const isAdmin = req.user.role === "admin";
 
@@ -838,8 +892,7 @@ export const uploadLectureDocumentController = asyncHandler(
       });
     }
 
-    const isOwner =
-      course.instructor.toString() === req.user.id.toString();
+    const isOwner = course.instructor.toString() === req.user.id.toString();
 
     const isAdmin = req.user.role === "admin";
 
@@ -911,14 +964,15 @@ export const getUploadAuthTokenController = asyncHandler(async (req, res) => {
   if (!publicKey || !urlEndpoint) {
     return res.status(500).json({
       success: false,
-      message: "ImageKit public key or URL endpoint is not configured on the server.",
+      message:
+        "ImageKit public key or URL endpoint is not configured on the server.",
     });
   }
 
   return res.status(200).json({
     success: true,
     token: authParams.token,
-    expire: String(authParams.expire),   // ensure string for FormData
+    expire: String(authParams.expire), // ensure string for FormData
     signature: authParams.signature,
     publicKey,
     urlEndpoint,
@@ -930,66 +984,86 @@ export const getUploadAuthTokenController = asyncHandler(async (req, res) => {
  * @body  { mediaType: "video" | "document", url: string, fileId: string }
  * @access Private (admin / instructor)
  */
-export const updateLectureMediaUrlController = asyncHandler(async (req, res) => {
-  const { lectureId } = req.params;
-  const { mediaType, url, fileId } = req.body;
+export const updateLectureMediaUrlController = asyncHandler(
+  async (req, res) => {
+    const { lectureId } = req.params;
+    const { mediaType, url, fileId } = req.body;
 
-  if (!mongoose.Types.ObjectId.isValid(lectureId)) {
-    return res.status(400).json({ success: false, message: "Invalid lecture ID" });
-  }
-
-  if (!["video", "document"].includes(mediaType)) {
-    return res.status(400).json({ success: false, message: "mediaType must be 'video' or 'document'" });
-  }
-
-  if (!url || !fileId) {
-    return res.status(400).json({ success: false, message: "url and fileId are required" });
-  }
-
-  const lecture = await Lecture.findOne({ _id: lectureId, isActive: true });
-  if (!lecture) {
-    return res.status(404).json({ success: false, message: "Lecture not found" });
-  }
-
-  const course = await Course.findOne({ _id: lecture.course, isActive: true }).select("instructor");
-  if (!course) {
-    return res.status(404).json({ success: false, message: "Course not found" });
-  }
-
-  const isOwner = course.instructor.toString() === req.user.id.toString();
-  const isAdmin = req.user.role === "admin";
-  if (!isOwner && !isAdmin) {
-    return res.status(403).json({ success: false, message: "Access denied" });
-  }
-
-  if (mediaType === "video") {
-    // Delete old video from ImageKit if it was previously stored there
-    if (lecture.videoFileId) {
-      try { await imagekit.deleteFile(lecture.videoFileId); } catch {}
+    if (!mongoose.Types.ObjectId.isValid(lectureId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid lecture ID" });
     }
-    lecture.videoUrl = url;
-    lecture.videoFileId = fileId;
-  } else {
-    if (lecture.documentFileId) {
-      try { await imagekit.deleteFile(lecture.documentFileId); } catch {}
+
+    if (!["video", "document"].includes(mediaType)) {
+      return res.status(400).json({
+        success: false,
+        message: "mediaType must be 'video' or 'document'",
+      });
     }
-    lecture.documentUrl = url;
-    lecture.documentFileId = fileId;
-  }
 
-  await lecture.save();
+    if (!url || !fileId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "url and fileId are required" });
+    }
 
-  return res.status(200).json({
-    success: true,
-    message: `Lecture ${mediaType} URL saved successfully`,
-    lecture: {
-      _id: lecture._id,
-      title: lecture.title,
-      videoUrl: lecture.videoUrl,
-      documentUrl: lecture.documentUrl,
-    },
-  });
-});
+    const lecture = await Lecture.findOne({ _id: lectureId, isActive: true });
+    if (!lecture) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Lecture not found" });
+    }
+
+    const course = await Course.findOne({
+      _id: lecture.course,
+      isActive: true,
+    }).select("instructor");
+    if (!course) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
+    }
+
+    const isOwner = course.instructor.toString() === req.user.id.toString();
+    const isAdmin = req.user.role === "admin";
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ success: false, message: "Access denied" });
+    }
+
+    if (mediaType === "video") {
+      // Delete old video from ImageKit if it was previously stored there
+      if (lecture.videoFileId) {
+        try {
+          await imagekit.deleteFile(lecture.videoFileId);
+        } catch {}
+      }
+      lecture.videoUrl = url;
+      lecture.videoFileId = fileId;
+    } else {
+      if (lecture.documentFileId) {
+        try {
+          await imagekit.deleteFile(lecture.documentFileId);
+        } catch {}
+      }
+      lecture.documentUrl = url;
+      lecture.documentFileId = fileId;
+    }
+
+    await lecture.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Lecture ${mediaType} URL saved successfully`,
+      lecture: {
+        _id: lecture._id,
+        title: lecture.title,
+        videoUrl: lecture.videoUrl,
+        documentUrl: lecture.documentUrl,
+      },
+    });
+  },
+);
 
 export const archiveLectureController = asyncHandler(async (req, res) => {
   const { lectureId } = req.params;
@@ -1025,8 +1099,7 @@ export const archiveLectureController = asyncHandler(async (req, res) => {
     });
   }
 
-  const isOwner =
-    course.instructor.toString() === req.user.id.toString();
+  const isOwner = course.instructor.toString() === req.user.id.toString();
 
   const isAdmin = req.user.role === "admin";
 
@@ -1042,6 +1115,18 @@ export const archiveLectureController = asyncHandler(async (req, res) => {
   lecture.order = null;
 
   await lecture.save();
+
+  try {
+    await deleteRagResource({
+      userId: req.user.id,
+      userRole: req.user.role,
+      courseId: lecture.course,
+      resourceType: "lecture",
+      resourceId: lecture._id,
+    });
+  } catch (error) {
+    console.error("Archived lecture RAG cleanup failed:", error);
+  }
 
   const [moduleStats] = await Lecture.aggregate([
     {
@@ -1066,8 +1151,7 @@ export const archiveLectureController = asyncHandler(async (req, res) => {
   await CourseModule.findByIdAndUpdate(lecture.module, {
     $set: {
       totalLectures: moduleStats?.totalLectures || 0,
-      totalDurationInSeconds:
-        moduleStats?.totalDurationInSeconds || 0,
+      totalDurationInSeconds: moduleStats?.totalDurationInSeconds || 0,
     },
   });
 
@@ -1094,8 +1178,7 @@ export const archiveLectureController = asyncHandler(async (req, res) => {
   await Course.findByIdAndUpdate(lecture.course, {
     $set: {
       totalLectures: courseStats?.totalLectures || 0,
-      totalDurationInSeconds:
-        courseStats?.totalDurationInSeconds || 0,
+      totalDurationInSeconds: courseStats?.totalDurationInSeconds || 0,
     },
   });
 
@@ -1105,16 +1188,12 @@ export const archiveLectureController = asyncHandler(async (req, res) => {
   });
 });
 
-
 const LECTURE_ORDER_GAP = 1000;
 
 export const reorderLectureController = asyncHandler(async (req, res) => {
   const { lectureId } = req.params;
 
-  const {
-    previousLectureId = null,
-    nextLectureId = null,
-  } = req.body;
+  const { previousLectureId = null, nextLectureId = null } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(lectureId)) {
     return res.status(400).json({
@@ -1133,20 +1212,14 @@ export const reorderLectureController = asyncHandler(async (req, res) => {
     });
   }
 
-  if (
-    nextLectureId &&
-    !mongoose.Types.ObjectId.isValid(nextLectureId)
-  ) {
+  if (nextLectureId && !mongoose.Types.ObjectId.isValid(nextLectureId)) {
     return res.status(400).json({
       success: false,
       message: "Invalid next lecture ID",
     });
   }
 
-  if (
-    lectureId === previousLectureId ||
-    lectureId === nextLectureId
-  ) {
+  if (lectureId === previousLectureId || lectureId === nextLectureId) {
     return res.status(400).json({
       success: false,
       message: "Lecture cannot be placed relative to itself",
@@ -1177,8 +1250,7 @@ export const reorderLectureController = asyncHandler(async (req, res) => {
     });
   }
 
-  const isOwner =
-    course.instructor.toString() === req.user.id.toString();
+  const isOwner = course.instructor.toString() === req.user.id.toString();
 
   const isAdmin = req.user.role === "admin";
 
@@ -1225,8 +1297,7 @@ export const reorderLectureController = asyncHandler(async (req, res) => {
 
   const previousIndex = previousLectureId
     ? remainingLectures.findIndex(
-        (item) =>
-          item._id.toString() === previousLectureId,
+        (item) => item._id.toString() === previousLectureId,
       )
     : -1;
 
@@ -1250,11 +1321,7 @@ export const reorderLectureController = asyncHandler(async (req, res) => {
     });
   }
 
-  if (
-    previousLectureId &&
-    nextLectureId &&
-    previousIndex + 1 !== nextIndex
-  ) {
+  if (previousLectureId && nextLectureId && previousIndex + 1 !== nextIndex) {
     return res.status(400).json({
       success: false,
       message:
@@ -1274,11 +1341,7 @@ export const reorderLectureController = asyncHandler(async (req, res) => {
     insertIndex = 0;
   }
 
-  remainingLectures.splice(
-    insertIndex,
-    0,
-    targetLecture,
-  );
+  remainingLectures.splice(insertIndex, 0, targetLecture);
 
   const session = await mongoose.startSession();
 
@@ -1304,24 +1367,21 @@ export const reorderLectureController = asyncHandler(async (req, res) => {
         },
       );
 
-      const operations = remainingLectures.map(
-        (item, index) => ({
-          updateOne: {
-            filter: {
-              _id: item._id,
-              module: lecture.module,
-              course: lecture.course,
-              isActive: true,
-            },
-            update: {
-              $set: {
-                order:
-                  (index + 1) * LECTURE_ORDER_GAP,
-              },
+      const operations = remainingLectures.map((item, index) => ({
+        updateOne: {
+          filter: {
+            _id: item._id,
+            module: lecture.module,
+            course: lecture.course,
+            isActive: true,
+          },
+          update: {
+            $set: {
+              order: (index + 1) * LECTURE_ORDER_GAP,
             },
           },
-        }),
-      );
+        },
+      }));
 
       if (operations.length > 0) {
         await Lecture.bulkWrite(operations, {
@@ -1352,7 +1412,6 @@ export const reorderLectureController = asyncHandler(async (req, res) => {
   });
 });
 
-
 export const publishLectureController = asyncHandler(async (req, res) => {
   const { lectureId } = req.params;
 
@@ -1377,7 +1436,10 @@ export const publishLectureController = asyncHandler(async (req, res) => {
 
   lecture.isPublished = true;
 
-  if (lecture.isActive && (lecture.order === null || lecture.order === undefined)) {
+  if (
+    lecture.isActive &&
+    (lecture.order === null || lecture.order === undefined)
+  ) {
     const lastLecture = await Lecture.findOne({
       module: lecture.module,
       isActive: true,
@@ -1388,7 +1450,9 @@ export const publishLectureController = asyncHandler(async (req, res) => {
       .lean();
 
     const ORDER_GAP = 1000;
-    lecture.order = lastLecture ? (lastLecture.order || 0) + ORDER_GAP : ORDER_GAP;
+    lecture.order = lastLecture
+      ? (lastLecture.order || 0) + ORDER_GAP
+      : ORDER_GAP;
   }
 
   await lecture.save();
@@ -1405,33 +1469,51 @@ export const streamProtectedMediaController = asyncHandler(async (req, res) => {
   const safeFilename = path.basename(filename);
 
   if (!["videos", "documents"].includes(type)) {
-    return res.status(400).json({ success: false, message: "Invalid media type" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid media type" });
   }
 
-  const filePath = path.join(__dirname, `../../public/uploads/${type}`, safeFilename);
+  const filePath = path.join(
+    __dirname,
+    `../../public/uploads/${type}`,
+    safeFilename,
+  );
 
   try {
     await fs.access(filePath);
   } catch {
-    return res.status(404).json({ success: false, message: "Media file not found" });
+    return res
+      .status(404)
+      .json({ success: false, message: "Media file not found" });
   }
 
   const targetUrl = `/api/lectures/media/${type}/${safeFilename}`;
   const fallbackUrl = `/uploads/${type}/${safeFilename}`;
 
   const lecture = await Lecture.findOne({
-    $or: [{ videoUrl: targetUrl }, { documentUrl: targetUrl }, { videoUrl: fallbackUrl }, { documentUrl: fallbackUrl }],
+    $or: [
+      { videoUrl: targetUrl },
+      { documentUrl: targetUrl },
+      { videoUrl: fallbackUrl },
+      { documentUrl: fallbackUrl },
+    ],
     isActive: true,
   });
 
   if (!lecture) {
-    return res.status(404).json({ success: false, message: "Lecture not found for this media file" });
+    return res.status(404).json({
+      success: false,
+      message: "Lecture not found for this media file",
+    });
   }
 
   const course = await Course.findById(lecture.course).select("instructor");
 
   if (!course) {
-    return res.status(404).json({ success: false, message: "Course not found" });
+    return res
+      .status(404)
+      .json({ success: false, message: "Course not found" });
   }
 
   // Permission Check: Admin, Instructor, or Active/Completed Enrolled Student
@@ -1455,7 +1537,8 @@ export const streamProtectedMediaController = asyncHandler(async (req, res) => {
   if (!isAuthorized && !lecture.isPreview) {
     return res.status(403).json({
       success: false,
-      message: "Access Denied: You must be logged in and enrolled in this course to view this content.",
+      message:
+        "Access Denied: You must be logged in and enrolled in this course to view this content.",
     });
   }
 
@@ -1476,7 +1559,7 @@ export const streamProtectedMediaController = asyncHandler(async (req, res) => {
       "Content-Length": chunkSize,
       "Content-Type": "video/mp4",
       "Cache-Control": "no-store, no-cache, must-revalidate, private",
-      "Pragma": "no-cache",
+      Pragma: "no-cache",
     });
     return stream.pipe(res);
   }
@@ -1485,7 +1568,7 @@ export const streamProtectedMediaController = asyncHandler(async (req, res) => {
     "Content-Length": fileSize,
     "Content-Type": type === "videos" ? "video/mp4" : "application/pdf",
     "Cache-Control": "no-store, no-cache, must-revalidate, private",
-    "Pragma": "no-cache",
+    Pragma: "no-cache",
   });
   return fsSync.createReadStream(filePath).pipe(res);
 });

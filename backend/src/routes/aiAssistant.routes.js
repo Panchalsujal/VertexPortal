@@ -1,43 +1,65 @@
-import { Router } from "express";
+import {
+  Router,
+} from "express";
 
 import {
   createAiConversationController,
   getMyAiConversationsController,
   getAiConversationByIdController,
-  addAiUserMessageController,
   renameAiConversationController,
   updateAiConversationArchiveController,
   deleteAiConversationController,
 } from "../controllers/aiAssistant.controller.js";
 
-import { authMiddleware } from "../middlewares/auth.middleware.js";
+import {
+  generateAiAnswerController,
+} from "../controllers/aiChat.controller.js";
 
-import { authorizeRoles } from "../middlewares/authorize.middleware.js";
+import {
+  authMiddleware,
+} from "../middlewares/auth.middleware.js";
 
-const router = Router();
+import {
+  authorizeRoles,
+} from "../middlewares/authorize.middleware.js";
+
+const router =
+  Router();
 
 router.use(
   authMiddleware,
 
-  authorizeRoles("student", "instructor", "admin"),
+  authorizeRoles(
+    "student",
+    "instructor",
+    "admin",
+  ),
 );
 
 /*
  * Create conversation
  */
-router.post("/conversations", createAiConversationController);
+router.post(
+  "/conversations",
+  createAiConversationController,
+);
 
 /*
- * My conversations
+ * Conversation listing
  */
-router.get("/conversations", getMyAiConversationsController);
+router.get(
+  "/conversations",
+  getMyAiConversationsController,
+);
 
 /*
- * Send/add message
+ * ====================================
+ * MAIN AI CHAT ENDPOINT
+ * ====================================
  */
 router.post(
   "/conversations/:conversationId/messages",
-  addAiUserMessageController,
+  generateAiAnswerController,
 );
 
 /*
@@ -49,7 +71,7 @@ router.patch(
 );
 
 /*
- * Archive
+ * Archive / restore
  */
 router.patch(
   "/conversations/:conversationId/archive",
@@ -57,13 +79,19 @@ router.patch(
 );
 
 /*
- * Details
+ * Conversation + messages
  */
-router.get("/conversations/:conversationId", getAiConversationByIdController);
+router.get(
+  "/conversations/:conversationId",
+  getAiConversationByIdController,
+);
 
 /*
  * Delete
  */
-router.delete("/conversations/:conversationId", deleteAiConversationController);
+router.delete(
+  "/conversations/:conversationId",
+  deleteAiConversationController,
+);
 
 export default router;

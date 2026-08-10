@@ -7,66 +7,32 @@ import CourseModule from "../models/courseModule.model.js";
 import Lecture from "../models/lecture.model.js";
 import Enrollment from "../models/enrollment.model.js";
 
+import { generateEmbedding, generateEmbeddings } from "./embedding.service.js";
 
-import {
-  generateEmbedding,
-  generateEmbeddings,
-} from "./embedding.service.js";
+import { validateObjectId } from "../utils/validator.js";
 
-import {
-  validateObjectId,
-} from "../utils/validator.js";
+import { getPagination, buildPaginationMeta } from "../utils/pagination.js";
 
-import {
-  getPagination,
-  buildPaginationMeta,
-} from "../utils/pagination.js";
+import { parseEnumQuery } from "../utils/queryParser.js";
 
-import {
-  parseEnumQuery,
-} from "../utils/queryParser.js";
+import { ApiError } from "../utils/ApiError.js";
 
-import {
-  ApiError,
-} from "../utils/ApiError.js";
+const RESOURCE_TYPES = ["course", "module", "lecture", "document", "note"];
 
-const RESOURCE_TYPES = [
-  "course",
-  "module",
-  "lecture",
-  "document",
-  "note",
-];
+const CHUNK_SIZE = 1400;
 
-const CHUNK_SIZE =
-  1400;
-
-const CHUNK_OVERLAP =
-  200;
+const CHUNK_OVERLAP = 200;
 
 /*
  * ----------------------------------
  * Text normalization
  * ----------------------------------
  */
-function normalizeText(
-  text,
-) {
-  return String(
-    text || "",
-  )
-    .replace(
-      /\r\n/g,
-      "\n",
-    )
-    .replace(
-      /\n{3,}/g,
-      "\n\n",
-    )
-    .replace(
-      /[ \t]+/g,
-      " ",
-    )
+function normalizeText(text) {
+  return String(text || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]+/g, " ")
     .trim();
 }
 
@@ -83,29 +49,19 @@ function normalizeText(
 export function splitTextIntoChunks(
   text,
   {
-    chunkSize =
-      CHUNK_SIZE,
+    chunkSize = CHUNK_SIZE,
 
-    overlap =
-      CHUNK_OVERLAP,
+    overlap = CHUNK_OVERLAP,
   } = {},
 ) {
-  const normalized =
-    normalizeText(
-      text,
-    );
+  const normalized = normalizeText(text);
 
   if (!normalized) {
     return [];
   }
 
-  if (
-    overlap >= chunkSize
-  ) {
-    throw new ApiError(
-      400,
-      "Chunk overlap must be smaller than chunk size",
-    );
+  if (overlap >= chunkSize) {
+    throw new ApiError(400, "Chunk overlap must be smaller than chunk size");
   }
 
   const chunks = [];
@@ -113,67 +69,35 @@ export function splitTextIntoChunks(
   let start = 0;
   let index = 0;
 
-  while (
-    start <
-    normalized.length
-  ) {
-    let end =
-      Math.min(
-        start +
-          chunkSize,
+  while (start < normalized.length) {
+    let end = Math.min(
+      start + chunkSize,
 
-        normalized.length,
-      );
+      normalized.length,
+    );
 
     /*
      * Possible ho to sentence/space boundary.
      */
-    if (
-      end <
-      normalized.length
-    ) {
-      const nearbyBreak =
-        Math.max(
-          normalized.lastIndexOf(
-            "\n",
-            end,
-          ),
+    if (end < normalized.length) {
+      const nearbyBreak = Math.max(
+        normalized.lastIndexOf("\n", end),
 
-          normalized.lastIndexOf(
-            ". ",
-            end,
-          ),
+        normalized.lastIndexOf(". ", end),
 
-          normalized.lastIndexOf(
-            " ",
-            end,
-          ),
-        );
+        normalized.lastIndexOf(" ", end),
+      );
 
-      if (
-        nearbyBreak >
-        start +
-          chunkSize *
-            0.6
-      ) {
-        end =
-          nearbyBreak +
-          1;
+      if (nearbyBreak > start + chunkSize * 0.6) {
+        end = nearbyBreak + 1;
       }
     }
 
-    const content =
-      normalized
-        .slice(
-          start,
-          end,
-        )
-        .trim();
+    const content = normalized.slice(start, end).trim();
 
     if (content) {
       chunks.push({
-        chunkIndex:
-          index,
+        chunkIndex: index,
 
         content,
       });
@@ -181,19 +105,11 @@ export function splitTextIntoChunks(
       index += 1;
     }
 
-    if (
-      end >=
-      normalized.length
-    ) {
+    if (end >= normalized.length) {
       break;
     }
 
-    start =
-      Math.max(
-        0,
-        end -
-          overlap,
-      );
+    start = Math.max(0, end - overlap);
   }
 
   return chunks;
@@ -204,30 +120,18 @@ export function splitTextIntoChunks(
  * COURSE ACCESS
  * ==================================
  */
-export async function validateRagCourseAccess({
-  userId,
-  userRole,
-  courseId,
-}) {
-  validateObjectId(
-    userId,
-    "user ID",
-  );
+export async function validateRagCourseAccess({ userId, userRole, courseId }) {
+  validateObjectId(userId, "user ID");
 
-  validateObjectId(
-    courseId,
-    "course ID",
-  );
+  validateObjectId(courseId, "course ID");
 
-  const course =
-    await Course.findOne({
-      _id:
-        courseId,
+  const course = await Course.findOne({
+    _id: courseId,
 
-      isActive:
-        true,
-    })
-      .select(`
+    isActive: true,
+  })
+    .select(
+      `
         _id
         title
         slug
@@ -235,92 +139,59 @@ export async function validateRagCourseAccess({
         status
         isPublished
         isActive
-      `)
-      .lean();
+      `,
+    )
+    .lean();
 
   if (!course) {
-    throw new ApiError(
-      404,
-      "Course not found",
-    );
+    throw new ApiError(404, "Course not found");
   }
 
-  if (
-    userRole ===
-    "admin"
-  ) {
+  if (userRole === "admin") {
     return course;
   }
 
-  if (
-    userRole ===
-    "instructor"
-  ) {
-    if (
-      course.instructor.toString() !==
-      String(userId)
-    ) {
-      throw new ApiError(
-        403,
-        "You do not have access to this course",
-      );
+  if (userRole === "instructor") {
+    if (course.instructor.toString() !== String(userId)) {
+      throw new ApiError(403, "You do not have access to this course");
     }
 
     return course;
   }
 
-  if (
-    userRole ===
-    "student"
-  ) {
-    const enrollment =
-      await Enrollment.findOne({
-        student:
-          userId,
+  if (userRole === "student") {
+    const enrollment = await Enrollment.findOne({
+      student: userId,
 
-        course:
-          courseId,
+      course: courseId,
 
-        status: {
-          $in: [
-            "active",
-            "completed",
-          ],
-        },
-      })
-        .select(`
+      status: {
+        $in: ["active", "completed"],
+      },
+    })
+      .select(
+        `
           _id
           expiresAt
-        `)
-        .lean();
+        `,
+      )
+      .lean();
 
     if (!enrollment) {
-      throw new ApiError(
-        403,
-        "You are not enrolled in this course",
-      );
+      throw new ApiError(403, "You are not enrolled in this course");
     }
 
     if (
       enrollment.expiresAt &&
-      new Date(
-        enrollment.expiresAt,
-      ).getTime() <=
-        Date.now()
+      new Date(enrollment.expiresAt).getTime() <= Date.now()
     ) {
-      throw new ApiError(
-        403,
-        "Your course enrollment has expired",
-      );
+      throw new ApiError(403, "Your course enrollment has expired");
     }
 
     return course;
   }
 
-  throw new ApiError(
-    403,
-    "You do not have access to this course",
-  );
+  throw new ApiError(403, "You do not have access to this course");
 }
 
 /*
@@ -344,27 +215,17 @@ export async function ingestRagResource({
 
   metadata = null,
 }) {
-  validateObjectId(
-    userId,
-    "user ID",
-  );
+  validateObjectId(userId, "user ID");
 
-  validateObjectId(
-    courseId,
-    "course ID",
-  );
+  validateObjectId(courseId, "course ID");
 
-  validateObjectId(
-    resourceId,
-    "resource ID",
-  );
+  validateObjectId(resourceId, "resource ID");
 
-  const parsedResourceType =
-    parseEnumQuery(
-      resourceType,
-      RESOURCE_TYPES,
-      "RAG resource type",
-    );
+  const parsedResourceType = parseEnumQuery(
+    resourceType,
+    RESOURCE_TYPES,
+    "RAG resource type",
+  );
 
   await validateRagCourseAccess({
     userId,
@@ -375,169 +236,93 @@ export async function ingestRagResource({
   /*
    * Student ingestion nahi karega.
    */
-  if (
-    userRole ===
-    "student"
-  ) {
-    throw new ApiError(
-      403,
-      "Students cannot add AI knowledge resources",
-    );
+  if (userRole === "student") {
+    throw new ApiError(403, "Students cannot add AI knowledge resources");
   }
 
   if (moduleId) {
-    validateObjectId(
-      moduleId,
-      "module ID",
-    );
+    validateObjectId(moduleId, "module ID");
   }
 
   if (lectureId) {
-    validateObjectId(
-      lectureId,
-      "lecture ID",
-    );
+    validateObjectId(lectureId, "lecture ID");
   }
 
-  const normalizedTitle =
-    String(
-      title || "",
-    ).trim();
+  const normalizedTitle = String(title || "").trim();
 
   if (!normalizedTitle) {
-    throw new ApiError(
-      400,
-      "Resource title is required",
-    );
+    throw new ApiError(400, "Resource title is required");
   }
 
-  const normalizedText =
-    normalizeText(
-      text,
-    );
+  const normalizedText = normalizeText(text);
 
   if (!normalizedText) {
-    throw new ApiError(
-      400,
-      "Resource text is required",
-    );
+    throw new ApiError(400, "Resource text is required");
   }
 
-  const chunks =
-    splitTextIntoChunks(
-      normalizedText,
-    );
+  const chunks = splitTextIntoChunks(normalizedText);
 
-  if (
-    chunks.length === 0
-  ) {
-    throw new ApiError(
-      400,
-      "No valid chunks generated",
-    );
+  if (chunks.length === 0) {
+    throw new ApiError(400, "No valid chunks generated");
   }
 
   /*
    * Bulk embeddings.
    */
-  const embeddings =
-    await generateEmbeddings(
-      chunks.map(
-        (chunk) =>
-          chunk.content,
-      ),
-    );
+  const embeddings = await generateEmbeddings(
+    chunks.map((chunk) => chunk.content),
+  );
 
   /*
    * Same resource re-ingest ho to
    * purane chunks remove.
    */
   await RagChunk.deleteMany({
-    course:
-      courseId,
+    course: courseId,
 
-    resourceType:
-      parsedResourceType,
+    resourceType: parsedResourceType,
 
     resourceId,
   });
 
-  const documents =
-    chunks.map(
-      (
-        chunk,
-        index,
-      ) => ({
-        course:
-          new mongoose.Types.ObjectId(
-            courseId,
-          ),
+  const documents = chunks.map((chunk, index) => ({
+    course: new mongoose.Types.ObjectId(courseId),
 
-        module:
-          moduleId
-            ? new mongoose.Types.ObjectId(
-                moduleId,
-              )
-            : null,
+    module: moduleId ? new mongoose.Types.ObjectId(moduleId) : null,
 
-        lecture:
-          lectureId
-            ? new mongoose.Types.ObjectId(
-                lectureId,
-              )
-            : null,
+    lecture: lectureId ? new mongoose.Types.ObjectId(lectureId) : null,
 
-        resourceType:
-          parsedResourceType,
+    resourceType: parsedResourceType,
 
-        resourceId:
-          new mongoose.Types.ObjectId(
-            resourceId,
-          ),
+    resourceId: new mongoose.Types.ObjectId(resourceId),
 
-        title:
-          normalizedTitle,
+    title: normalizedTitle,
 
-        content:
-          chunk.content,
+    content: chunk.content,
 
-        chunkIndex:
-          chunk.chunkIndex,
+    chunkIndex: chunk.chunkIndex,
 
-        embedding:
-          embeddings[
-            index
-          ],
+    embedding: embeddings[index],
 
-        metadata:
-          metadata ??
-          null,
+    metadata: metadata ?? null,
 
-        isActive:
-          true,
-      }),
-    );
+    isActive: true,
+  }));
 
-  await RagChunk.insertMany(
-    documents,
-  );
+  await RagChunk.insertMany(documents);
 
   return {
     courseId,
 
-    resourceType:
-      parsedResourceType,
+    resourceType: parsedResourceType,
 
     resourceId,
 
-    title:
-      normalizedTitle,
+    title: normalizedTitle,
 
-    chunksCreated:
-      documents.length,
+    chunksCreated: documents.length,
 
-    message:
-      "AI knowledge resource indexed successfully",
+    message: "AI knowledge resource indexed successfully",
   };
 }
 
@@ -546,33 +331,18 @@ export async function ingestRagResource({
  * INGEST COURSE
  * ==================================
  */
-export async function ingestCourseForRag({
-  userId,
-  userRole,
-  courseId,
-}) {
-  const course =
-    await validateRagCourseAccess({
-      userId,
-      userRole,
-      courseId,
-    });
+export async function ingestCourseForRag({ userId, userRole, courseId }) {
+  const course = await validateRagCourseAccess({
+    userId,
+    userRole,
+    courseId,
+  });
 
-  if (
-    userRole ===
-    "student"
-  ) {
-    throw new ApiError(
-      403,
-      "Students cannot index course content",
-    );
+  if (userRole === "student") {
+    throw new ApiError(403, "Students cannot index course content");
   }
 
-  const content = [
-    course.title,
-  ]
-    .filter(Boolean)
-    .join("\n\n");
+  const content = [course.title].filter(Boolean).join("\n\n");
 
   return ingestRagResource({
     userId,
@@ -580,17 +350,13 @@ export async function ingestCourseForRag({
 
     courseId,
 
-    resourceType:
-      "course",
+    resourceType: "course",
 
-    resourceId:
-      course._id,
+    resourceId: course._id,
 
-    title:
-      course.title,
+    title: course.title,
 
-    text:
-      content,
+    text: content,
   });
 }
 
@@ -599,77 +365,53 @@ export async function ingestCourseForRag({
  * INGEST MODULE
  * ==================================
  */
-export async function ingestModuleForRag({
-  userId,
-  userRole,
-  moduleId,
-}) {
-  validateObjectId(
-    moduleId,
-    "module ID",
-  );
+export async function ingestModuleForRag({ userId, userRole, moduleId }) {
+  validateObjectId(moduleId, "module ID");
 
-  const module =
-    await CourseModule.findOne({
-      _id:
-        moduleId,
+  const module = await CourseModule.findOne({
+    _id: moduleId,
 
-      isActive:
-        true,
-    })
-      .select(`
+    isActive: true,
+  })
+    .select(
+      `
         _id
         course
         title
-      `)
-      .lean();
+      `,
+    )
+    .lean();
 
   if (!module) {
-    throw new ApiError(
-      404,
-      "Course module not found",
-    );
+    throw new ApiError(404, "Course module not found");
   }
 
   await validateRagCourseAccess({
     userId,
     userRole,
 
-    courseId:
-      module.course,
+    courseId: module.course,
   });
 
-  if (
-    userRole ===
-    "student"
-  ) {
-    throw new ApiError(
-      403,
-      "Students cannot index module content",
-    );
+  if (userRole === "student") {
+    throw new ApiError(403, "Students cannot index module content");
   }
 
   return ingestRagResource({
     userId,
     userRole,
 
-    courseId:
-      module.course,
+    courseId: module.course,
 
-    moduleId:
-      module._id,
+    moduleId: module._id,
 
-    resourceType:
-      "module",
+    resourceType: "module",
 
-    resourceId:
-      module._id,
+    resourceId: module._id,
 
-    title:
-      module.title,
+    title: module.title,
 
-    text:
-      module.title,
+    text: module.title,
   });
 }
 
@@ -684,73 +426,94 @@ export async function ingestModuleForRag({
  * sakte ho.
  * ==================================
  */
-export async function ingestLectureForRag({
-  userId,
-  userRole,
-  lectureId,
-}) {
-  validateObjectId(
-    lectureId,
-    "lecture ID",
-  );
+export async function ingestLectureForRag({ userId, userRole, lectureId }) {
+  validateObjectId(lectureId, "lecture ID");
 
-  const lecture =
-    await Lecture.findOne({
-      _id:
-        lectureId,
-
-      isActive:
-        true,
-    })
-      .select(`
+  const lecture = await Lecture.findOne({
+    _id: lectureId,
+    isActive: true,
+  })
+    .select(
+      `
         _id
         course
         module
         title
         description
         content
-        notes
-      `)
-      .lean();
+        type
+        videoUrl
+        documentUrl
+        isPublished
+      `,
+    )
+    .lean();
 
   if (!lecture) {
-    throw new ApiError(
-      404,
-      "Lecture not found",
-    );
+    throw new ApiError(404, "Lecture not found");
   }
 
   await validateRagCourseAccess({
     userId,
     userRole,
-
-    courseId:
-      lecture.course,
+    courseId: lecture.course,
   });
 
-  if (
-    userRole ===
-    "student"
-  ) {
+  if (userRole === "student") {
+    throw new ApiError(403, "Students cannot index lecture content");
+  }
+
+  /*
+   * Quiz aur live lecture ko directly
+   * RAG me index nahi karenge.
+   */
+  if (["quiz", "live"].includes(lecture.type)) {
     throw new ApiError(
-      403,
-      "Students cannot index lecture content",
+      400,
+      `${lecture.type} lecture cannot be indexed directly`,
     );
   }
 
+  /*
+   * Lecture ke actual textual fields.
+   */
   const lectureText = [
-    lecture.title,
-    lecture.description,
-    lecture.content,
-    lecture.notes,
+    lecture.title ? `Lecture Title:\n${lecture.title}` : null,
+
+    lecture.description ? `Description:\n${lecture.description}` : null,
+
+    lecture.content ? `Lecture Content:\n${lecture.content}` : null,
   ]
     .filter(Boolean)
-    .join("\n\n");
+    .join("\n\n")
+    .trim();
 
-  if (!lectureText.trim()) {
+  /*
+   * Sirf title ko useful RAG knowledge
+   * consider nahi karenge.
+   */
+  const hasUsefulContent =
+    Boolean(String(lecture.description || "").trim()) ||
+    Boolean(String(lecture.content || "").trim());
+
+  if (!hasUsefulContent) {
+    if (lecture.type === "video") {
+      throw new ApiError(
+        400,
+        "Video lecture requires transcript, description, or text content before AI indexing",
+      );
+    }
+
+    if (lecture.type === "document") {
+      throw new ApiError(
+        400,
+        "Document text must be extracted before AI indexing",
+      );
+    }
+
     throw new ApiError(
       400,
-      "Lecture does not contain text content to index",
+      "Lecture does not contain enough text content to index",
     );
   }
 
@@ -758,27 +521,29 @@ export async function ingestLectureForRag({
     userId,
     userRole,
 
-    courseId:
-      lecture.course,
+    courseId: lecture.course,
 
-    moduleId:
-      lecture.module ??
-      null,
+    moduleId: lecture.module ?? null,
 
-    lectureId:
-      lecture._id,
+    lectureId: lecture._id,
 
-    resourceType:
-      "lecture",
+    resourceType: "lecture",
 
-    resourceId:
-      lecture._id,
+    resourceId: lecture._id,
 
-    title:
-      lecture.title,
+    title: lecture.title,
 
-    text:
-      lectureText,
+    text: lectureText,
+
+    metadata: {
+      lectureType: lecture.type,
+
+      isPublished: lecture.isPublished,
+
+      videoUrl: lecture.videoUrl ?? null,
+
+      documentUrl: lecture.documentUrl ?? null,
+    },
   });
 }
 
@@ -804,119 +569,77 @@ export async function searchCourseKnowledge({
     courseId,
   });
 
-  const normalizedQuery =
-    String(
-      query || "",
-    ).trim();
+  const normalizedQuery = String(query || "").trim();
 
   if (!normalizedQuery) {
-    throw new ApiError(
-      400,
-      "Search query is required",
-    );
+    throw new ApiError(400, "Search query is required");
   }
 
-  const parsedLimit =
-    Math.min(
-      Math.max(
-        Number(limit) ||
-          6,
-        1,
-      ),
-      20,
-    );
+  const parsedLimit = Math.min(Math.max(Number(limit) || 6, 1), 20);
 
-  const queryEmbedding =
-    await generateEmbedding(
-      normalizedQuery,
-    );
+  const queryEmbedding = await generateEmbedding(normalizedQuery);
 
-  const results =
-    await RagChunk.aggregate([
-      {
-        $vectorSearch: {
-          index:
-            "rag_vector_index",
+  const results = await RagChunk.aggregate([
+    {
+      $vectorSearch: {
+        index: "rag_vector_index",
 
-          path:
-            "embedding",
+        path: "embedding",
 
-          queryVector:
-            queryEmbedding,
+        queryVector: queryEmbedding,
 
-          numCandidates:
-            Math.max(
-              parsedLimit *
-                10,
+        numCandidates: Math.max(
+          parsedLimit * 10,
 
-              100,
-            ),
+          100,
+        ),
 
-          limit:
-            parsedLimit,
+        limit: parsedLimit,
 
-          filter: {
-            course:
-              new mongoose.Types.ObjectId(
-                courseId,
-              ),
+        filter: {
+          course: new mongoose.Types.ObjectId(courseId),
 
-            isActive:
-              true,
-          },
+          isActive: true,
         },
       },
+    },
 
-      {
-        $project: {
-          _id:
-            1,
+    {
+      $project: {
+        _id: 1,
 
-          course:
-            1,
+        course: 1,
 
-          module:
-            1,
+        module: 1,
 
-          lecture:
-            1,
+        lecture: 1,
 
-          resourceType:
-            1,
+        resourceType: 1,
 
-          resourceId:
-            1,
+        resourceId: 1,
 
-          title:
-            1,
+        title: 1,
 
-          content:
-            1,
+        content: 1,
 
-          chunkIndex:
-            1,
+        chunkIndex: 1,
 
-          metadata:
-            1,
+        metadata: 1,
 
-          score: {
-            $meta:
-              "vectorSearchScore",
-          },
+        score: {
+          $meta: "vectorSearchScore",
         },
       },
+    },
 
-      {
-        $match: {
-          score: {
-            $gte:
-              Number(
-                minimumScore,
-              ),
-          },
+    {
+      $match: {
+        score: {
+          $gte: Number(minimumScore),
         },
       },
-    ]);
+    },
+  ]);
 
   return results;
 }
@@ -938,49 +661,30 @@ export async function getCourseRagChunks({
     courseId,
   });
 
-  const {
-    resourceType,
-  } = query;
+  const { resourceType } = query;
 
-  const {
-    page,
-    limit,
-    skip,
-  } = getPagination(
-    query,
-  );
+  const { page, limit, skip } = getPagination(query);
 
   const filter = {
-    course:
-      courseId,
+    course: courseId,
 
-    isActive:
-      true,
+    isActive: true,
   };
 
-  const parsedResourceType =
-    parseEnumQuery(
-      resourceType,
-      RESOURCE_TYPES,
-      "RAG resource type",
-    );
+  const parsedResourceType = parseEnumQuery(
+    resourceType,
+    RESOURCE_TYPES,
+    "RAG resource type",
+  );
 
-  if (
-    parsedResourceType !==
-    undefined
-  ) {
-    filter.resourceType =
-      parsedResourceType;
+  if (parsedResourceType !== undefined) {
+    filter.resourceType = parsedResourceType;
   }
 
-  const [
-    chunks,
-    totalRecords,
-  ] = await Promise.all([
-    RagChunk.find(
-      filter,
-    )
-      .select(`
+  const [chunks, totalRecords] = await Promise.all([
+    RagChunk.find(filter)
+      .select(
+        `
         course
         module
         lecture
@@ -992,29 +696,26 @@ export async function getCourseRagChunks({
         metadata
         createdAt
         updatedAt
-      `)
+      `,
+      )
       .sort({
-        createdAt:
-          -1,
+        createdAt: -1,
       })
       .skip(skip)
       .limit(limit)
       .lean(),
 
-    RagChunk.countDocuments(
-      filter,
-    ),
+    RagChunk.countDocuments(filter),
   ]);
 
   return {
     chunks,
 
-    pagination:
-      buildPaginationMeta({
-        page,
-        limit,
-        totalRecords,
-      }),
+    pagination: buildPaginationMeta({
+      page,
+      limit,
+      totalRecords,
+    }),
   };
 }
 
@@ -1037,44 +738,29 @@ export async function deleteRagResource({
     courseId,
   });
 
-  if (
-    userRole ===
-    "student"
-  ) {
-    throw new ApiError(
-      403,
-      "Students cannot delete AI knowledge resources",
-    );
+  if (userRole === "student") {
+    throw new ApiError(403, "Students cannot delete AI knowledge resources");
   }
 
-  validateObjectId(
-    resourceId,
-    "resource ID",
+  validateObjectId(resourceId, "resource ID");
+
+  const parsedResourceType = parseEnumQuery(
+    resourceType,
+    RESOURCE_TYPES,
+    "RAG resource type",
   );
 
-  const parsedResourceType =
-    parseEnumQuery(
-      resourceType,
-      RESOURCE_TYPES,
-      "RAG resource type",
-    );
+  const result = await RagChunk.deleteMany({
+    course: courseId,
 
-  const result =
-    await RagChunk.deleteMany({
-      course:
-        courseId,
+    resourceType: parsedResourceType,
 
-      resourceType:
-        parsedResourceType,
-
-      resourceId,
-    });
+    resourceId,
+  });
 
   return {
-    deletedChunks:
-      result.deletedCount,
+    deletedChunks: result.deletedCount,
 
-    message:
-      "AI knowledge resource deleted successfully",
+    message: "AI knowledge resource deleted successfully",
   };
 }

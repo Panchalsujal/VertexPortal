@@ -80,6 +80,13 @@ if (!process.env.MISTRAL_API_KEY) {
   );
 }
 
+if (!process.env.MISTRAL_CHAT_MODEL) {
+  throw new Error(
+    "MISTRAL_CHAT_MODEL is not defined in the environment variables",
+  );
+}
+
+
 export const config = {
   MONGO_URI: process.env.MONGO_URI,
   JWT_SECRET: process.env.JWT_SECRET,
@@ -97,4 +104,5 @@ export const config = {
   FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:5173",
   PORT: process.env.PORT || 3000,
   MISTRAL_API_KEY: process.env.MISTRAL_API_KEY,
+  MISTRAL_CHAT_MODEL: process.env.MISTRAL_CHAT_MODEL || "mistral-large-latest",
 };
