@@ -13,6 +13,13 @@ import {
 } from "./rag.service.js";
 
 import {
+  createOrResetRagIndexingJob,
+  markRagIndexingProcessing,
+  markRagIndexingCompleted,
+  markRagIndexingFailed,
+} from "./ragIndexing.service.js";
+
+import {
   validateObjectId,
 } from "../utils/validator.js";
 
@@ -25,12 +32,13 @@ import {
  * VIDEO → TRANSCRIPT → RAG
  * ==========================================
  */
+
 export async function indexLectureVideoForRag({
   userId,
   userRole,
   lectureId,
   videoBuffer,
-  fileName,
+  fileName = "",
 }) {
   validateObjectId(
     userId,
@@ -42,13 +50,23 @@ export async function indexLectureVideoForRag({
     "lecture ID",
   );
 
+  if (
+    !videoBuffer ||
+    !Buffer.isBuffer(videoBuffer)
+  ) {
+    throw new ApiError(
+      400,
+      "Valid video buffer is required",
+    );
+  }
+
+  /*
+   * 1. Find lecture
+   */
   const lecture =
     await Lecture.findOne({
-      _id:
-        lectureId,
-
-      isActive:
-        true,
+      _id: lectureId,
+      isActive: true,
     })
       .select(`
         _id
@@ -58,6 +76,7 @@ export async function indexLectureVideoForRag({
         description
         type
         videoUrl
+        videoFileId
         isPublished
       `)
       .lean();
@@ -69,6 +88,9 @@ export async function indexLectureVideoForRag({
     );
   }
 
+  /*
+   * 2. Only video lecture allowed
+   */
   if (
     lecture.type !==
     "video"
@@ -80,60 +102,17 @@ export async function indexLectureVideoForRag({
   }
 
   /*
-   * 1. Video → MP3
+   * 3. Create/reset indexing job
    */
-  const {
-    audioBuffer,
-    fileName:
-      audioFileName,
-  } =
-    await extractAudioFromVideoBuffer({
-      videoBuffer,
-      originalName:
-        fileName,
-    });
-
-  /*
-   * 2. MP3 → transcript
-   */
-  const transcription =
-    await transcribeAudioBuffer({
-      audioBuffer,
-
-      fileName:
-        audioFileName,
-    });
-
-  /*
-   * 3. Build AI knowledge
-   */
-  const text = [
-    lecture.title
-      ? `Lecture Title:\n${lecture.title}`
-      : null,
-
-    lecture.description
-      ? `Description:\n${lecture.description}`
-      : null,
-
-    `Video Transcript:\n${transcription.text}`,
-  ]
-    .filter(Boolean)
-    .join("\n\n");
-
-  /*
-   * 4. Transcript → embeddings → ragchunks
-   */
-  const result =
-    await ingestRagResource({
+  const indexingJob =
+    await createOrResetRagIndexingJob({
       userId,
-      userRole,
 
       courseId:
         lecture.course,
 
       moduleId:
-        lecture.module,
+        lecture.module ?? null,
 
       lectureId:
         lecture._id,
@@ -144,53 +123,240 @@ export async function indexLectureVideoForRag({
       resourceId:
         lecture._id,
 
-      title:
-        lecture.title,
-
-      text,
-
       metadata: {
         source:
           "video_transcript",
 
-        videoUrl:
-          lecture.videoUrl ??
-          null,
-
         originalFileName:
-          fileName,
+          String(fileName || ""),
 
-        transcriptionLanguage:
-          transcription.language,
+        videoUrl:
+          lecture.videoUrl ?? null,
 
-        transcriptionModel:
-          transcription.model,
-
-        transcriptionUsage:
-          transcription.usage,
+        videoFileId:
+          lecture.videoFileId ?? null,
       },
     });
 
-  return {
-    lectureId:
-      lecture._id,
+  /*
+   * 4. Mark processing
+   */
+  await markRagIndexingProcessing(
+    indexingJob._id,
+  );
 
-    courseId:
-      lecture.course,
+  try {
+    /*
+     * 5. Video → MP3
+     */
+    const {
+      audioBuffer,
+      fileName:
+        audioFileName,
+    } =
+      await extractAudioFromVideoBuffer({
+        videoBuffer,
 
-    transcript:
-      transcription.text,
+        originalName:
+          fileName,
+      });
 
-    language:
-      transcription.language,
+    /*
+     * 6. Audio → transcript
+     */
+    const transcription =
+      await transcribeAudioBuffer({
+        audioBuffer,
 
-    chunksCreated:
-      result.chunksCreated,
+        fileName:
+          audioFileName,
+      });
 
-    transcriptionUsage:
-      transcription.usage,
+    const transcript =
+      String(
+        transcription.text || "",
+      ).trim();
 
-    message:
-      "Lecture video transcribed and indexed for AI successfully",
-  };
+    if (!transcript) {
+      throw new ApiError(
+        400,
+        "Video transcription returned empty text",
+      );
+    }
+
+    /*
+     * 7. Build knowledge text
+     */
+    const text = [
+      lecture.title
+        ? `Lecture Title:\n${lecture.title}`
+        : null,
+
+      fileName
+        ? `Video File Name:\n${fileName}`
+        : null,
+
+      lecture.description
+        ? `Description:\n${lecture.description}`
+        : null,
+
+      `Video Transcript:\n${transcript}`,
+    ]
+      .filter(Boolean)
+      .join("\n\n")
+      .trim();
+
+    /*
+     * 8. Transcript → embeddings → ragchunks
+     */
+    const result =
+      await ingestRagResource({
+        userId,
+        userRole,
+
+        courseId:
+          lecture.course,
+
+        moduleId:
+          lecture.module ?? null,
+
+        lectureId:
+          lecture._id,
+
+        resourceType:
+          "lecture",
+
+        resourceId:
+          lecture._id,
+
+        title:
+          lecture.title,
+
+        text,
+
+        metadata: {
+          source:
+            "video_transcript",
+
+          videoUrl:
+            lecture.videoUrl ??
+            null,
+
+          videoFileId:
+            lecture.videoFileId ??
+            null,
+
+          originalFileName:
+            String(fileName || ""),
+
+          transcriptionLanguage:
+            transcription.language ??
+            null,
+
+          transcriptionModel:
+            transcription.model,
+
+          transcriptionUsage:
+            transcription.usage ??
+            null,
+        },
+      });
+
+    /*
+     * 9. Mark completed
+     */
+    const completedJob =
+      await markRagIndexingCompleted({
+        jobId:
+          indexingJob._id,
+
+        chunksCreated:
+          result.chunksCreated,
+
+        metadata: {
+          source:
+            "video_transcript",
+
+          lectureId:
+            lecture._id.toString(),
+
+          originalFileName:
+            String(fileName || ""),
+
+          videoUrl:
+            lecture.videoUrl ??
+            null,
+
+          videoFileId:
+            lecture.videoFileId ??
+            null,
+
+          transcriptionLanguage:
+            transcription.language ??
+            null,
+
+          transcriptionModel:
+            transcription.model,
+
+          transcriptionUsage:
+            transcription.usage ??
+            null,
+
+          chunksCreated:
+            result.chunksCreated,
+        },
+      });
+
+    return {
+      lectureId:
+        lecture._id,
+
+      courseId:
+        lecture.course,
+
+      moduleId:
+        lecture.module ?? null,
+
+      indexingJobId:
+        completedJob._id,
+
+      indexingStatus:
+        completedJob.status,
+
+      transcript,
+
+      language:
+        transcription.language ??
+        null,
+
+      chunksCreated:
+        result.chunksCreated,
+
+      transcriptionUsage:
+        transcription.usage ??
+        null,
+
+      message:
+        "Lecture video transcribed and indexed for AI successfully",
+    };
+  } catch (error) {
+    /*
+     * 10. Mark failed
+     */
+    try {
+      await markRagIndexingFailed({
+        jobId:
+          indexingJob._id,
+
+        error,
+      });
+    } catch (statusError) {
+      console.error(
+        "Failed to update video RAG indexing job status:",
+        statusError,
+      );
+    }
+
+    throw error;
+  }
 }

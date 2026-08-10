@@ -6,6 +6,7 @@ import fsSync from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+
 import Course from "../models/course.model.js";
 import CourseModule from "../models/courseModule.model.js";
 import Lecture from "../models/lecture.model.js";
@@ -781,7 +782,6 @@ export const uploadLectureVideoController = asyncHandler(async (req, res) => {
 
   const lecture = await Lecture.findOne({
     _id: lectureId,
-
     isActive: true,
   });
 
@@ -801,7 +801,6 @@ export const uploadLectureVideoController = asyncHandler(async (req, res) => {
 
   const course = await Course.findOne({
     _id: lecture.course,
-
     isActive: true,
   }).select("instructor");
 
@@ -824,7 +823,9 @@ export const uploadLectureVideoController = asyncHandler(async (req, res) => {
   }
 
   /*
-   * Delete old video from ImageKit.
+   * ---------------------------------------
+   * Delete previous ImageKit video
+   * ---------------------------------------
    */
   if (lecture.videoFileId) {
     try {
@@ -835,7 +836,9 @@ export const uploadLectureVideoController = asyncHandler(async (req, res) => {
   }
 
   /*
-   * Upload video to ImageKit.
+   * ---------------------------------------
+   * Upload new video to ImageKit
+   * ---------------------------------------
    */
   const uploadedVideo = await imagekit.upload({
     file: req.file.buffer,
@@ -859,23 +862,31 @@ export const uploadLectureVideoController = asyncHandler(async (req, res) => {
   await lecture.save();
 
   /*
-   * Auto-publish module.
+   * ---------------------------------------
+   * Auto publish parent module
+   * ---------------------------------------
    */
   await CourseModule.findByIdAndUpdate(lecture.module, {
     isPublished: true,
   });
 
   /*
-   * =====================================
-   * VIDEO → TRANSCRIPT → RAG
-   * =====================================
+   * =======================================
+   * VIDEO → AUDIO → TRANSCRIPT → RAG
+   * =======================================
    */
   let aiIndexing = {
     success: false,
 
+    indexingJobId: null,
+
+    indexingStatus: null,
+
     chunksCreated: 0,
 
     language: null,
+
+    transcriptionUsage: null,
 
     message: "AI transcription not completed",
   };
@@ -896,6 +907,10 @@ export const uploadLectureVideoController = asyncHandler(async (req, res) => {
     aiIndexing = {
       success: true,
 
+      indexingJobId: ragResult.indexingJobId,
+
+      indexingStatus: ragResult.indexingStatus,
+
       chunksCreated: ragResult.chunksCreated,
 
       language: ragResult.language,
@@ -910,14 +925,25 @@ export const uploadLectureVideoController = asyncHandler(async (req, res) => {
     aiIndexing = {
       success: false,
 
+      indexingJobId: null,
+
+      indexingStatus: "failed",
+
       chunksCreated: 0,
 
       language: null,
+
+      transcriptionUsage: null,
 
       message: error.message || "Video AI indexing failed",
     };
   }
 
+  /*
+   * ---------------------------------------
+   * Final response
+   * ---------------------------------------
+   */
   return res.status(200).json({
     success: true,
 

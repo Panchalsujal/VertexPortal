@@ -9,6 +9,13 @@ import {
 } from "./pdfText.service.js";
 
 import {
+  createOrResetRagIndexingJob,
+  markRagIndexingProcessing,
+  markRagIndexingCompleted,
+  markRagIndexingFailed,
+} from "./ragIndexing.service.js";
+
+import {
   validateObjectId,
 } from "../utils/validator.js";
 
@@ -17,8 +24,36 @@ import {
 } from "../utils/ApiError.js";
 
 /*
- * PDF lecture document ko extract + index karega.
+ * =========================================================
+ * PDF LECTURE DOCUMENT
+ * =========================================================
+ *
+ * Flow:
+ *
+ * lecture validate
+ *      ↓
+ * indexing job pending
+ *      ↓
+ * processing
+ *      ↓
+ * PDF text extraction
+ *      ↓
+ * chunking + Mistral embeddings
+ *      ↓
+ * MongoDB RAG chunks
+ *      ↓
+ * indexing job completed
+ *
+ * Failure:
+ *
+ * processing
+ *      ↓
+ * failed
+ *      ↓
+ * lastError save
+ * =========================================================
  */
+
 export async function indexLectureDocumentForRag({
   userId,
   userRole,
@@ -36,6 +71,22 @@ export async function indexLectureDocumentForRag({
     "lecture ID",
   );
 
+  if (
+    !fileBuffer ||
+    !Buffer.isBuffer(fileBuffer)
+  ) {
+    throw new ApiError(
+      400,
+      "Valid PDF file buffer is required",
+    );
+  }
+
+  /*
+   * =====================================================
+   * 1. Find lecture
+   * =====================================================
+   */
+
   const lecture =
     await Lecture.findOne({
       _id: lectureId,
@@ -49,6 +100,7 @@ export async function indexLectureDocumentForRag({
         description
         type
         documentUrl
+        documentFileId
         isPublished
       `)
       .lean();
@@ -60,6 +112,12 @@ export async function indexLectureDocumentForRag({
     );
   }
 
+  /*
+   * =====================================================
+   * 2. Only document lectures
+   * =====================================================
+   */
+
   if (
     lecture.type !==
     "document"
@@ -70,38 +128,24 @@ export async function indexLectureDocumentForRag({
     );
   }
 
-  const {
-    text,
-    pageCount,
-  } =
-    await extractPdfTextFromBuffer(
-      fileBuffer,
-    );
+  /*
+   * =====================================================
+   * 3. Create/reset indexing job
+   * =====================================================
+   *
+   * document resource ke liye
+   * lecture._id ko resourceId use kar rahe hain.
+   */
 
-  const finalText = [
-    lecture.title
-      ? `Lecture Title:\n${lecture.title}`
-      : null,
-
-    lecture.description
-      ? `Description:\n${lecture.description}`
-      : null,
-
-    `Document Content:\n${text}`,
-  ]
-    .filter(Boolean)
-    .join("\n\n");
-
-  const result =
-    await ingestRagResource({
+  const indexingJob =
+    await createOrResetRagIndexingJob({
       userId,
-      userRole,
 
       courseId:
         lecture.course,
 
       moduleId:
-        lecture.module,
+        lecture.module ?? null,
 
       lectureId:
         lecture._id,
@@ -112,15 +156,9 @@ export async function indexLectureDocumentForRag({
       resourceId:
         lecture._id,
 
-      title:
-        lecture.title,
-
-      text:
-        finalText,
-
       metadata: {
-        lectureId:
-          lecture._id.toString(),
+        source:
+          "lecture_document",
 
         fileName:
           String(
@@ -131,26 +169,222 @@ export async function indexLectureDocumentForRag({
           lecture.documentUrl ??
           null,
 
-        pageCount,
-
-        source:
-          "lecture_document",
+        documentFileId:
+          lecture.documentFileId ??
+          null,
       },
     });
 
-  return {
-    lectureId:
-      lecture._id,
+  /*
+   * =====================================================
+   * 4. Mark processing
+   * =====================================================
+   */
 
-    courseId:
-      lecture.course,
+  await markRagIndexingProcessing(
+    indexingJob._id,
+  );
 
-    pageCount,
+  try {
+    /*
+     * ===================================================
+     * 5. Extract PDF text
+     * ===================================================
+     */
 
-    chunksCreated:
-      result.chunksCreated,
+    const {
+      text,
+      pageCount,
+    } =
+      await extractPdfTextFromBuffer(
+        fileBuffer,
+      );
 
-    message:
-      "Lecture document indexed for AI successfully",
-  };
+    /*
+     * ===================================================
+     * 6. Build knowledge text
+     * ===================================================
+     */
+
+    const finalText = [
+      lecture.title
+        ? `Lecture Title:\n${lecture.title}`
+        : null,
+
+      fileName
+        ? `Document File Name:\n${fileName}`
+        : null,
+
+      lecture.description
+        ? `Description:\n${lecture.description}`
+        : null,
+
+      `Document Content:\n${text}`,
+    ]
+      .filter(Boolean)
+      .join("\n\n")
+      .trim();
+
+    if (!finalText) {
+      throw new ApiError(
+        400,
+        "Document does not contain indexable text",
+      );
+    }
+
+    /*
+     * ===================================================
+     * 7. RAG indexing
+     * ===================================================
+     */
+
+    const result =
+      await ingestRagResource({
+        userId,
+        userRole,
+
+        courseId:
+          lecture.course,
+
+        moduleId:
+          lecture.module ?? null,
+
+        lectureId:
+          lecture._id,
+
+        resourceType:
+          "document",
+
+        resourceId:
+          lecture._id,
+
+        title:
+          lecture.title,
+
+        text:
+          finalText,
+
+        metadata: {
+          lectureId:
+            lecture._id.toString(),
+
+          fileName:
+            String(
+              fileName || "",
+            ),
+
+          documentUrl:
+            lecture.documentUrl ??
+            null,
+
+          documentFileId:
+            lecture.documentFileId ??
+            null,
+
+          pageCount,
+
+          source:
+            "lecture_document",
+        },
+      });
+
+    /*
+     * ===================================================
+     * 8. Mark completed
+     * ===================================================
+     */
+
+    const completedJob =
+      await markRagIndexingCompleted({
+        jobId:
+          indexingJob._id,
+
+        chunksCreated:
+          result.chunksCreated,
+
+        metadata: {
+          source:
+            "lecture_document",
+
+          lectureId:
+            lecture._id.toString(),
+
+          fileName:
+            String(
+              fileName || "",
+            ),
+
+          documentUrl:
+            lecture.documentUrl ??
+            null,
+
+          documentFileId:
+            lecture.documentFileId ??
+            null,
+
+          pageCount,
+
+          chunksCreated:
+            result.chunksCreated,
+        },
+      });
+
+    /*
+     * ===================================================
+     * 9. Final result
+     * ===================================================
+     */
+
+    return {
+      lectureId:
+        lecture._id,
+
+      courseId:
+        lecture.course,
+
+      moduleId:
+        lecture.module ?? null,
+
+      indexingJobId:
+        completedJob._id,
+
+      indexingStatus:
+        completedJob.status,
+
+      pageCount,
+
+      chunksCreated:
+        result.chunksCreated,
+
+      message:
+        "Lecture document indexed for AI successfully",
+    };
+  } catch (error) {
+    /*
+     * ===================================================
+     * 10. Mark failed
+     * ===================================================
+     */
+
+    try {
+      await markRagIndexingFailed({
+        jobId:
+          indexingJob._id,
+
+        error,
+      });
+    } catch (
+      statusError
+    ) {
+      console.error(
+        "Failed to update RAG indexing job status:",
+        statusError,
+      );
+    }
+
+    /*
+     * Original error preserve karenge.
+     */
+    throw error;
+  }
 }
