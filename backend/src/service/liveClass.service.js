@@ -740,118 +740,306 @@ export async function updateLiveClass({
   liveClassId,
   payload,
 }) {
-  validateObjectId(instructorId, "instructor ID");
-  validateObjectId(liveClassId, "live class ID");
+  validateObjectId(
+    instructorId,
+    "instructor ID",
+  );
 
-  if (!payload || Object.keys(payload).length === 0) {
-    throw new ApiError(400, "At least one field is required for update");
+  validateObjectId(
+    liveClassId,
+    "live class ID",
+  );
+
+  if (
+    !payload ||
+    Object.keys(payload).length === 0
+  ) {
+    throw new ApiError(
+      400,
+      "At least one field is required for update",
+    );
   }
 
-  const filter = { _id: liveClassId };
+  /*
+   * Instructor sirf apni class update karega.
+   * Admin kisi bhi live class ko update kar sakta hai.
+   */
+  const filter = {
+    _id: liveClassId,
+  };
+
   if (userRole !== "admin") {
-    filter.instructor = instructorId;
+    filter.instructor =
+      instructorId;
   }
 
-  const liveClass = await LiveClass.findOne(filter).select("+meetingPassword");
+  const liveClass =
+    await LiveClass.findOne(
+      filter,
+    ).select(
+      "+meetingPassword",
+    );
 
   if (!liveClass) {
-    throw new ApiError(404, "Live class not found");
+    throw new ApiError(
+      404,
+      "Live class not found",
+    );
   }
 
-  if (["completed", "cancelled", "archived"].includes(liveClass.status)) {
-    throw new ApiError(400, `${liveClass.status} live class cannot be updated`);
+  if (
+    [
+      "completed",
+      "cancelled",
+      "archived",
+    ].includes(
+      liveClass.status,
+    )
+  ) {
+    throw new ApiError(
+      400,
+      `${liveClass.status} live class cannot be updated`,
+    );
   }
 
-  if (payload.courseId !== undefined || payload.course !== undefined) {
-    throw new ApiError(400, "Live class course cannot be changed");
+  /*
+   * Course change allow nahi karenge.
+   */
+  if (
+    payload.courseId !== undefined ||
+    payload.course !== undefined
+  ) {
+    throw new ApiError(
+      400,
+      "Live class course cannot be changed",
+    );
   }
 
-  if (payload.title !== undefined) {
-    const title = String(payload.title || "").trim();
+  /*
+   * Existing schedule snapshot.
+   *
+   * Isse detect karenge ki class reschedule hui hai
+   * ya nahi.
+   */
+  const originalStartsAt =
+    liveClass.startsAt
+      ? new Date(
+          liveClass.startsAt,
+        )
+      : null;
+
+  const originalEndsAt =
+    liveClass.endsAt
+      ? new Date(
+          liveClass.endsAt,
+        )
+      : null;
+
+  /*
+   * Title
+   */
+  if (
+    payload.title !== undefined
+  ) {
+    const title = String(
+      payload.title || "",
+    ).trim();
 
     if (title.length < 3) {
-      throw new ApiError(400, "Live class title must be at least 3 characters");
+      throw new ApiError(
+        400,
+        "Live class title must be at least 3 characters",
+      );
     }
 
     if (title.length > 200) {
-      throw new ApiError(400, "Live class title cannot exceed 200 characters");
+      throw new ApiError(
+        400,
+        "Live class title cannot exceed 200 characters",
+      );
     }
 
     liveClass.title = title;
   }
 
-  if (payload.description !== undefined) {
-    const description = String(payload.description || "").trim();
+  /*
+   * Description
+   */
+  if (
+    payload.description !==
+    undefined
+  ) {
+    const description =
+      String(
+        payload.description ||
+          "",
+      ).trim();
 
-    if (description.length > 5000) {
+    if (
+      description.length >
+      5000
+    ) {
       throw new ApiError(
         400,
         "Live class description cannot exceed 5000 characters",
       );
     }
 
-    liveClass.description = description;
+    liveClass.description =
+      description;
   }
 
-  if (payload.provider !== undefined) {
-    liveClass.provider = parseEnumQuery(
-      payload.provider,
-      LIVE_CLASS_PROVIDERS,
-      "Live class provider",
+  /*
+   * Provider
+   */
+  if (
+    payload.provider !==
+    undefined
+  ) {
+    liveClass.provider =
+      parseEnumQuery(
+        payload.provider,
+        LIVE_CLASS_PROVIDERS,
+        "Live class provider",
+      );
+  }
+
+  /*
+   * Meeting URL
+   */
+  if (
+    payload.meetingUrl !==
+    undefined
+  ) {
+    liveClass.meetingUrl =
+      normalizeMeetingUrl(
+        payload.meetingUrl,
+      );
+  }
+
+  /*
+   * Meeting ID
+   */
+  if (
+    payload.meetingId !==
+    undefined
+  ) {
+    liveClass.meetingId =
+      String(
+        payload.meetingId ||
+          "",
+      ).trim();
+  }
+
+  /*
+   * Meeting Password
+   */
+  if (
+    payload.meetingPassword !==
+    undefined
+  ) {
+    liveClass.meetingPassword =
+      String(
+        payload.meetingPassword ||
+          "",
+      ).trim();
+  }
+
+  /*
+   * New start/end values.
+   */
+  let nextStartsAt =
+    liveClass.startsAt;
+
+  let nextEndsAt =
+    liveClass.endsAt;
+
+  if (
+    payload.startsAt !==
+    undefined
+  ) {
+    nextStartsAt =
+      parseLiveClassDate(
+        payload.startsAt,
+        "Start time",
+      );
+  }
+
+  if (
+    payload.endsAt !==
+    undefined
+  ) {
+    nextEndsAt =
+      parseLiveClassDate(
+        payload.endsAt,
+        "End time",
+      );
+  }
+
+  if (
+    nextEndsAt <= nextStartsAt
+  ) {
+    throw new ApiError(
+      400,
+      "Live class end time must be after start time",
     );
   }
 
-  if (payload.meetingUrl !== undefined) {
-    liveClass.meetingUrl = normalizeMeetingUrl(payload.meetingUrl);
+  const durationInMinutes =
+    Math.ceil(
+      (
+        nextEndsAt.getTime() -
+        nextStartsAt.getTime()
+      ) /
+        60000,
+    );
+
+  if (
+    durationInMinutes > 1440
+  ) {
+    throw new ApiError(
+      400,
+      "Live class duration cannot exceed 24 hours",
+    );
   }
 
-  if (payload.meetingId !== undefined) {
-    liveClass.meetingId = String(payload.meetingId || "").trim();
-  }
+  /*
+   * Instructor overlap validation.
+   *
+   * Admin kisi aur instructor ki class edit kar sakta hai,
+   * isliye request user id nahi, actual class instructor
+   * use karenge.
+   */
+  const classInstructorId =
+    liveClass.instructor;
 
-  if (payload.meetingPassword !== undefined) {
-    liveClass.meetingPassword = String(payload.meetingPassword || "").trim();
-  }
+  const overlappingClass =
+    await LiveClass.exists({
+      _id: {
+        $ne:
+          liveClass._id,
+      },
 
-  let nextStartsAt = liveClass.startsAt;
+      instructor:
+        classInstructorId,
 
-  let nextEndsAt = liveClass.endsAt;
+      status: {
+        $in: [
+          "scheduled",
+          "live",
+        ],
+      },
 
-  if (payload.startsAt !== undefined) {
-    nextStartsAt = parseLiveClassDate(payload.startsAt, "Start time");
-  }
+      startsAt: {
+        $lt:
+          nextEndsAt,
+      },
 
-  if (payload.endsAt !== undefined) {
-    nextEndsAt = parseLiveClassDate(payload.endsAt, "End time");
-  }
-
-  if (nextEndsAt <= nextStartsAt) {
-    throw new ApiError(400, "Live class end time must be after start time");
-  }
-
-  const durationInMinutes = Math.ceil(
-    (nextEndsAt.getTime() - nextStartsAt.getTime()) / 60000,
-  );
-
-  if (durationInMinutes > 1440) {
-    throw new ApiError(400, "Live class duration cannot exceed 24 hours");
-  }
-
-  const overlappingClass = await LiveClass.exists({
-    _id: {
-      $ne: liveClass._id,
-    },
-    instructor: instructorId,
-    status: {
-      $in: ["scheduled", "live"],
-    },
-    startsAt: {
-      $lt: nextEndsAt,
-    },
-    endsAt: {
-      $gt: nextStartsAt,
-    },
-  });
+      endsAt: {
+        $gt:
+          nextStartsAt,
+      },
+    });
 
   if (overlappingClass) {
     throw new ApiError(
@@ -860,51 +1048,145 @@ export async function updateLiveClass({
     );
   }
 
-  liveClass.startsAt = nextStartsAt;
-  liveClass.endsAt = nextEndsAt;
-  liveClass.durationInMinutes = durationInMinutes;
+  /*
+   * Update schedule.
+   */
+  liveClass.startsAt =
+    nextStartsAt;
 
-  if (payload.allowEarlyJoinMinutes !== undefined) {
-    liveClass.allowEarlyJoinMinutes = parseNumberQuery(
-      payload.allowEarlyJoinMinutes,
-      {
-        fieldName: "Allow early join minutes",
-        min: 0,
-        max: 120,
-        integer: true,
-      },
-    );
+  liveClass.endsAt =
+    nextEndsAt;
+
+  liveClass.durationInMinutes =
+    durationInMinutes;
+
+  /*
+   * Schedule changed?
+   */
+  const scheduleChanged =
+    !originalStartsAt ||
+    !originalEndsAt ||
+    originalStartsAt.getTime() !==
+      nextStartsAt.getTime() ||
+    originalEndsAt.getTime() !==
+      nextEndsAt.getTime();
+
+  /*
+   * Reschedule hone par reminder flags reset.
+   *
+   * Isse new schedule ke according 24h / 1h / 10m
+   * reminders dobara send ho sakenge.
+   */
+  if (scheduleChanged) {
+    liveClass.reminders = {
+      reminder24HoursSent:
+        false,
+
+      reminder1HourSent:
+        false,
+
+      reminder10MinutesSent:
+        false,
+    };
   }
 
-  if (payload.maxParticipants !== undefined) {
+  /*
+   * Early join.
+   */
+  if (
+    payload.allowEarlyJoinMinutes !==
+    undefined
+  ) {
+    liveClass.allowEarlyJoinMinutes =
+      parseNumberQuery(
+        payload.allowEarlyJoinMinutes,
+        {
+          fieldName:
+            "Allow early join minutes",
+
+          min: 0,
+
+          max: 120,
+
+          integer: true,
+        },
+      );
+  }
+
+  /*
+   * Maximum participants.
+   */
+  if (
+    payload.maxParticipants !==
+    undefined
+  ) {
     liveClass.maxParticipants =
-      payload.maxParticipants === null || payload.maxParticipants === ""
+      payload.maxParticipants ===
+        null ||
+      payload.maxParticipants ===
+        ""
         ? null
-        : parseNumberQuery(payload.maxParticipants, {
-            fieldName: "Maximum participants",
-            min: 1,
-            max: 100000,
-            integer: true,
-          });
+        : parseNumberQuery(
+            payload.maxParticipants,
+            {
+              fieldName:
+                "Maximum participants",
+
+              min: 1,
+
+              max: 100000,
+
+              integer: true,
+            },
+          );
   }
 
-  if (payload.recordingEnabled !== undefined) {
+  /*
+   * Recording setting.
+   */
+  if (
+    payload.recordingEnabled !==
+    undefined
+  ) {
     liveClass.recordingEnabled =
-      typeof payload.recordingEnabled === "boolean"
+      typeof payload.recordingEnabled ===
+      "boolean"
         ? payload.recordingEnabled
-        : parseBooleanQuery(payload.recordingEnabled, "recordingEnabled");
+        : parseBooleanQuery(
+            payload.recordingEnabled,
+            "recordingEnabled",
+          );
   }
 
-  if (payload.timezone !== undefined) {
+  /*
+   * Timezone.
+   */
+  if (
+    payload.timezone !==
+    undefined
+  ) {
     liveClass.timezone =
-      String(payload.timezone || "").trim() || "Asia/Kolkata";
+      String(
+        payload.timezone ||
+          "",
+      ).trim() ||
+      "Asia/Kolkata";
   }
 
+  /*
+   * Save final document.
+   */
   await liveClass.save();
 
   return {
     liveClass,
-    message: "Live class updated successfully",
+
+    scheduleChanged,
+
+    message:
+      scheduleChanged
+        ? "Live class rescheduled successfully"
+        : "Live class updated successfully",
   };
 }
 

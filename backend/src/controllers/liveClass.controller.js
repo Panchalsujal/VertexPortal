@@ -62,14 +62,21 @@ export const updateLiveClassController = asyncHandler(async (req, res) => {
 
   const result = await updateLiveClass({
     instructorId: req.user.id,
+
     userRole: req.user.role,
+
     liveClassId,
+
     payload: req.body,
   });
 
   return res.status(200).json({
     success: true,
+
     message: result.message,
+
+    scheduleChanged: result.scheduleChanged,
+
     liveClass: result.liveClass,
   });
 });

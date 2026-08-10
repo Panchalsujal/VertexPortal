@@ -118,6 +118,23 @@ const liveClassSchema = new mongoose.Schema(
       default: false,
     },
 
+    reminders: {
+      reminder24HoursSent: {
+        type: Boolean,
+        default: false,
+      },
+
+      reminder1HourSent: {
+        type: Boolean,
+        default: false,
+      },
+
+      reminder10MinutesSent: {
+        type: Boolean,
+        default: false,
+      },
+    },
+
     recordingUrl: {
       type: String,
       trim: true,

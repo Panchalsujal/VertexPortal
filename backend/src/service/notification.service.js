@@ -1126,3 +1126,111 @@ export async function updateNotificationPreferences({
     },
   );
 }
+
+export async function dispatchBulkNotifications({
+  userIds,
+  title,
+  message,
+  type = "system",
+  resourceType = null,
+  resourceId = null,
+  courseId = null,
+  actionUrl = "",
+  metadata = null,
+  expiresAt = null,
+}) {
+  if (
+    !Array.isArray(userIds) ||
+    userIds.length === 0
+  ) {
+    return {
+      inApp: {
+        insertedCount: 0,
+      },
+
+      email: {
+        attempted: 0,
+        sent: 0,
+        skipped: 0,
+        failed: 0,
+      },
+    };
+  }
+
+  /*
+   * In-app bulk notification.
+   */
+  let inAppResult = {
+    insertedCount: 0,
+  };
+
+  try {
+    inAppResult =
+      await createBulkNotifications({
+        userIds,
+        title,
+        message,
+        type,
+        resourceType,
+        resourceId,
+        courseId,
+        actionUrl,
+        metadata,
+        expiresAt,
+      });
+  } catch (error) {
+    console.error(
+      "Bulk in-app notification failed:",
+      error,
+    );
+  }
+
+  /*
+   * Email notifications.
+   *
+   * Abhi sequential batches me bhejenge.
+   * Future me RabbitMQ/BullMQ worker use karenge.
+   */
+  const emailSummary = {
+    attempted: 0,
+    sent: 0,
+    skipped: 0,
+    failed: 0,
+  };
+
+  for (const userId of userIds) {
+    emailSummary.attempted += 1;
+
+    try {
+      const result =
+        await sendNotificationEmail({
+          userId,
+          type,
+          title,
+          message,
+          actionUrl,
+        });
+
+      if (result.sent) {
+        emailSummary.sent += 1;
+      } else if (result.skipped) {
+        emailSummary.skipped += 1;
+      }
+    } catch (error) {
+      emailSummary.failed += 1;
+
+      console.error(
+        `Notification email failed for user ${userId}:`,
+        error,
+      );
+    }
+  }
+
+  return {
+    inApp:
+      inAppResult,
+
+    email:
+      emailSummary,
+  };
+}
