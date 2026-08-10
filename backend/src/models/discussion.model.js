@@ -98,6 +98,12 @@ const discussionSchema = new mongoose.Schema(
       min: 0,
     },
 
+    upvoteCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
     viewCount: {
       type: Number,
       default: 0,

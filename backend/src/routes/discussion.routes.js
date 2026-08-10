@@ -4,32 +4,90 @@ import {
   createDiscussionController,
   getDiscussionsController,
   getDiscussionByIdController,
-  createDiscussionReplyController,
-  acceptDiscussionAnswerController,
-  updateDiscussionResolvedStatusController,
-  updateDiscussionModerationController,
-  updateDiscussionReplyController,
-  deleteDiscussionReplyController,
   updateDiscussionController,
   deleteDiscussionController,
+
+  createDiscussionReplyController,
+  updateDiscussionReplyController,
+  deleteDiscussionReplyController,
+
+  acceptDiscussionAnswerController,
+
+  updateDiscussionResolvedStatusController,
+  updateDiscussionModerationController,
 } from "../controllers/discussion.controller.js";
 
+import {
+  toggleDiscussionUpvoteController,
+  toggleDiscussionReplyUpvoteController,
+  getDiscussionVoteStatusController,
+} from "../controllers/discussionVote.controller.js";
+
 import { authMiddleware } from "../middlewares/auth.middleware.js";
-import { authorizeRoles } from "../middlewares/authorize.middleware.js";
+
+import {
+  authorizeRoles,
+} from "../middlewares/authorize.middleware.js";
 
 const router = Router();
 
 router.use(
   authMiddleware,
 
-  authorizeRoles("student", "instructor", "admin"),
+  authorizeRoles(
+    "student",
+    "instructor",
+    "admin",
+  ),
 );
 
-router.post("/", createDiscussionController);
+/*
+ * ==========================
+ * DISCUSSION ROOT
+ * ==========================
+ */
 
-router.get("/", getDiscussionsController);
+router.post(
+  "/",
+  createDiscussionController,
+);
 
-router.post("/:discussionId/replies", createDiscussionReplyController);
+router.get(
+  "/",
+  getDiscussionsController,
+);
+
+/*
+ * ==========================
+ * VOTES
+ * ==========================
+ */
+
+router.get(
+  "/:discussionId/votes",
+  getDiscussionVoteStatusController,
+);
+
+router.post(
+  "/:discussionId/upvote",
+  toggleDiscussionUpvoteController,
+);
+
+router.post(
+  "/:discussionId/replies/:replyId/upvote",
+  toggleDiscussionReplyUpvoteController,
+);
+
+/*
+ * ==========================
+ * REPLIES
+ * ==========================
+ */
+
+router.post(
+  "/:discussionId/replies",
+  createDiscussionReplyController,
+);
 
 router.patch(
   "/:discussionId/replies/:replyId/accept",
@@ -46,17 +104,41 @@ router.delete(
   deleteDiscussionReplyController,
 );
 
+/*
+ * ==========================
+ * DISCUSSION MANAGEMENT
+ * ==========================
+ */
+
 router.patch(
   "/:discussionId/resolved",
   updateDiscussionResolvedStatusController,
 );
 
-router.patch("/:discussionId/moderation", updateDiscussionModerationController);
+router.patch(
+  "/:discussionId/moderation",
+  updateDiscussionModerationController,
+);
 
-router.get("/:discussionId", getDiscussionByIdController);
+/*
+ * ==========================
+ * SINGLE DISCUSSION
+ * ==========================
+ */
 
-router.patch("/:discussionId", updateDiscussionController);
+router.get(
+  "/:discussionId",
+  getDiscussionByIdController,
+);
 
-router.delete("/:discussionId", deleteDiscussionController);
+router.patch(
+  "/:discussionId",
+  updateDiscussionController,
+);
+
+router.delete(
+  "/:discussionId",
+  deleteDiscussionController,
+);
 
 export default router;
