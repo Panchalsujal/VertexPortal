@@ -9,6 +9,7 @@ import {
   cancelLiveClassController,
   getInstructorLiveClassAttendanceController,
   getInstructorLiveClassAttendanceAnalyticsController,
+  updateLiveClassResourcesController,
 } from "../controllers/liveClass.controller.js";
 
 import { authMiddleware } from "../middlewares/auth.middleware.js";
@@ -46,6 +47,8 @@ router.get(
   "/:liveClassId/attendance/analytics",
   getInstructorLiveClassAttendanceAnalyticsController,
 );
+
+router.patch("/:liveClassId/resources", updateLiveClassResourcesController);
 
 /*
  * Update live class status

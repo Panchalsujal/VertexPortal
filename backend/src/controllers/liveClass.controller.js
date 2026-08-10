@@ -9,6 +9,7 @@ import {
   cancelLiveClass,
   getInstructorLiveClassAttendance,
   getInstructorLiveClassAttendanceAnalytics,
+  updateLiveClassResources,
 } from "../service/liveClass.service.js";
 
 export const createLiveClassController = asyncHandler(async (req, res) => {
@@ -150,6 +151,30 @@ export const getInstructorLiveClassAttendanceAnalyticsController = asyncHandler(
       success: true,
       message: "Live class attendance analytics fetched successfully",
       analytics,
+    });
+  },
+);
+
+export const updateLiveClassResourcesController = asyncHandler(
+  async (req, res) => {
+    const { liveClassId } = req.params;
+
+    const result = await updateLiveClassResources({
+      instructorId: req.user.id,
+
+      userRole: req.user.role,
+
+      liveClassId,
+
+      payload: req.body,
+    });
+
+    return res.status(200).json({
+      success: true,
+
+      message: result.message,
+
+      liveClass: result.liveClass,
     });
   },
 );
