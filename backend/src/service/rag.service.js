@@ -20,8 +20,38 @@ import { ApiError } from "../utils/ApiError.js";
 const RESOURCE_TYPES = ["course", "module", "lecture", "document", "note"];
 
 const CHUNK_SIZE = 1400;
-
 const CHUNK_OVERLAP = 200;
+
+/*
+ * RAG retrieval configuration
+ */
+const DEFAULT_SEARCH_LIMIT = 6;
+
+const MAX_SEARCH_LIMIT = 20;
+
+/*
+ * Absolute minimum relevance.
+ */
+const DEFAULT_MINIMUM_SCORE = 0.65;
+
+/*
+ * Top result ke comparison me kitna
+ * score drop allow karenge.
+ *
+ * Example:
+ *
+ * top = 0.86
+ *
+ * allowed:
+ * >= 0.81
+ */
+const DEFAULT_RELATIVE_SCORE_DROP = 0.03;
+
+/*
+ * LLM ko unnecessarily huge context
+ * nahi bhejna.
+ */
+const DEFAULT_MAX_CONTEXT_CHARACTERS = 12000;
 
 /*
  * ----------------------------------
@@ -559,27 +589,103 @@ export async function searchCourseKnowledge({
 
   query,
 
-  limit = 6,
+  limit = DEFAULT_SEARCH_LIMIT,
 
-  minimumScore = 0.65,
+  minimumScore = DEFAULT_MINIMUM_SCORE,
+
+  relativeScoreDrop = DEFAULT_RELATIVE_SCORE_DROP,
+
+  maxContextCharacters = DEFAULT_MAX_CONTEXT_CHARACTERS,
 }) {
+  /*
+   * ----------------------------------
+   * Course access
+   * ----------------------------------
+   */
   await validateRagCourseAccess({
     userId,
     userRole,
     courseId,
   });
 
+  /*
+   * ----------------------------------
+   * Query validation
+   * ----------------------------------
+   */
   const normalizedQuery = String(query || "").trim();
 
   if (!normalizedQuery) {
     throw new ApiError(400, "Search query is required");
   }
 
-  const parsedLimit = Math.min(Math.max(Number(limit) || 6, 1), 20);
+  /*
+   * ----------------------------------
+   * Limit validation
+   * ----------------------------------
+   */
+  const parsedLimit = Math.min(
+    Math.max(Number(limit) || DEFAULT_SEARCH_LIMIT, 1),
+    MAX_SEARCH_LIMIT,
+  );
 
+  /*
+   * ----------------------------------
+   * Minimum score
+   * ----------------------------------
+   */
+  const parsedMinimumScore = Number.isFinite(Number(minimumScore))
+    ? Number(minimumScore)
+    : DEFAULT_MINIMUM_SCORE;
+
+  /*
+   * ----------------------------------
+   * Relative score drop
+   * ----------------------------------
+   */
+  const parsedRelativeScoreDrop = Number.isFinite(Number(relativeScoreDrop))
+    ? Math.max(Number(relativeScoreDrop), 0)
+    : DEFAULT_RELATIVE_SCORE_DROP;
+
+  /*
+   * ----------------------------------
+   * Context size
+   * ----------------------------------
+   */
+  const parsedMaxContextCharacters = Number.isFinite(
+    Number(maxContextCharacters),
+  )
+    ? Math.max(Number(maxContextCharacters), 1000)
+    : DEFAULT_MAX_CONTEXT_CHARACTERS;
+
+  /*
+   * ----------------------------------
+   * Query embedding
+   * ----------------------------------
+   */
   const queryEmbedding = await generateEmbedding(normalizedQuery);
 
-  const results = await RagChunk.aggregate([
+  /*
+   * Hum final required limit se
+   * thode extra candidates retrieve
+   * karenge.
+   *
+   * Baad me JS side par:
+   *
+   * - relative filtering
+   * - duplicates
+   * - context limit
+   *
+   * apply honge.
+   */
+  const vectorLimit = Math.min(Math.max(parsedLimit * 3, 12), 50);
+
+  /*
+   * ----------------------------------
+   * MongoDB Vector Search
+   * ----------------------------------
+   */
+  const rawResults = await RagChunk.aggregate([
     {
       $vectorSearch: {
         index: "rag_vector_index",
@@ -588,13 +694,9 @@ export async function searchCourseKnowledge({
 
         queryVector: queryEmbedding,
 
-        numCandidates: Math.max(
-          parsedLimit * 10,
+        numCandidates: Math.max(vectorLimit * 10, 100),
 
-          100,
-        ),
-
-        limit: parsedLimit,
+        limit: vectorLimit,
 
         filter: {
           course: new mongoose.Types.ObjectId(courseId),
@@ -632,16 +734,128 @@ export async function searchCourseKnowledge({
       },
     },
 
+    /*
+     * First-level absolute
+     * relevance filtering.
+     */
     {
       $match: {
         score: {
-          $gte: Number(minimumScore),
+          $gte: parsedMinimumScore,
         },
+      },
+    },
+
+    {
+      $sort: {
+        score: -1,
       },
     },
   ]);
 
-  return results;
+  if (rawResults.length === 0) {
+    return [];
+  }
+
+  /*
+   * ==================================
+   * RELATIVE SCORE FILTER
+   * ==================================
+   *
+   * Example:
+   *
+   * top result = 0.90
+   * drop       = 0.05
+   *
+   * threshold  = 0.85
+   *
+   * 0.90 ✅
+   * 0.88 ✅
+   * 0.86 ✅
+   * 0.82 ❌
+   */
+  const topScore = Number(rawResults[0].score);
+
+  const relativeThreshold = Math.max(
+    parsedMinimumScore,
+
+    topScore - parsedRelativeScoreDrop,
+  );
+
+  const relevantResults = rawResults.filter(
+    (result) => Number(result.score) >= relativeThreshold,
+  );
+
+  /*
+   * ==================================
+   * EXACT DUPLICATE REMOVAL
+   * ==================================
+   *
+   * Same resource + same chunk
+   * accidentally duplicate ho to
+   * LLM ko twice nahi bhejenge.
+   */
+  const seenChunks = new Set();
+
+  const uniqueResults = [];
+
+  for (const result of relevantResults) {
+    const duplicateKey = [
+      String(result.resourceType),
+
+      String(result.resourceId),
+
+      String(result.chunkIndex),
+    ].join(":");
+
+    if (seenChunks.has(duplicateKey)) {
+      continue;
+    }
+
+    seenChunks.add(duplicateKey);
+
+    uniqueResults.push(result);
+  }
+
+  /*
+   * ==================================
+   * CONTEXT SIZE CONTROL
+   * ==================================
+   *
+   * Long PDF/video ke 20 chunks
+   * accidentally LLM prompt me
+   * nahi jayenge.
+   */
+  const finalResults = [];
+
+  let totalCharacters = 0;
+
+  for (const result of uniqueResults) {
+    if (finalResults.length >= parsedLimit) {
+      break;
+    }
+
+    const contentLength = String(result.content || "").length;
+
+    /*
+     * First result ko always allow.
+     *
+     * Baaki results context limit
+     * exceed kare to stop.
+     */
+    if (
+      finalResults.length > 0 &&
+      totalCharacters + contentLength > parsedMaxContextCharacters
+    ) {
+      break;
+    }
+
+    finalResults.push(result);
+
+    totalCharacters += contentLength;
+  }
+
+  return finalResults;
 }
 
 /*
