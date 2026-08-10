@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getMyCart, removeFromCart, clearCart } from '../api/cart.api';
 import { checkoutPreview, createPaymentOrder, verifyPayment } from '../api/order.api';
+import { useAuth } from '../context/AuthContext';
 import { Spinner } from '../components/ui/Spinner';
 import { ShoppingCart, Trash2, Tag, ArrowRight, BookOpen } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-
-
 export default function Cart() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [cartSummary, setCartSummary] = useState(null);
@@ -65,13 +65,30 @@ export default function Cart() {
     finally { setPreviewLoading(false); }
   };
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handleCheckout = async () => {
-    if (!window.Razorpay) {
-      toast.error('Payment gateway not loaded. Please refresh.');
-      return;
-    }
     setCheckoutLoading(true);
     try {
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded || !window.Razorpay) {
+        toast.error('Payment gateway failed to load. Please check your network connection.');
+        setCheckoutLoading(false);
+        return;
+      }
+
       const orderRes = await createPaymentOrder({ couponCode: couponCode.trim() || null });
       // Backend response: { success, order: { id, subtotal, totalAmount }, razorpay: { keyId, orderId, amount, currency } }
       const { order: dbOrder, razorpay: rzpData } = orderRes.data;
@@ -98,8 +115,8 @@ export default function Cart() {
             toast.error('Payment verification failed: ' + (err.response?.data?.message || err.message));
           }
         },
-        prefill: { name: '', email: '' },
-        theme: { color: '#7c3aed' },
+        prefill: { name: user?.fullName || '', email: user?.email || '' },
+        theme: { color: '#2563eb' },
       };
 
       const rzp = new window.Razorpay(options);

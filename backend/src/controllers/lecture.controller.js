@@ -25,6 +25,13 @@ const ORDER_GAP = 1000;
 
 const ALLOWED_LECTURE_TYPES = ["video", "text", "document", "quiz", "live"];
 
+const checkOwnership = (courseInstructor, user) => {
+  if (!courseInstructor || !user) return false;
+  const instructorId = (courseInstructor._id || courseInstructor).toString();
+  const userId = (user._id || user.id || user).toString();
+  return instructorId === userId;
+};
+
 export const createLectureController = asyncHandler(async (req, res) => {
   const { moduleId } = req.params;
 
@@ -110,7 +117,7 @@ export const createLectureController = asyncHandler(async (req, res) => {
   }
 
   // 8. Check ownership
-  const isOwner = course.instructor.toString() === req.user.id.toString();
+  const isOwner = checkOwnership(course.instructor, req.user);
 
   const isAdmin = req.user.role === "admin";
 
@@ -379,7 +386,7 @@ export const getManageLecturesByModuleController = asyncHandler(
       });
     }
 
-    const isOwner = course.instructor.toString() === req.user.id.toString();
+    const isOwner = checkOwnership(course.instructor, req.user);
 
     const isAdmin = req.user.role === "admin";
 
@@ -480,7 +487,7 @@ export const updateLectureController = asyncHandler(async (req, res) => {
   }
 
   // 5. Permission check
-  const isOwner = course.instructor.toString() === req.user.id.toString();
+  const isOwner = checkOwnership(course.instructor, req.user);
 
   const isAdmin = req.user.role === "admin";
 
@@ -810,7 +817,7 @@ export const uploadLectureVideoController = asyncHandler(async (req, res) => {
     });
   }
 
-  const isOwner = course.instructor.toString() === req.user.id.toString();
+  const isOwner = checkOwnership(course.instructor, req.user);
 
   const isAdmin = req.user.role === "admin";
 
@@ -1027,7 +1034,7 @@ export const uploadLectureDocumentController = asyncHandler(
       });
     }
 
-    const isOwner = course.instructor.toString() === req.user.id.toString();
+    const isOwner = checkOwnership(course.instructor, req.user);
 
     const isAdmin = req.user.role === "admin";
 
@@ -1242,7 +1249,7 @@ export const updateLectureMediaUrlController = asyncHandler(
         .json({ success: false, message: "Course not found" });
     }
 
-    const isOwner = course.instructor.toString() === req.user.id.toString();
+    const isOwner = checkOwnership(course.instructor, req.user);
     const isAdmin = req.user.role === "admin";
     if (!isOwner && !isAdmin) {
       return res.status(403).json({ success: false, message: "Access denied" });
@@ -1316,7 +1323,7 @@ export const archiveLectureController = asyncHandler(async (req, res) => {
     });
   }
 
-  const isOwner = course.instructor.toString() === req.user.id.toString();
+  const isOwner = checkOwnership(course.instructor, req.user);
 
   const isAdmin = req.user.role === "admin";
 
@@ -1467,7 +1474,7 @@ export const reorderLectureController = asyncHandler(async (req, res) => {
     });
   }
 
-  const isOwner = course.instructor.toString() === req.user.id.toString();
+  const isOwner = checkOwnership(course.instructor, req.user);
 
   const isAdmin = req.user.role === "admin";
 

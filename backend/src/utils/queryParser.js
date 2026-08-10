@@ -31,13 +31,14 @@ export function parseEnumQuery(
   allowedValues = [],
   fieldName = "Value",
 ) {
-  if (value === undefined) {
+  if (value === undefined || value === null) {
     return undefined;
   }
 
-  const normalizedValue = String(
-    value,
-  ).trim();
+  const normalizedValue = String(value).trim();
+  if (normalizedValue === "") {
+    return undefined;
+  }
 
   if (
     !allowedValues.includes(

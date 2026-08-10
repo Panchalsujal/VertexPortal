@@ -7,64 +7,38 @@ import {
   getCourseReviewsController,
   getMyReviewController,
 } from "../controllers/review.controller.js";
-import { authorizeRoles } from "../middlewares/authorize.middleware.js";
+
 const router = express.Router();
 
-/** * @access Private
- * @desc Create a new review for a specific course
- * @Api POST /api/courses/:courseId/reviews
- * @param { courseId: string }
- * @body { rating: number, comment: string }
- * @returns { message: string, review: object }
+/**
+ * Create a new review for a course
  */
-
-router.post(
-  "/courses/:courseId/reviews",
-  authMiddleware,
-  createReviewController,
-);
+router.post("/courses/:courseId/reviews", authMiddleware, createReviewController);
+router.post("/:courseId/reviews", authMiddleware, createReviewController);
+router.post("/:courseId", authMiddleware, createReviewController);
 
 /**
- * @access Private
- * @desc Update a review for a specific course
- * @Api PATCH /api/reviews/:reviewId
- * @param { reviewId: string }
- * @body { rating: number, comment: string }
- * @returns { message: string, review: object }
+ * Update a review
  */
-
 router.patch("/reviews/:reviewId", authMiddleware, updateReviewController);
+router.patch("/:reviewId", authMiddleware, updateReviewController);
 
 /**
- * @access Private
- * @desc Delete a review for a specific course
- * @Api DELETE /api/reviews/:reviewId
- * @param { reviewId: string }
- * @returns { message: string }
+ * Delete a review
  */
-
 router.delete("/reviews/:reviewId", authMiddleware, deleteReviewController);
+router.delete("/:reviewId", authMiddleware, deleteReviewController);
 
-/** * @access Public
- * @desc Get all reviews for a specific course
- * @Api GET /api/courses/:courseId/reviews
- * @param { courseId: string }
- * @returns { message: string, reviews: array }
+/**
+ * Get all reviews for a course
  */
-
 router.get("/courses/:courseId/reviews", getCourseReviewsController);
+router.get("/:courseId/reviews", getCourseReviewsController);
 
-/** * @access Private
- * @desc Get the review of the logged-in user for a specific course
- * @Api GET /api/courses/:courseId/my-review
- * @param { courseId: string }
- * @returns { message: string, review: object }
+/**
+ * Get my review for a course
  */
-
-router.get(
-  "/courses/:courseId/my-review",
-  authMiddleware,
-  getMyReviewController,
-);
+router.get("/courses/:courseId/my-review", authMiddleware, getMyReviewController);
+router.get("/:courseId/my-review", authMiddleware, getMyReviewController);
 
 export default router;

@@ -26,125 +26,98 @@ export default function Register() {
       toast.success('Registration successful! Please check your email to verify your account.', { duration: 6000 });
       navigate('/login');
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-page">
-      <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'rgba(124,58,237,0.1)', filter: 'blur(80px)', top: -100, left: -100 }} className="auth-orb" />
-      <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: 'rgba(59,130,246,0.08)', filter: 'blur(80px)', bottom: -50, right: -50 }} className="auth-orb" />
+    <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
+      <div className="max-w-md w-full bg-white border border-gray-200 rounded-2xl p-8 shadow-sm space-y-6">
+        <div className="text-center space-y-2">
+          <Link to="/" className="inline-flex items-center gap-2 text-xl font-bold text-gray-900 justify-center">
+            <div className="p-2 bg-blue-600 rounded-lg text-white">
+              <GraduationCap className="w-6 h-6" />
+            </div>
+            <span>Vertex<span className="text-blue-600">Portal</span></span>
+          </Link>
+          <h2 className="text-xl font-bold text-gray-900 pt-2">Create your account</h2>
+          <p className="text-xs text-gray-500">Join over 50,000 learners worldwide</p>
+        </div>
 
-      <div className="auth-card animate-fade-in-up">
-        <Link to="/" className="auth-logo">
-          <div style={{ width: 40, height: 40, background: 'var(--gradient-primary)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <GraduationCap size={22} color="white" />
-          </div>
-          <span className="gradient-text">Vertex Portal</span>
-        </Link>
-
-        <h2 className="auth-title">Create your account</h2>
-        <p className="auth-subtitle">Join 50,000+ learners worldwide</p>
-
-        <form className="auth-form" onSubmit={handleSubmit}>
-          {/* Full Name */}
-          <div className="input-group">
-            <label className="input-label" htmlFor="reg-name">Full Name</label>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1" htmlFor="fullName">
+              Full Name
+            </label>
             <input
-              id="reg-name"
+              id="fullName"
               type="text"
-              className="input-field"
+              required
               placeholder="John Doe"
               value={form.fullName}
-              onChange={e => setForm(f => ({ ...f, fullName: e.target.value }))}
-              required
-              autoFocus
+              onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))}
+              className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          {/* Email */}
-          <div className="input-group">
-            <label className="input-label" htmlFor="reg-email">Email Address</label>
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1" htmlFor="email">
+              Email Address
+            </label>
             <input
-              id="reg-email"
+              id="email"
               type="email"
-              className="input-field"
+              required
               placeholder="you@example.com"
               value={form.email}
-              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-              required
+              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+              className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          {/* Password */}
-          <div className="input-group">
-            <label className="input-label" htmlFor="reg-password">Password</label>
-            <div style={{ position: 'relative' }}>
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1" htmlFor="password">
+              Password
+            </label>
+            <div className="relative">
               <input
-                id="reg-password"
+                id="password"
                 type={showPw ? 'text' : 'password'}
-                className="input-field"
+                required
                 placeholder="Minimum 6 characters"
                 value={form.password}
-                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                style={{ paddingRight: 44 }}
-                required
+                onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
                 type="button"
-                onClick={() => setShowPw(s => !s)}
-                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', background: 'none' }}
-                id="reg-toggle-pw"
+                onClick={() => setShowPw(!showPw)}
+                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
               >
-                {showPw ? <EyeOff size={17} /> : <Eye size={17} />}
+                {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
 
-          {/* Role */}
-          <div className="input-group">
-            <label className="input-label" htmlFor="reg-role">I want to</label>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
-              {[
-                { value: 'student', label: 'Learn', desc: 'Take courses' },
-                { value: 'instructor', label: 'Teach', desc: 'Create courses' },
-              ].map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setForm(f => ({ ...f, role: opt.value }))}
-                  style={{
-                    flex: 1, padding: '0.875rem', borderRadius: 'var(--radius-md)',
-                    border: `1.5px solid ${form.role === opt.value ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                    background: form.role === opt.value ? 'rgba(124,58,237,0.1)' : 'rgba(255,255,255,0.03)',
-                    color: form.role === opt.value ? 'var(--color-primary-light)' : 'var(--text-secondary)',
-                    textAlign: 'left', cursor: 'pointer', transition: 'all 0.15s',
-                  }}
-                  id={`role-${opt.value}-btn`}
-                >
-                  <div style={{ fontWeight: 600, marginBottom: 2 }}>{opt.label}</div>
-                  <div style={{ fontSize: '0.8125rem', opacity: 0.7 }}>{opt.desc}</div>
-                </button>
-              ))}
-            </div>
-          </div>
 
-          <button type="submit" className="btn btn-primary" disabled={loading} id="reg-submit-btn" style={{ width: '100%', justifyContent: 'center', padding: '0.875rem' }}>
-            {loading ? (
-              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div className="spinner spinner-sm" /> Creating account…
-              </span>
-            ) : (
-              <><UserCheck size={18} /> Create Account</>
-            )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-2.5 rounded-lg text-sm transition inline-flex items-center justify-center gap-2 shadow-sm"
+          >
+            {loading ? 'Creating account...' : <><UserCheck className="w-4 h-4" /> Create Account</>}
           </button>
         </form>
 
-        <div className="auth-footer">
-          Already have an account? <Link to="/login">Sign in</Link>
-        </div>
+        <p className="text-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+          Already have an account?{' '}
+          <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-700">
+            Sign in
+          </Link>
+        </p>
       </div>
     </div>
   );

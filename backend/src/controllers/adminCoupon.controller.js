@@ -14,6 +14,7 @@ import {
 import { createAuditLog } from "../service/auditLog.service.js";
 import { getRequestMetadata } from "../utils/requestMetadata.js";
 import { AUDIT_ACTIONS } from "../constants/auditActions.js";
+import { logAdminAction } from "../service/adminAuditLogger.service.js";
 
 export const createCouponController = asyncHandler(async (req, res) => {
   const coupon = await createCoupon({

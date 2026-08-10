@@ -43,7 +43,6 @@ export default function CoursePlayer() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      // 1. Check enrollment (allow Admin or Instructor testing bypass)
       let isEnrolled = isAdminOrInstructor;
       if (!isEnrolled && user) {
         try {
@@ -68,11 +67,9 @@ export default function CoursePlayer() {
         return;
       }
 
-      // 2. Fetch published modules — backend: { modules: [...] }
       const modsRes = await getPublishedModules(courseId);
       const rawMods = modsRes.data.modules || [];
 
-      // 3. For each module fetch its lectures — backend: { lectures: [...] }
       const modsWithLectures = await Promise.all(
         rawMods.map(async mod => {
           try {
@@ -85,11 +82,9 @@ export default function CoursePlayer() {
       );
       setModules(modsWithLectures);
 
-      // 4. Auto-select first lecture
       const firstLecture = modsWithLectures[0]?.lectures?.[0];
       if (firstLecture) setActiveLecture(firstLecture);
 
-      // 5. Fetch progress
       await fetchProgress();
 
     } catch (err) {
@@ -98,7 +93,7 @@ export default function CoursePlayer() {
     } finally {
       setLoading(false);
     }
-  }, [courseId, navigate, fetchProgress]);
+  }, [courseId, navigate, fetchProgress, isAdminOrInstructor, user]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -128,56 +123,63 @@ export default function CoursePlayer() {
   if (loading) return <div className="page-loader"><Spinner /></div>;
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', paddingTop: 70 }}>
-      {/* Top Bar */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '1rem',
-        padding: '0.75rem 1.5rem',
-        background: 'var(--color-surface)',
-        borderBottom: '1px solid var(--color-border)',
-        zIndex: 10,
-      }}>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/my-learning')} id="back-to-learning-btn">
-          <ChevronLeft size={16} /> Back
-        </button>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontWeight: 600, fontSize: '0.9375rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+    <div className="flex flex-col h-[calc(100vh-64px)] bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-white overflow-hidden">
+      {/* Top Header Bar */}
+      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-4 py-3 flex items-center justify-between gap-4 z-10 shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            onClick={() => navigate('/my-learning')}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition"
+            id="back-to-learning-btn"
+          >
+            <ChevronLeft className="w-4 h-4" /> Back
+          </button>
+          <div className="h-4 w-px bg-gray-200 dark:bg-slate-800 hidden sm:block" />
+          <h2 className="text-sm font-bold text-gray-900 dark:text-white truncate">
             {activeLecture?.title || 'Select a Lecture'}
-          </p>
+          </h2>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+
+        <div className="flex items-center gap-4 shrink-0">
           {Number(progressPct) >= 100 && (
             <button
-              className="btn btn-primary btn-sm"
               onClick={() => navigate('/certificates')}
-              style={{ background: 'var(--color-success)', borderColor: 'var(--color-success)' }}
+              className="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-xs"
               title="View Certificate"
             >
-              <Award size={14} /> Certificate
+              <Award className="w-4 h-4" /> Certificate
             </button>
           )}
-          <div className="progress-bar-wrap" style={{ width: 120 }}>
-            <div className="progress-bar-fill" style={{ width: `${progressPct}%` }} />
+
+          <div className="flex items-center gap-2">
+            <div className="w-24 sm:w-32 h-2 bg-gray-200 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-600 transition-all duration-300"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+              {Number(progressPct).toFixed(0)}%
+            </span>
           </div>
-          <span style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-            {Number(progressPct).toFixed(0)}% complete
-          </span>
+
+          <button
+            onClick={() => setSidebarOpen(o => !o)}
+            className="p-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition"
+            id="toggle-sidebar-btn"
+          >
+            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
-        <button
-          className="btn btn-ghost btn-sm"
-          onClick={() => setSidebarOpen(o => !o)}
-          id="toggle-sidebar-btn"
-        >
-          {sidebarOpen ? <X size={16} /> : <Menu size={16} />}
-        </button>
       </div>
 
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        {/* Main Content */}
-        <div style={{ flex: 1, overflow: 'auto', background: '#000' }}>
-          {activeLecture ? (
-            <>
-              {activeLecture.videoUrl ? (
+      {/* Main Workspace */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Area: Video Player & Lecture Info */}
+        <div className="flex-1 flex flex-col overflow-y-auto bg-black dark:bg-slate-950">
+          <div className="flex-1 flex items-center justify-center bg-black min-h-[350px] lg:min-h-[480px]">
+            {activeLecture ? (
+              activeLecture.videoUrl ? (
                 <video
                   ref={videoRef}
                   src={activeLecture.videoUrl}
@@ -185,33 +187,26 @@ export default function CoursePlayer() {
                   controlsList="nodownload noremoteplayback"
                   disablePictureInPicture
                   onContextMenu={e => e.preventDefault()}
-                  style={{
-                    width: '100%',
-                    maxHeight: 'calc(100vh - 180px)',
-                    display: 'block',
-                    userSelect: 'none',
-                    WebkitUserSelect: 'none'
-                  }}
+                  className="w-full max-h-[calc(100vh-220px)] object-contain"
                   id="lecture-video"
                 />
               ) : activeLecture.documentUrl ? (
-                <div style={{ padding: '2rem', background: 'var(--color-bg)', minHeight: 450, display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', background: 'var(--color-surface)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <FileText size={36} color="var(--color-primary-light)" />
+                <div className="w-full max-w-4xl p-6 flex flex-col gap-4">
+                  <div className="flex items-center justify-between bg-gray-900 text-white p-4 rounded-xl border border-slate-800">
+                    <div className="flex items-center gap-3">
+                      <FileText className="w-8 h-8 text-blue-400" />
                       <div>
-                        <h3 style={{ margin: 0, fontSize: '1.125rem' }}>{activeLecture.title}</h3>
-                        <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: 'var(--text-muted)' }}>Resource Document Attached</p>
+                        <h3 className="text-base font-bold">{activeLecture.title}</h3>
+                        <p className="text-xs text-gray-400">Resource Document Attached</p>
                       </div>
                     </div>
                     <a
                       href={activeLecture.documentUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="btn btn-primary"
-                      id="open-document-btn"
+                      className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition"
                     >
-                      <Download size={16} /> View / Download Document
+                      <Download className="w-4 h-4" /> Download Document
                     </a>
                   </div>
 
@@ -219,98 +214,83 @@ export default function CoursePlayer() {
                     <iframe
                       src={activeLecture.documentUrl}
                       title={activeLecture.title}
-                      style={{ width: '100%', height: '550px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', background: '#fff' }}
+                      className="w-full h-[500px] rounded-xl border border-slate-800 bg-white"
                     />
                   ) : (
-                    <div style={{ padding: '2.5rem', background: 'var(--color-surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', textAlign: 'center' }}>
-                      <FileText size={48} color="var(--color-primary-light)" style={{ marginBottom: '1rem' }} />
-                      <p style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>Click below to open and view the attached resource document file.</p>
-                      <a href={activeLecture.documentUrl} target="_blank" rel="noreferrer" className="btn btn-secondary">
-                        Open Attached Document
+                    <div className="p-8 bg-slate-900 border border-slate-800 rounded-xl text-center space-y-4">
+                      <FileText className="w-12 h-12 text-blue-400 mx-auto" />
+                      <p className="text-sm text-gray-300">Click below to view the attached document file.</p>
+                      <a href={activeLecture.documentUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold px-4 py-2 rounded-lg">
+                        Open Document
                       </a>
-                    </div>
-                  )}
-
-                  {activeLecture.content && (
-                    <div style={{ marginTop: '1rem', padding: '1.5rem', background: 'var(--color-surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', lineHeight: 1.8, fontSize: '1rem', whiteSpace: 'pre-wrap' }}>
-                      {activeLecture.content}
                     </div>
                   )}
                 </div>
               ) : (activeLecture.type === 'text' || activeLecture.content) ? (
-                <div style={{ padding: '3rem', background: 'var(--color-bg)', minHeight: 400 }}>
-                  <h3 style={{ marginBottom: '1.5rem' }}>{activeLecture.title}</h3>
-                  <div style={{ lineHeight: 1.8, fontSize: '1rem', whiteSpace: 'pre-wrap' }}>
+                <div className="w-full max-w-3xl p-8 bg-slate-900 text-white border border-slate-800 rounded-2xl space-y-4 m-4">
+                  <h3 className="text-xl font-bold text-blue-400">{activeLecture.title}</h3>
+                  <div className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">
                     {activeLecture.content || activeLecture.description || 'Written material for this lecture.'}
                   </div>
                 </div>
-              ) : activeLecture.type === 'document' ? (
-                <div style={{ padding: '3rem', background: 'var(--color-bg)', textAlign: 'center', minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                  <FileText size={48} color="var(--text-muted)" style={{ marginBottom: '1rem' }} />
-                  <h3>Document Pending</h3>
-                  <p style={{ color: 'var(--text-muted)' }}>No document file has been uploaded for this lecture yet.</p>
-                </div>
-              ) : activeLecture.isLocked ? (
-                <div style={{ padding: '3rem', background: 'var(--color-bg)', textAlign: 'center', minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                  <Lock size={48} color="var(--text-muted)" style={{ marginBottom: '1rem' }} />
-                  <h3>Lecture Locked</h3>
-                  <p>Please log in and enroll to access this course material.</p>
-                </div>
               ) : (
-                <div style={{ padding: '3rem', background: 'var(--color-bg)', textAlign: 'center', minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                  <Lock size={48} color="var(--text-muted)" style={{ marginBottom: '1rem' }} />
-                  <h3>Content not available</h3>
-                  <p>This lecture has no playable content yet.</p>
+                <div className="p-8 text-center space-y-3">
+                  <Lock className="w-12 h-12 text-gray-600 mx-auto" />
+                  <h3 className="text-base font-bold text-gray-300">Content Pending</h3>
+                  <p className="text-xs text-gray-500">No playable content available for this lecture yet.</p>
                 </div>
-              )}
+              )
+            ) : (
+              <p className="text-sm text-gray-500">Select a lecture from the sidebar to start</p>
+            )}
+          </div>
 
-              {/* Lecture Info Bar */}
-              <div style={{ padding: '1.5rem', background: 'var(--color-bg)', borderTop: '1px solid var(--color-border)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-                  <div>
-                    <h3 style={{ marginBottom: '0.25rem' }}>{activeLecture.title}</h3>
-                    {activeLecture.description && <p style={{ fontSize: '0.9375rem' }}>{activeLecture.description}</p>}
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    {!isCompleted && (
-                      <button
-                        className="btn btn-primary"
-                        onClick={handleMarkComplete}
-                        disabled={marking}
-                        id="mark-complete-btn"
-                      >
-                        {marking ? <div className="spinner spinner-sm" /> : <><CheckCircle size={16} /> Mark Complete</>}
-                      </button>
-                    )}
-                    {isCompleted && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-success)' }}>
-                        <CheckCircle size={18} /> Completed
-                      </div>
-                    )}
-                    <button className="btn btn-secondary" onClick={goToNextLecture} id="next-lecture-btn">
-                      Next →
-                    </button>
-                  </div>
-                </div>
+          {/* Lecture Info & Navigation Controls */}
+          {activeLecture && (
+            <div className="bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">{activeLecture.title}</h3>
+                {activeLecture.description && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-2xl">{activeLecture.description}</p>
+                )}
               </div>
-            </>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: '1rem', padding: '3rem' }}>
-              <p style={{ color: 'var(--text-muted)' }}>Select a lecture from the sidebar to start</p>
+
+              <div className="flex items-center gap-3">
+                {!isCompleted ? (
+                  <button
+                    onClick={handleMarkComplete}
+                    disabled={marking}
+                    className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-xs"
+                    id="mark-complete-btn"
+                  >
+                    {marking ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <><CheckCircle className="w-4 h-4" /> Mark Complete</>
+                    )}
+                  </button>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-2 rounded-xl">
+                    <CheckCircle className="w-4 h-4" /> Completed
+                  </div>
+                )}
+
+                <button
+                  onClick={goToNextLecture}
+                  className="inline-flex items-center gap-1 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-900 dark:text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition"
+                  id="next-lecture-btn"
+                >
+                  Next →
+                </button>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Sidebar */}
+        {/* Right Sidebar: Course Content */}
         {sidebarOpen && (
-          <div style={{
-            width: 340, flexShrink: 0,
-            background: 'var(--color-surface)',
-            borderLeft: '1px solid var(--color-border)',
-            overflow: 'auto',
-            padding: '1rem',
-          }}>
-            <h4 style={{ padding: '0.5rem 0 1rem', borderBottom: '1px solid var(--color-border)', marginBottom: '1rem' }}>
+          <div className="w-full lg:w-80 shrink-0 bg-white dark:bg-slate-900 border-l border-gray-200 dark:border-slate-800 overflow-y-auto p-4">
+            <h4 className="text-sm font-bold text-gray-900 dark:text-white pb-3 border-b border-gray-200 dark:border-slate-800 mb-4">
               Course Content
             </h4>
             <CurriculumAccordion

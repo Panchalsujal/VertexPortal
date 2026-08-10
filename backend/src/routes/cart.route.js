@@ -11,40 +11,38 @@ import { authMiddleware } from "../middlewares/auth.middleware.js";
 const router = Router();
 
 /**
- * @route POST /api/cart/:courseId
- * @desc Add a course to the cart
- * @access Private (Authenticated users only)
+ * Add a course to cart
+ * Supports: POST /api/cart/:courseId and POST /api/cart/add/:courseId
  */
+router.post("/:courseId", authMiddleware, addToCartController);
 router.post("/add/:courseId", authMiddleware, addToCartController);
 
-/** * @route GET /api/cart
- * @desc Get the user's cart
- * @access Private (Authenticated users only)
+/**
+ * Get user cart
+ * Supports: GET /api/cart and GET /api/cart/get-cart
  */
-
+router.get("/", authMiddleware, getMyCartController);
 router.get("/get-cart", authMiddleware, getMyCartController);
 
-/** * @route DELETE /api/cart/:courseId
- * @desc Remove a course from the cart
- * @access Private (Authenticated users only)
+/**
+ * Remove course from cart
+ * Supports: DELETE /api/cart/:courseId and DELETE /api/cart/cart/:courseId
  */
-
+router.delete("/:courseId", authMiddleware, removeFromCartController);
 router.delete("/cart/:courseId", authMiddleware, removeFromCartController);
 
 /**
- * @route GET /api/cart/:courseId/status
- * @desc Check if a course is in the user's cart
- * @access Private (Authenticated users only)
+ * Check course cart status
+ * Supports: GET /api/cart/:courseId/status and GET /api/cart/cart/:courseId/status
  */
-
+router.get("/:courseId/status", authMiddleware, getCartStatusController);
 router.get("/cart/:courseId/status", authMiddleware, getCartStatusController);
 
 /**
- * @route DELETE /api/cart
- * @desc Clear the user's cart
- * @access Private (Authenticated users only)
+ * Clear user cart
+ * Supports: DELETE /api/cart and DELETE /api/cart/cart
  */
-
+router.delete("/", authMiddleware, clearCartController);
 router.delete("/cart", authMiddleware, clearCartController);
 
 export default router;

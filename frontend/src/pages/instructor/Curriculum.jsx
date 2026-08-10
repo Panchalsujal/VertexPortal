@@ -51,8 +51,8 @@ export default function Curriculum() {
         }
       }));
       setModules(withLecs);
-    } catch {
-      toast.error('Failed to load curriculum');
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to load curriculum');
     } finally {
       setLoading(false);
     }

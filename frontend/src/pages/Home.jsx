@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Play, Star, Award, TrendingUp, Zap, BookOpen } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Play, Star, Award, TrendingUp, Zap, BookOpen, Bot, MessageSquare, Shield } from 'lucide-react';
 import { getAllCourses } from '../api/course.api';
 import { getAllCategories } from '../api/category.api';
 import { CourseCard } from '../components/course/CourseCard';
-import { Spinner } from '../components/ui/Spinner';
-import { useAuth } from '../context/AuthContext';
+import { PageLoader } from '../components/ui/Spinner';
+import { useAppSelector } from '../store/hooks';
+import { selectUser } from '../store/slices/authSlice';
 
 const STATS = [
   { value: '50K+', label: 'Students Enrolled' },
@@ -15,15 +16,14 @@ const STATS = [
 ];
 
 const FEATURES = [
-  { icon: Zap, title: 'Learn at Your Pace', desc: 'Access courses anytime, anywhere — on your schedule.' },
-  { icon: Award, title: 'Expert Instructors', desc: 'Learn from industry professionals with real-world experience.' },
-  { icon: TrendingUp, title: 'Track Your Progress', desc: 'Visual dashboards keep you motivated and on track.' },
-  { icon: BookOpen, title: 'Rich Curriculum', desc: 'In-depth modules with videos, documents, and quizzes.' },
+  { icon: Bot, title: 'AI Tutor Assistant', desc: 'Ask questions anytime with our intelligent RAG-powered course AI assistant.' },
+  { icon: MessageSquare, title: 'Community Discussions', desc: 'Ask questions, share code, and get answers from instructors & peers.' },
+  { icon: Award, title: 'Certificates of Completion', desc: 'Earn verifiable digital certificates for every completed course.' },
+  { icon: Zap, title: 'Interactive Learning', desc: 'Assessments, quizzes, live video classes, and structured assignments.' },
 ];
 
 export default function Home() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  const user = useAppSelector(selectUser);
   const [courses, setCourses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,222 +39,149 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="page-wrapper">
-      {/* ---- Hero ---- */}
-      <section className="hero-section">
-        <div className="hero-orb hero-orb-1" />
-        <div className="hero-orb hero-orb-2" />
-        <div className="container">
-          <div className="hero-inner">
-            <div className="hero-content animate-fade-in-up">
-              <div className="hero-badge">
-                <Star size={14} fill="var(--color-gold)" color="var(--color-gold)" />
-                Trusted by 50,000+ learners
+    <div className="bg-gray-50 min-h-screen">
+      {/* Hero Section */}
+      <section className="bg-white border-b border-gray-200 py-16 lg:py-24 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left Content */}
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">
+                <Star className="w-3.5 h-3.5 fill-blue-600 text-blue-600" /> Trusted by 50,000+ Students & Professionals
               </div>
-              <h1>
-                Master <span className="gradient-text">In-Demand Skills</span>{' '}
-                With Expert Guidance
+              <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight leading-tight">
+                Master Modern Skills with <span className="text-blue-600">AI-Powered</span> Learning
               </h1>
-              <p>
-                Vertex Portal connects ambitious learners with world-class instructors.
-                Start your journey today with curated, hands-on courses.
+              <p className="text-base text-gray-600 leading-relaxed">
+                VertexPortal brings together courses, interactive quizzes, AI study tutors, community discussions, and live video sessions for a complete LMS experience.
               </p>
-              <div className="hero-cta">
-                <Link to="/courses" className="btn btn-primary btn-lg" id="hero-browse-btn">
-                  Explore Courses <ArrowRight size={18} />
+              <div className="flex flex-wrap gap-4 pt-2">
+                <Link
+                  to="/courses"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm px-6 py-3 rounded-lg shadow-sm transition inline-flex items-center gap-2"
+                >
+                  Explore Courses <ArrowRight className="w-4 h-4" />
                 </Link>
-                {!user && (
-                  <Link to="/register" className="btn btn-secondary btn-lg" id="hero-register-btn">
-                    Join Free
-                  </Link>
-                )}
+                <Link
+                  to="/ai-chat"
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium text-sm px-6 py-3 rounded-lg transition inline-flex items-center gap-2"
+                >
+                  <Bot className="w-4 h-4 text-blue-600" /> Try AI Tutor
+                </Link>
               </div>
-              <div className="hero-stats">
+
+              {/* Stats */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-gray-100">
                 {STATS.map(s => (
                   <div key={s.label}>
-                    <div className="hero-stat-value">{s.value}</div>
-                    <div className="hero-stat-label">{s.label}</div>
+                    <div className="text-xl font-bold text-gray-900">{s.value}</div>
+                    <div className="text-xs text-gray-500">{s.label}</div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Hero Visual */}
-            <div className="hero-visual animate-fade-in">
-              <div className="hero-card-floating">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-                  <div style={{ width: 48, height: 48, borderRadius: 'var(--radius-md)', background: 'var(--gradient-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Play size={22} color="white" fill="white" />
+            {/* Right Card Mockup */}
+            <div className="bg-gray-900 text-white rounded-2xl p-6 shadow-xl border border-gray-800 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-blue-600 rounded-xl">
+                  <Play className="w-6 h-6 fill-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm">Fullstack Web Development 2026</h3>
+                  <p className="text-xs text-gray-400">Section 4 — React & Node.js Architecture</p>
+                </div>
+              </div>
+
+              <div className="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                <div className="bg-blue-500 h-full w-[65%]" />
+              </div>
+              <div className="flex justify-between text-xs text-gray-400">
+                <span>Lecture 8 of 12</span>
+                <span>65% Complete</span>
+              </div>
+
+              <div className="space-y-2 pt-2">
+                {['Introduction to Express Routes', 'JWT Authentication Flow', 'AI Tutor Context Search'].map((t, idx) => (
+                  <div key={t} className={`p-2.5 rounded-lg text-xs flex items-center justify-between ${idx === 1 ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'bg-gray-800/50 text-gray-400'}`}>
+                    <span>{t}</span>
+                    {idx === 1 ? <span className="text-[10px] bg-blue-600 text-white font-bold px-2 py-0.5 rounded">Active</span> : <span className="text-[10px] text-gray-500">Video</span>}
                   </div>
-                  <div>
-                    <p style={{ fontWeight: 600 }}>Now Playing</p>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Introduction to React</p>
-                  </div>
-                </div>
-                <div className="progress-bar-wrap" style={{ marginBottom: '1rem' }}>
-                  <div className="progress-bar-fill" style={{ width: '68%' }} />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
-                  <span>Lecture 12 of 18</span>
-                  <span>68% Complete</span>
-                </div>
-                <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {['React Hooks Deep Dive', 'State Management', 'API Integration'].map((t, i) => (
-                    <div key={t} style={{
-                      display: 'flex', alignItems: 'center', gap: '0.75rem',
-                      padding: '0.625rem', borderRadius: 'var(--radius-sm)',
-                      background: i === 0 ? 'rgba(124,58,237,0.1)' : 'transparent',
-                      border: i === 0 ? '1px solid rgba(124,58,237,0.2)' : '1px solid transparent',
-                    }}>
-                      {i === 0 ? (
-                        <Play size={14} color="var(--color-primary-light)" />
-                      ) : (
-                        <div style={{ width: 14, height: 14, borderRadius: '50%', border: '1.5px solid var(--text-muted)' }} />
-                      )}
-                      <span style={{ fontSize: '0.875rem', color: i === 0 ? 'var(--text-primary)' : 'var(--text-muted)' }}>{t}</span>
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ---- Categories ---- */}
+      {/* Categories */}
       {categories.length > 0 && (
-        <section style={{ padding: 'var(--space-20) 0', background: 'var(--color-bg-secondary)' }}>
-          <div className="container">
-            <div className="section-header">
-              <span className="section-tag">Categories</span>
-              <h2>Explore by Topic</h2>
-              <p>Find the perfect course in your area of interest</p>
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center' }}>
-              {categories.slice(0, 8).map(cat => (
-                <Link
-                  key={cat._id}
-                  to={`/courses?category=${cat._id}`}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '0.625rem',
-                    padding: '0.75rem 1.25rem',
-                    background: 'var(--color-surface)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: 'var(--radius-full)',
-                    fontSize: '0.9375rem',
-                    fontWeight: 500,
-                    color: 'var(--text-secondary)',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.borderColor = 'var(--color-primary)';
-                    e.currentTarget.style.color = 'var(--color-primary-light)';
-                    e.currentTarget.style.background = 'rgba(124,58,237,0.08)';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.borderColor = 'var(--color-border)';
-                    e.currentTarget.style.color = 'var(--text-secondary)';
-                    e.currentTarget.style.background = 'var(--color-surface)';
-                  }}
-                >
-                  <BookOpen size={16} />
-                  {cat.name}
-                </Link>
-              ))}
-            </div>
+        <section className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900">Explore by Category</h2>
+            <p className="text-sm text-gray-500">Find courses tailored to your career path</p>
+          </div>
+
+          <div className="flex flex-wrap gap-3 justify-center">
+            {categories.slice(0, 8).map(cat => (
+              <Link
+                key={cat._id}
+                to={`/courses?category=${cat._id}`}
+                className="bg-white border border-gray-200 hover:border-blue-500 hover:text-blue-600 text-gray-700 text-xs font-semibold px-4 py-2.5 rounded-full shadow-sm transition inline-flex items-center gap-2"
+              >
+                <BookOpen className="w-3.5 h-3.5" /> {cat.name}
+              </Link>
+            ))}
           </div>
         </section>
       )}
 
-      {/* ---- Featured Courses ---- */}
-      <section style={{ padding: 'var(--space-20) 0' }}>
-        <div className="container">
-          <div className="section-header">
-            <span className="section-tag">Featured</span>
-            <h2>Most Popular Courses</h2>
-            <p>Join thousands of learners in our top-rated courses</p>
+      {/* Popular Courses */}
+      <section className="py-12 bg-white border-t border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-end mb-8">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Popular Courses</h2>
+              <p className="text-sm text-gray-500">Top-rated learning paths chosen by thousands</p>
+            </div>
+            <Link to="/courses" className="text-sm font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1">
+              View All <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
 
           {loading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}>
-              <Spinner />
-            </div>
+            <PageLoader />
           ) : courses.length > 0 ? (
-            <>
-              <div className="grid-courses">
-                {courses.map(c => <CourseCard key={c._id} course={c} />)}
-              </div>
-              <div style={{ textAlign: 'center', marginTop: '3rem' }}>
-                <Link to="/courses" className="btn btn-secondary btn-lg">
-                  View All Courses <ArrowRight size={18} />
-                </Link>
-              </div>
-            </>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {courses.map(c => <CourseCard key={c._id} course={c} />)}
+            </div>
           ) : (
-            <div className="empty-state">
-              <div className="empty-state-icon">📚</div>
-              <h3>No courses available yet</h3>
-              <p>Check back soon for new published courses</p>
+            <div className="text-center py-12 text-gray-400 text-sm">
+              No courses published yet.
             </div>
           )}
         </div>
       </section>
 
-      {/* ---- Features ---- */}
-      <section style={{ padding: 'var(--space-20) 0', background: 'var(--color-bg-secondary)' }}>
-        <div className="container">
-          <div className="section-header">
-            <span className="section-tag">Why Vertex</span>
-            <h2>Everything You Need to Succeed</h2>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
-            {FEATURES.map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="glass-card" style={{ padding: '2rem' }}>
-                <div style={{
-                  width: 48, height: 48, borderRadius: 'var(--radius-md)',
-                  background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.2)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  marginBottom: '1.25rem',
-                }}>
-                  <Icon size={22} color="var(--color-primary-light)" />
-                </div>
-                <h4 style={{ marginBottom: '0.5rem' }}>{title}</h4>
-                <p style={{ fontSize: '0.9375rem' }}>{desc}</p>
+      {/* Features */}
+      <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h2 className="text-2xl font-bold text-gray-900">Why Choose VertexPortal?</h2>
+          <p className="text-sm text-gray-500">A comprehensive suite of modern learning tools</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {FEATURES.map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-3">
+              <div className="p-3 bg-blue-50 text-blue-600 rounded-lg w-fit">
+                <Icon className="w-6 h-6" />
               </div>
-            ))}
-          </div>
+              <h3 className="font-bold text-base text-gray-900">{title}</h3>
+              <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
+            </div>
+          ))}
         </div>
       </section>
-
-      {/* ---- CTA Banner ---- */}
-      {!user && (
-        <section style={{ padding: 'var(--space-20) 0' }}>
-          <div className="container">
-            <div style={{
-              background: 'linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(59,130,246,0.1) 100%)',
-              border: '1px solid rgba(124,58,237,0.25)',
-              borderRadius: 'var(--radius-2xl)',
-              padding: '4rem',
-              textAlign: 'center',
-              position: 'relative',
-              overflow: 'hidden',
-            }}>
-              <div style={{
-                position: 'absolute', top: -80, right: -80,
-                width: 300, height: 300, borderRadius: '50%',
-                background: 'rgba(124,58,237,0.08)', filter: 'blur(60px)',
-              }} />
-              <h2 style={{ marginBottom: '1rem' }}>Ready to Start Learning?</h2>
-              <p style={{ fontSize: '1.125rem', marginBottom: '2rem', maxWidth: 500, margin: '0 auto 2rem' }}>
-                Join over 50,000 learners and start your journey today — it's free to sign up.
-              </p>
-              <Link to="/register" className="btn btn-primary btn-lg" id="cta-register-btn">
-                Create Free Account <ArrowRight size={18} />
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
     </div>
   );
 }

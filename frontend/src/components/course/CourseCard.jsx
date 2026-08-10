@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Star, Clock, Users, BookOpen, Heart, ShoppingCart } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { Star, Clock, BookOpen, Heart, ShoppingCart } from 'lucide-react';
+import { useAppSelector } from '../../store/hooks';
+import { selectUser } from '../../store/slices/authSlice';
 import { addToCart } from '../../api/cart.api';
 import { addToWishlist, removeFromWishlist } from '../../api/wishlist.api';
 import { useState } from 'react';
@@ -14,7 +15,7 @@ function formatDuration(seconds) {
 }
 
 export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
-  const { user } = useAuth();
+  const user = useAppSelector(selectUser);
   const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(wishlisted);
   const [cartLoading, setCartLoading] = useState(false);
@@ -39,7 +40,7 @@ export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
       }
       onWishlistChange?.();
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err.message || 'Action failed');
     } finally {
       setWishLoading(false);
     }
@@ -59,7 +60,7 @@ export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
         toast.success('You are already enrolled! Opening course...');
         navigate(`/learn/${course._id}`);
       } else {
-        toast.error(err.message);
+        toast.error(err.message || 'Failed to add to cart');
       }
     } finally {
       setCartLoading(false);
@@ -67,99 +68,108 @@ export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
   };
 
   return (
-    <Link to={`/courses/${course.slug}`} style={{ textDecoration: 'none' }}>
-      <div className="course-card">
+    <Link to={`/courses/${course.slug || course._id}`} className="block group h-full">
+      <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col h-full group-hover:-translate-y-1">
         {/* Thumbnail */}
-        <div className="course-card-thumb">
+        <div className="relative aspect-video bg-gray-100 dark:bg-slate-800 overflow-hidden">
           {course.thumbnailUrl ? (
-            <img src={course.thumbnailUrl} alt={course.title} />
+            <img
+              src={course.thumbnailUrl}
+              alt={course.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
           ) : (
-            <div style={{
-              width: '100%', height: '100%', minHeight: 170,
-              background: 'linear-gradient(135deg, rgba(124,58,237,0.2) 0%, rgba(59,130,246,0.2) 100%)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <BookOpen size={40} color="rgba(255,255,255,0.3)" />
+            <div className="w-full h-full min-h-[160px] bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
+              <BookOpen className="w-10 h-10 text-gray-400 dark:text-gray-500" />
             </div>
           )}
+
           {/* Level Badge */}
-          <div className="course-card-badge">
-            <span className="badge badge-primary">{course.level || 'beginner'}</span>
+          <div className="absolute top-3 left-3">
+            <span className="bg-blue-600/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-xs">
+              {course.level || 'beginner'}
+            </span>
           </div>
-          {/* Wishlist */}
+
+          {/* Wishlist Button */}
           {user?.role === 'student' && (
             <button
-              className="course-card-wishlist"
               onClick={handleWishlist}
               disabled={wishLoading}
+              className="absolute top-3 right-3 p-2 bg-black/40 backdrop-blur-sm hover:bg-black/60 rounded-full text-white transition shadow-xs"
               title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
             >
               <Heart
-                size={16}
-                fill={isWishlisted ? 'var(--color-error)' : 'none'}
-                color={isWishlisted ? 'var(--color-error)' : 'white'}
+                className={`w-4 h-4 ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-white'}`}
               />
             </button>
           )}
         </div>
 
         {/* Body */}
-        <div className="course-card-body">
-          <div className="course-card-category">
-            {course.category?.name || 'General'}
-          </div>
-          <h3 className="course-card-title">{course.title}</h3>
-          <p className="course-card-instructor">
-            by {course.instructor?.fullName || 'Instructor'}
-          </p>
-
-          <div className="course-card-meta">
-            {course.averageRating > 0 && (
-              <div className="course-card-rating">
-                <Star size={13} fill="var(--color-gold)" color="var(--color-gold)" />
-                <span>{course.averageRating.toFixed(1)}</span>
-                <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>({course.totalReviews})</span>
-              </div>
-            )}
-            {course.totalDurationInSeconds > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <Clock size={12} />
-                <span>{formatDuration(course.totalDurationInSeconds)}</span>
-              </div>
-            )}
-            {course.totalLectures > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <BookOpen size={12} />
-                <span>{course.totalLectures} lectures</span>
-              </div>
-            )}
+        <div className="p-5 flex flex-col flex-1 justify-between">
+          <div>
+            <div className="text-xs font-bold text-blue-600 dark:text-blue-400 mb-1.5 uppercase tracking-wider">
+              {course.category?.name || 'Development'}
+            </div>
+            <h3 className="font-bold text-gray-900 dark:text-white text-base leading-snug line-clamp-2 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              {course.title}
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+              by <span className="font-semibold text-gray-700 dark:text-gray-300">{course.instructor?.fullName || course.instructor?.name || 'Instructor'}</span>
+            </p>
           </div>
 
-          <div className="course-card-footer">
-            <div className="course-card-price">
-              {effectivePrice === 0 ? (
-                <span className="price-free">Free</span>
-              ) : (
-                <>
-                  <span className="price-current">₹{effectivePrice}</span>
-                  {course.discountPrice !== null && course.discountPrice < course.price && (
-                    <span className="price-original">₹{course.price}</span>
-                  )}
-                </>
+          <div>
+            {/* Meta info */}
+            <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 pt-3 border-t border-gray-100 dark:border-slate-800/80 mb-4">
+              {course.averageRating > 0 && (
+                <div className="flex items-center gap-1 font-bold text-gray-900 dark:text-white">
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <span>{course.averageRating.toFixed(1)}</span>
+                  <span className="text-gray-400 font-normal">({course.totalReviews})</span>
+                </div>
+              )}
+              {course.totalDurationInSeconds > 0 && (
+                <div className="flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-gray-400" />
+                  <span>{formatDuration(course.totalDurationInSeconds)}</span>
+                </div>
+              )}
+              {course.totalLectures > 0 && (
+                <div className="flex items-center gap-1">
+                  <BookOpen className="w-3.5 h-3.5 text-gray-400" />
+                  <span>{course.totalLectures} lectures</span>
+                </div>
               )}
             </div>
 
-            {user?.role === 'student' && (
-              <button
-                className="btn btn-primary btn-sm"
-                onClick={handleAddToCart}
-                disabled={cartLoading}
-                style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem' }}
-              >
-                <ShoppingCart size={13} />
-                {cartLoading ? '…' : 'Add'}
-              </button>
-            )}
+            {/* Price & Action */}
+            <div className="flex items-center justify-between pt-1">
+              <div>
+                {effectivePrice === 0 ? (
+                  <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">Free</span>
+                ) : (
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-lg font-extrabold text-gray-900 dark:text-white">₹{effectivePrice}</span>
+                    {course.discountPrice !== null && course.discountPrice < course.price && (
+                      <span className="text-xs text-gray-400 line-through">₹{course.price}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {user?.role === 'student' && (
+                <button
+                  onClick={handleAddToCart}
+                  disabled={cartLoading}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2 rounded-xl inline-flex items-center gap-1.5 shadow-xs transition"
+                >
+                  <ShoppingCart className="w-3.5 h-3.5" />
+                  {cartLoading ? '...' : 'Add'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

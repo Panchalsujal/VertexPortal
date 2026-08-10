@@ -3,66 +3,66 @@ import { GraduationCap, Globe, Share2, MessageSquare } from 'lucide-react';
 
 export function Footer() {
   return (
-    <footer className="footer">
-      <div className="container">
-        <div className="footer-grid">
+    <footer className="bg-gray-900 text-gray-300 border-t border-gray-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
-          <div className="footer-brand">
-            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontFamily: 'var(--font-heading)', fontSize: '1.5rem', fontWeight: 800 }}>
-              <div style={{ width: 36, height: 36, background: 'var(--gradient-primary)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <GraduationCap size={20} color="white" />
+          <div className="space-y-4 md:col-span-1">
+            <Link to="/" className="flex items-center gap-2 font-bold text-xl text-white">
+              <div className="p-2 bg-blue-600 rounded-lg text-white">
+                <GraduationCap className="w-5 h-5" />
               </div>
-              <span className="gradient-text">Vertex Portal</span>
+              <span>Vertex<span className="text-blue-400">Portal</span></span>
             </Link>
-            <p>Empowering learners worldwide with world-class courses taught by industry experts.</p>
-            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              Empowering learners worldwide with world-class courses, AI tutors, interactive quizzes, and live learning experiences.
+            </p>
+            <div className="flex gap-2 pt-2">
               {[Globe, Share2, MessageSquare].map((Icon, i) => (
-                <a key={i} href="#" style={{ width: 36, height: 36, background: 'rgba(255,255,255,0.06)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', transition: 'all 0.2s' }}
-                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-primary-light)'; e.currentTarget.style.borderColor = 'var(--color-primary)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}>
-                  <Icon size={16} />
+                <a key={i} href="#" className="p-2 bg-gray-800 hover:bg-blue-600 hover:text-white rounded-lg text-gray-400 transition">
+                  <Icon className="w-4 h-4" />
                 </a>
               ))}
             </div>
           </div>
 
           {/* Learn */}
-          <div className="footer-col">
-            <h4>Learn</h4>
-            <ul>
-              <li><Link to="/courses">Browse Courses</Link></li>
-              <li><Link to="/courses?level=beginner">For Beginners</Link></li>
-              <li><Link to="/courses?level=advanced">Advanced Tracks</Link></li>
-              <li><Link to="/my-learning">My Learning</Link></li>
+          <div>
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Learn</h4>
+            <ul className="space-y-2 text-xs text-gray-400">
+              <li><Link to="/courses" className="hover:text-white">Browse Courses</Link></li>
+              <li><Link to="/discussions" className="hover:text-white">Discussions</Link></li>
+              <li><Link to="/ai-chat" className="hover:text-white">AI Tutor Assistant</Link></li>
+              <li><Link to="/my-learning" className="hover:text-white">My Learning Portal</Link></li>
             </ul>
           </div>
 
-          {/* Company */}
-          <div className="footer-col">
-            <h4>Company</h4>
-            <ul>
-              <li><a href="#">About Us</a></li>
-              <li><a href="#">Careers</a></li>
-              <li><a href="#">Blog</a></li>
-              <li><a href="#">Press</a></li>
+          {/* Platform */}
+          <div>
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Platform</h4>
+            <ul className="space-y-2 text-xs text-gray-400">
+              <li><Link to="/student/live-classes" className="hover:text-white">Live Classes</Link></li>
+              <li><Link to="/student/quizzes" className="hover:text-white">Quizzes & Assessments</Link></li>
+              <li><Link to="/student/assignments" className="hover:text-white">Assignments</Link></li>
+              <li><Link to="/certificates" className="hover:text-white">Certificates</Link></li>
             </ul>
           </div>
 
           {/* Support */}
-          <div className="footer-col">
-            <h4>Support</h4>
-            <ul>
-              <li><a href="#">Help Center</a></li>
-              <li><a href="#">Contact Us</a></li>
-              <li><a href="#">Privacy Policy</a></li>
-              <li><a href="#">Terms of Service</a></li>
+          <div>
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Support & Legal</h4>
+            <ul className="space-y-2 text-xs text-gray-400">
+              <li><a href="#" className="hover:text-white">Help Center</a></li>
+              <li><a href="#" className="hover:text-white">Contact Support</a></li>
+              <li><a href="#" className="hover:text-white">Privacy Policy</a></li>
+              <li><a href="#" className="hover:text-white">Terms of Service</a></li>
             </ul>
           </div>
         </div>
 
-        <div className="footer-bottom">
-          <p>© {new Date().getFullYear()} Vertex Portal. All rights reserved.</p>
-          <p>Built with ❤️ for learners everywhere</p>
+        <div className="border-t border-gray-800 mt-12 pt-6 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-500">
+          <p>© {new Date().getFullYear()} VertexPortal. All rights reserved.</p>
+          <p className="mt-2 sm:mt-0">Built with Tailwind CSS & React Redux Toolkit</p>
         </div>
       </div>
     </footer>

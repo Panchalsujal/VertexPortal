@@ -48,6 +48,7 @@ import ragIndexingRouter from "./routes/ragIndexing.routes.js";
 import { notFoundHandler } from "./middlewares/notFound.middleware.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import studentNoteRoutes from "./routes/studentNote.routes.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -58,17 +59,35 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(cookieParser());
 
-// Serve static uploaded files (videos & documents fallback)
+// Serve static uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome to the Vertex LMS API" });
 });
+
+// Auth & Users
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+
+// Specific Admin Sub-Routes (MUST be mounted before general /api/admin)
+app.use("/api/admin/dashboard", adminDashboardRoutes);
+app.use("/api/admin/users", adminUserRoutes);
+app.use("/api/admin/courses", adminCourseRoutes);
+app.use("/api/admin/orders", adminOrderRoutes);
+app.use("/api/admin/live-classes", adminLiveRoutes);
+app.use("/api/admin/coupons", adminCouponRoutes);
+app.use("/api/admin/analytics", adminAnalyticsRoutes);
+app.use("/api/admin/audit-logs", adminAuditRoutes);
+app.use("/api/admin/certificates", adminCertificateRoutes);
+app.use("/api/admin/discussion-reports", adminDiscussionReportRoutes);
+
+// Fallback General Admin Routes
+app.use("/api/admin", adminRoutes);
+
+// Student & Instructor Portal Routes
 app.use("/api/categories", categoryRouter);
 app.use("/api/student", studentRoutes);
-app.use("/api/admin", adminRoutes);
 app.use("/api/discussions", discussionRoutes);
 app.use("/api/courses", courseRouter);
 app.use("/api/modules", moduleRouter);
@@ -82,13 +101,9 @@ app.use("/api/cart", cartRouter);
 app.use("/api", couponRouter);
 app.use("/api", checkoutRouter);
 app.use("/api/orders", orderRouter);
-app.use("/api/admin/live-classes", adminLiveRoutes);
-app.use("/api/admin/coupons", adminCouponRoutes);
-app.use("/api/admin/analytics", adminAnalyticsRoutes);
-app.use("/api/admin/audit-logs", adminAuditRoutes);
+
 app.use("/api/instructor/quizzes", instructorQuizRoutes);
 app.use("/api/certificates", certificateRoutes);
-app.use("/api/admin/certificates", adminCertificateRoutes);
 app.use("/api/student/quizzes", studentQuizRoutes);
 app.use("/api/instructor/assignments", instructorAssignmentRoutes);
 app.use("/api/instructor/announcements", instructorAnnouncementRoutes);
@@ -98,11 +113,6 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/instructor/live-classes", instructorLiveClassRoutes);
 app.use("/api/student/live-classes", studentLiveClassRoutes);
 app.use("/api/discussion-reports", discussionReportRoutes);
-app.use("/api/admin/discussion-reports", adminDiscussionReportRoutes);
-app.use("/api/admin/dashboard", adminDashboardRoutes);
-app.use("/api/admin/users", adminUserRoutes);
-app.use("/api/admin/courses", adminCourseRoutes);
-app.use("/api/admin/orders", adminOrderRoutes);
 app.use("/api/ai", aiAssistantRoutes);
 app.use("/api/ai/indexing", ragIndexingRouter);
 app.use("/api/notes", studentNoteRoutes);
@@ -110,4 +120,5 @@ app.use("/api/instructor/dashboard", instructorDashboardRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
+
 export default app;

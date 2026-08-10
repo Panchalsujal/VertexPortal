@@ -88,3 +88,12 @@ export const updateLiveClassStatus = (liveClassId, data) =>
   api.patch(`/instructor/live-classes/${liveClassId}/status`, data);
 export const cancelLiveClass = (liveClassId, data) =>
   api.patch(`/instructor/live-classes/${liveClassId}/cancel`, data);
+export const getLiveClassAnalytics = (liveClassId) =>
+  api.get(`/instructor/live-classes/${liveClassId}/analytics`);
+export const getLiveClassAttendance = (liveClassId) =>
+  api.get(`/instructor/live-classes/${liveClassId}/attendance`);
+export const getLiveClassAttendanceAnalytics = (liveClassId) =>
+  api.get(`/instructor/live-classes/${liveClassId}/attendance/analytics`);
+export const updateLiveClassResources = (liveClassId, data) =>
+  api.patch(`/instructor/live-classes/${liveClassId}/resources`, data);
+

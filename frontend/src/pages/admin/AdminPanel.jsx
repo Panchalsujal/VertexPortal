@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { getAllCategories, createCategory, updateCategory, deleteCategory } from '../../api/category.api';
 import { getAllCoupons, createCoupon, updateCoupon, toggleCouponStatus, deleteCoupon } from '../../api/coupon.api';
+import { getAllCourses } from '../../api/course.api';
+import { getAdminCoursesList } from '../../api/adminCourses.api';
 import {
   fetchAdminCertificates,
   issueCertificate,
@@ -13,11 +15,14 @@ import {
   selectAdminCertificatesLoading,
 } from '../../store/slices/admin/certificatesSlice';
 import { adminDownloadCertificate } from '../../api/certificate.api';
+import { getAdminReviews } from '../../api/admin.api';
+import { deleteReview, getCourseReviews } from '../../api/review.api';
+import { StarRating } from '../../components/ui/StarRating';
 import { Modal } from '../../components/ui/Modal';
 import { Spinner } from '../../components/ui/Spinner';
 import {
   FolderPlus, Tag, Edit3, Trash2, ToggleLeft, ToggleRight, Plus, Shield,
-  Award, Download, RefreshCw, XCircle, RotateCcw, Send
+  Award, Download, RefreshCw, XCircle, RotateCcw, Send, Star
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -46,6 +51,13 @@ export default function AdminPanel() {
     usageLimit: 100,
     expiresAt: '',
   });
+
+  // Course list for certificate modal & review fallback
+  const [allCourses, setAllCourses] = useState([]);
+
+  // Reviews state
+  const [adminReviews, setAdminReviews] = useState([]);
+  const [reviewLoading, setReviewLoading] = useState(false);
 
   // Certificate state
   const certificates = useAppSelector(selectAdminCertificates);
@@ -82,6 +94,53 @@ export default function AdminPanel() {
       setCouponLoading(false);
     }
   };
+
+  const fetchAdminReviews = async () => {
+    setReviewLoading(true);
+    try {
+      const res = await getAdminReviews();
+      const list = res.data.reviews || res.data.data?.reviews || res.data.data || [];
+      setAdminReviews(Array.isArray(list) ? list : []);
+    } catch {
+      try {
+        const allRev = await Promise.all(
+          allCourses.map(c => getCourseReviews(c._id).catch(() => ({ data: { reviews: [] } })))
+        );
+        const combined = allRev.flatMap(r => r.data?.reviews || r.data?.data?.reviews || []);
+        setAdminReviews(combined);
+      } catch {
+        setAdminReviews([]);
+      }
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+    fetchCoupons();
+    dispatch(fetchAdminCertificates());
+
+    const loadCourses = async () => {
+      try {
+        const res = await getAdminCoursesList({ limit: 100 });
+        const list = res.data.courses || res.data.data?.courses || res.data.data || [];
+        if (list.length > 0) {
+          setAllCourses(list);
+          return;
+        }
+      } catch {
+        /* fallback */
+      }
+      try {
+        const pRes = await getAllCourses({ limit: 100 });
+        setAllCourses(pRes.data.courses || pRes.data.data?.courses || pRes.data.data || []);
+      } catch {
+        /* ignore */
+      }
+    };
+    loadCourses();
+  }, [dispatch]);
 
   useEffect(() => {
     if (activeTab === 'categories') fetchCategories();
@@ -280,7 +339,10 @@ export default function AdminPanel() {
             Coupons ({coupons.length})
           </button>
           <button className={`tab-btn ${activeTab === 'certificates' ? 'active' : ''}`} onClick={() => setActiveTab('certificates')}>
-            <Award size={15} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Certificates ({certificates.length})
+            <Award size={15} /> Certificates ({certificates.length})
+          </button>
+          <button className={`tab-btn ${activeTab === 'reviews' ? 'active' : ''}`} onClick={() => setActiveTab('reviews')}>
+            <Star size={15} className="fill-amber-400 text-amber-400 inline" /> Course Reviews & Ratings ({adminReviews.length})
           </button>
         </div>
 
@@ -419,6 +481,73 @@ export default function AdminPanel() {
             )}
           </div>
         )}
+
+        {/* Reviews Tab */}
+        {activeTab === 'reviews' && (
+          <div>
+            {reviewLoading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}><Spinner /></div>
+            ) : adminReviews.length > 0 ? (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-xs">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 dark:bg-slate-800/60 border-b border-gray-200 dark:border-slate-800 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      <th className="p-4">Student</th>
+                      <th className="p-4">Course</th>
+                      <th className="p-4">Rating</th>
+                      <th className="p-4">Comment</th>
+                      <th className="p-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-slate-800/60 text-sm text-gray-900 dark:text-white">
+                    {adminReviews.map((rev) => (
+                      <tr key={rev._id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/40 transition">
+                        <td className="p-4">
+                          <div className="font-semibold text-gray-900 dark:text-white">{rev.student?.fullName || rev.user?.fullName || 'Student'}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">{rev.student?.email || rev.user?.email || 'N/A'}</div>
+                        </td>
+                        <td className="p-4 text-xs font-medium text-blue-600 dark:text-blue-400">
+                          {rev.course?.title || rev.courseTitle || 'Course'}
+                        </td>
+                        <td className="p-4">
+                          <StarRating rating={rev.rating || 5} size={14} />
+                        </td>
+                        <td className="p-4 text-xs text-gray-700 dark:text-gray-300 max-w-sm">
+                          {rev.comment || rev.content || 'No review comment text'}
+                        </td>
+                        <td className="p-4 text-right">
+                          <button
+                            onClick={async () => {
+                              if (window.confirm('Delete this student review?')) {
+                                try {
+                                  await deleteReview(rev._id);
+                                  toast.success('Review deleted');
+                                  fetchAdminReviews();
+                                } catch (err) {
+                                  toast.error(err.message || 'Failed to delete review');
+                                }
+                              }
+                            }}
+                            className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition"
+                            title="Delete Review"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="glass-card text-center py-12 text-gray-500 dark:text-gray-400">
+                <Star className="w-12 h-12 mx-auto mb-3 text-amber-400" />
+                <p className="font-semibold text-sm">No Course Ratings & Reviews Found</p>
+                <p className="text-xs mt-1">Student reviews will appear here once submitted on course pages.</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Category Modal */}
@@ -478,8 +607,20 @@ export default function AdminPanel() {
       <Modal isOpen={issueModalOpen} onClose={() => !issuing && setIssueModalOpen(false)} title="Manually Issue Certificate">
         <form onSubmit={handleIssueCertificate} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div className="input-group">
-            <label className="input-label">Course ID *</label>
-            <input type="text" className="input-field" placeholder="MongoDB Course ObjectId" value={issueForm.courseId} onChange={e => setIssueForm(f => ({ ...f, courseId: e.target.value }))} required />
+            <label className="input-label">Select Course *</label>
+            <select
+              className="input-field"
+              value={issueForm.courseId}
+              onChange={e => setIssueForm(f => ({ ...f, courseId: e.target.value }))}
+              required
+            >
+              <option value="">-- Select Course --</option>
+              {allCourses.map(c => (
+                <option key={c._id} value={c._id}>
+                  {c.title}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="input-group">
             <label className="input-label">User Email *</label>

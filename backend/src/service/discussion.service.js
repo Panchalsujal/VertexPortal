@@ -50,7 +50,7 @@ export async function createDiscussion({ userId, userRole, payload }) {
     throw new ApiError(400, "Discussion title cannot exceed 200 characters");
   }
 
-  const normalizedContent = String(content || "").trim();
+  const normalizedContent = String(content || payload?.body || "").trim();
 
   if (normalizedContent.length < 3) {
     throw new ApiError(400, "Discussion content is required");
@@ -533,10 +533,18 @@ export async function getDiscussionById({ userId, userRole, discussionId }) {
     })
     .lean();
 
-  return {
-    discussion: discussion.toObject(),
+  const formattedReplies = replies.map((r) => ({
+    ...r,
+    user: r.author || r.user,
+    isAccepted: r.isAcceptedAnswer || r.isAccepted,
+  }));
 
-    replies,
+  const discussionObj = discussion.toObject();
+  discussionObj.replies = formattedReplies;
+
+  return {
+    discussion: discussionObj,
+    replies: formattedReplies,
   };
 }
 

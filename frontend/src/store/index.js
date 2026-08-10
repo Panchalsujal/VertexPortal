@@ -13,20 +13,36 @@ import studentLiveClassesReducer from './slices/student/studentLiveClassesSlice'
 import studentQuizzesReducer     from './slices/student/studentQuizzesSlice';
 import studentAnnouncementsReducer from './slices/student/studentAnnouncementsSlice';
 
+// New Slices
+import discussionsReducer        from './slices/discussionsSlice';
+import notesReducer              from './slices/notesSlice';
+import aiReducer                 from './slices/aiSlice';
+import adminUsersReducer         from './slices/admin/usersSlice';
+import adminOrdersReducer        from './slices/admin/ordersSlice';
+import adminCoursesReducer       from './slices/admin/coursesSlice';
+
 export const store = configureStore({
   reducer: {
-    auth:                   authReducer,
-    courses:                coursesReducer,
-    notifications:          notificationsReducer,
-    certificates:           certificatesReducer,
-    adminCertificates:      adminCertificatesReducer,
-    instructorAssignments:  instructorAssignmentsReducer,
-    instructorLiveClasses:  instructorLiveClassesReducer,
-    instructorQuizzes:      instructorQuizzesReducer,
+    auth:                    authReducer,
+    courses:                 coursesReducer,
+    notifications:           notificationsReducer,
+    certificates:            certificatesReducer,
+    adminCertificates:       adminCertificatesReducer,
+    instructorAssignments:   instructorAssignmentsReducer,
+    instructorLiveClasses:   instructorLiveClassesReducer,
+    instructorQuizzes:       instructorQuizzesReducer,
     instructorAnnouncements: instructorAnnouncementsReducer,
-    studentAssignments:     studentAssignmentsReducer,
-    studentLiveClasses:     studentLiveClassesReducer,
-    studentQuizzes:         studentQuizzesReducer,
-    studentAnnouncements:   studentAnnouncementsReducer,
+    studentAssignments:      studentAssignmentsReducer,
+    studentLiveClasses:      studentLiveClassesReducer,
+    studentQuizzes:          studentQuizzesReducer,
+    studentAnnouncements:    studentAnnouncementsReducer,
+    
+    // Naye Redux Slices
+    discussions:             discussionsReducer,
+    notes:                   notesReducer,
+    ai:                      aiReducer,
+    adminUsers:              adminUsersReducer,
+    adminOrders:             adminOrdersReducer,
+    adminCourses:            adminCoursesReducer,
   },
 });

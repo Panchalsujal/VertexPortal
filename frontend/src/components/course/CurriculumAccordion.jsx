@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ChevronDown, PlayCircle, FileText, Lock, CheckCircle } from 'lucide-react';
+import { ChevronDown, PlayCircle, FileText, CheckCircle } from 'lucide-react';
 
 function formatDuration(s) {
+  if (!s || s <= 0) return '';
   const m = Math.floor(s / 60);
   const sec = s % 60;
   return `${m}:${String(sec).padStart(2, '0')}`;
@@ -17,96 +18,82 @@ export function CurriculumAccordion({ modules = [], completedLectureIds = [], on
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-      {modules.map((mod, mi) => (
-        <div key={mod._id} style={{
-          background: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          borderRadius: 'var(--radius-md)',
-          overflow: 'hidden',
-        }}>
-          {/* Module Header */}
-          <button
-            onClick={() => toggleModule(mod._id)}
-            style={{
-              width: '100%', padding: '1rem 1.25rem',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              background: openModules.includes(mod._id) ? 'rgba(124,58,237,0.06)' : 'transparent',
-              transition: 'background 0.2s',
-            }}
+    <div className="space-y-2">
+      {modules.map((mod, mi) => {
+        const isOpen = openModules.includes(mod._id);
+        const lectureCount = mod.lectures?.length || 0;
+
+        return (
+          <div
+            key={mod._id}
+            className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs"
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textAlign: 'left' }}>
-              <span style={{
-                width: 24, height: 24, borderRadius: '50%',
-                background: 'var(--gradient-primary)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.75rem', fontWeight: 700, color: 'white', flexShrink: 0,
-              }}>{mi + 1}</span>
-              <div>
-                <p style={{ fontWeight: 600, fontSize: '0.9375rem', color: 'var(--text-primary)' }}>{mod.title}</p>
-                <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: 2 }}>
-                  {mod.lectures?.length || 0} lectures
-                </p>
+            {/* Module Header */}
+            <button
+              type="button"
+              onClick={() => toggleModule(mod._id)}
+              className={`w-full p-3.5 flex items-center justify-between text-left transition-colors ${
+                isOpen ? 'bg-blue-50/50 dark:bg-slate-800/50' : 'hover:bg-gray-50 dark:hover:bg-slate-800/30'
+              }`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                  {mi + 1}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{mod.title}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {lectureCount} {lectureCount === 1 ? 'lecture' : 'lectures'}
+                  </p>
+                </div>
               </div>
-            </div>
-            <ChevronDown
-              size={18}
-              style={{
-                color: 'var(--text-muted)', flexShrink: 0,
-                transform: openModules.includes(mod._id) ? 'rotate(180deg)' : 'none',
-                transition: 'transform 0.2s',
-              }}
-            />
-          </button>
+              <ChevronDown
+                className={`w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200 ${
+                  isOpen ? 'rotate-180 text-blue-600 dark:text-blue-400' : ''
+                }`}
+              />
+            </button>
 
-          {/* Lectures */}
-          {openModules.includes(mod._id) && (
-            <div style={{ borderTop: '1px solid var(--color-border)' }}>
-              {(mod.lectures || []).map(lec => {
-                const isCompleted = completedLectureIds.includes(lec._id);
-                const isActive = lec._id === activeLectureId;
-                const isVideo = (lec.type || lec.contentType) === 'video';
+            {/* Lectures */}
+            {isOpen && (
+              <div className="border-t border-gray-200 dark:border-slate-800 divide-y divide-gray-100 dark:divide-slate-800/60">
+                {(mod.lectures || []).map((lec) => {
+                  const isCompleted = completedLectureIds.includes(lec._id);
+                  const isActive = lec._id === activeLectureId;
+                  const isVideo = (lec.type || lec.contentType) === 'video';
 
-                return (
-                  <button
-                    key={lec._id}
-                    onClick={() => onLectureSelect?.(lec)}
-                    style={{
-                      width: '100%', padding: '0.75rem 1.25rem 0.75rem 2rem',
-                      display: 'flex', alignItems: 'center', gap: '0.75rem',
-                      background: isActive ? 'rgba(124,58,237,0.12)' : 'transparent',
-                      borderLeft: isActive ? '3px solid var(--color-primary)' : '3px solid transparent',
-                      transition: 'all 0.15s',
-                      cursor: onLectureSelect ? 'pointer' : 'default',
-                    }}
-                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
-                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
-                  >
-                    {isCompleted ? (
-                      <CheckCircle size={16} color="var(--color-success)" style={{ flexShrink: 0 }} />
-                    ) : isVideo ? (
-                      <PlayCircle size={16} color={isActive ? 'var(--color-primary-light)' : 'var(--text-muted)'} style={{ flexShrink: 0 }} />
-                    ) : (
-                      <FileText size={16} color="var(--text-muted)" style={{ flexShrink: 0 }} />
-                    )}
-                    <span style={{
-                      flex: 1, textAlign: 'left', fontSize: '0.875rem',
-                      color: isActive ? 'var(--color-primary-light)' : isCompleted ? 'var(--text-secondary)' : 'var(--text-secondary)',
-                    }}>
-                      {lec.title}
-                    </span>
-                    {lec.durationInSeconds > 0 && (
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', flexShrink: 0 }}>
-                        {formatDuration(lec.durationInSeconds)}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      ))}
+                  return (
+                    <button
+                      key={lec._id}
+                      type="button"
+                      onClick={() => onLectureSelect?.(lec)}
+                      className={`w-full pl-6 pr-4 py-3 flex items-center gap-3 text-xs font-medium text-left transition-all ${
+                        isActive
+                          ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 font-semibold'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/40'
+                      }`}
+                    >
+                      {isCompleted ? (
+                        <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                      ) : isVideo ? (
+                        <PlayCircle className={`w-4 h-4 shrink-0 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`} />
+                      ) : (
+                        <FileText className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" />
+                      )}
+                      <span className="flex-1 truncate">{lec.title}</span>
+                      {lec.durationInSeconds > 0 && (
+                        <span className="text-[11px] text-gray-400 dark:text-gray-500 shrink-0">
+                          {formatDuration(lec.durationInSeconds)}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

@@ -7,7 +7,7 @@ import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { PageLoader } from './components/ui/Spinner';
 
-// Pages
+// Existing Pages
 import Home from './pages/Home';
 import Courses from './pages/Courses';
 import CourseDetail from './pages/CourseDetail';
@@ -24,7 +24,6 @@ import CourseForm from './pages/instructor/CourseForm';
 import Curriculum from './pages/instructor/Curriculum';
 import AdminPanel from './pages/admin/AdminPanel';
 
-// New Pages
 import Notifications from './pages/Notifications';
 import Certificates from './pages/Certificates';
 import VerifyCertificate from './pages/VerifyCertificate';
@@ -37,6 +36,16 @@ import InstructorAssignments from './pages/instructor/InstructorAssignments';
 import InstructorLiveClasses from './pages/instructor/InstructorLiveClasses';
 import InstructorAnnouncements from './pages/instructor/InstructorAnnouncements';
 
+// NEW PAGES (Sections 32-43)
+import Discussions from './pages/Discussions';
+import StudentNotes from './pages/StudentNotes';
+import AiChat from './pages/AiChat';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminOrders from './pages/admin/AdminOrders';
+import AdminCourses from './pages/admin/AdminCourses';
+import AdminAuditLogs from './pages/admin/AdminAuditLogs';
+import AdminReviews from './pages/admin/AdminReviews';
+
 // ─── Protected Route ─────────────────────────────────────────────────────────
 function ProtectedRoute({ children, allowedRoles }) {
   const user    = useAppSelector(selectUser);
@@ -44,7 +53,9 @@ function ProtectedRoute({ children, allowedRoles }) {
   const location = useLocation();
 
   if (loading) return <PageLoader />;
-  if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
+  if (!user || user.status === 'suspended' || user.status === 'inactive' || user.isActive === false) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     return <Navigate to="/" replace />;
   }
@@ -58,13 +69,13 @@ function Layout({ children }) {
   return (
     <>
       {!hideHeaderFooter && <Navbar />}
-      <main>{children}</main>
+      <main className="min-h-[80vh]">{children}</main>
       {!hideHeaderFooter && <Footer />}
     </>
   );
 }
 
-// ─── Root — bootstraps auth on mount ─────────────────────────────────────────
+// ─── Root ────────────────────────────────────────────────────────────────────
 function AppRoot() {
   const dispatch = useAppDispatch();
   useEffect(() => { dispatch(fetchMe()); }, [dispatch]);
@@ -76,10 +87,11 @@ function AppRoot() {
         toastOptions={{
           duration: 4000,
           style: {
-            background: 'var(--color-surface)',
-            color: 'var(--text-primary)',
-            border: '1px solid var(--color-border)',
-            fontSize: '0.9375rem',
+            background: '#ffffff',
+            color: '#111827',
+            border: '1px solid #e5e7eb',
+            fontSize: '0.875rem',
+            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
           },
         }}
       />
@@ -93,6 +105,11 @@ function AppRoot() {
           <Route path="/register" element={<Register />} />
           <Route path="/verify-email/:userId/:token" element={<VerifyEmail />} />
           <Route path="/verify-certificate/:verificationCode" element={<VerifyCertificate />} />
+
+          {/* New Feature Routes */}
+          <Route path="/discussions" element={<ProtectedRoute><Discussions /></ProtectedRoute>} />
+          <Route path="/student/notes" element={<ProtectedRoute allowedRoles={['student']}><StudentNotes /></ProtectedRoute>} />
+          <Route path="/ai-chat" element={<ProtectedRoute><AiChat /></ProtectedRoute>} />
 
           {/* General Protected */}
           <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
@@ -119,8 +136,13 @@ function AppRoot() {
           <Route path="/instructor/courses/:courseId/edit" element={<ProtectedRoute allowedRoles={['instructor','admin']}><CourseForm /></ProtectedRoute>} />
           <Route path="/instructor/courses/:courseId/curriculum" element={<ProtectedRoute allowedRoles={['instructor','admin']}><Curriculum /></ProtectedRoute>} />
 
-          {/* Admin */}
+          {/* Admin Routes */}
           <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminPanel /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['admin']}><AdminUsers /></ProtectedRoute>} />
+          <Route path="/admin/orders" element={<ProtectedRoute allowedRoles={['admin']}><AdminOrders /></ProtectedRoute>} />
+          <Route path="/admin/courses" element={<ProtectedRoute allowedRoles={['admin']}><AdminCourses /></ProtectedRoute>} />
+          <Route path="/admin/audit" element={<ProtectedRoute allowedRoles={['admin']}><AdminAuditLogs /></ProtectedRoute>} />
+          <Route path="/admin/reviews" element={<ProtectedRoute allowedRoles={['admin']}><AdminReviews /></ProtectedRoute>} />
 
           {/* Catch All */}
           <Route path="*" element={<Navigate to="/" replace />} />

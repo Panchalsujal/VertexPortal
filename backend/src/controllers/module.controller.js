@@ -5,16 +5,31 @@ import CourseModule from "../models/courseModule.model.js";
 import Enrollment from "../models/enrollment.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
+// Helper for robust instructor ownership verification
+const checkOwnership = (courseInstructor, user) => {
+  if (!courseInstructor || !user) return false;
+  const instructorId = (courseInstructor._id || courseInstructor).toString();
+  const userId = (user._id || user.id || user).toString();
+  return instructorId === userId;
+};
+
+// Helper to find course by ObjectId or Slug
+const findCourseByIdOrSlug = async (courseIdOrSlug, selectFields) => {
+  let query;
+  if (mongoose.Types.ObjectId.isValid(courseIdOrSlug)) {
+    query = Course.findById(courseIdOrSlug);
+  } else {
+    query = Course.findOne({ slug: courseIdOrSlug });
+  }
+  if (selectFields) {
+    query = query.select(selectFields);
+  }
+  return await query;
+};
+
 export const createCourseModuleController = asyncHandler(async (req, res) => {
   const { courseId } = req.params;
   const { title, description } = req.body;
-
-  if (!mongoose.Types.ObjectId.isValid(courseId)) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid course ID",
-    });
-  }
 
   if (!title?.trim()) {
     return res.status(400).json({
@@ -23,18 +38,17 @@ export const createCourseModuleController = asyncHandler(async (req, res) => {
     });
   }
 
-  const course = await Course.findById(courseId);
+  const course = await findCourseByIdOrSlug(courseId);
 
-  if (!course || !course.isActive) {
+  if (!course) {
     return res.status(404).json({
       success: false,
       message: "Course not found",
     });
   }
 
-  const isOwner = course.instructor.toString() === req.user.id.toString();
-
-  const isAdmin = req.user.role === "admin";
+  const isOwner = checkOwnership(course.instructor, req.user);
+  const isAdmin = req.user?.role === "admin";
 
   if (!isOwner && !isAdmin) {
     return res.status(403).json({
@@ -44,7 +58,7 @@ export const createCourseModuleController = asyncHandler(async (req, res) => {
   }
 
   const lastModule = await CourseModule.findOne({
-    course: courseId,
+    course: course._id,
     isActive: true,
   })
     .sort({ order: -1 })
@@ -56,14 +70,14 @@ export const createCourseModuleController = asyncHandler(async (req, res) => {
   const nextOrder = lastModule ? lastModule.order + ORDER_GAP : ORDER_GAP;
 
   const courseModule = await CourseModule.create({
-    course: courseId,
+    course: course._id,
     title: title.trim(),
     description: description?.trim() || "",
     order: nextOrder,
   });
 
   course.totalModules = await CourseModule.countDocuments({
-    course: courseId,
+    course: course._id,
     isActive: true,
   });
 
@@ -80,17 +94,7 @@ export const getPublishedCourseModulesController = asyncHandler(
   async (req, res) => {
     const { courseId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(courseId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid course ID",
-      });
-    }
-
-    const course = await Course.findOne({
-      _id: courseId,
-      isActive: true,
-    }).select("_id instructor");
+    const course = await findCourseByIdOrSlug(courseId, "_id instructor");
 
     if (!course) {
       return res.status(404).json({
@@ -100,23 +104,23 @@ export const getPublishedCourseModulesController = asyncHandler(
     }
 
     let moduleFilter = {
-      course: courseId,
+      course: course._id,
       isActive: true,
       isPublished: true,
     };
 
     if (req.user) {
       const isAdmin = req.user.role === "admin";
-      const isOwner = course.instructor?.toString() === req.user.id?.toString();
+      const isOwner = checkOwnership(course.instructor, req.user);
       const isEnrolled = await Enrollment.exists({
-        student: req.user.id,
-        course: courseId,
+        student: req.user._id || req.user.id,
+        course: course._id,
         status: { $in: ["active", "completed"] },
       });
 
       if (isAdmin || isOwner || isEnrolled) {
         moduleFilter = {
-          course: courseId,
+          course: course._id,
           isActive: true,
         };
       }
@@ -124,7 +128,6 @@ export const getPublishedCourseModulesController = asyncHandler(
 
     const modules = await CourseModule.find(moduleFilter)
       .sort({ order: 1 })
-      .select("title description order totalLectures totalDurationInSeconds isPublished")
       .lean();
 
     return res.status(200).json({
@@ -140,16 +143,7 @@ export const getManageCourseModulesController = asyncHandler(
   async (req, res) => {
     const { courseId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(courseId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid course ID",
-      });
-    }
-
-    const course = await Course.findById(courseId).select(
-      "_id instructor isActive",
-    );
+    const course = await findCourseByIdOrSlug(courseId, "_id instructor isActive");
 
     if (!course) {
       return res.status(404).json({
@@ -158,9 +152,8 @@ export const getManageCourseModulesController = asyncHandler(
       });
     }
 
-    const isOwner = course.instructor.toString() === req.user.id.toString();
-
-    const isAdmin = req.user.role === "admin";
+    const isOwner = checkOwnership(course.instructor, req.user);
+    const isAdmin = req.user?.role === "admin";
 
     if (!isOwner && !isAdmin) {
       return res.status(403).json({
@@ -170,7 +163,7 @@ export const getManageCourseModulesController = asyncHandler(
     }
 
     const modules = await CourseModule.find({
-      course: courseId,
+      course: course._id,
     })
       .sort({ order: 1 })
       .lean();
@@ -187,18 +180,6 @@ export const getManageCourseModulesController = asyncHandler(
 export const updateCourseModuleController = asyncHandler(async (req, res) => {
   const { moduleId } = req.params;
   const { title, description, isPublished } = req.body;
-  const allowedFields = ["title", "description", "isPublished"];
-
-  const hasValidField = allowedFields.some(
-    (field) => req.body[field] !== undefined,
-  );
-
-  if (!hasValidField) {
-    return res.status(400).json({
-      success: false,
-      message: "Provide at least one field to update",
-    });
-  }
 
   if (!mongoose.Types.ObjectId.isValid(moduleId)) {
     return res.status(400).json({
@@ -207,300 +188,207 @@ export const updateCourseModuleController = asyncHandler(async (req, res) => {
     });
   }
 
-  const courseModule = await CourseModule.findById(moduleId);
+  const moduleDoc = await CourseModule.findById(moduleId);
 
-  console.log(courseModule);
-
-  if (!courseModule) {
+  if (!moduleDoc) {
     return res.status(404).json({
       success: false,
-      message: "Course module not found",
+      message: "Module not found",
     });
   }
 
-  const course = await Course.findById(courseModule.course).select(
-    "instructor isActive",
+  const course = await Course.findById(moduleDoc.course).select(
+    "_id instructor",
   );
-
-  if (!course || !course.isActive) {
-    return res.status(404).json({
-      success: false,
-      message: "Course not found",
-    });
-  }
-
-  const isOwner = course.instructor.toString() === req.user.id.toString();
-
-  const isAdmin = req.user.role === "admin";
-
-  if (!isOwner && !isAdmin) {
-    return res.status(403).json({
-      success: false,
-      message: "You are not allowed to update this module",
-    });
-  }
-
-  if (title !== undefined) {
-    const normalizedTitle = String(title).trim();
-
-    if (normalizedTitle.length < 2) {
-      return res.status(400).json({
-        success: false,
-        message: "Module title must contain at least 2 characters",
-      });
-    }
-
-    courseModule.title = normalizedTitle;
-  }
-
-  if (description !== undefined) {
-    courseModule.description = String(description).trim();
-  }
-
-  if (isPublished !== undefined) {
-    if (typeof isPublished !== "boolean") {
-      return res.status(400).json({
-        success: false,
-        message: "isPublished must be a boolean value",
-      });
-    }
-
-    courseModule.isPublished = isPublished;
-  }
-
-  if (courseModule.isActive && (courseModule.order === null || courseModule.order === undefined)) {
-    const lastModule = await CourseModule.findOne({
-      course: courseModule.course,
-      isActive: true,
-      _id: { $ne: courseModule._id },
-    })
-      .sort({ order: -1 })
-      .select("order")
-      .lean();
-
-    const ORDER_GAP = 1000;
-    courseModule.order = lastModule ? (lastModule.order || 0) + ORDER_GAP : ORDER_GAP;
-  }
-
-  await courseModule.save();
-
-  return res.status(200).json({
-    success: true,
-    message: "Course module updated successfully",
-    module: courseModule,
-  });
-});
-
-export const archiveCourseModuleController = asyncHandler(async (req, res) => {
-  const { moduleId } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(moduleId)) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid module ID",
-    });
-  }
-
-  const courseModule = await CourseModule.findOne({
-    _id: moduleId,
-    isActive: true,
-  });
-
-  if (!courseModule) {
-    return res.status(404).json({
-      success: false,
-      message: "Course module not found",
-    });
-  }
-
-  const course = await Course.findById(courseModule.course).select(
-    "instructor totalModules isActive",
-  );
-
-  if (!course || !course.isActive) {
-    return res.status(404).json({
-      success: false,
-      message: "Course not found",
-    });
-  }
-
-  const isOwner = course.instructor.toString() === req.user.id.toString();
-
-  const isAdmin = req.user.role === "admin";
-
-  if (!isOwner && !isAdmin) {
-    return res.status(403).json({
-      success: false,
-      message: "You cannot archive this module",
-    });
-  }
-
-  courseModule.isActive = false;
-  courseModule.isPublished = false;
-  courseModule.order = null;
-
-  await courseModule.save();
-
-  course.totalModules = await CourseModule.countDocuments({
-    course: courseModule.course,
-    isActive: true,
-  });
-
-  await course.save();
-
-  return res.status(200).json({
-    success: true,
-    message: "Course module archived successfully",
-  });
-});
-
-export const CourseModulePublishController = asyncHandler(async (req, res) => {
-  const { moduleId } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(moduleId)) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid module ID",
-    });
-  }
-
-  const courseModule = await CourseModule.findById(moduleId);
-
-  if (!courseModule) {
-    return res.status(404).json({
-      success: false,
-      message: "Course module not found",
-    });
-  }
-
-  const course = await Course.findById(courseModule.course).select(
-    "instructor isActive",
-  );
-
-  if (!course || !course.isActive) {
-    return res.status(404).json({
-      success: false,
-      message: "Course not found",
-    });
-  }
-
-  const isOwner = course.instructor.toString() === req.user.id.toString();
-
-  const isAdmin = req.user.role === "admin";
-
-  if (!isOwner && !isAdmin) {
-    return res.status(403).json({
-      success: false,
-      message: "You are not allowed to publish this module",
-    });
-  }
-
-  courseModule.isPublished = true;
-  courseModule.isActive = true;
-
-  if (courseModule.order === null || courseModule.order === undefined) {
-    const lastModule = await CourseModule.findOne({
-      course: courseModule.course,
-      isActive: true,
-      _id: { $ne: courseModule._id },
-    })
-      .sort({ order: -1 })
-      .select("order")
-      .lean();
-
-    const ORDER_GAP = 1000;
-    courseModule.order = lastModule ? (lastModule.order || 0) + ORDER_GAP : ORDER_GAP;
-  }
-
-  await courseModule.save();
-
-  return res.status(200).json({
-    success: true,
-    message: "Course module published successfully",
-    module: courseModule,
-  });
-});
-
-const ORDER_GAP = 1000;
-
-export const reorderCourseModuleController = asyncHandler(async (req, res) => {
-  const { moduleId } = req.params;
-  const { previousModuleId = null, nextModuleId = null } = req.body;
-
-  // -----------------------------
-  // 1. Validate IDs
-  // -----------------------------
-  if (!mongoose.Types.ObjectId.isValid(moduleId)) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid module ID",
-    });
-  }
-
-  if (
-    previousModuleId &&
-    !mongoose.Types.ObjectId.isValid(previousModuleId)
-  ) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid previous module ID",
-    });
-  }
-
-  if (
-    nextModuleId &&
-    !mongoose.Types.ObjectId.isValid(nextModuleId)
-  ) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid next module ID",
-    });
-  }
-
-  if (
-    moduleId === previousModuleId ||
-    moduleId === nextModuleId
-  ) {
-    return res.status(400).json({
-      success: false,
-      message: "Module cannot be placed relative to itself",
-    });
-  }
-
-  // -----------------------------
-  // 2. Find target module
-  // -----------------------------
-  const courseModule = await CourseModule.findOne({
-    _id: moduleId,
-    isActive: true,
-  });
-
-  if (!courseModule) {
-    return res.status(404).json({
-      success: false,
-      message: "Course module not found",
-    });
-  }
-
-  // -----------------------------
-  // 3. Check course and ownership
-  // -----------------------------
-  const course = await Course.findOne({
-    _id: courseModule.course,
-    isActive: true,
-  }).select("instructor");
 
   if (!course) {
     return res.status(404).json({
       success: false,
-      message: "Course not found",
+      message: "Course associated with module not found",
     });
   }
 
-  const isOwner =
-    course.instructor.toString() === req.user.id.toString();
+  const isOwner = checkOwnership(course.instructor, req.user);
+  const isAdmin = req.user?.role === "admin";
 
-  const isAdmin = req.user.role === "admin";
+  if (!isOwner && !isAdmin) {
+    return res.status(403).json({
+      success: false,
+      message: "You cannot update this module",
+    });
+  }
+
+  if (title !== undefined) {
+    if (!title.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Title cannot be empty",
+      });
+    }
+    moduleDoc.title = title.trim();
+  }
+
+  if (description !== undefined) {
+    moduleDoc.description = description.trim();
+  }
+
+  if (typeof isPublished === "boolean") {
+    moduleDoc.isPublished = isPublished;
+  }
+
+  await moduleDoc.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "Module updated successfully",
+    module: moduleDoc,
+  });
+});
+
+export const archiveCourseModuleController = asyncHandler(
+  async (req, res) => {
+    const { moduleId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(moduleId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid module ID",
+      });
+    }
+
+    const moduleDoc = await CourseModule.findById(moduleId);
+
+    if (!moduleDoc || !moduleDoc.isActive) {
+      return res.status(404).json({
+        success: false,
+        message: "Module not found",
+      });
+    }
+
+    const course = await Course.findById(moduleDoc.course).select(
+      "_id instructor",
+    );
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course associated with module not found",
+      });
+    }
+
+    const isOwner = checkOwnership(course.instructor, req.user);
+    const isAdmin = req.user?.role === "admin";
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: "You cannot archive this module",
+      });
+    }
+
+    moduleDoc.isActive = false;
+    moduleDoc.isPublished = false;
+    await moduleDoc.save();
+
+    course.totalModules = await CourseModule.countDocuments({
+      course: course._id,
+      isActive: true,
+    });
+
+    await course.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Module archived successfully",
+    });
+  },
+);
+
+export const CourseModulePublishController = asyncHandler(
+  async (req, res) => {
+    const { moduleId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(moduleId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid module ID",
+      });
+    }
+
+    const moduleDoc = await CourseModule.findById(moduleId);
+
+    if (!moduleDoc || !moduleDoc.isActive) {
+      return res.status(404).json({
+        success: false,
+        message: "Module not found",
+      });
+    }
+
+    const course = await Course.findById(moduleDoc.course).select(
+      "_id instructor",
+    );
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course associated with module not found",
+      });
+    }
+
+    const isOwner = checkOwnership(course.instructor, req.user);
+    const isAdmin = req.user?.role === "admin";
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: "You cannot change publish status of this module",
+      });
+    }
+
+    moduleDoc.isPublished = !moduleDoc.isPublished;
+    await moduleDoc.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Module ${moduleDoc.isPublished ? "published" : "unpublished"} successfully`,
+      module: moduleDoc,
+    });
+  },
+);
+
+export const reorderCourseModuleController = asyncHandler(async (req, res) => {
+  const { moduleId } = req.params;
+  const { previousModuleId, nextModuleId } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(moduleId)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid module ID",
+    });
+  }
+
+  const currentModule = await CourseModule.findById(moduleId);
+
+  if (!currentModule || !currentModule.isActive) {
+    return res.status(404).json({
+      success: false,
+      message: "Module not found",
+    });
+  }
+
+  const course = await Course.findById(currentModule.course).select(
+    "_id instructor",
+  );
+
+  if (!course) {
+    return res.status(404).json({
+      success: false,
+      message: "Course associated with module not found",
+    });
+  }
+
+  const isOwner = checkOwnership(course.instructor, req.user);
+  const isAdmin = req.user?.role === "admin";
 
   if (!isOwner && !isAdmin) {
     return res.status(403).json({
@@ -509,179 +397,40 @@ export const reorderCourseModuleController = asyncHandler(async (req, res) => {
     });
   }
 
-  // -----------------------------
-  // 4. Fetch all active modules
-  // -----------------------------
-  const allModules = await CourseModule.find({
-    course: courseModule.course,
-    isActive: true,
-  })
-    .sort({ order: 1, createdAt: 1 })
-    .select("_id title order isPublished");
+  let prevOrder = null;
+  let nextOrder = null;
 
-  if (allModules.length <= 1) {
-    return res.status(200).json({
-      success: true,
-      message: "Module is already in the correct position",
-      modules: allModules,
-    });
+  if (previousModuleId) {
+    const prevMod = await CourseModule.findById(previousModuleId).select(
+      "order",
+    );
+    if (prevMod) prevOrder = prevMod.order;
   }
 
-  // Remove target module from existing list
-  const targetModule = allModules.find(
-    (module) => module._id.toString() === moduleId,
-  );
-
-  const remainingModules = allModules.filter(
-    (module) => module._id.toString() !== moduleId,
-  );
-
-  if (!targetModule) {
-    return res.status(404).json({
-      success: false,
-      message: "Target module not found",
-    });
+  if (nextModuleId) {
+    const nextMod = await CourseModule.findById(nextModuleId).select("order");
+    if (nextMod) nextOrder = nextMod.order;
   }
 
-  // -----------------------------
-  // 5. Validate previous/next modules
-  // -----------------------------
-  const previousIndex = previousModuleId
-    ? remainingModules.findIndex(
-        (module) =>
-          module._id.toString() === previousModuleId,
-      )
-    : -1;
+  const ORDER_GAP = 1000;
+  let newOrder;
 
-  const nextIndex = nextModuleId
-    ? remainingModules.findIndex(
-        (module) =>
-          module._id.toString() === nextModuleId,
-      )
-    : -1;
-
-  if (previousModuleId && previousIndex === -1) {
-    return res.status(404).json({
-      success: false,
-      message: "Previous module not found in this course",
-    });
+  if (prevOrder !== null && nextOrder !== null) {
+    newOrder = Math.round((prevOrder + nextOrder) / 2);
+  } else if (prevOrder !== null) {
+    newOrder = prevOrder + ORDER_GAP;
+  } else if (nextOrder !== null) {
+    newOrder = Math.max(1, nextOrder - ORDER_GAP);
+  } else {
+    newOrder = currentModule.order;
   }
 
-  if (nextModuleId && nextIndex === -1) {
-    return res.status(404).json({
-      success: false,
-      message: "Next module not found in this course",
-    });
-  }
-
-  if (
-    previousModuleId &&
-    nextModuleId &&
-    previousIndex + 1 !== nextIndex
-  ) {
-    return res.status(400).json({
-      success: false,
-      message:
-        "Previous and next modules must be adjacent in the final sequence",
-    });
-  }
-
-  // -----------------------------
-  // 6. Calculate insertion position
-  // -----------------------------
-  let insertIndex;
-
-  // First position
-  if (!previousModuleId && nextModuleId) {
-    insertIndex = nextIndex;
-  }
-
-  // Last position
-  else if (previousModuleId && !nextModuleId) {
-    insertIndex = previousIndex + 1;
-  }
-
-  // Between two modules
-  else if (previousModuleId && nextModuleId) {
-    insertIndex = nextIndex;
-  }
-
-  // No previous and next means only/default first position
-  else {
-    insertIndex = 0;
-  }
-
-  remainingModules.splice(insertIndex, 0, targetModule);
-
-  // -----------------------------
-  // 7. Reassign orders safely
-  // -----------------------------
-  const session = await mongoose.startSession();
-
-  try {
-    await session.withTransaction(async () => {
-      /*
-       * First set all active module orders to null.
-       * Partial unique index ignores null orders.
-       * This prevents E11000 during reassignment.
-       */
-      await CourseModule.updateMany(
-        {
-          course: courseModule.course,
-          isActive: true,
-        },
-        {
-          $set: {
-            order: null,
-          },
-        },
-        {
-          session,
-        },
-      );
-
-      const operations = remainingModules.map(
-        (module, index) => ({
-          updateOne: {
-            filter: {
-              _id: module._id,
-              course: courseModule.course,
-              isActive: true,
-            },
-            update: {
-              $set: {
-                order: (index + 1) * ORDER_GAP,
-              },
-            },
-          },
-        }),
-      );
-
-      if (operations.length > 0) {
-        await CourseModule.bulkWrite(operations, {
-          session,
-          ordered: true,
-        });
-      }
-    });
-  } finally {
-    await session.endSession();
-  }
-
-  // -----------------------------
-  // 8. Return updated sequence
-  // -----------------------------
-  const reorderedModules = await CourseModule.find({
-    course: courseModule.course,
-    isActive: true,
-  })
-    .sort({ order: 1 })
-    .select("title description order isPublished")
-    .lean();
+  currentModule.order = newOrder;
+  await currentModule.save();
 
   return res.status(200).json({
     success: true,
-    message: "Course modules reordered successfully",
-    modules: reorderedModules,
+    message: "Module reordered successfully",
+    module: currentModule,
   });
 });

@@ -16,83 +16,75 @@ export function CourseFilters({ filters, onChange }) {
   const set = (key, val) => onChange({ ...filters, [key]: val });
 
   return (
-    <div style={{
-      display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center',
-      padding: '1rem 1.5rem',
-      background: 'var(--color-surface)',
-      border: '1px solid var(--color-border)',
-      borderRadius: 'var(--radius-lg)',
-      marginBottom: '2rem',
-    }}>
-      {/* Search */}
-      <div style={{ position: 'relative', flex: '1 1 260px' }}>
-        <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-        <input
-          type="text"
-          className="input-field"
-          placeholder="Search courses…"
-          value={filters.search || ''}
-          onChange={e => set('search', e.target.value)}
-          style={{ paddingLeft: 38 }}
-          id="course-search-input"
-        />
-      </div>
+    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 p-4 rounded-2xl shadow-xs mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-center">
+        {/* Search */}
+        <div className="relative">
+          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
+          <input
+            type="text"
+            className="w-full border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl pl-9 pr-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Search courses..."
+            value={filters.search || ''}
+            onChange={e => set('search', e.target.value)}
+            id="course-search-input"
+          />
+        </div>
 
-      {/* Category */}
-      <select
-        className="input-field"
-        style={{ flex: '0 0 auto', minWidth: 160 }}
-        value={filters.category || ''}
-        onChange={e => set('category', e.target.value)}
-        id="course-category-filter"
-      >
-        <option value="">All Categories</option>
-        {categories.map(c => (
-          <option key={c._id} value={c._id}>{c.name}</option>
-        ))}
-      </select>
-
-      {/* Level */}
-      <select
-        className="input-field"
-        style={{ flex: '0 0 auto', minWidth: 140 }}
-        value={filters.level || ''}
-        onChange={e => set('level', e.target.value)}
-        id="course-level-filter"
-      >
-        <option value="">All Levels</option>
-        {LEVELS.map(l => (
-          <option key={l} value={l}>{l.replace('-', ' ')}</option>
-        ))}
-      </select>
-
-      {/* Sort matching backend sortOptions */}
-      <select
-        className="input-field"
-        style={{ flex: '0 0 auto', minWidth: 160 }}
-        value={filters.sort || ''}
-        onChange={e => set('sort', e.target.value)}
-        id="course-sort-filter"
-      >
-        <option value="">Sort: Default (Newest)</option>
-        <option value="newest">Newest First</option>
-        <option value="popular">Most Popular</option>
-        <option value="rating">Top Rated</option>
-        <option value="price_low">Price: Low to High</option>
-        <option value="price_high">Price: High to Low</option>
-      </select>
-
-      {/* Clear Filters */}
-      {(filters.search || filters.category || filters.level || filters.sort) && (
-        <button
-          className="btn btn-ghost btn-sm"
-          onClick={() => onChange({})}
-          style={{ color: 'var(--color-error)' }}
-          id="clear-filters-btn"
+        {/* Category */}
+        <select
+          className="w-full border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={filters.category || ''}
+          onChange={e => set('category', e.target.value)}
+          id="course-category-filter"
         >
-          <X size={14} /> Clear
-        </button>
-      )}
+          <option value="">All Categories</option>
+          {categories.map(c => (
+            <option key={c._id} value={c._id}>{c.name}</option>
+          ))}
+        </select>
+
+        {/* Level */}
+        <select
+          className="w-full border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 capitalize"
+          value={filters.level || ''}
+          onChange={e => set('level', e.target.value)}
+          id="course-level-filter"
+        >
+          <option value="">All Levels</option>
+          {LEVELS.map(l => (
+            <option key={l} value={l}>{l.replace('-', ' ')}</option>
+          ))}
+        </select>
+
+        {/* Sort */}
+        <div className="flex items-center gap-2">
+          <select
+            className="w-full border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={filters.sort || ''}
+            onChange={e => set('sort', e.target.value)}
+            id="course-sort-filter"
+          >
+            <option value="">Sort: Newest</option>
+            <option value="newest">Newest First</option>
+            <option value="popular">Most Popular</option>
+            <option value="rating">Top Rated</option>
+            <option value="price_low">Price: Low to High</option>
+            <option value="price_high">Price: High to Low</option>
+          </select>
+
+          {(filters.search || filters.category || filters.level || filters.sort) && (
+            <button
+              className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition shrink-0"
+              onClick={() => onChange({})}
+              title="Clear Filters"
+              id="clear-filters-btn"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

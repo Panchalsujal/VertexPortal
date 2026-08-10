@@ -188,37 +188,39 @@ export default function CourseDetail() {
   return (
     <div className="page-wrapper">
       {/* Hero */}
-      <div style={{ background: 'linear-gradient(135deg, #0f0826 0%, #0a1628 100%)', borderBottom: '1px solid var(--color-border)', padding: '3rem 0' }}>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '3rem', alignItems: 'start' }}>
-          <div>
-            <span className="badge badge-primary" style={{ marginBottom: '1rem' }}>{course.category?.name}</span>
-            <h1 style={{ fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', marginBottom: '1rem' }}>{course.title}</h1>
-            {course.subtitle && <p style={{ fontSize: '1.125rem', marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>{course.subtitle}</p>}
+      <div className="bg-slate-900 text-white border-b border-slate-800 py-10">
+        <div className="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="lg:col-span-2 space-y-4">
+            <span className="inline-block px-3 py-1 bg-blue-600/30 text-blue-400 border border-blue-500/30 text-xs font-bold rounded-full uppercase tracking-wider">
+              {course.category?.name || 'Course'}
+            </span>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight">{course.title}</h1>
+            {course.subtitle && <p className="text-base sm:text-lg text-gray-300">{course.subtitle}</p>}
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-300 pt-2">
               {course.averageRating > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div className="flex items-center gap-1.5">
                   <StarRating rating={course.averageRating} size={16} />
-                  <span style={{ fontWeight: 600, color: 'var(--color-gold)' }}>{course.averageRating.toFixed(1)}</span>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>({course.totalReviews} reviews)</span>
+                  <span className="font-bold text-amber-400">{course.averageRating.toFixed(1)}</span>
+                  <span className="text-gray-400">({course.totalReviews} reviews)</span>
                 </div>
               )}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-                <Users size={14} /> {course.enrolledStudentsCount || 0} students
+              <div className="flex items-center gap-1 text-gray-300">
+                <Users size={15} className="text-gray-400" /> {course.enrolledStudentsCount || 0} enrolled
               </div>
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Globe size={14} /> {course.language}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}><BarChart2 size={14} /> {course.level}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}><BookOpen size={14} /> {course.totalLectures} lectures</div>
+            <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm text-gray-300 pt-1">
+              <div className="flex items-center gap-1.5"><Globe size={15} className="text-blue-400" /> {course.language || 'English'}</div>
+              <div className="flex items-center gap-1.5 capitalize"><BarChart2 size={15} className="text-blue-400" /> {course.level || 'All Levels'}</div>
+              <div className="flex items-center gap-1.5"><BookOpen size={15} className="text-blue-400" /> {course.totalLectures} lectures</div>
               {course.totalDurationInSeconds > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={14} /> {formatDuration(course.totalDurationInSeconds)}</div>
+                <div className="flex items-center gap-1.5"><Clock size={15} className="text-blue-400" /> {formatDuration(course.totalDurationInSeconds)}</div>
               )}
             </div>
 
-            <div style={{ marginTop: '1.5rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-              Instructor: <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{course.instructor?.fullName}</span>
+            <div className="pt-2 text-sm text-gray-300">
+              Instructor: <span className="text-white font-bold">{course.instructor?.fullName || course.instructor?.name || 'Instructor'}</span>
             </div>
           </div>
 
@@ -376,24 +378,28 @@ export default function CourseDetail() {
 
         {/* Reviews */}
         {tab === 'reviews' && (
-          <div style={{ maxWidth: 700 }}>
-            {/* Stats */}
-            {course.averageRating > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', padding: '1.5rem', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', marginBottom: '2rem' }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '3rem', fontWeight: 800, fontFamily: 'var(--font-heading)', color: 'var(--color-gold)' }}>
-                    {course.averageRating.toFixed(1)}
-                  </div>
-                  <StarRating rating={course.averageRating} size={18} />
-                  <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: 4 }}>{course.totalReviews} reviews</div>
+          <div className="max-w-3xl space-y-6">
+            {/* Stats Summary */}
+            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 flex items-center gap-6 shadow-xs">
+              <div className="text-center shrink-0 pr-6 border-r border-gray-100 dark:border-slate-800">
+                <div className="text-4xl font-extrabold text-amber-500">
+                  {course.averageRating ? course.averageRating.toFixed(1) : '0.0'}
                 </div>
+                <div className="my-1">
+                  <StarRating rating={course.averageRating || 0} size={18} />
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">{course.totalReviews || reviews.length || 0} reviews</div>
               </div>
-            )}
+              <div className="flex-1 text-xs text-gray-600 dark:text-gray-300">
+                <p className="font-semibold text-gray-900 dark:text-white text-sm mb-1">Student Ratings & Reviews</p>
+                <p>Ratings are calculated from verified enrolled student reviews. Rate this course to share your experience!</p>
+              </div>
+            </div>
 
             {/* Write/Edit Review */}
-            {user?.role === 'student' && enrollment && (
-              <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '1.5rem', marginBottom: '2rem' }}>
-                <h4 style={{ marginBottom: '1rem' }}>{myReview ? 'Your Review' : 'Write a Review'}</h4>
+            {user?.role === 'student' && isEnrolled && (
+              <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white">{myReview ? 'Your Review & Rating' : 'Write a Review & Rate Course'}</h4>
 
                 {myReview && !editingReview ? (
                   <div>

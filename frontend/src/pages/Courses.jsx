@@ -4,7 +4,7 @@ import { BookOpen } from 'lucide-react';
 import { getAllCourses } from '../api/course.api';
 import { CourseCard } from '../components/course/CourseCard';
 import { CourseFilters } from '../components/course/CourseFilters';
-import { Spinner } from '../components/ui/Spinner';
+import { Spinner, SkeletonCard } from '../components/ui/Spinner';
 
 export default function Courses() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -74,8 +74,10 @@ export default function Courses() {
         <CourseFilters filters={filters} onChange={handleFiltersChange} />
 
         {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '6rem' }}>
-            <Spinner />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
         ) : courses.length > 0 ? (
           <>

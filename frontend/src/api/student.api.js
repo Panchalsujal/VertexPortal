@@ -49,3 +49,10 @@ export const getStudentLiveClass = (liveClassId) =>
   api.get(`/student/live-classes/${liveClassId}`);
 export const joinLiveClass = (liveClassId) =>
   api.post(`/student/live-classes/${liveClassId}/join`);
+export const leaveLiveClass = (liveClassId) =>
+  api.post(`/student/live-classes/${liveClassId}/leave`);
+export const getLiveClassResources = (liveClassId) =>
+  api.get(`/student/live-classes/${liveClassId}/resources`);
+export const getLiveClassAttendanceHistory = () =>
+  api.get('/student/live-classes/attendance/history');
+

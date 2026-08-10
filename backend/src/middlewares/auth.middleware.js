@@ -4,7 +4,7 @@ import { config } from "../config/config.js";
 
 export async function authMiddleware(req, res, next) {
   try {
-    const token = req.cookies.token;
+    const token = req.cookies?.token || req.headers.authorization?.replace("Bearer ", "");
 
     if (!token) {
       return res.status(401).json({
@@ -24,10 +24,10 @@ export async function authMiddleware(req, res, next) {
       });
     }
 
-    if (!user.isActive) {
+    if (!user.isActive || user.status === "suspended" || user.status === "inactive") {
       return res.status(403).json({
         success: false,
-        message: "Your account is inactive",
+        message: `Your account is ${user.status || "inactive"}. Please contact support.`,
       });
     }
 
@@ -50,7 +50,7 @@ export async function optionalAuthMiddleware(req, res, next) {
       const decoded = jwt.verify(token, config.JWT_SECRET);
       const user = await User.findById(decoded.id);
 
-      if (user && user.isActive) {
+      if (user && user.isActive && user.status === "active") {
         req.user = user;
       }
     }
