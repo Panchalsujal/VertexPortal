@@ -3,25 +3,15 @@ import { Mistral } from "@mistralai/mistralai";
 import AiConversation from "../models/aiConversation.model.js";
 import AiMessage from "../models/aiMessage.model.js";
 
-import {
-  searchCourseKnowledge,
-} from "./rag.service.js";
+import { searchCourseKnowledge } from "./rag.service.js";
 
-import {
-  saveAiAssistantMessage,
-} from "./aiAssistant.service.js";
+import { saveAiAssistantMessage } from "./aiAssistant.service.js";
 
-import {
-  validateObjectId,
-} from "../utils/validator.js";
+import { validateObjectId } from "../utils/validator.js";
 
-import {
-  config,
-} from "../config/config.js";
+import { config } from "../config/config.js";
 
-import {
-  ApiError,
-} from "../utils/ApiError.js";
+import { ApiError } from "../utils/ApiError.js";
 
 /*
  * ============================================
@@ -30,18 +20,14 @@ import {
  */
 
 if (!config.MISTRAL_API_KEY) {
-  throw new Error(
-    "MISTRAL_API_KEY is missing from environment variables",
-  );
+  throw new Error("MISTRAL_API_KEY is missing from environment variables");
 }
 
 const mistral = new Mistral({
   apiKey: config.MISTRAL_API_KEY,
 });
 
-const CHAT_MODEL =
-  config.MISTRAL_CHAT_MODEL ||
-  "mistral-large-latest";
+const CHAT_MODEL = config.MISTRAL_CHAT_MODEL || "mistral-large-latest";
 
 const MAX_HISTORY_MESSAGES = 10;
 
@@ -53,32 +39,16 @@ const RAG_RESULT_LIMIT = 6;
  * ============================================
  */
 
-function extractAssistantText(
-  content,
-) {
-  if (
-    typeof content ===
-    "string"
-  ) {
+function extractAssistantText(content) {
+  if (typeof content === "string") {
     return content.trim();
   }
 
-  if (
-    Array.isArray(content)
-  ) {
+  if (Array.isArray(content)) {
     return content
       .map((chunk) => {
-        if (
-          chunk &&
-          typeof chunk ===
-            "object" &&
-          chunk.type ===
-            "text"
-        ) {
-          return (
-            chunk.text ||
-            ""
-          );
+        if (chunk && typeof chunk === "object" && chunk.type === "text") {
+          return chunk.text || "";
         }
 
         return "";
@@ -96,93 +66,117 @@ function extractAssistantText(
  * ============================================
  */
 
-function buildRagContext(
-  results,
-) {
-  if (
-    !Array.isArray(results) ||
-    results.length === 0
-  ) {
+function buildRagContext(results) {
+  if (!Array.isArray(results) || results.length === 0) {
     return "";
   }
 
   return results
-    .map(
-      (
-        result,
-        index,
-      ) => {
-        return [
-          `[Source ${index + 1}]`,
+    .map((result, index) => {
+      return [
+        `[Source ${index + 1}]`,
 
-          `Title: ${
-            result.title ||
-            ""
-          }`,
+        `Title: ${result.title || ""}`,
 
-          `Type: ${
-            result.resourceType ||
-            ""
-          }`,
+        `Type: ${result.resourceType || ""}`,
 
-          result.lecture
-            ? `Lecture ID: ${result.lecture}`
-            : null,
+        result.lecture ? `Lecture ID: ${result.lecture}` : null,
 
-          `Content: ${
-            result.content ||
-            ""
-          }`,
-        ]
-          .filter(Boolean)
-          .join("\n");
-      },
-    )
+        `Content: ${result.content || ""}`,
+      ]
+        .filter(Boolean)
+        .join("\n");
+    })
     .join("\n\n");
 }
 
 /*
  * ============================================
- * BUILD MESSAGE SOURCES
+ * BUILD UNIQUE MESSAGE SOURCES
  * ============================================
+ *
+ * RAG ke multiple chunks same resource se
+ * aa sakte hain.
+ *
+ * AI ko saare chunks context ke liye milenge,
+ * lekin API sources me same resource
+ * sirf ek baar return hoga.
  */
-
-function buildMessageSources(
-  results,
-) {
-  if (
-    !Array.isArray(results)
-  ) {
+function buildMessageSources(results) {
+  if (!Array.isArray(results) || results.length === 0) {
     return [];
   }
 
-  return results.map(
-    (result) => ({
-      resourceType:
-        result.resourceType,
+  const sourceMap = new Map();
 
-      resourceId:
-        result.resourceId,
+  for (const result of results) {
+    const resourceType = String(result.resourceType || "");
 
-      title:
-        result.title ||
-        "",
+    const resourceId = String(result.resourceId || "");
 
-      excerpt:
-        String(
-          result.content ||
-            "",
-        ).slice(
-          0,
-          2000,
-        ),
+    if (!resourceType || !resourceId) {
+      continue;
+    }
 
-      score:
-        Number(
-          result.score ||
-            0,
-        ),
-    }),
+    /*
+     * resourceType bhi key me rakhenge
+     * because theoretically same ObjectId
+     * different resource type me ho sakta hai.
+     */
+    const key = `${resourceType}:${resourceId}`;
+
+    const score = Number(result.score || 0);
+
+    const excerpt = String(result.content || "")
+      .trim()
+      .slice(0, 2000);
+
+    /*
+     * First occurrence
+     */
+    if (!sourceMap.has(key)) {
+      sourceMap.set(key, {
+        resourceType,
+
+        resourceId: result.resourceId,
+
+        title: result.title || "",
+
+        excerpt,
+
+        score,
+      });
+
+      continue;
+    }
+
+    /*
+     * Same resource ka agar better scoring
+     * chunk mila to source card me wahi
+     * excerpt use karenge.
+     */
+    const existing = sourceMap.get(key);
+
+    if (score > Number(existing.score || 0)) {
+      sourceMap.set(key, {
+        resourceType,
+
+        resourceId: result.resourceId,
+
+        title: result.title || "",
+
+        excerpt,
+
+        score,
+      });
+    }
+  }
+
+  /*
+   * Highest score first
+   */
+  return Array.from(sourceMap.values()).sort(
+    (a, b) => Number(b.score || 0) - Number(a.score || 0),
   );
 }
 
@@ -192,51 +186,32 @@ function buildMessageSources(
  * ============================================
  */
 
-async function getConversationHistory(
-  conversationId,
-) {
-  const messages =
-    await AiMessage.find({
-      conversation:
-        conversationId,
+async function getConversationHistory(conversationId) {
+  const messages = await AiMessage.find({
+    conversation: conversationId,
 
-      isActive:
-        true,
+    isActive: true,
 
-      role: {
-        $in: [
-          "user",
-          "assistant",
-        ],
-      },
+    role: {
+      $in: ["user", "assistant"],
+    },
+  })
+    .select("role content createdAt")
+    .sort({
+      createdAt: -1,
     })
-      .select(
-        "role content createdAt",
-      )
-      .sort({
-        createdAt:
-          -1,
-      })
-      .limit(
-        MAX_HISTORY_MESSAGES,
-      )
-      .lean();
+    .limit(MAX_HISTORY_MESSAGES)
+    .lean();
 
   /*
    * Latest-first ko chronological order
    * me convert.
    */
-  return messages
-    .reverse()
-    .map(
-      (message) => ({
-        role:
-          message.role,
+  return messages.reverse().map((message) => ({
+    role: message.role,
 
-        content:
-          message.content,
-      }),
-    );
+    content: message.content,
+  }));
 }
 
 /*
@@ -245,10 +220,7 @@ async function getConversationHistory(
  * ============================================
  */
 
-function buildSystemPrompt({
-  hasCourse,
-  hasLectureScope,
-}) {
+function buildSystemPrompt({ hasCourse, hasLectureScope }) {
   if (hasCourse) {
     return `
 You are an AI learning assistant inside an LMS.
@@ -290,50 +262,26 @@ Keep answers educational, concise, and structured when useful.
  * ============================================
  */
 
-function handleChatError(
-  error,
-) {
-  if (
-    error instanceof ApiError
-  ) {
+function handleChatError(error) {
+  if (error instanceof ApiError) {
     throw error;
   }
 
-  const status =
-    error?.status ??
-    error?.statusCode;
+  const status = error?.status ?? error?.statusCode;
 
-  if (
-    status === 429
-  ) {
-    throw new ApiError(
-      429,
-      "Mistral rate limit exceeded",
-    );
+  if (status === 429) {
+    throw new ApiError(429, "Mistral rate limit exceeded");
   }
 
-  if (
-    status === 401
-  ) {
-    throw new ApiError(
-      500,
-      "Invalid Mistral API configuration",
-    );
+  if (status === 401) {
+    throw new ApiError(500, "Invalid Mistral API configuration");
   }
 
-  if (
-    status === 400
-  ) {
-    throw new ApiError(
-      400,
-      "Invalid AI generation request",
-    );
+  if (status === 400) {
+    throw new ApiError(400, "Invalid AI generation request");
   }
 
-  throw new ApiError(
-    500,
-    "Failed to generate AI response",
-  );
+  throw new ApiError(500, "Failed to generate AI response");
 }
 
 /*
@@ -361,53 +309,26 @@ export async function generateAiAnswer({
    * ======================================
    */
 
-  validateObjectId(
-    userId,
-    "user ID",
-  );
+  validateObjectId(userId, "user ID");
 
-  validateObjectId(
-    conversationId,
-    "conversation ID",
-  );
+  validateObjectId(conversationId, "conversation ID");
 
   if (moduleId) {
-    validateObjectId(
-      moduleId,
-      "module ID",
-    );
+    validateObjectId(moduleId, "module ID");
   }
 
   if (lectureId) {
-    validateObjectId(
-      lectureId,
-      "lecture ID",
-    );
+    validateObjectId(lectureId, "lecture ID");
   }
 
-  const normalizedContent =
-    String(
-      content ||
-        "",
-    ).trim();
+  const normalizedContent = String(content || "").trim();
 
-  if (
-    !normalizedContent
-  ) {
-    throw new ApiError(
-      400,
-      "Message is required",
-    );
+  if (!normalizedContent) {
+    throw new ApiError(400, "Message is required");
   }
 
-  if (
-    normalizedContent.length >
-    10000
-  ) {
-    throw new ApiError(
-      400,
-      "Message cannot exceed 10000 characters",
-    );
+  if (normalizedContent.length > 10000) {
+    throw new ApiError(400, "Message cannot exceed 10000 characters");
   }
 
   /*
@@ -416,43 +337,24 @@ export async function generateAiAnswer({
    * ======================================
    */
 
-  const conversation =
-    await AiConversation.findOne({
-      _id:
-        conversationId,
+  const conversation = await AiConversation.findOne({
+    _id: conversationId,
 
-      user:
-        userId,
+    user: userId,
 
-      isActive:
-        true,
-    });
+    isActive: true,
+  });
 
-  if (
-    !conversation
-  ) {
-    throw new ApiError(
-      404,
-      "AI conversation not found",
-    );
+  if (!conversation) {
+    throw new ApiError(404, "AI conversation not found");
   }
 
   /*
    * Course-less conversation me
    * scoped RAG IDs allowed nahi.
    */
-  if (
-    !conversation.course &&
-    (
-      moduleId ||
-      lectureId ||
-      resourceType
-    )
-  ) {
-    throw new ApiError(
-      400,
-      "RAG scope requires a course-linked conversation",
-    );
+  if (!conversation.course && (moduleId || lectureId || resourceType)) {
+    throw new ApiError(400, "RAG scope requires a course-linked conversation");
   }
 
   /*
@@ -461,46 +363,31 @@ export async function generateAiAnswer({
    * ======================================
    */
 
-  const userMessage =
-    await AiMessage.create({
-      conversation:
-        conversation._id,
+  const userMessage = await AiMessage.create({
+    conversation: conversation._id,
 
-      user:
-        userId,
+    user: userId,
 
-      course:
-        conversation.course ??
-        null,
+    course: conversation.course ?? null,
 
-      role:
-        "user",
+    role: "user",
 
-      content:
-        normalizedContent,
+    content: normalizedContent,
 
-      sources:
-        [],
+    sources: [],
 
-      metadata: {
-        ragScope: {
-          moduleId:
-            moduleId ??
-            null,
+    metadata: {
+      ragScope: {
+        moduleId: moduleId ?? null,
 
-          lectureId:
-            lectureId ??
-            null,
+        lectureId: lectureId ?? null,
 
-          resourceType:
-            resourceType ??
-            null,
-        },
+        resourceType: resourceType ?? null,
       },
+    },
 
-      isActive:
-        true,
-    });
+    isActive: true,
+  });
 
   /*
    * ======================================
@@ -508,31 +395,20 @@ export async function generateAiAnswer({
    * ======================================
    */
 
-  conversation.messageCount +=
-    1;
+  conversation.messageCount += 1;
 
-  conversation.lastMessageAt =
-    new Date();
+  conversation.lastMessageAt = new Date();
 
   /*
    * First user message se auto title.
    */
   if (
-    conversation.messageCount ===
-      1 &&
-    (
-      !conversation.title ||
-      conversation.title ===
-        "New conversation"
-    )
+    conversation.messageCount === 1 &&
+    (!conversation.title || conversation.title === "New conversation")
   ) {
     conversation.title =
-      normalizedContent.length >
-      60
-        ? `${normalizedContent.slice(
-            0,
-            57,
-          )}...`
+      normalizedContent.length > 60
+        ? `${normalizedContent.slice(0, 57)}...`
         : normalizedContent;
   }
 
@@ -544,107 +420,72 @@ export async function generateAiAnswer({
    * ======================================
    */
 
-  let ragResults =
-    [];
+  let ragResults = [];
 
-  if (
-    conversation.course
-  ) {
+  if (conversation.course) {
     try {
-      ragResults =
-        await searchCourseKnowledge({
-          userId,
+      ragResults = await searchCourseKnowledge({
+        userId,
 
-          userRole,
+        userRole,
 
-          courseId:
-            conversation.course,
+        courseId: conversation.course,
 
-          query:
-            normalizedContent,
+        query: normalizedContent,
 
-          /*
-           * Optional scope.
-           */
-          moduleId,
+        /*
+         * Optional scope.
+         */
+        moduleId,
 
-          lectureId,
+        lectureId,
 
-          resourceType,
+        resourceType,
 
-          limit:
-            RAG_RESULT_LIMIT,
-        });
+        limit: RAG_RESULT_LIMIT,
+      });
     } catch (error) {
       /*
        * IMPORTANT:
        * Original Atlas/Mongo error terminal
        * me visible rahega.
        */
-      console.error(
-        "RAG retrieval failed:",
-        error,
-      );
+      console.error("RAG retrieval failed:", error);
 
-      console.error(
-        "RAG retrieval details:",
-        {
-          name:
-            error?.name,
+      console.error("RAG retrieval details:", {
+        name: error?.name,
 
-          message:
-            error?.message,
+        message: error?.message,
 
-          code:
-            error?.code,
+        code: error?.code,
 
-          status:
-            error?.status,
+        status: error?.status,
 
-          statusCode:
-            error?.statusCode,
+        statusCode: error?.statusCode,
 
-          cause:
-            error?.cause,
+        cause: error?.cause,
 
-          stack:
-            error?.stack,
+        stack: error?.stack,
 
-          scope: {
-            courseId:
-              String(
-                conversation.course,
-              ),
+        scope: {
+          courseId: String(conversation.course),
 
-            moduleId:
-              moduleId ??
-              null,
+          moduleId: moduleId ?? null,
 
-            lectureId:
-              lectureId ??
-              null,
+          lectureId: lectureId ?? null,
 
-            resourceType:
-              resourceType ??
-              null,
-          },
+          resourceType: resourceType ?? null,
         },
-      );
+      });
 
       /*
        * Apne ApiError ko preserve karo.
        */
-      if (
-        error instanceof
-        ApiError
-      ) {
+      if (error instanceof ApiError) {
         throw error;
       }
 
-      throw new ApiError(
-        500,
-        "Failed to retrieve course knowledge",
-      );
+      throw new ApiError(500, "Failed to retrieve course knowledge");
     }
   }
 
@@ -654,10 +495,7 @@ export async function generateAiAnswer({
    * ======================================
    */
 
-  const ragContext =
-    buildRagContext(
-      ragResults,
-    );
+  const ragContext = buildRagContext(ragResults);
 
   /*
    * ======================================
@@ -665,22 +503,13 @@ export async function generateAiAnswer({
    * ======================================
    */
 
-  const history =
-    await getConversationHistory(
-      conversation._id,
-    );
+  const history = await getConversationHistory(conversation._id);
 
   /*
    * Current message already DB/history
    * me last message hai.
    */
-  const previousHistory =
-    history.length > 0
-      ? history.slice(
-          0,
-          -1,
-        )
-      : [];
+  const previousHistory = history.length > 0 ? history.slice(0, -1) : [];
 
   /*
    * ======================================
@@ -688,18 +517,11 @@ export async function generateAiAnswer({
    * ======================================
    */
 
-  const systemPrompt =
-    buildSystemPrompt({
-      hasCourse:
-        Boolean(
-          conversation.course,
-        ),
+  const systemPrompt = buildSystemPrompt({
+    hasCourse: Boolean(conversation.course),
 
-      hasLectureScope:
-        Boolean(
-          lectureId,
-        ),
-    });
+    hasLectureScope: Boolean(lectureId),
+  });
 
   /*
    * ======================================
@@ -709,51 +531,35 @@ export async function generateAiAnswer({
 
   const modelMessages = [
     {
-      role:
-        "system",
+      role: "system",
 
-      content:
-        systemPrompt,
+      content: systemPrompt,
     },
 
     ...previousHistory,
 
     {
-      role:
-        "user",
+      role: "user",
 
-      content:
-        conversation.course
-          ? `
+      content: conversation.course
+        ? `
 COURSE CONTEXT:
 
-${
-  ragContext ||
-  "No relevant course context was retrieved."
-}
+${ragContext || "No relevant course context was retrieved."}
 
 RAG SCOPE:
 
-Module ID: ${
-  moduleId ||
-  "none"
-}
+Module ID: ${moduleId || "none"}
 
-Lecture ID: ${
-  lectureId ||
-  "none"
-}
+Lecture ID: ${lectureId || "none"}
 
-Resource Type: ${
-  resourceType ||
-  "any"
-}
+Resource Type: ${resourceType || "any"}
 
 USER QUESTION:
 
 ${normalizedContent}
 `.trim()
-          : normalizedContent,
+        : normalizedContent,
     },
   ];
 
@@ -766,29 +572,19 @@ ${normalizedContent}
   let response;
 
   try {
-    response =
-      await mistral.chat.complete({
-        model:
-          CHAT_MODEL,
+    response = await mistral.chat.complete({
+      model: CHAT_MODEL,
 
-        messages:
-          modelMessages,
+      messages: modelMessages,
 
-        temperature:
-          0.2,
+      temperature: 0.2,
 
-        maxTokens:
-          1200,
-      });
+      maxTokens: 1200,
+    });
   } catch (error) {
-    console.error(
-      "Mistral chat generation failed:",
-      error,
-    );
+    console.error("Mistral chat generation failed:", error);
 
-    handleChatError(
-      error,
-    );
+    handleChatError(error);
   }
 
   /*
@@ -797,23 +593,12 @@ ${normalizedContent}
    * ======================================
    */
 
-  const rawContent =
-    response
-      ?.choices?.[0]
-      ?.message?.content;
+  const rawContent = response?.choices?.[0]?.message?.content;
 
-  const assistantText =
-    extractAssistantText(
-      rawContent,
-    );
+  const assistantText = extractAssistantText(rawContent);
 
-  if (
-    !assistantText
-  ) {
-    throw new ApiError(
-      500,
-      "AI returned an empty response",
-    );
+  if (!assistantText) {
+    throw new ApiError(500, "AI returned an empty response");
   }
 
   /*
@@ -822,10 +607,7 @@ ${normalizedContent}
    * ======================================
    */
 
-  const sources =
-    buildMessageSources(
-      ragResults,
-    );
+  const sources = buildMessageSources(ragResults);
 
   /*
    * ======================================
@@ -833,68 +615,41 @@ ${normalizedContent}
    * ======================================
    */
 
-  const assistantMessage =
-    await saveAiAssistantMessage({
-      conversationId:
-        conversation._id,
+  const assistantMessage = await saveAiAssistantMessage({
+    conversationId: conversation._id,
 
-      userId,
+    userId,
 
-      content:
-        assistantText,
+    content: assistantText,
 
-      sources,
+    sources,
 
-      metadata: {
-        provider:
-          "mistral",
+    metadata: {
+      provider: "mistral",
 
-        model:
-          CHAT_MODEL,
+      model: CHAT_MODEL,
 
-        ragEnabled:
-          Boolean(
-            conversation.course,
-          ),
+      ragEnabled: Boolean(conversation.course),
 
-        retrievedChunks:
-          ragResults.length,
+      retrievedChunks: ragResults.length,
 
-        ragScope: {
-          moduleId:
-            moduleId ??
-            null,
+      ragScope: {
+        moduleId: moduleId ?? null,
 
-          lectureId:
-            lectureId ??
-            null,
+        lectureId: lectureId ?? null,
 
-          resourceType:
-            resourceType ??
-            null,
-        },
-
-        usage: {
-          promptTokens:
-            response
-              ?.usage
-              ?.promptTokens ??
-            null,
-
-          completionTokens:
-            response
-              ?.usage
-              ?.completionTokens ??
-            null,
-
-          totalTokens:
-            response
-              ?.usage
-              ?.totalTokens ??
-            null,
-        },
+        resourceType: resourceType ?? null,
       },
-    });
+
+      usage: {
+        promptTokens: response?.usage?.promptTokens ?? null,
+
+        completionTokens: response?.usage?.completionTokens ?? null,
+
+        totalTokens: response?.usage?.totalTokens ?? null,
+      },
+    },
+  });
 
   /*
    * ======================================
@@ -910,35 +665,23 @@ ${normalizedContent}
     sources,
 
     retrieval: {
-      enabled:
-        Boolean(
-          conversation.course,
-        ),
+      enabled: Boolean(conversation.course),
 
-      retrievedChunks:
-        ragResults.length,
+      retrievedChunks: ragResults.length,
 
       scope: {
-        moduleId:
-          moduleId ??
-          null,
+        moduleId: moduleId ?? null,
 
-        lectureId:
-          lectureId ??
-          null,
+        lectureId: lectureId ?? null,
 
-        resourceType:
-          resourceType ??
-          null,
+        resourceType: resourceType ?? null,
       },
     },
 
     model: {
-      provider:
-        "mistral",
+      provider: "mistral",
 
-      name:
-        CHAT_MODEL,
+      name: CHAT_MODEL,
     },
   };
 }
