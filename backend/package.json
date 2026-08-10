@@ -30,6 +30,7 @@
     "razorpay": "^2.9.8",
     "redis": "^6.1.0",
     "slugify": "^1.6.9",
+    "unpdf": "^1.8.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
