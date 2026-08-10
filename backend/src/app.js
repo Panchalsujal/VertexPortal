@@ -42,6 +42,7 @@ import adminUserRoutes from "./routes/adminUser.routes.js";
 import adminCourseRoutes from "./routes/adminCourse.routes.js";
 import adminOrderRoutes from "./routes/adminOrder.routes.js";
 import aiAssistantRoutes from "./routes/aiAssistant.routes.js";
+import ragRoutes from "./routes/rag.routes.js";
 
 import { notFoundHandler } from "./middlewares/notFound.middleware.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
@@ -71,7 +72,7 @@ app.use("/api/discussions", discussionRoutes);
 app.use("/api/courses", courseRouter);
 app.use("/api/modules", moduleRouter);
 app.use("/api/lectures", lectureRouter);
-
+app.use("/api/ai/rag", ragRoutes);
 app.use("/api/enrollments", enrollmentRouter);
 app.use("/api", lectureProgressRouter);
 app.use("/api", reviewRouter);

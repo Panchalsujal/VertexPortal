@@ -74,6 +74,12 @@ if (!process.env.PORT) {
   throw new Error("PORT is not defined in the environment variables");
 }
 
+if (!process.env.MISTRAL_API_KEY) {
+  throw new Error(
+    "MISTRAL_API_KEY is not defined in the environment variables",
+  );
+}
+
 export const config = {
   MONGO_URI: process.env.MONGO_URI,
   JWT_SECRET: process.env.JWT_SECRET,
@@ -90,4 +96,5 @@ export const config = {
   RAZORPAY_SECRET_ID: process.env.RAZORPAY_SECRET_ID,
   FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:5173",
   PORT: process.env.PORT || 3000,
+  MISTRAL_API_KEY: process.env.MISTRAL_API_KEY,
 };
