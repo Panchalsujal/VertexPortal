@@ -27,14 +27,25 @@ const notificationSchema = new mongoose.Schema(
       type: String,
       enum: [
         "announcement",
+
         "assignment",
         "assignment_graded",
         "assignment_returned",
+
         "quiz",
         "quiz_result",
+
         "certificate",
+
         "live_class",
+
         "course_update",
+
+        // Discussion notifications
+        "discussion",
+        "discussion_reply",
+        "answer_accepted",
+
         "system",
       ],
       default: "system",
@@ -45,13 +56,23 @@ const notificationSchema = new mongoose.Schema(
       type: String,
       enum: [
         "announcement",
+
         "assignment",
         "submission",
+
         "quiz",
         "quiz_attempt",
+
         "certificate",
+
         "live_class",
+
         "course",
+
+        // Discussion resources
+        "discussion",
+        "discussion_reply",
+
         null,
       ],
       default: null,
@@ -115,15 +136,30 @@ const notificationSchema = new mongoose.Schema(
   },
 );
 
+/*
+ * Fast unread notification queries
+ */
 notificationSchema.index({
   user: 1,
   isRead: 1,
   createdAt: -1,
 });
 
+/*
+ * Fast inbox/archive queries
+ */
 notificationSchema.index({
   user: 1,
   isArchived: 1,
+  createdAt: -1,
+});
+
+/*
+ * Useful when filtering notifications by type.
+ */
+notificationSchema.index({
+  user: 1,
+  type: 1,
   createdAt: -1,
 });
 

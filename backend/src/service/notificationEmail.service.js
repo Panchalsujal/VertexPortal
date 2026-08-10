@@ -16,6 +16,11 @@ const EMAIL_NOTIFICATION_TYPES = [
   "certificate",
   "live_class",
   "course_update",
+
+  "discussion",
+  "discussion_reply",
+  "answer_accepted",
+
   "system",
 ];
 

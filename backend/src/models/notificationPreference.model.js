@@ -57,6 +57,24 @@ const notificationPreferenceSchema =
           default: true,
         },
 
+        /*
+         * Discussion notifications
+         */
+        discussion: {
+          type: Boolean,
+          default: true,
+        },
+
+        discussion_reply: {
+          type: Boolean,
+          default: true,
+        },
+
+        answer_accepted: {
+          type: Boolean,
+          default: true,
+        },
+
         system: {
           type: Boolean,
           default: true,
@@ -107,6 +125,24 @@ const notificationPreferenceSchema =
         course_update: {
           type: Boolean,
           default: false,
+        },
+
+        /*
+         * Discussion emails
+         */
+        discussion: {
+          type: Boolean,
+          default: false,
+        },
+
+        discussion_reply: {
+          type: Boolean,
+          default: false,
+        },
+
+        answer_accepted: {
+          type: Boolean,
+          default: true,
         },
 
         system: {

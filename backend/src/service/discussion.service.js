@@ -7,7 +7,7 @@ import DiscussionReply from "../models/discussionReply.model.js";
 import User from "../models/user.model.js";
 
 import { getPagination, buildPaginationMeta } from "../utils/pagination.js";
-
+import { dispatchNotification } from "./notification.service.js";
 import { parseEnumQuery, parseSortQuery } from "../utils/queryParser.js";
 
 import { buildSearchFilter } from "../utils/search.js";
@@ -83,8 +83,7 @@ export async function createDiscussion({ userId, userRole, payload }) {
   }
 
   /*
-   * Student ke liye enrollment required.
-   * Instructor apne course me directly post kar sakta hai.
+   * Student ke liye active enrollment required.
    */
   if (userRole === "student") {
     const enrollment = await Enrollment.findOne({
@@ -110,6 +109,10 @@ export async function createDiscussion({ userId, userRole, payload }) {
     }
   }
 
+  /*
+   * Instructor sirf apne course me discussion
+   * create kar sakta hai.
+   */
   if (
     userRole === "instructor" &&
     course.instructor.toString() !== String(userId)
@@ -198,6 +201,42 @@ export async function createDiscussion({ userId, userRole, payload }) {
 
     isActive: true,
   });
+
+  /*
+   * Student ne question create kiya hai to
+   * course instructor ko notify karo.
+   */
+  if (userRole === "student" && course.instructor) {
+    try {
+      await dispatchNotification({
+        userId: course.instructor,
+
+        title: "New course discussion",
+
+        message: `A student posted a new question: "${discussion.title}"`,
+
+        type: "discussion",
+
+        resourceType: "discussion",
+
+        resourceId: discussion._id,
+
+        courseId: discussion.course,
+
+        actionUrl: `${process.env.FRONTEND_URL}/discussions/${discussion._id}`,
+
+        metadata: {
+          discussionId: discussion._id.toString(),
+
+          authorId: discussion.author.toString(),
+
+          event: "discussion_created",
+        },
+      });
+    } catch (error) {
+      console.error("Discussion instructor notification failed:", error);
+    }
+  }
 
   return discussion;
 }
@@ -508,7 +547,6 @@ export async function createDiscussionReply({
   payload,
 }) {
   validateObjectId(userId, "user ID");
-
   validateObjectId(discussionId, "discussion ID");
 
   const { content, parentReplyId = null } = payload || {};
@@ -529,11 +567,9 @@ export async function createDiscussionReply({
 
   const discussion = await Discussion.findOne({
     _id: discussionId,
-
     isActive: true,
   }).populate({
     path: "course",
-
     select: "instructor",
   });
 
@@ -546,7 +582,7 @@ export async function createDiscussionReply({
   }
 
   /*
-   * Access validation.
+   * Student access validation.
    */
   if (userRole === "student") {
     const enrollment = await Enrollment.findOne({
@@ -564,8 +600,18 @@ export async function createDiscussionReply({
     if (!enrollment) {
       throw new ApiError(403, "You are not enrolled in this course");
     }
+
+    if (
+      enrollment.expiresAt &&
+      new Date(enrollment.expiresAt).getTime() <= Date.now()
+    ) {
+      throw new ApiError(403, "Your course enrollment has expired");
+    }
   }
 
+  /*
+   * Instructor sirf apne course me reply kar sakta hai.
+   */
   if (
     userRole === "instructor" &&
     discussion.course.instructor.toString() !== String(userId)
@@ -576,14 +622,16 @@ export async function createDiscussionReply({
   /*
    * Parent reply validation.
    */
+  let parentReply = null;
+
   if (parentReplyId) {
-    const parentReply = await DiscussionReply.exists({
+    parentReply = await DiscussionReply.findOne({
       _id: parentReplyId,
-
       discussion: discussionId,
-
       isActive: true,
-    });
+    })
+      .select("_id author")
+      .lean();
 
     if (!parentReply) {
       throw new ApiError(404, "Parent reply not found");
@@ -592,6 +640,9 @@ export async function createDiscussionReply({
 
   const isInstructorReply = userRole === "instructor" || userRole === "admin";
 
+  /*
+   * Create reply.
+   */
   const reply = await DiscussionReply.create({
     discussion: discussionId,
 
@@ -610,6 +661,9 @@ export async function createDiscussionReply({
     isActive: true,
   });
 
+  /*
+   * Update discussion statistics.
+   */
   discussion.answerCount += 1;
 
   discussion.lastActivityAt = new Date();
@@ -619,6 +673,105 @@ export async function createDiscussionReply({
   }
 
   await discussion.save();
+
+  /*
+   * Common discussion URL.
+   *
+   * Student/instructor dono same frontend page
+   * open kar saken.
+   */
+  const discussionUrl = `${process.env.FRONTEND_URL}/discussions/${discussion._id}`;
+
+  /*
+   * Discussion author notification.
+   *
+   * Self notification avoid.
+   */
+  if (discussion.author.toString() !== String(userId)) {
+    try {
+      await dispatchNotification({
+        userId: discussion.author,
+
+        title: isInstructorReply
+          ? "Instructor replied to your question"
+          : "New reply to your discussion",
+
+        message: isInstructorReply
+          ? `Your instructor replied to "${discussion.title}".`
+          : `Someone replied to "${discussion.title}".`,
+
+        type: "discussion_reply",
+
+        resourceType: "discussion",
+
+        resourceId: discussion._id,
+
+        courseId: discussion.course._id,
+
+        actionUrl: discussionUrl,
+
+        metadata: {
+          discussionId: discussion._id.toString(),
+
+          replyId: reply._id.toString(),
+
+          replyAuthorId: String(userId),
+
+          event: isInstructorReply ? "instructor_reply" : "discussion_reply",
+        },
+      });
+    } catch (error) {
+      console.error("Discussion reply notification failed:", error);
+    }
+  }
+
+  /*
+   * Nested reply notification.
+   *
+   * Parent author ko notify karenge except:
+   * - parent author current user hai
+   * - parent author discussion author hai
+   *   (discussion author already notified above)
+   */
+  if (
+    parentReply &&
+    parentReply.author.toString() !== String(userId) &&
+    parentReply.author.toString() !== discussion.author.toString()
+  ) {
+    try {
+      await dispatchNotification({
+        userId: parentReply.author,
+
+        title: "New reply to your answer",
+
+        message: `Someone replied to your answer in "${discussion.title}".`,
+
+        type: "discussion_reply",
+
+        resourceType: "discussion",
+
+        resourceId: discussion._id,
+
+        courseId: discussion.course._id,
+
+        actionUrl: discussionUrl,
+
+        metadata: {
+          discussionId: discussion._id.toString(),
+
+          replyId: reply._id.toString(),
+
+          parentReplyId: parentReply._id.toString(),
+
+          replyAuthorId: String(userId),
+
+          event: "nested_reply",
+        },
+      });
+    } catch (error) {
+      console.error("Nested discussion reply notification failed:", error);
+    }
+  }
 
   return {
     reply,
@@ -681,10 +834,14 @@ export async function acceptDiscussionAnswer({
     throw new ApiError(404, "Discussion reply not found");
   }
 
+  /*
+   * Same accepted answer already selected.
+   */
   if (reply.isAcceptedAnswer) {
     return {
       reply,
       discussion,
+      changed: false,
       message: "Reply is already the accepted answer",
     };
   }
@@ -696,6 +853,9 @@ export async function acceptDiscussionAnswer({
     {
       discussion: discussionId,
       isAcceptedAnswer: true,
+      _id: {
+        $ne: reply._id,
+      },
     },
     {
       $set: {
@@ -708,12 +868,18 @@ export async function acceptDiscussionAnswer({
 
   const now = new Date();
 
+  /*
+   * Selected reply ko accepted mark karo.
+   */
   reply.isAcceptedAnswer = true;
   reply.acceptedAt = now;
   reply.acceptedBy = userId;
 
   await reply.save();
 
+  /*
+   * Discussion resolve karo.
+   */
   discussion.status = "resolved";
   discussion.isResolved = true;
   discussion.resolvedAt = now;
@@ -722,9 +888,49 @@ export async function acceptDiscussionAnswer({
 
   await discussion.save();
 
+  /*
+   * Accepted answer author ko notify karo.
+   *
+   * Self notification avoid.
+   */
+  if (reply.author.toString() !== String(userId)) {
+    try {
+      await dispatchNotification({
+        userId: reply.author,
+
+        title: "Your answer was accepted",
+
+        message: `Your answer to "${discussion.title}" was accepted.`,
+
+        type: "answer_accepted",
+
+        resourceType: "discussion",
+
+        resourceId: discussion._id,
+
+        courseId: discussion.course._id,
+
+        actionUrl: `${process.env.FRONTEND_URL}/discussions/${discussion._id}`,
+
+        metadata: {
+          discussionId: discussion._id.toString(),
+
+          replyId: reply._id.toString(),
+
+          acceptedBy: String(userId),
+
+          event: "answer_accepted",
+        },
+      });
+    } catch (error) {
+      console.error("Accepted answer notification failed:", error);
+    }
+  }
+
   return {
     reply,
     discussion,
+    changed: true,
     message: "Answer accepted successfully",
   };
 }
