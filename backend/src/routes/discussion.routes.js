@@ -10,11 +10,12 @@ import {
   updateDiscussionModerationController,
   updateDiscussionReplyController,
   deleteDiscussionReplyController,
+  updateDiscussionController,
+  deleteDiscussionController,
 } from "../controllers/discussion.controller.js";
 
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../middlewares/authorize.middleware.js";
-
 
 const router = Router();
 
@@ -53,5 +54,9 @@ router.patch(
 router.patch("/:discussionId/moderation", updateDiscussionModerationController);
 
 router.get("/:discussionId", getDiscussionByIdController);
+
+router.patch("/:discussionId", updateDiscussionController);
+
+router.delete("/:discussionId", deleteDiscussionController);
 
 export default router;

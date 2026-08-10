@@ -1204,3 +1204,174 @@ export async function deleteDiscussionReply({
     message: "Reply deleted successfully",
   };
 }
+
+export async function updateDiscussion({
+  userId,
+  userRole,
+  discussionId,
+  payload,
+}) {
+  validateObjectId(userId, "user ID");
+  validateObjectId(discussionId, "discussion ID");
+
+  if (!payload || Object.keys(payload).length === 0) {
+    throw new ApiError(400, "At least one field is required for update");
+  }
+
+  const discussion = await Discussion.findOne({
+    _id: discussionId,
+    isActive: true,
+  }).populate({
+    path: "course",
+    select: "instructor",
+  });
+
+  if (!discussion) {
+    throw new ApiError(404, "Discussion not found");
+  }
+
+  const canEdit =
+    userRole === "admin" ||
+    discussion.author.toString() === String(userId) ||
+    (userRole === "instructor" &&
+      discussion.course.instructor.toString() === String(userId));
+
+  if (!canEdit) {
+    throw new ApiError(403, "You are not allowed to update this discussion");
+  }
+
+  if (discussion.isLocked && userRole === "student") {
+    throw new ApiError(409, "Locked discussion cannot be updated");
+  }
+
+  if (payload.courseId !== undefined || payload.course !== undefined) {
+    throw new ApiError(400, "Discussion course cannot be changed");
+  }
+
+  if (payload.moduleId !== undefined || payload.module !== undefined) {
+    throw new ApiError(400, "Discussion module cannot be changed");
+  }
+
+  if (payload.lectureId !== undefined || payload.lecture !== undefined) {
+    throw new ApiError(400, "Discussion lecture cannot be changed");
+  }
+
+  if (payload.title !== undefined) {
+    const title = String(payload.title || "").trim();
+
+    if (title.length < 3) {
+      throw new ApiError(400, "Discussion title must be at least 3 characters");
+    }
+
+    if (title.length > 200) {
+      throw new ApiError(400, "Discussion title cannot exceed 200 characters");
+    }
+
+    discussion.title = title;
+  }
+
+  if (payload.content !== undefined) {
+    const content = String(payload.content || "").trim();
+
+    if (content.length < 3) {
+      throw new ApiError(
+        400,
+        "Discussion content must be at least 3 characters",
+      );
+    }
+
+    if (content.length > 10000) {
+      throw new ApiError(
+        400,
+        "Discussion content cannot exceed 10000 characters",
+      );
+    }
+
+    discussion.content = content;
+  }
+
+  if (payload.tags !== undefined) {
+    if (!Array.isArray(payload.tags)) {
+      throw new ApiError(400, "Discussion tags must be an array");
+    }
+
+    discussion.tags = [
+      ...new Set(
+        payload.tags
+          .map((tag) =>
+            String(tag || "")
+              .trim()
+              .toLowerCase(),
+          )
+          .filter(Boolean),
+      ),
+    ].slice(0, 10);
+  }
+
+  discussion.lastActivityAt = new Date();
+
+  await discussion.save();
+
+  return {
+    discussion,
+    message: "Discussion updated successfully",
+  };
+}
+
+export async function deleteDiscussion({ userId, userRole, discussionId }) {
+  validateObjectId(userId, "user ID");
+  validateObjectId(discussionId, "discussion ID");
+
+  const discussion = await Discussion.findOne({
+    _id: discussionId,
+    isActive: true,
+  }).populate({
+    path: "course",
+    select: "instructor",
+  });
+
+  if (!discussion) {
+    throw new ApiError(404, "Discussion not found");
+  }
+
+  const canDelete =
+    userRole === "admin" ||
+    discussion.author.toString() === String(userId) ||
+    (userRole === "instructor" &&
+      discussion.course.instructor.toString() === String(userId));
+
+  if (!canDelete) {
+    throw new ApiError(403, "You are not allowed to delete this discussion");
+  }
+
+  discussion.isActive = false;
+  discussion.isLocked = true;
+
+  await discussion.save();
+
+  /*
+   * Replies bhi soft-delete kar denge.
+   */
+  await DiscussionReply.updateMany(
+    {
+      discussion: discussionId,
+      isActive: true,
+    },
+    {
+      $set: {
+        isActive: false,
+        isAcceptedAnswer: false,
+        acceptedAt: null,
+        acceptedBy: null,
+      },
+    },
+  );
+
+  return {
+    discussionId: discussion._id,
+    message: "Discussion deleted successfully",
+  };
+}
+
+
+
