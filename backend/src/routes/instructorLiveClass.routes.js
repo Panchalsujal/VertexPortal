@@ -10,6 +10,7 @@ import {
   getInstructorLiveClassAttendanceController,
   getInstructorLiveClassAttendanceAnalyticsController,
   updateLiveClassResourcesController,
+  getLiveClassAnalyticsController,
 } from "../controllers/liveClass.controller.js";
 
 import { authMiddleware } from "../middlewares/auth.middleware.js";
@@ -31,6 +32,7 @@ router.post("/", createLiveClassController);
  * Get instructor live classes
  */
 router.get("/", getInstructorLiveClassesController);
+router.get("/:liveClassId/analytics", getLiveClassAnalyticsController);
 
 /*
  * Attendance list

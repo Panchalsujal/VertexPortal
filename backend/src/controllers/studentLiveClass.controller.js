@@ -7,6 +7,8 @@ import {
   leaveLiveClassAttendance,
   getInstructorLiveClassAttendance,
   getInstructorLiveClassAttendanceAnalytics,
+  getStudentLiveClassAttendanceHistory,
+  getStudentLiveClassResources,
 } from "../service/liveClass.service.js";
 
 export const getStudentLiveClassesController = asyncHandler(
@@ -117,6 +119,41 @@ export const getInstructorLiveClassAttendanceAnalyticsController = asyncHandler(
       success: true,
       message: "Live class attendance analytics fetched successfully",
       analytics,
+    });
+  },
+);
+
+export const getStudentLiveClassAttendanceHistoryController = asyncHandler(
+  async (req, res) => {
+    const result = await getStudentLiveClassAttendanceHistory({
+      studentId: req.user.id,
+      query: req.query,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Live class attendance history fetched successfully",
+      ...result,
+    });
+  },
+);
+
+export const getStudentLiveClassResourcesController = asyncHandler(
+  async (req, res) => {
+    const { liveClassId } = req.params;
+
+    const result = await getStudentLiveClassResources({
+      studentId: req.user.id,
+
+      liveClassId,
+    });
+
+    return res.status(200).json({
+      success: true,
+
+      message: "Live class resources fetched successfully",
+
+      ...result,
     });
   },
 );
