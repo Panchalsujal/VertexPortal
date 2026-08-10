@@ -33,8 +33,8 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
-      <div className="max-w-md w-full bg-white border border-gray-200 rounded-2xl p-8 shadow-sm space-y-6">
+    <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-slate-950">
+      <div className="max-w-md w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-8 shadow-sm space-y-6">
         <div className="text-center space-y-2">
           <Link to="/" className="inline-flex items-center gap-2 text-xl font-bold text-gray-900 justify-center">
             <div className="p-2 bg-blue-600 rounded-lg text-white">

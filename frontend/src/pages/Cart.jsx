@@ -134,9 +134,9 @@ export default function Cart() {
 
   return (
     <div className="page-wrapper">
-      <div style={{ background: 'var(--color-bg-secondary)', borderBottom: '1px solid var(--color-border)', padding: '2.5rem 0' }}>
+      <div className="page-header">
         <div className="container">
-          <h1 style={{ marginBottom: '0.25rem' }}>My Cart</h1>
+          <h1>My Cart</h1>
           <p>{cartItems.length} item{cartItems.length !== 1 ? 's' : ''}</p>
         </div>
       </div>

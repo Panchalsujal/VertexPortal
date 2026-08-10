@@ -21,9 +21,9 @@ export default function Wishlist() {
 
   return (
     <div className="page-wrapper">
-      <div style={{ background: 'var(--color-bg-secondary)', borderBottom: '1px solid var(--color-border)', padding: '2.5rem 0' }}>
+      <div className="page-header">
         <div className="container">
-          <h1 style={{ marginBottom: '0.25rem' }}>My Wishlist</h1>
+          <h1>My Wishlist</h1>
           <p>{wishlist.length} saved course{wishlist.length !== 1 ? 's' : ''}</p>
         </div>
       </div>

@@ -130,7 +130,7 @@ export default function CourseForm() {
 
   return (
     <div className="page-wrapper">
-      <div style={{ background: 'var(--color-bg-secondary)', borderBottom: '1px solid var(--color-border)', padding: '2.5rem 0' }}>
+      <div className="page-header">
         <div className="container" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <button className="btn btn-ghost btn-sm" onClick={() => navigate('/instructor/dashboard')}>
             <ArrowLeft size={16} /> Back

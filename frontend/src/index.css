@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
     --color-primary: #2563eb;
@@ -34,12 +36,17 @@
     transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* Global Theme Switch Animation */
-  body, header, nav, div, section, main, article, aside, input, select, textarea, button, table, tr, td, th, a, span {
-    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Theme switch animation — scoped to avoid sluggish hover/focus transitions */
+  html.theme-transition,
+  html.theme-transition body,
+  html.theme-transition header,
+  html.theme-transition nav,
+  html.theme-transition main,
+  html.theme-transition footer,
+  html.theme-transition .bg-white,
+  html.theme-transition .bg-gray-50,
+  html.theme-transition .bg-gray-100 {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -207,6 +214,28 @@ html.dark .stitch-glass {
 /* Base Wrapper */
 .page-wrapper {
   min-height: 80vh;
+  background-color: var(--color-bg-secondary);
+}
+
+/* Shared page header band */
+.page-header {
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+  padding: 2.5rem 0;
+}
+
+.page-header h1 {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.page-header p {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
 }
 
 /* Container */

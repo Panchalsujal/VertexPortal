@@ -87,9 +87,9 @@ function AppRoot() {
         toastOptions={{
           duration: 4000,
           style: {
-            background: '#ffffff',
-            color: '#111827',
-            border: '1px solid #e5e7eb',
+            background: 'var(--color-surface)',
+            color: 'var(--color-text-primary)',
+            border: '1px solid var(--color-border)',
             fontSize: '0.875rem',
             boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
           },

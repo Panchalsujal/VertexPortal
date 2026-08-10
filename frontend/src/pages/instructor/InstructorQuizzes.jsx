@@ -210,7 +210,7 @@ export default function InstructorQuizzes() {
   if (view === 'attempts') {
     return (
       <div className="page-wrapper">
-        <div style={{ background: 'var(--color-bg-secondary)', borderBottom: '1px solid var(--color-border)', padding: '2.5rem 0' }}>
+        <div className="page-header">
           <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <button className="btn btn-ghost btn-sm" style={{ marginBottom: '0.5rem' }} onClick={() => setView('list')}>
@@ -277,7 +277,7 @@ export default function InstructorQuizzes() {
     const attemptMeta = attemptDetail?.attempt || selectedAttempt;
     return (
       <div className="page-wrapper">
-        <div style={{ background: 'var(--color-bg-secondary)', borderBottom: '1px solid var(--color-border)', padding: '2.5rem 0' }}>
+        <div className="page-header">
           <div className="container">
             <button className="btn btn-ghost btn-sm" style={{ marginBottom: '0.5rem' }} onClick={() => setView('attempts')}>
               <ChevronLeft size={16} /> Back to Submissions
@@ -424,7 +424,7 @@ export default function InstructorQuizzes() {
   // ─────────────────────────────────────────────────────────────────────────────
   return (
     <div className="page-wrapper">
-      <div style={{ background: 'var(--color-bg-secondary)', borderBottom: '1px solid var(--color-border)', padding: '2.5rem 0' }}>
+      <div className="page-header">
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>

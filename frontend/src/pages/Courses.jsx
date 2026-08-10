@@ -63,14 +63,14 @@ export default function Courses() {
 
   return (
     <div className="page-wrapper">
-      <div style={{ background: 'var(--color-bg-secondary)', borderBottom: '1px solid var(--color-border)', padding: '2.5rem 0' }}>
+      <div className="page-header">
         <div className="container">
-          <h1 style={{ marginBottom: '0.5rem' }}>Browse Courses</h1>
+          <h1>Browse Courses</h1>
           <p>{total > 0 ? `${total} course${total !== 1 ? 's' : ''} available` : 'Discover your next skill'}</p>
         </div>
       </div>
 
-      <div className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
+      <div className="container py-8 pb-16">
         <CourseFilters filters={filters} onChange={handleFiltersChange} />
 
         {loading ? (
@@ -87,7 +87,7 @@ export default function Courses() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '3rem', flexWrap: 'wrap' }}>
+              <div className="flex justify-center gap-2 mt-12 flex-wrap">
                 <button
                   className="btn btn-secondary btn-sm"
                   onClick={() => setPage(p => Math.max(1, p - 1))}

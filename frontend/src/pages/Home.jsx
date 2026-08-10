@@ -39,9 +39,9 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-gray-50 dark:bg-slate-950 min-h-screen">
       {/* Hero Section */}
-      <section className="bg-white border-b border-gray-200 py-16 lg:py-24 relative overflow-hidden">
+      <section className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 py-16 lg:py-24 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
@@ -49,7 +49,7 @@ export default function Home() {
               <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">
                 <Star className="w-3.5 h-3.5 fill-blue-600 text-blue-600" /> Trusted by 50,000+ Students & Professionals
               </div>
-              <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight leading-tight">
+              <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight">
                 Master Modern Skills with <span className="text-blue-600">AI-Powered</span> Learning
               </h1>
               <p className="text-base text-gray-600 leading-relaxed">
@@ -137,7 +137,7 @@ export default function Home() {
       )}
 
       {/* Popular Courses */}
-      <section className="py-12 bg-white border-t border-gray-200">
+      <section className="py-12 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-end mb-8">
             <div>
@@ -172,7 +172,7 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {FEATURES.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-3">
+            <div key={title} className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm space-y-3">
               <div className="p-3 bg-blue-50 text-blue-600 rounded-lg w-fit">
                 <Icon className="w-6 h-6" />
               </div>

@@ -62,9 +62,9 @@ export default function Profile() {
 
   return (
     <div className="page-wrapper">
-      <div style={{ background: 'var(--color-bg-secondary)', borderBottom: '1px solid var(--color-border)', padding: '2.5rem 0' }}>
+      <div className="page-header">
         <div className="container">
-          <h1 style={{ marginBottom: '0.25rem' }}>Account Settings</h1>
+          <h1>Account Settings</h1>
           <p>Manage your profile and security</p>
         </div>
       </div>
