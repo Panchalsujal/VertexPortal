@@ -40,6 +40,7 @@ import adminDiscussionReportRoutes from "./routes/adminDiscussionReport.routes.j
 import adminDashboardRoutes from "./routes/adminDashboard.routes.js";
 import adminUserRoutes from "./routes/adminUser.routes.js";
 import adminCourseRoutes from "./routes/adminCourse.routes.js";
+import adminOrderRoutes from "./routes/adminOrder.routes.js";
 
 import { notFoundHandler } from "./middlewares/notFound.middleware.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
@@ -98,6 +99,7 @@ app.use("/api/admin/discussion-reports", adminDiscussionReportRoutes);
 app.use("/api/admin/dashboard", adminDashboardRoutes);
 app.use("/api/admin/users", adminUserRoutes);
 app.use("/api/admin/courses", adminCourseRoutes);
+app.use("/api/admin/orders", adminOrderRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
