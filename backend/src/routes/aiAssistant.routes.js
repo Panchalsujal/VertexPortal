@@ -18,7 +18,9 @@ import { authorizeRoles } from "../middlewares/authorize.middleware.js";
 const router = Router();
 
 /*
- * All AI assistant routes require auth.
+ * ============================================
+ * GLOBAL AI AUTHORIZATION
+ * ============================================
  */
 router.use(
   authMiddleware,
@@ -50,19 +52,6 @@ router.get("/conversations", getMyAiConversationsController);
  * ============================================
  *
  * POST /api/ai/conversations/:conversationId/messages
- *
- * IMPORTANT:
- * Ye ab old addAiUserMessageController use nahi karta.
- *
- * Flow:
- *
- * user message
- * ↓
- * RAG search
- * ↓
- * Mistral
- * ↓
- * assistant message
  */
 router.post(
   "/conversations/:conversationId/messages",
@@ -83,7 +72,7 @@ router.patch(
 
 /*
  * ============================================
- * ARCHIVE / RESTORE
+ * ARCHIVE / RESTORE CONVERSATION
  * ============================================
  *
  * PATCH /api/ai/conversations/:conversationId/archive

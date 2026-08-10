@@ -6,7 +6,6 @@ import fsSync from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-
 import Course from "../models/course.model.js";
 import CourseModule from "../models/courseModule.model.js";
 import Lecture from "../models/lecture.model.js";

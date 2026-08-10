@@ -11,7 +11,9 @@ import {
 } from "../service/rag.service.js";
 
 /*
- * Generic text ingestion
+ * =============================================
+ * GENERIC TEXT INGESTION
+ * =============================================
  */
 export const ingestRagResourceController = asyncHandler(async (req, res) => {
   const result = await ingestRagResource({
@@ -46,7 +48,9 @@ export const ingestRagResourceController = asyncHandler(async (req, res) => {
 });
 
 /*
- * Course indexing
+ * =============================================
+ * COURSE INDEXING
+ * =============================================
  */
 export const ingestCourseForRagController = asyncHandler(async (req, res) => {
   const { courseId } = req.params;
@@ -69,7 +73,9 @@ export const ingestCourseForRagController = asyncHandler(async (req, res) => {
 });
 
 /*
- * Module indexing
+ * =============================================
+ * MODULE INDEXING
+ * =============================================
  */
 export const ingestModuleForRagController = asyncHandler(async (req, res) => {
   const { moduleId } = req.params;
@@ -92,7 +98,9 @@ export const ingestModuleForRagController = asyncHandler(async (req, res) => {
 });
 
 /*
- * Lecture indexing
+ * =============================================
+ * LECTURE INDEXING
+ * =============================================
  */
 export const ingestLectureForRagController = asyncHandler(async (req, res) => {
   const { lectureId } = req.params;
@@ -115,13 +123,40 @@ export const ingestLectureForRagController = asyncHandler(async (req, res) => {
 });
 
 /*
- * Semantic search
+ * =============================================
+ * SEMANTIC SEARCH
+ * =============================================
+ *
+ * POST /api/.../:courseId/search
+ *
+ * Body:
+ *
+ * {
+ *   query: string,
+ *   limit?: number,
+ *   minimumScore?: number,
+ *   moduleId?: string,
+ *   lectureId?: string,
+ *   resourceType?: string
+ * }
  */
 export const searchCourseKnowledgeController = asyncHandler(
   async (req, res) => {
     const { courseId } = req.params;
 
-    const { query, limit, minimumScore } = req.body || {};
+    const {
+      query,
+
+      limit,
+
+      minimumScore,
+
+      moduleId = null,
+
+      lectureId = null,
+
+      resourceType = null,
+    } = req.body || {};
 
     const results = await searchCourseKnowledge({
       userId: req.user.id,
@@ -135,6 +170,12 @@ export const searchCourseKnowledgeController = asyncHandler(
       limit,
 
       minimumScore,
+
+      moduleId,
+
+      lectureId,
+
+      resourceType,
     });
 
     return res.status(200).json({
@@ -144,13 +185,23 @@ export const searchCourseKnowledgeController = asyncHandler(
 
       count: results.length,
 
+      scope: {
+        moduleId,
+
+        lectureId,
+
+        resourceType,
+      },
+
       results,
     });
   },
 );
 
 /*
- * Indexed chunks
+ * =============================================
+ * GET INDEXED CHUNKS
+ * =============================================
  */
 export const getCourseRagChunksController = asyncHandler(async (req, res) => {
   const { courseId } = req.params;
@@ -175,7 +226,9 @@ export const getCourseRagChunksController = asyncHandler(async (req, res) => {
 });
 
 /*
- * Delete resource chunks
+ * =============================================
+ * DELETE INDEXED RESOURCE
+ * =============================================
  */
 export const deleteRagResourceController = asyncHandler(async (req, res) => {
   const { courseId, resourceType, resourceId } = req.params;
