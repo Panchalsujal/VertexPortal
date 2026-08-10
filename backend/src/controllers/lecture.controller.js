@@ -20,7 +20,7 @@ import {
 import { indexLectureDocumentForRag } from "../service/documentRag.service.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
+import { indexLectureVideoForRag } from "../service/videoRag.service.js";
 const ORDER_GAP = 1000;
 
 const ALLOWED_LECTURE_TYPES = ["video", "text", "document", "quiz", "live"];
@@ -781,6 +781,7 @@ export const uploadLectureVideoController = asyncHandler(async (req, res) => {
 
   const lecture = await Lecture.findOne({
     _id: lectureId,
+
     isActive: true,
   });
 
@@ -791,8 +792,16 @@ export const uploadLectureVideoController = asyncHandler(async (req, res) => {
     });
   }
 
+  if (lecture.type !== "video") {
+    return res.status(400).json({
+      success: false,
+      message: "Lecture type must be video before uploading a video",
+    });
+  }
+
   const course = await Course.findOne({
     _id: lecture.course,
+
     isActive: true,
   }).select("instructor");
 
@@ -814,40 +823,117 @@ export const uploadLectureVideoController = asyncHandler(async (req, res) => {
     });
   }
 
-  // Delete previous video on ImageKit if exists
+  /*
+   * Delete old video from ImageKit.
+   */
   if (lecture.videoFileId) {
     try {
       await imagekit.deleteFile(lecture.videoFileId);
-    } catch (err) {
-      console.error("Failed to delete old lecture video:", err);
+    } catch (error) {
+      console.error("Failed to delete old lecture video:", error);
     }
   }
 
+  /*
+   * Upload video to ImageKit.
+   */
   const uploadedVideo = await imagekit.upload({
     file: req.file.buffer,
-    fileName: `${Date.now()}-${req.file.originalname.replace(/[^a-zA-Z0-9.-]/g, "_")}`,
+
+    fileName: `${Date.now()}-${req.file.originalname.replace(
+      /[^a-zA-Z0-9.-]/g,
+      "_",
+    )}`,
+
     folder: "/lms/course-videos",
+
     useUniqueFileName: true,
   });
 
   lecture.videoUrl = uploadedVideo.url;
+
   lecture.videoFileId = uploadedVideo.fileId;
+
   lecture.isPublished = true;
 
   await lecture.save();
 
-  // Auto-publish parent module as well
-  await CourseModule.findByIdAndUpdate(lecture.module, { isPublished: true });
+  /*
+   * Auto-publish module.
+   */
+  await CourseModule.findByIdAndUpdate(lecture.module, {
+    isPublished: true,
+  });
+
+  /*
+   * =====================================
+   * VIDEO → TRANSCRIPT → RAG
+   * =====================================
+   */
+  let aiIndexing = {
+    success: false,
+
+    chunksCreated: 0,
+
+    language: null,
+
+    message: "AI transcription not completed",
+  };
+
+  try {
+    const ragResult = await indexLectureVideoForRag({
+      userId: req.user.id,
+
+      userRole: req.user.role,
+
+      lectureId: lecture._id,
+
+      videoBuffer: req.file.buffer,
+
+      fileName: req.file.originalname,
+    });
+
+    aiIndexing = {
+      success: true,
+
+      chunksCreated: ragResult.chunksCreated,
+
+      language: ragResult.language,
+
+      transcriptionUsage: ragResult.transcriptionUsage,
+
+      message: ragResult.message,
+    };
+  } catch (error) {
+    console.error("Lecture video RAG indexing failed:", error);
+
+    aiIndexing = {
+      success: false,
+
+      chunksCreated: 0,
+
+      language: null,
+
+      message: error.message || "Video AI indexing failed",
+    };
+  }
 
   return res.status(200).json({
     success: true,
+
     message: "Lecture video uploaded successfully to ImageKit",
+
     lecture: {
       _id: lecture._id,
+
       title: lecture.title,
+
       videoUrl: lecture.videoUrl,
+
       videoFileId: lecture.videoFileId,
     },
+
+    aiIndexing,
   });
 });
 

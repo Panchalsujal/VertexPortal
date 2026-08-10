@@ -86,6 +86,11 @@ if (!process.env.MISTRAL_CHAT_MODEL) {
   );
 }
 
+if (!process.env.MISTRAL_TRANSCRIPTION_MODEL) {
+  throw new Error(
+    "MISTRAL_TRANSCRIPTION_MODEL is not defined in the environment variables",
+  );
+}
 
 export const config = {
   MONGO_URI: process.env.MONGO_URI,
@@ -105,4 +110,6 @@ export const config = {
   PORT: process.env.PORT || 3000,
   MISTRAL_API_KEY: process.env.MISTRAL_API_KEY,
   MISTRAL_CHAT_MODEL: process.env.MISTRAL_CHAT_MODEL || "mistral-large-latest",
+  MISTRAL_TRANSCRIPTION_MODEL:
+    process.env.MISTRAL_TRANSCRIPTION_MODEL || "voxtral-mini-latest",
 };
