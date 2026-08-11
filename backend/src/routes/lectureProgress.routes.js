@@ -23,7 +23,7 @@ const router = Router();
 router.post(
   "/lectures/:lectureId/complete",
   authMiddleware,
-  authorizeRoles("student"),
+  authorizeRoles("student", "admin", "instructor"),
   markLectureCompletedController,
 );
 
@@ -49,7 +49,7 @@ router.get("/courses/:courseId/progress", authMiddleware, getCourseProgressContr
 router.patch(
   "/lectures/:lectureId/watch-time",
   authMiddleware,
-  authorizeRoles("student"),
+  authorizeRoles("student", "admin", "instructor"),
   updateWatchTimeController,
 );
 

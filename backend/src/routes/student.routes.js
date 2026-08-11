@@ -21,7 +21,7 @@ const router = Router();
 router.get(
   "/my-courses",
   authMiddleware,
-  authorizeRoles("student"),
+  authorizeRoles("student", "admin", "instructor"),
   getMyCoursesController,
 );
 
@@ -36,7 +36,7 @@ router.get(
 router.get(
   "/continue-learning",
   authMiddleware,
-  authorizeRoles("student"),
+  authorizeRoles("student", "admin", "instructor"),
   getContinueLearningController,
 );
 
@@ -52,7 +52,7 @@ router.get(
 router.get(
   "/course/:courseId/resume",
   authMiddleware,
-  authorizeRoles("student"),
+  authorizeRoles("student", "admin", "instructor"),
   getResumeLearningController,
 );
 
@@ -68,7 +68,7 @@ router.get(
 router.get(
   "/course/:courseId/player",
   authMiddleware,
-  authorizeRoles("student"),
+  authorizeRoles("student", "admin", "instructor"),
   getCoursePlayerController,
 );
 

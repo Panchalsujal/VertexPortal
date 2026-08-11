@@ -6,6 +6,7 @@ import {
 } from '../../store/slices/admin/coursesSlice';
 import { BookOpen, CheckCircle, Clock, Archive, Search } from 'lucide-react';
 import { SkeletonTable } from '../../components/ui/Spinner';
+import AdminLayout from '../../components/admin/AdminLayout';
 import toast from 'react-hot-toast';
 
 export default function AdminCourses() {
@@ -49,63 +50,69 @@ export default function AdminCourses() {
   const overview = analytics?.overview || analytics || {};
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Course Moderation & Catalog (Admin)</h1>
-        <p className="text-sm text-gray-500">Review, publish, and moderate platform courses</p>
-      </div>
-
+    <AdminLayout
+      title="Course Catalog & Moderation"
+      subtitle="Review, publish, and moderate platform courses"
+    >
       {/* Analytics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-lg"><BookOpen className="w-5 h-5" /></div>
+        <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 flex items-center justify-center shrink-0">
+            <BookOpen className="w-6 h-6" />
+          </div>
           <div>
-            <p className="text-xs text-gray-500 font-medium">Total Courses</p>
-            <p className="text-xl font-bold text-gray-900">{overview.totalCourses ?? analytics?.totalCourses ?? 0}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Total Courses</p>
+            <p className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">{overview.totalCourses ?? analytics?.totalCourses ?? courses.length}</p>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
-          <div className="p-3 bg-green-50 text-green-600 rounded-lg"><CheckCircle className="w-5 h-5" /></div>
+        <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center shrink-0">
+            <CheckCircle className="w-6 h-6" />
+          </div>
           <div>
-            <p className="text-xs text-gray-500 font-medium">Published</p>
-            <p className="text-xl font-bold text-gray-900">{overview.publishedCourses ?? analytics?.publishedCourses ?? 0}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Published</p>
+            <p className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">{overview.publishedCourses ?? analytics?.publishedCourses ?? 0}</p>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
-          <div className="p-3 bg-amber-50 text-amber-600 rounded-lg"><Clock className="w-5 h-5" /></div>
+        <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center shrink-0">
+            <Clock className="w-6 h-6" />
+          </div>
           <div>
-            <p className="text-xs text-gray-500 font-medium">Drafts</p>
-            <p className="text-xl font-bold text-gray-900">{overview.draftCourses ?? analytics?.draftCourses ?? 0}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Drafts</p>
+            <p className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">{overview.draftCourses ?? analytics?.draftCourses ?? 0}</p>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
-          <div className="p-3 bg-gray-100 text-gray-600 rounded-lg"><Archive className="w-5 h-5" /></div>
+        <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 flex items-center justify-center shrink-0">
+            <Archive className="w-6 h-6" />
+          </div>
           <div>
-            <p className="text-xs text-gray-500 font-medium">Archived</p>
-            <p className="text-xl font-bold text-gray-900">{overview.archivedCourses ?? analytics?.archivedCourses ?? 0}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Archived</p>
+            <p className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">{overview.archivedCourses ?? analytics?.archivedCourses ?? 0}</p>
           </div>
         </div>
       </div>
 
       {/* Filter / Search */}
-      <div className="bg-white p-4 rounded-xl border border-gray-200 mb-6 flex flex-col sm:flex-row gap-3">
+      <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm mb-6 flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search by title..."
+            placeholder="Search courses by title..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
         >
           <option value="">All Statuses</option>
           <option value="published">Published</option>
@@ -118,20 +125,25 @@ export default function AdminCourses() {
       {loading ? (
         <SkeletonTable rows={6} cols={5} />
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                <th className="p-4">Course Title</th>
-                <th className="p-4">Instructor</th>
-                <th className="p-4">Price</th>
-                <th className="p-4">Status</th>
-                <th className="p-4 text-right">Actions</th>
+              <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3.5">Course Title</th>
+                <th className="px-5 py-3.5">Instructor</th>
+                <th className="px-5 py-3.5">Price</th>
+                <th className="px-5 py-3.5">Status</th>
+                <th className="px-5 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-sm">
+            <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-sm">
               {courses.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-8 text-gray-500">No courses found</td></tr>
+                <tr>
+                  <td colSpan={5} className="text-center py-12 text-gray-400">
+                    <BookOpen className="w-10 h-10 mx-auto mb-2 opacity-50 text-purple-400" />
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">No courses found</p>
+                  </td>
+                </tr>
               ) : (
                 courses.map((c) => {
                   const instructorName = c.instructor?.fullName || c.instructor?.name || 'N/A';
@@ -139,23 +151,27 @@ export default function AdminCourses() {
                   const statusLabel = c.status || (isPub ? 'published' : 'draft');
 
                   return (
-                    <tr key={c._id} className="hover:bg-gray-50/50">
-                      <td className="p-4 font-semibold text-gray-900">{c.title}</td>
-                      <td className="p-4 text-xs text-gray-600 font-medium">{instructorName}</td>
-                      <td className="p-4 font-bold text-gray-900">₹{c.price ?? c.originalPrice ?? 0}</td>
-                      <td className="p-4">
-                        <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ${
-                          statusLabel === 'published' ? 'bg-green-100 text-green-700' :
-                          statusLabel === 'archived' ? 'bg-gray-100 text-gray-700' : 'bg-amber-100 text-amber-700'
+                    <tr key={c._id} className="hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition-colors">
+                      <td className="px-5 py-4 font-semibold text-gray-900 dark:text-white">{c.title}</td>
+                      <td className="px-5 py-4 text-xs text-gray-600 dark:text-gray-400 font-medium">{instructorName}</td>
+                      <td className="px-5 py-4 font-bold text-gray-900 dark:text-white">₹{c.price ?? c.originalPrice ?? 0}</td>
+                      <td className="px-5 py-4">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold capitalize ${
+                          statusLabel === 'published' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' :
+                          statusLabel === 'archived' ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
                         }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            statusLabel === 'published' ? 'bg-emerald-500' :
+                            statusLabel === 'archived' ? 'bg-gray-500' : 'bg-amber-500'
+                          }`} />
                           {statusLabel}
                         </span>
                       </td>
-                      <td className="p-4 text-right space-x-2">
+                      <td className="px-5 py-4 text-right space-x-2">
                         <button
                           onClick={() => handlePublishToggle(c._id, isPub)}
-                          className={`text-xs font-medium px-2.5 py-1 rounded ${
-                            isPub ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'bg-green-50 text-green-700 hover:bg-green-100'
+                          className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
+                            isPub ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 hover:bg-emerald-100'
                           }`}
                         >
                           {isPub ? 'Unpublish' : 'Publish'}
@@ -163,7 +179,7 @@ export default function AdminCourses() {
                         {statusLabel !== 'archived' && (
                           <button
                             onClick={() => handleArchive(c._id)}
-                            className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-2.5 py-1 rounded"
+                            className="text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold px-3 py-1.5 rounded-lg transition-colors"
                           >
                             Archive
                           </button>
@@ -177,6 +193,6 @@ export default function AdminCourses() {
           </table>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 }

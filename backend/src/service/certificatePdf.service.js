@@ -1,9 +1,8 @@
 import PDFDocument from "pdfkit";
-
 import { generateQrCodeBuffer } from "../utils/qrCode.js";
 
 /**
- * Certificate PDF ko memory Buffer me generate karta hai.
+ * Certificate PDF generator using executive Learnova layout.
  */
 export async function generateCertificatePdf({
   certificateNumber,
@@ -15,42 +14,26 @@ export async function generateCertificatePdf({
   verificationCode,
   verificationUrl,
 }) {
-  /*
-   * QR code PDF create hone se pehle generate hoga.
-   */
   const qrCodeBuffer = verificationUrl
     ? await generateQrCodeBuffer(verificationUrl)
     : null;
-
-  /*
-   * Temporary debug.
-   * QR confirm hone ke baad console.log remove kar sakte ho.
-   */
-  console.log({
-    verificationUrl,
-    qrGenerated: Buffer.isBuffer(qrCodeBuffer),
-    qrSize: qrCodeBuffer?.length ?? 0,
-  });
 
   return new Promise((resolve, reject) => {
     try {
       const document = new PDFDocument({
         size: "A4",
         layout: "landscape",
-
         margins: {
-          top: 40,
-          right: 40,
-          bottom: 40,
-          left: 40,
+          top: 30,
+          right: 30,
+          bottom: 30,
+          left: 30,
         },
-
         info: {
           Title: `Certificate - ${studentName}`,
           Author: "VertexPortal",
           Subject: `Course completion certificate for ${courseTitle}`,
-          Keywords:
-            "certificate, course completion, VertexPortal",
+          Keywords: "certificate, course completion, VertexPortal",
         },
       });
 
@@ -68,326 +51,292 @@ export async function generateCertificatePdf({
         reject(error);
       });
 
-      const pageWidth = document.page.width;
-      const pageHeight = document.page.height;
+      const W = document.page.width;
+      const H = document.page.height;
 
       /*
-       * Outer border
+       * 1. Soft Warm Background Fill
        */
+      document.save();
+      document.rect(0, 0, W, H).fill("#FDFCFE");
+      document.restore();
+
+      /*
+       * 2. Outer & Inner Executive Borders
+       */
+      // Outer Royal Purple Border
       document
         .lineWidth(4)
-        .rect(
-          20,
-          20,
-          pageWidth - 40,
-          pageHeight - 40,
-        )
+        .strokeColor("#6C5CE7")
+        .rect(18, 18, W - 36, H - 36)
+        .stroke();
+
+      // Inner Metallic Gold Border
+      document
+        .lineWidth(1.5)
+        .strokeColor("#D4AF37")
+        .rect(25, 25, W - 50, H - 50)
+        .stroke();
+
+      // Thin Inner Slate Framing Line
+      document
+        .lineWidth(0.5)
+        .strokeColor("#CBD5E1")
+        .rect(29, 29, W - 58, H - 58)
         .stroke();
 
       /*
-       * Inner border
+       * 3. Official Seal Emblem Graphic (Top Right Header Badge)
        */
+      const sealX = W - 75;
+      const sealY = 62;
+      document.save();
+      document.circle(sealX, sealY, 24).fillAndStroke("#FEF3C7", "#D4AF37");
+      document.circle(sealX, sealY, 20).strokeColor("#6C5CE7").lineWidth(1.2).stroke();
       document
-        .lineWidth(1)
-        .rect(
-          32,
-          32,
-          pageWidth - 64,
-          pageHeight - 64,
-        )
-        .stroke();
+        .fillColor("#4C1D95")
+        .font("Helvetica-Bold")
+        .fontSize(7)
+        .text("OFFICIAL", sealX - 25, sealY - 10, { width: 50, align: "center" })
+        .text("SEAL", sealX - 25, sealY - 1, { width: 50, align: "center" })
+        .fillColor("#D4AF37")
+        .fontSize(6)
+        .text("VERIFIED", sealX - 25, sealY + 8, { width: 50, align: "center" });
+      document.restore();
 
       /*
-       * Platform name
+       * 4. Header Branding
        */
       document
+        .fillColor("#6C5CE7")
         .font("Helvetica-Bold")
         .fontSize(18)
-        .text(
-          "VERTEXPORTAL",
-          0,
-          62,
-          {
-            align: "center",
-          },
-        );
+        .text("V E R T E X P O R T A L", 0, 48, {
+          align: "center",
+        });
 
       document
+        .fillColor("#64748B")
         .font("Helvetica")
-        .fontSize(11)
-        .text(
-          "Learning Management System",
-          {
-            align: "center",
-          },
-        );
+        .fontSize(9)
+        .text("LEARNING MANAGEMENT SYSTEM", 0, 72, {
+          align: "center",
+        });
 
-      document.moveDown(1.4);
+      // Gold Accent Rule under Header
+      const midX = W / 2;
+      document
+        .lineWidth(1)
+        .strokeColor("#D4AF37")
+        .moveTo(midX - 60, 88)
+        .lineTo(midX + 60, 88)
+        .stroke();
 
       /*
-       * Certificate heading
+       * 5. Certificate Main Title
        */
       document
+        .fillColor("#1E1B4B")
         .font("Helvetica-Bold")
-        .fontSize(34)
-        .text(
-          "CERTIFICATE OF COMPLETION",
-          {
-            align: "center",
-          },
-        );
+        .fontSize(30)
+        .text("CERTIFICATE OF COMPLETION", 0, 108, {
+          align: "center",
+        });
 
-      document.moveDown(0.8);
-
+      // Presentation Line
       document
+        .fillColor("#64748B")
         .font("Helvetica")
-        .fontSize(15)
-        .text(
-          "This certificate is proudly presented to",
-          {
-            align: "center",
-          },
-        );
-
-      document.moveDown(0.6);
+        .fontSize(12)
+        .text("THIS IS PROUDLY PRESENTED TO", 0, 150, {
+          align: "center",
+        });
 
       /*
-       * Student name
+       * 6. Student Name & Centered Gold Accent Line
        */
       document
+        .fillColor("#4C1D95")
         .font("Helvetica-BoldOblique")
-        .fontSize(31)
-        .text(
-          studentName,
-          {
-            align: "center",
-            underline: true,
-          },
-        );
+        .fontSize(30)
+        .text(studentName || "Student", 0, 174, {
+          align: "center",
+        });
 
-      document.moveDown(0.7);
-
+      // Clean Gold Accent Rule under Student Name
       document
-        .font("Helvetica")
-        .fontSize(15)
-        .text(
-          "for successfully completing the course",
-          {
-            align: "center",
-          },
-        );
-
-      document.moveDown(0.6);
-
-      /*
-       * Course title
-       */
-      document
-        .font("Helvetica-Bold")
-        .fontSize(23)
-        .text(
-          courseTitle,
-          {
-            align: "center",
-          },
-        );
-
-      document.moveDown(0.6);
-
-      const formattedCompletionDate =
-        new Date(completedAt).toLocaleDateString(
-          "en-IN",
-          {
-            day: "2-digit",
-            month: "long",
-            year: "numeric",
-          },
-        );
-
-      document
-        .font("Helvetica")
-        .fontSize(13)
-        .text(
-          `Completed on ${formattedCompletionDate}`,
-          {
-            align: "center",
-          },
-        );
-
-      /*
-       * Signature section
-       */
-      const signatureY = pageHeight - 150;
-
-      document
-        .moveTo(90, signatureY)
-        .lineTo(275, signatureY)
+        .lineWidth(1.5)
+        .strokeColor("#D4AF37")
+        .moveTo(midX - 120, 214)
+        .lineTo(midX + 120, 214)
         .stroke();
 
-      document
-        .font("Helvetica-Bold")
-        .fontSize(12)
-        .text(
-          instructorName ||
-            "Course Instructor",
-          90,
-          signatureY + 8,
-          {
-            width: 185,
-            align: "center",
-          },
-        );
-
-      document
-        .font("Helvetica")
-        .fontSize(10)
-        .text(
-          "Instructor",
-          90,
-          signatureY + 27,
-          {
-            width: 185,
-            align: "center",
-          },
-        );
-
-      const formattedIssuedDate =
-        new Date(issuedAt).toLocaleDateString(
-          "en-IN",
-          {
-            day: "2-digit",
-            month: "long",
-            year: "numeric",
-          },
-        );
-
-      document
-        .moveTo(
-          pageWidth - 275,
-          signatureY,
-        )
-        .lineTo(
-          pageWidth - 90,
-          signatureY,
-        )
-        .stroke();
-
-      document
-        .font("Helvetica-Bold")
-        .fontSize(12)
-        .text(
-          formattedIssuedDate,
-          pageWidth - 275,
-          signatureY + 8,
-          {
-            width: 185,
-            align: "center",
-          },
-        );
-
-      document
-        .font("Helvetica")
-        .fontSize(10)
-        .text(
-          "Issue Date",
-          pageWidth - 275,
-          signatureY + 27,
-          {
-            width: 185,
-            align: "center",
-          },
-        );
-
       /*
-       * QR Code section
-       */
-      if (Buffer.isBuffer(qrCodeBuffer)) {
-        const qrSize = 90;
-
-        const qrX =
-          pageWidth / 2 -
-          qrSize / 2;
-
-        const qrY =
-          pageHeight - 170;
-
-        /*
-         * QR ke peeche white background.
-         */
-        document
-          .save()
-          .fillColor("white")
-          .rect(
-            qrX - 6,
-            qrY - 6,
-            qrSize + 12,
-            qrSize + 28,
-          )
-          .fill()
-          .restore();
-
-        document.image(
-          qrCodeBuffer,
-          qrX,
-          qrY,
-          {
-            width: qrSize,
-            height: qrSize,
-          },
-        );
-
-        document
-          .fillColor("black")
-          .font("Helvetica-Bold")
-          .fontSize(9)
-          .text(
-            "Scan to verify",
-            qrX - 10,
-            qrY + qrSize + 5,
-            {
-              width: qrSize + 20,
-              align: "center",
-            },
-          );
-      }
-
-      /*
-       * Certificate information
+       * 7. Course Title & Completion Statement
        */
       document
-        .fillColor("black")
+        .fillColor("#475569")
         .font("Helvetica")
-        .fontSize(8)
-        .text(
-          `Certificate Number: ${certificateNumber}`,
-          55,
-          pageHeight - 70,
-        );
+        .fontSize(12)
+        .text("for successfully completing the course", 0, 226, {
+          align: "center",
+        });
 
-      document.text(
-        `Verification Code: ${verificationCode}`,
-        55,
-        pageHeight - 56,
+      // Format Course Title to Proper Title Case
+      const formattedCourseTitle = String(courseTitle || "Course Completion")
+        .split(" ")
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ");
+
+      document
+        .fillColor("#1E1B4B")
+        .font("Helvetica-Bold")
+        .fontSize(22)
+        .text(formattedCourseTitle, 0, 248, {
+          align: "center",
+        });
+
+      const formattedCompletionDate = new Date(completedAt || Date.now()).toLocaleDateString(
+        "en-IN",
+        {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        }
       );
 
-      if (verificationUrl) {
+      document
+        .fillColor("#64748B")
+        .font("Helvetica")
+        .fontSize(11)
+        .text(`Completed on ${formattedCompletionDate}`, 0, 280, {
+          align: "center",
+        });
+
+      /*
+       * 8. Signatures Section (Left: Instructor, Right: Issue Date)
+       */
+      const sigY = H - 120;
+      const leftSigX = 140;
+      const rightSigX = W - 290;
+      const sigLineWidth = 150;
+
+      const displayInstructor =
+        instructorName && instructorName.trim() !== "" && instructorName.trim() !== "Course Instructor"
+          ? instructorName.trim()
+          : "VertexPortal Academic Board";
+
+      // Left: Instructor Signature Line
+      document
+        .lineWidth(1)
+        .strokeColor("#94A3B8")
+        .moveTo(leftSigX, sigY)
+        .lineTo(leftSigX + sigLineWidth, sigY)
+        .stroke();
+
+      document
+        .fillColor("#0F172A")
+        .font("Helvetica-Bold")
+        .fontSize(11)
+        .text(displayInstructor, leftSigX, sigY + 8, {
+          width: sigLineWidth,
+          align: "center",
+        });
+
+      document
+        .fillColor("#64748B")
+        .font("Helvetica")
+        .fontSize(9)
+        .text("Course Instructor", leftSigX, sigY + 22, {
+          width: sigLineWidth,
+          align: "center",
+        });
+
+      // Right: Issue Date Signature Line
+      const formattedIssuedDate = new Date(issuedAt || Date.now()).toLocaleDateString(
+        "en-IN",
+        {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        }
+      );
+
+      document
+        .lineWidth(1)
+        .strokeColor("#94A3B8")
+        .moveTo(rightSigX, sigY)
+        .lineTo(rightSigX + sigLineWidth, sigY)
+        .stroke();
+
+      document
+        .fillColor("#0F172A")
+        .font("Helvetica-Bold")
+        .fontSize(11)
+        .text(formattedIssuedDate, rightSigX, sigY + 8, {
+          width: sigLineWidth,
+          align: "center",
+        });
+
+      document
+        .fillColor("#64748B")
+        .font("Helvetica")
+        .fontSize(9)
+        .text("Date of Issuance", rightSigX, sigY + 22, {
+          width: sigLineWidth,
+          align: "center",
+        });
+
+      /*
+       * 9. QR Code Section (Centered at Bottom)
+       */
+      if (Buffer.isBuffer(qrCodeBuffer)) {
+        const qrSize = 65;
+        const qrX = W / 2 - qrSize / 2;
+        const qrY = H - 148;
+
+        document.save();
         document
-          .fillColor("blue")
-          .text(
-            `Verify: ${verificationUrl}`,
-            55,
-            pageHeight - 42,
-            {
-              link: verificationUrl,
-              underline: true,
-            },
-          )
-          .fillColor("black");
+          .fillColor("white")
+          .strokeColor("#CBD5E1")
+          .lineWidth(1)
+          .rect(qrX - 4, qrY - 4, qrSize + 8, qrSize + 22)
+          .fillAndStroke();
+
+        document.image(qrCodeBuffer, qrX, qrY, {
+          width: qrSize,
+          height: qrSize,
+        });
+
+        document
+          .fillColor("#475569")
+          .font("Helvetica-Bold")
+          .fontSize(7.5)
+          .text("Scan to verify", qrX - 10, qrY + qrSize + 3, {
+            width: qrSize + 20,
+            align: "center",
+          });
+        document.restore();
       }
 
       /*
-       * PDF generation finish.
+       * 10. Footer Metadata (Certificate Number & Verification Code)
        */
+      document
+        .fillColor("#64748B")
+        .font("Helvetica")
+        .fontSize(8)
+        .text(`Certificate No: ${certificateNumber}`, 45, H - 48);
+
+      document
+        .fillColor("#64748B")
+        .font("Helvetica")
+        .fontSize(8)
+        .text(`Verification Code: ${verificationCode}`, W - 320, H - 48, {
+          width: 275,
+          align: "right",
+        });
+
       document.end();
     } catch (error) {
       reject(error);

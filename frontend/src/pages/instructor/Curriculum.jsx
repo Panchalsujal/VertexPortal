@@ -191,8 +191,17 @@ export default function Curriculum() {
       <div className="page-header">
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/instructor/dashboard')}>
-              <ArrowLeft size={16} /> Dashboard
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                if (window.history.length > 1 && window.history.state?.idx > 0) {
+                  navigate(-1);
+                } else {
+                  navigate('/instructor/dashboard');
+                }
+              }}
+            >
+              <ArrowLeft size={16} /> Back to Dashboard
             </button>
             <div>
               <h1 style={{ marginBottom: '0.25rem' }}>Curriculum Builder</h1>

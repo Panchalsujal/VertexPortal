@@ -16,14 +16,14 @@ export function CourseFilters({ filters, onChange }) {
   const set = (key, val) => onChange({ ...filters, [key]: val });
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 p-4 rounded-2xl shadow-xs mb-8">
+    <div className="bg-white dark:bg-slate-900 border border-gray-200/90 dark:border-slate-800 p-4 rounded-2xl shadow-xs mb-8">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-center">
         {/* Search */}
         <div className="relative">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
+          <Search className="w-4 h-4 text-purple-500 absolute left-3.5 top-3" />
           <input
             type="text"
-            className="w-full border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl pl-9 pr-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl pl-9 pr-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
             placeholder="Search courses..."
             value={filters.search || ''}
             onChange={e => set('search', e.target.value)}
@@ -33,7 +33,7 @@ export function CourseFilters({ filters, onChange }) {
 
         {/* Category */}
         <select
-          className="w-full border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl px-3 py-2 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
           value={filters.category || ''}
           onChange={e => set('category', e.target.value)}
           id="course-category-filter"
@@ -46,7 +46,7 @@ export function CourseFilters({ filters, onChange }) {
 
         {/* Level */}
         <select
-          className="w-full border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 capitalize"
+          className="w-full border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl px-3 py-2 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 capitalize"
           value={filters.level || ''}
           onChange={e => set('level', e.target.value)}
           id="course-level-filter"
@@ -60,7 +60,7 @@ export function CourseFilters({ filters, onChange }) {
         {/* Sort */}
         <div className="flex items-center gap-2">
           <select
-            className="w-full border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl px-3 py-2 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             value={filters.sort || ''}
             onChange={e => set('sort', e.target.value)}
             id="course-sort-filter"
@@ -75,7 +75,7 @@ export function CourseFilters({ filters, onChange }) {
 
           {(filters.search || filters.category || filters.level || filters.sort) && (
             <button
-              className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition shrink-0"
+              className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition shrink-0 cursor-pointer"
               onClick={() => onChange({})}
               title="Clear Filters"
               id="clear-filters-btn"

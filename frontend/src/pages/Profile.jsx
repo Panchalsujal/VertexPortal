@@ -1,12 +1,14 @@
 import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { updateMyProfile, updatePassword, updateAvatar } from '../api/user.api';
 import { Spinner } from '../components/ui/Spinner';
-import { User, Lock, Camera, Save, Eye, EyeOff } from 'lucide-react';
+import { User, Lock, Camera, Save, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Profile() {
   const { user, refreshUser } = useAuth();
+  const navigate = useNavigate();
   const fileRef = useRef(null);
 
   const [profileForm, setProfileForm] = useState({ fullName: user?.fullName || '' });
@@ -63,9 +65,24 @@ export default function Profile() {
   return (
     <div className="page-wrapper">
       <div className="page-header">
-        <div className="container">
-          <h1>Account Settings</h1>
-          <p>Manage your profile and security</p>
+        <div className="container" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button
+            onClick={() => {
+              if (window.history.length > 1 && window.history.state?.idx > 0) {
+                navigate(-1);
+              } else {
+                navigate('/dashboard');
+              }
+            }}
+            className="btn btn-secondary btn-sm"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}
+          >
+            <ArrowLeft size={16} /> Back
+          </button>
+          <div>
+            <h1 style={{ marginBottom: '0.25rem' }}>Account Settings</h1>
+            <p>Manage your profile and security</p>
+          </div>
         </div>
       </div>
 

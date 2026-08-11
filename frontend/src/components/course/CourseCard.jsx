@@ -68,8 +68,8 @@ export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
   };
 
   return (
-    <Link to={`/courses/${course.slug || course._id}`} className="block group h-full">
-      <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col h-full group-hover:-translate-y-1">
+    <Link to={`/courses/${course.slug || course._id}`} className="block group h-full no-underline">
+      <div className="bg-white dark:bg-slate-900 border border-gray-200/90 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col h-full group-hover:-translate-y-1">
         {/* Thumbnail */}
         <div className="relative aspect-video bg-gray-100 dark:bg-slate-800 overflow-hidden">
           {course.thumbnailUrl ? (
@@ -79,14 +79,14 @@ export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (
-            <div className="w-full h-full min-h-[160px] bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
-              <BookOpen className="w-10 h-10 text-gray-400 dark:text-gray-500" />
+            <div className="w-full h-full min-h-[160px] bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
+              <BookOpen className="w-10 h-10 text-purple-400" />
             </div>
           )}
 
           {/* Level Badge */}
           <div className="absolute top-3 left-3">
-            <span className="bg-blue-600/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-xs">
+            <span className="bg-gradient-to-r from-purple-600 to-indigo-600 backdrop-blur-md text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
               {course.level || 'beginner'}
             </span>
           </div>
@@ -96,7 +96,7 @@ export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
             <button
               onClick={handleWishlist}
               disabled={wishLoading}
-              className="absolute top-3 right-3 p-2 bg-black/40 backdrop-blur-sm hover:bg-black/60 rounded-full text-white transition shadow-xs"
+              className="absolute top-3 right-3 p-2 bg-black/40 backdrop-blur-sm hover:bg-black/60 rounded-full text-white transition shadow-xs cursor-pointer"
               title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
             >
               <Heart
@@ -109,10 +109,10 @@ export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
         {/* Body */}
         <div className="p-5 flex flex-col flex-1 justify-between">
           <div>
-            <div className="text-xs font-bold text-blue-600 dark:text-blue-400 mb-1.5 uppercase tracking-wider">
+            <div className="text-[11px] font-extrabold text-purple-600 dark:text-purple-400 mb-1.5 uppercase tracking-wider">
               {course.category?.name || 'Development'}
             </div>
-            <h3 className="font-bold text-gray-900 dark:text-white text-base leading-snug line-clamp-2 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+            <h3 className="font-bold text-gray-900 dark:text-white text-base leading-snug line-clamp-2 mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
               {course.title}
             </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
@@ -163,7 +163,7 @@ export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
                 <button
                   onClick={handleAddToCart}
                   disabled={cartLoading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2 rounded-xl inline-flex items-center gap-1.5 shadow-xs transition"
+                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl inline-flex items-center gap-1.5 shadow-sm shadow-purple-950/20 transition cursor-pointer"
                 >
                   <ShoppingCart className="w-3.5 h-3.5" />
                   {cartLoading ? '...' : 'Add'}

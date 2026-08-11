@@ -14,7 +14,7 @@ import { authorizeRoles } from "../middlewares/authorize.middleware.js";
 
 const router = Router();
 
-router.use(authMiddleware, authorizeRoles("student"));
+router.use(authMiddleware, authorizeRoles("student", "admin", "instructor"));
 
 router.get("/", getStudentLiveClassesController);
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   fetchDiscussions, fetchDiscussionById, addDiscussion, addReply,
@@ -7,7 +8,7 @@ import {
   selectDiscussions, selectCurrentDiscussion, selectDiscussionLoading,
 } from '../store/slices/discussionsSlice';
 import { getAllCourses } from '../api/course.api';
-import { MessageSquare, ThumbsUp, CheckCircle, Lock, Pin, Send, Plus, Filter, Trash2, Shield, Unlock } from 'lucide-react';
+import { MessageSquare, ThumbsUp, CheckCircle, Lock, Pin, Send, Plus, Filter, Trash2, Shield, Unlock, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Discussions() {
@@ -165,12 +166,29 @@ export default function Discussions() {
   const isAdminOrInstructor = user && (user.role === 'admin' || user.role === 'instructor');
   const isOwnerOrAdmin = user && (currentAuthorId === currentUserId || user.role === 'admin');
 
+  const navigate = useNavigate();
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Community Discussions</h1>
-          <p className="text-sm text-gray-500">Ask questions, share ideas and help fellow students</p>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              if (window.history.length > 1 && window.history.state?.idx > 0) {
+                navigate(-1);
+              } else {
+                navigate('/dashboard');
+              }
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 transition cursor-pointer"
+            title="Go back to previous page"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Community Discussions</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Ask questions, share ideas and help fellow students</p>
+          </div>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}

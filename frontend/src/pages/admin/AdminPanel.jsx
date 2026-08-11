@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { getAllCategories, createCategory, updateCategory, deleteCategory } from '../../api/category.api';
 import { getAllCoupons, createCoupon, updateCoupon, toggleCouponStatus, deleteCoupon } from '../../api/coupon.api';
@@ -24,11 +25,26 @@ import {
   FolderPlus, Tag, Edit3, Trash2, ToggleLeft, ToggleRight, Plus, Shield,
   Award, Download, RefreshCw, XCircle, RotateCcw, Send, Star
 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import AdminLayout from '../../components/admin/AdminLayout';
 
 export default function AdminPanel() {
   const dispatch = useAppDispatch();
-  const [activeTab, setActiveTab] = useState('categories');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabFromUrl || 'categories');
+
+  useEffect(() => {
+    if (tabFromUrl && ['categories', 'coupons', 'certificates', 'reviews'].includes(tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+    } else if (!tabFromUrl) {
+      setActiveTab('categories');
+    }
+  }, [tabFromUrl]);
+
+  const handleTabChange = (tabKey) => {
+    setActiveTab(tabKey);
+    setSearchParams({ tab: tabKey });
+  };
 
   // Category state
   const [categories, setCategories] = useState([]);
@@ -119,6 +135,7 @@ export default function AdminPanel() {
   useEffect(() => {
     fetchCategories();
     fetchCoupons();
+    fetchAdminReviews();
     dispatch(fetchAdminCertificates());
 
     const loadCourses = async () => {
@@ -297,23 +314,19 @@ export default function AdminPanel() {
   };
 
   return (
-    <div className="page-wrapper">
-      <div className="page-header">
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <h1 style={{ marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Shield size={28} color="var(--color-primary-light)" /> Admin Panel
-            </h1>
-            <p>Manage system categories, coupons, certificates, and global configurations</p>
-          </div>
+    <AdminLayout
+      title="System Categories, Coupons & Certificates"
+      subtitle="Manage global platform configurations, categories, promotional coupons, and student certificates"
+      actions={
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           {activeTab === 'categories' && (
             <button className="btn btn-primary" onClick={() => { setActiveCat(null); setCatForm({ name: '', description: '' }); setCatModalOpen(true); }}>
-              <FolderPlus size={18} /> Add Category
+              <FolderPlus size={16} /> Add Category
             </button>
           )}
           {activeTab === 'coupons' && (
             <button className="btn btn-primary" onClick={() => { setActiveCoupon(null); setCouponForm({ code: '', discountType: 'percentage', discountValue: 10, maxDiscountAmount: '', minOrderAmount: 0, usageLimit: 100, expiresAt: '' }); setCouponModalOpen(true); }}>
-              <Plus size={18} /> Create Coupon
+              <Plus size={16} /> Create Coupon
             </button>
           )}
           {activeTab === 'certificates' && (
@@ -322,26 +335,26 @@ export default function AdminPanel() {
                 <RotateCcw size={16} /> Bulk Retry
               </button>
               <button className="btn btn-primary" onClick={() => { setIssueForm({ courseId: '', userEmail: '', enrollmentId: '' }); setIssueModalOpen(true); }}>
-                <Award size={18} /> Issue Certificate
+                <Award size={16} /> Issue Certificate
               </button>
             </div>
           )}
         </div>
-      </div>
-
-      <div className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
+      }
+    >
+      <div>
         {/* Tabs */}
         <div className="tabs">
-          <button className={`tab-btn ${activeTab === 'categories' ? 'active' : ''}`} onClick={() => setActiveTab('categories')}>
+          <button className={`tab-btn ${activeTab === 'categories' ? 'active' : ''}`} onClick={() => handleTabChange('categories')}>
             Categories ({categories.length})
           </button>
-          <button className={`tab-btn ${activeTab === 'coupons' ? 'active' : ''}`} onClick={() => setActiveTab('coupons')}>
+          <button className={`tab-btn ${activeTab === 'coupons' ? 'active' : ''}`} onClick={() => handleTabChange('coupons')}>
             Coupons ({coupons.length})
           </button>
-          <button className={`tab-btn ${activeTab === 'certificates' ? 'active' : ''}`} onClick={() => setActiveTab('certificates')}>
+          <button className={`tab-btn ${activeTab === 'certificates' ? 'active' : ''}`} onClick={() => handleTabChange('certificates')}>
             <Award size={15} /> Certificates ({certificates.length})
           </button>
-          <button className={`tab-btn ${activeTab === 'reviews' ? 'active' : ''}`} onClick={() => setActiveTab('reviews')}>
+          <button className={`tab-btn ${activeTab === 'reviews' ? 'active' : ''}`} onClick={() => handleTabChange('reviews')}>
             <Star size={15} className="fill-amber-400 text-amber-400 inline" /> Course Reviews & Ratings ({adminReviews.length})
           </button>
         </div>
@@ -648,6 +661,6 @@ export default function AdminPanel() {
           </button>
         </form>
       </Modal>
-    </div>
+    </AdminLayout>
   );
 }

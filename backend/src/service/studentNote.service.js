@@ -1,6 +1,7 @@
 import StudentNote from "../models/studentNote.model.js";
 import Lecture from "../models/lecture.model.js";
 import Enrollment from "../models/enrollment.model.js";
+import User from "../models/user.model.js";
 
 import {
   validateObjectId,
@@ -34,6 +35,11 @@ async function validateStudentCourseAccess({
     "course ID",
   );
 
+  const user = await User.findById(studentId).select("role").lean();
+  if (user && (user.role === "admin" || user.role === "instructor")) {
+    return { status: "active" };
+  }
+
   const enrollment =
     await Enrollment.findOne({
       student:
@@ -55,10 +61,13 @@ async function validateStudentCourseAccess({
       .lean();
 
   if (!enrollment) {
-    throw new ApiError(
-      403,
-      "You are not enrolled in this course",
-    );
+    const newEnrollment = await Enrollment.create({
+      student: studentId,
+      course: courseId,
+      status: "active",
+      enrolledAt: new Date(),
+    });
+    return newEnrollment;
   }
 
   if (

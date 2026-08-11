@@ -132,7 +132,16 @@ export default function CourseForm() {
     <div className="page-wrapper">
       <div className="page-header">
         <div className="container" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <button className="btn btn-ghost btn-sm" onClick={() => navigate('/instructor/dashboard')}>
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => {
+              if (window.history.length > 1 && window.history.state?.idx > 0) {
+                navigate(-1);
+              } else {
+                navigate('/instructor/dashboard');
+              }
+            }}
+          >
             <ArrowLeft size={16} /> Back
           </button>
           <div>

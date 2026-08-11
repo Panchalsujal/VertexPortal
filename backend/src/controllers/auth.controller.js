@@ -10,7 +10,9 @@ import imagekit from "../service/imagekit.js";
 
 export const registerController = asyncHandler(async (req, res) => {
   try {
-    const { fullName, email, password, role } = req.body;
+    // Role is intentionally ignored on public registration — always 'student'.
+  // Admins can promote users via the Admin Panel.
+  const { fullName, email, password } = req.body;
 
     if (!fullName || !email || !password) {
       return res.status(400).json({
@@ -44,7 +46,7 @@ export const registerController = asyncHandler(async (req, res) => {
       fullName,
       email: normalizedEmail,
       password: hashedPassword,
-      role: role || "student",
+      role: "student",
       emailVerificationToken: hashedVerificationToken,
       emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });

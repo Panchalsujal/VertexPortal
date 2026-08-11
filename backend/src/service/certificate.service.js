@@ -1102,6 +1102,9 @@ export async function getCertificateDownload({
       course
       studentName
       courseTitle
+      instructorName
+      completionPercentage
+      completedAt
       certificateUrl
       certificateFileId
       verificationCode
@@ -1111,6 +1114,14 @@ export async function getCertificateDownload({
       issuedAt
     `,
     )
+    .populate({
+      path: "course",
+      select: "instructor title",
+      populate: {
+        path: "instructor",
+        select: "fullName",
+      },
+    })
     .lean();
 
   if (!certificate) {
@@ -1121,15 +1132,18 @@ export async function getCertificateDownload({
     throw new ApiError(403, "Revoked certificate cannot be downloaded");
   }
 
-  if (!certificate.certificateUrl) {
-    throw new ApiError(404, "Certificate PDF is not available");
-  }
+  const resolvedInstructorName =
+    certificate.instructorName && certificate.instructorName.trim() !== ""
+      ? certificate.instructorName.trim()
+      : certificate.course?.instructor?.fullName || "VertexPortal Academic Board";
 
   return {
     certificateId: certificate._id,
     certificateNumber: certificate.certificateNumber,
     studentName: certificate.studentName,
     courseTitle: certificate.courseTitle,
+    instructorName: resolvedInstructorName,
+    completedAt: certificate.completedAt || certificate.issuedAt,
     issuedAt: certificate.issuedAt,
     verificationCode: certificate.verificationCode,
     downloadUrl: certificate.certificateUrl,

@@ -13,7 +13,7 @@ import { StarRating } from '../components/ui/StarRating';
 import { CurriculumAccordion } from '../components/course/CurriculumAccordion';
 import {
   BookOpen, Clock, Users, Star, Heart, ShoppingCart, Play, CheckCircle,
-  Globe, BarChart2, Trash2, Edit3, Send
+  Globe, BarChart2, Trash2, Edit3, Send, ArrowLeft
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -191,6 +191,19 @@ export default function CourseDetail() {
       <div className="bg-slate-900 text-white border-b border-slate-800 py-10">
         <div className="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           <div className="lg:col-span-2 space-y-4">
+            <button
+              onClick={() => {
+                if (window.history.length > 1 && window.history.state?.idx > 0) {
+                  navigate(-1);
+                } else {
+                  navigate('/courses');
+                }
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-gray-300 hover:text-white rounded-xl text-xs font-semibold transition border border-slate-700 cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to courses
+            </button>
+            <br />
             <span className="inline-block px-3 py-1 bg-blue-600/30 text-blue-400 border border-blue-500/30 text-xs font-bold rounded-full uppercase tracking-wider">
               {course.category?.name || 'Course'}
             </span>

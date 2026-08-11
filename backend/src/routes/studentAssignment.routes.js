@@ -15,7 +15,7 @@ import { assignmentUpload } from "../middlewares/assignmentUpload.middleware.js"
 
 const router = Router();
 
-router.use(authMiddleware, authorizeRoles("student"));
+router.use(authMiddleware, authorizeRoles("student", "admin", "instructor"));
 router.get("/", getStudentAssignmentsController);
 
 router.post(

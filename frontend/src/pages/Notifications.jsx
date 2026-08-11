@@ -15,7 +15,9 @@ import {
   updateNotificationPreferences,
 } from '../api/notification.api';
 import { Spinner } from '../components/ui/Spinner';
-import { Bell, CheckCheck, Archive, Trash2, Settings, Mail, Smartphone } from 'lucide-react';
+import {
+  Bell, Check, CheckCheck, Trash2, Settings, AlertCircle, Info, CheckCircle, ArrowLeft, Archive, Mail, Smartphone
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const NOTIFICATION_TYPES = [
@@ -121,12 +123,27 @@ export default function Notifications() {
   return (
     <div className="page-wrapper">
       <div className="page-header">
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-              <Bell size={28} color="var(--color-primary-light)" /> Notifications
-            </h1>
-            <p>Stay updated on course announcements, quizzes, grades, and live classes</p>
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button
+              onClick={() => {
+                if (window.history.length > 1 && window.history.state?.idx > 0) {
+                  navigate(-1);
+                } else {
+                  navigate('/dashboard');
+                }
+              }}
+              className="btn btn-secondary btn-sm"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}
+            >
+              <ArrowLeft size={16} /> Back
+            </button>
+            <div>
+              <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                <Bell size={28} color="var(--color-primary-light)" /> Notifications
+              </h1>
+              <p>Stay updated on course announcements, quizzes, grades, and live classes</p>
+            </div>
           </div>
           {unreadCount > 0 && activeTab !== 'preferences' && (
             <button className="btn btn-secondary" onClick={handleMarkAllRead}>

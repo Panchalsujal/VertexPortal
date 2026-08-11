@@ -15,9 +15,9 @@ function NavItem({ to, children, onNavigate, end = false }) {
       end={end}
       onClick={onNavigate}
       className={({ isActive }) =>
-        `block px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+        `block px-4 py-2.5 text-sm font-medium rounded-xl transition-colors ${
           isActive
-            ? 'text-blue-600 bg-blue-50 dark:bg-blue-950/40 dark:text-blue-400'
+            ? 'text-purple-600 bg-purple-50 dark:bg-purple-950/40 dark:text-purple-400 font-semibold'
             : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white'
         }`
       }
@@ -92,37 +92,37 @@ export function Navbar() {
   const closeMobile = () => setMobileOpen(false);
 
   const desktopLinkClass = ({ isActive }) =>
-    isActive ? 'text-blue-600 font-semibold dark:text-blue-400' : 'hover:text-gray-900 dark:hover:text-white';
+    isActive ? 'text-purple-600 font-semibold dark:text-purple-400' : 'hover:text-purple-600 dark:hover:text-purple-400 transition-colors';
 
   const adminLinks = [
     { to: '/admin', label: 'Admin Overview' },
     { to: '/admin/users', label: 'Manage Users' },
     { to: '/admin/orders', label: 'Manage Orders' },
     { to: '/admin/courses', label: 'Manage Courses' },
+    { to: '/admin/panel?tab=categories', label: 'Categories & Coupons' },
     { to: '/admin/audit', label: 'Audit Logs' },
-    { to: '/admin/reviews', label: 'Ratings & Reviews' },
   ];
 
   return (
-    <header className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-40">
+    <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-gray-200/80 dark:border-slate-800 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 font-bold text-xl text-gray-900 dark:text-white shrink-0">
-            <div className="p-2 bg-blue-600 rounded-lg text-white">
+          <Link to="/" className="flex items-center gap-2.5 font-extrabold text-xl text-gray-900 dark:text-white shrink-0 no-underline">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-purple-950/30">
               <GraduationCap className="w-5 h-5" />
             </div>
-            <span>Vertex<span className="text-blue-600">Portal</span></span>
+            <span>Vertex<span className="text-purple-600 dark:text-purple-400">Portal</span></span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-gray-600 dark:text-gray-300">
+          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-gray-700 dark:text-gray-300">
             <NavLink to="/courses" className={desktopLinkClass}>Browse Courses</NavLink>
             <NavLink to="/discussions" className={desktopLinkClass}>
-              <span className="inline-flex items-center gap-1"><MessageSquare className="w-4 h-4" /> Discussions</span>
+              <span className="inline-flex items-center gap-1.5"><MessageSquare className="w-4 h-4 text-purple-500" /> Discussions</span>
             </NavLink>
             <NavLink to="/ai-chat" className={desktopLinkClass}>
-              <span className="inline-flex items-center gap-1"><Bot className="w-4 h-4 text-blue-600" /> AI Tutor</span>
+              <span className="inline-flex items-center gap-1.5"><Bot className="w-4 h-4 text-purple-600" /> AI Tutor</span>
             </NavLink>
 
             {user?.role === 'student' && (
@@ -147,13 +147,13 @@ export function Navbar() {
                 <button
                   type="button"
                   onClick={() => setAdminDropdownOpen(!adminDropdownOpen)}
-                  className="cursor-pointer flex items-center gap-1 hover:text-gray-900 dark:hover:text-white focus:outline-none"
+                  className="cursor-pointer flex items-center gap-1 hover:text-purple-600 dark:hover:text-purple-400 focus:outline-none"
                 >
                   Admin <ChevronDown className="w-3.5 h-3.5" />
                 </button>
 
                 <div
-                  className={`absolute left-0 top-full w-48 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-lg py-1 z-50 transition-all ${
+                  className={`absolute left-0 top-full w-48 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-xl py-1.5 z-50 transition-all ${
                     adminDropdownOpen ? 'block' : 'hidden group-hover:block'
                   }`}
                 >
@@ -162,7 +162,7 @@ export function Navbar() {
                       key={to}
                       to={to}
                       onClick={() => setAdminDropdownOpen(false)}
-                      className="block px-4 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400"
+                      className="block px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
                     >
                       {label}
                     </Link>
@@ -177,154 +177,152 @@ export function Navbar() {
             <button
               type="button"
               onClick={() => setDarkMode(prev => !prev)}
-              className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
-              title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+              title={darkMode ? 'Switch to light theme' : 'Switch to dark theme'}
             >
-              {darkMode ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5" />}
+              {darkMode ? <Sun className="w-4.5 h-4.5 text-amber-400" /> : <Moon className="w-4.5 h-4.5" />}
             </button>
 
-            {user ? (
+            <Link
+              to="/notifications"
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition-colors relative"
+              title="Notifications"
+            >
+              <Bell className="w-4.5 h-4.5" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-purple-600 rounded-full" />
+            </Link>
+
+            {user?.role === 'student' && (
               <>
-                <Link to="/notifications" className="hidden sm:block p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg" title="Notifications">
-                  <Bell className="w-5 h-5" />
+                <Link
+                  to="/cart"
+                  className="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition-colors relative"
+                  title="Cart"
+                >
+                  <ShoppingCart className="w-4.5 h-4.5" />
                 </Link>
-
-                {user.role === 'student' && (
-                  <>
-                    <Link to="/cart" className="hidden sm:block p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg" title="Cart">
-                      <ShoppingCart className="w-5 h-5" />
-                    </Link>
-                    <Link to="/wishlist" className="hidden sm:block p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg" title="Wishlist">
-                      <Heart className="w-5 h-5" />
-                    </Link>
-                    <Link to="/my-learning" className="hidden sm:block p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg" title="My Learning">
-                      <BookOpen className="w-5 h-5" />
-                    </Link>
-                  </>
-                )}
-
-                <div className="relative hidden sm:block" ref={dropdownRef}>
-                  <button
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition"
-                  >
-                    <div className="w-7 h-7 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
-                      {user.fullName ? user.fullName[0].toUpperCase() : 'U'}
-                    </div>
-                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 hidden md:inline">{user.fullName?.split(' ')[0]}</span>
-                    <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
-                  </button>
-
-                  {dropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-lg py-2 z-50">
-                      <div className="px-4 py-2 border-b border-gray-100 dark:border-slate-800">
-                        <p className="text-xs font-bold text-gray-900 dark:text-white">{user.fullName}</p>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-                        <span className="inline-block mt-1 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 text-[10px] font-bold px-2 py-0.5 rounded-full capitalize">
-                          {user.role}
-                        </span>
-                      </div>
-
-                      <Link to="/profile" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2 px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800">
-                        <User className="w-4 h-4 text-gray-400" /> Profile
-                      </Link>
-                      <Link to="/certificates" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2 px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800">
-                        <Award className="w-4 h-4 text-gray-400" /> My Certificates
-                      </Link>
-                      <Link to="/student/notes" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2 px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800">
-                        <FileText className="w-4 h-4 text-gray-400" /> Study Notes
-                      </Link>
-
-                      <div className="border-t border-gray-100 dark:border-slate-800 my-1" />
-
-                      <button onClick={handleLogout} className="w-full flex items-center gap-2 px-4 py-2 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 text-left">
-                        <LogOut className="w-4 h-4" /> Logout
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <Link
+                  to="/wishlist"
+                  className="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                  title="Wishlist"
+                >
+                  <Heart className="w-4.5 h-4.5" />
+                </Link>
               </>
+            )}
+
+            {user ? (
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setDropdownOpen(prev => !prev)}
+                  className="flex items-center gap-2 p-1 rounded-xl hover:bg-purple-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 text-white font-bold flex items-center justify-center text-xs shadow-xs">
+                    {user.avatarUrl ? (
+                      <img src={user.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                    ) : (
+                      user.fullName?.[0]?.toUpperCase() || 'U'
+                    )}
+                  </div>
+                  <span className="hidden sm:inline-block text-xs font-semibold text-gray-800 dark:text-gray-200">
+                    {user.fullName?.split(' ')[0]}
+                  </span>
+                  <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                </button>
+
+                {dropdownOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                    <div className="px-4 py-2 border-b border-gray-100 dark:border-slate-800">
+                      <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{user.fullName}</p>
+                      <p className="text-[11px] text-purple-600 font-semibold capitalize">{user.role}</p>
+                    </div>
+
+                    <Link
+                      to="/profile"
+                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
+                    >
+                      <User className="w-4 h-4 text-purple-600" /> Profile & Settings
+                    </Link>
+
+                    {user.role === 'student' && (
+                      <Link
+                        to="/my-learning"
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
+                      >
+                        <BookOpen className="w-4 h-4 text-purple-600" /> My Learning
+                      </Link>
+                    )}
+
+                    {user.role === 'admin' && (
+                      <Link
+                        to="/admin"
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
+                      >
+                        <Award className="w-4 h-4 text-purple-600" /> Admin Dashboard
+                      </Link>
+                    )}
+
+                    <div className="border-t border-gray-100 dark:border-slate-800 my-1" />
+
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors text-left cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4" /> Logout
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
-              <div className="hidden sm:flex items-center gap-2">
-                <Link to="/login" className="text-xs font-semibold text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2">
-                  Login
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/login"
+                  className="px-3.5 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-purple-600 transition"
+                >
+                  Log in
                 </Link>
-                <Link to="/register" className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition">
-                  Get Started
+                <Link
+                  to="/register"
+                  className="px-4 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl shadow-md shadow-purple-950/20 transition"
+                >
+                  Sign up
                 </Link>
               </div>
             )}
 
-            {/* Mobile menu toggle */}
+            {/* Mobile menu button */}
             <button
               type="button"
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="lg:hidden p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg"
-              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+              onClick={() => setMobileOpen(prev => !prev)}
+              className="lg:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 rounded-xl transition"
             >
-              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile menu panel */}
+      {/* Mobile Drawer */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 max-h-[calc(100vh-4rem)] overflow-y-auto">
-          <nav className="px-4 py-4 space-y-1">
-            <NavItem to="/courses" onNavigate={closeMobile}>Browse Courses</NavItem>
-            <NavItem to="/discussions" onNavigate={closeMobile}>
-              <span className="inline-flex items-center gap-2"><MessageSquare className="w-4 h-4" /> Discussions</span>
-            </NavItem>
-            <NavItem to="/ai-chat" onNavigate={closeMobile}>
-              <span className="inline-flex items-center gap-2"><Bot className="w-4 h-4" /> AI Tutor</span>
-            </NavItem>
+        <div className="lg:hidden bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-4 pt-2 pb-6 space-y-2">
+          <NavItem to="/courses" onNavigate={closeMobile}>Browse Courses</NavItem>
+          <NavItem to="/discussions" onNavigate={closeMobile}>Discussions</NavItem>
+          <NavItem to="/ai-chat" onNavigate={closeMobile}>AI Tutor</NavItem>
 
-            {user?.role === 'student' && (
-              <>
-                <NavItem to="/student/notes" onNavigate={closeMobile}>Notes</NavItem>
-                <NavItem to="/student/live-classes" onNavigate={closeMobile}>Live Classes</NavItem>
-                <NavItem to="/student/quizzes" onNavigate={closeMobile}>Quizzes</NavItem>
-                <NavItem to="/student/assignments" onNavigate={closeMobile}>Assignments</NavItem>
-                <NavItem to="/cart" onNavigate={closeMobile}>Cart</NavItem>
-                <NavItem to="/wishlist" onNavigate={closeMobile}>Wishlist</NavItem>
-                <NavItem to="/my-learning" onNavigate={closeMobile}>My Learning</NavItem>
-              </>
-            )}
+          {user?.role === 'student' && (
+            <>
+              <NavItem to="/student/notes" onNavigate={closeMobile}>Notes</NavItem>
+              <NavItem to="/student/live-classes" onNavigate={closeMobile}>Live Classes</NavItem>
+              <NavItem to="/student/quizzes" onNavigate={closeMobile}>Quizzes</NavItem>
+              <NavItem to="/student/assignments" onNavigate={closeMobile}>Assignments</NavItem>
+            </>
+          )}
 
-            {user && (user.role === 'instructor' || user.role === 'admin') && (
-              <>
-                <NavItem to="/instructor/dashboard" onNavigate={closeMobile}>Instructor Dashboard</NavItem>
-                <NavItem to="/instructor/live-classes" onNavigate={closeMobile}>Live Classes</NavItem>
-                <NavItem to="/instructor/quizzes" onNavigate={closeMobile}>Quizzes</NavItem>
-              </>
-            )}
-
-            {user?.role === 'admin' && adminLinks.map(({ to, label }) => (
-              <NavItem key={to} to={to} onNavigate={closeMobile}>{label}</NavItem>
-            ))}
-
-            {user ? (
-              <>
-                <div className="border-t border-gray-200 dark:border-slate-800 my-3 pt-3 space-y-1">
-                  <NavItem to="/notifications" onNavigate={closeMobile}>Notifications</NavItem>
-                  <NavItem to="/profile" onNavigate={closeMobile}>Profile</NavItem>
-                  <NavItem to="/certificates" onNavigate={closeMobile}>My Certificates</NavItem>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg"
-                >
-                  <LogOut className="w-4 h-4" /> Logout
-                </button>
-              </>
-            ) : (
-              <div className="border-t border-gray-200 dark:border-slate-800 mt-3 pt-4 flex flex-col gap-2">
-                <Link to="/login" onClick={closeMobile} className="btn btn-secondary w-full text-center">Login</Link>
-                <Link to="/register" onClick={closeMobile} className="btn btn-primary w-full text-center">Get Started</Link>
-              </div>
-            )}
-          </nav>
+          {user?.role === 'admin' && adminLinks.map(({ to, label }) => (
+            <NavItem key={to} to={to} onNavigate={closeMobile}>{label}</NavItem>
+          ))}
         </div>
       )}
     </header>

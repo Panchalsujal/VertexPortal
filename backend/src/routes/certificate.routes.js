@@ -20,21 +20,21 @@ router.get(
 router.get(
   "/me",
   authMiddleware,
-  authorizeRoles("student"),
+  authorizeRoles("student", "admin", "instructor"),
   getMyCertificatesController,
 );
 
 router.get(
   "/me/:certificateId/download",
   authMiddleware,
-  authorizeRoles("student"),
+  authorizeRoles("student", "admin", "instructor"),
   downloadMyCertificateController,
 );
 
 router.get(
   "/me/:certificateId",
   authMiddleware,
-  authorizeRoles("student"),
+  authorizeRoles("student", "admin", "instructor"),
   getMyCertificateByIdController,
 );
 

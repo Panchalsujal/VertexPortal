@@ -23,6 +23,8 @@ import InstructorDashboard from './pages/instructor/Dashboard';
 import CourseForm from './pages/instructor/CourseForm';
 import Curriculum from './pages/instructor/Curriculum';
 import AdminPanel from './pages/admin/AdminPanel';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import StudentDashboard from './pages/StudentDashboard';
 
 import Notifications from './pages/Notifications';
 import Certificates from './pages/Certificates';
@@ -65,11 +67,18 @@ function ProtectedRoute({ children, allowedRoles }) {
 // ─── Layout ───────────────────────────────────────────────────────────────────
 function Layout({ children }) {
   const location = useLocation();
-  const hideHeaderFooter = location.pathname.startsWith('/learn/');
+  // Pages that use their own full-page layout (no shared navbar/footer)
+  const hideHeaderFooter = (
+    location.pathname.startsWith('/learn/') ||
+    location.pathname === '/dashboard' ||
+    location.pathname.startsWith('/admin') ||
+    location.pathname === '/login' ||
+    location.pathname === '/register'
+  );
   return (
     <>
       {!hideHeaderFooter && <Navbar />}
-      <main className="min-h-[80vh]">{children}</main>
+      <main className={hideHeaderFooter ? '' : 'min-h-[80vh]'}>{children}</main>
       {!hideHeaderFooter && <Footer />}
     </>
   );
@@ -106,6 +115,9 @@ function AppRoot() {
           <Route path="/verify-email/:userId/:token" element={<VerifyEmail />} />
           <Route path="/verify-certificate/:verificationCode" element={<VerifyCertificate />} />
 
+          {/* Student Dashboard */}
+          <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['student']}><StudentDashboard /></ProtectedRoute>} />
+
           {/* New Feature Routes */}
           <Route path="/discussions" element={<ProtectedRoute><Discussions /></ProtectedRoute>} />
           <Route path="/student/notes" element={<ProtectedRoute allowedRoles={['student']}><StudentNotes /></ProtectedRoute>} />
@@ -137,7 +149,15 @@ function AppRoot() {
           <Route path="/instructor/courses/:courseId/curriculum" element={<ProtectedRoute allowedRoles={['instructor','admin']}><Curriculum /></ProtectedRoute>} />
 
           {/* Admin Routes */}
-          <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminPanel /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/panel" element={<ProtectedRoute allowedRoles={['admin']}><AdminPanel /></ProtectedRoute>} />
+          <Route path="/admin/categories" element={<ProtectedRoute allowedRoles={['admin']}><Navigate to="/admin/panel?tab=categories" replace /></ProtectedRoute>} />
+          <Route path="/admin/coupons" element={<ProtectedRoute allowedRoles={['admin']}><Navigate to="/admin/panel?tab=coupons" replace /></ProtectedRoute>} />
+          <Route path="/admin/certificates" element={<ProtectedRoute allowedRoles={['admin']}><Navigate to="/admin/panel?tab=certificates" replace /></ProtectedRoute>} />
+          <Route path="/admin/instructors" element={<ProtectedRoute allowedRoles={['admin']}><Navigate to="/admin/users?role=instructor" replace /></ProtectedRoute>} />
+          <Route path="/admin/enrollments" element={<ProtectedRoute allowedRoles={['admin']}><Navigate to="/admin/orders" replace /></ProtectedRoute>} />
+          <Route path="/admin/lectures" element={<ProtectedRoute allowedRoles={['admin']}><Navigate to="/admin/courses" replace /></ProtectedRoute>} />
+          <Route path="/admin/live-classes" element={<ProtectedRoute allowedRoles={['admin']}><InstructorLiveClasses /></ProtectedRoute>} />
           <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['admin']}><AdminUsers /></ProtectedRoute>} />
           <Route path="/admin/orders" element={<ProtectedRoute allowedRoles={['admin']}><AdminOrders /></ProtectedRoute>} />
           <Route path="/admin/courses" element={<ProtectedRoute allowedRoles={['admin']}><AdminCourses /></ProtectedRoute>} />

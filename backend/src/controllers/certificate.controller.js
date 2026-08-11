@@ -5,7 +5,10 @@ import {
   getCertificateById,
   verifyCertificate,
   getCertificateDownload,
+  issueCertificate,
 } from "../service/certificate.service.js";
+
+import { generateCertificatePdf } from "../service/certificatePdf.service.js";
 
 export const issueCertificateController = asyncHandler(async (req, res) => {
   const { studentId, courseId, enrollmentId } = req.body || {};
@@ -72,25 +75,45 @@ export const downloadMyCertificateController = asyncHandler(
       requesterRole: req.user.role,
     });
 
-    const downloadUrl = result.downloadUrl;
     const fileName = `Certificate-${result.certificateNumber || 'completion'}.pdf`;
 
-    if (downloadUrl.startsWith("data:application/pdf;base64,")) {
-      const base64Data = downloadUrl.replace("data:application/pdf;base64,", "");
+    // Dynamically render fresh executive PDF certificate
+    try {
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+      const pdfBuffer = await generateCertificatePdf({
+        certificateNumber: result.certificateNumber,
+        studentName: result.studentName,
+        courseTitle: result.courseTitle,
+        instructorName: result.instructorName || "Course Instructor",
+        completedAt: result.completedAt || result.issuedAt,
+        issuedAt: result.issuedAt,
+        verificationCode: result.verificationCode,
+        verificationUrl: `${frontendUrl}/certificates/verify/${result.verificationCode}`,
+      });
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `inline; filename="${fileName}"`);
+      return res.send(pdfBuffer);
+    } catch (err) {
+      console.error("Dynamic PDF generation error, falling back to downloadUrl:", err);
+    }
+
+    if (result.downloadUrl?.startsWith("data:application/pdf;base64,")) {
+      const base64Data = result.downloadUrl.replace("data:application/pdf;base64,", "");
       const pdfBuffer = Buffer.from(base64Data, "base64");
       res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+      res.setHeader("Content-Disposition", `inline; filename="${fileName}"`);
       return res.send(pdfBuffer);
     }
 
-    if (downloadUrl.startsWith("http://") || downloadUrl.startsWith("https://")) {
+    if (result.downloadUrl?.startsWith("http://") || result.downloadUrl?.startsWith("https://")) {
       try {
-        const response = await fetch(downloadUrl);
+        const response = await fetch(result.downloadUrl);
         if (response.ok) {
           const arrayBuffer = await response.arrayBuffer();
           const pdfBuffer = Buffer.from(arrayBuffer);
           res.setHeader("Content-Type", "application/pdf");
-          res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+          res.setHeader("Content-Disposition", `inline; filename="${fileName}"`);
           return res.send(pdfBuffer);
         }
       } catch (err) {

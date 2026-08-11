@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   fetchMyCertificates,
@@ -7,11 +8,12 @@ import {
 } from '../store/slices/certificatesSlice';
 import { downloadMyCertificate } from '../api/certificate.api';
 import { Spinner } from '../components/ui/Spinner';
-import { Award, Download, ExternalLink, ShieldCheck } from 'lucide-react';
+import { Award, Download, ExternalLink, ShieldCheck, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Certificates() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const certificates = useAppSelector(selectMyCertificates);
   const loading = useAppSelector(selectCertificatesLoading);
 
@@ -31,18 +33,33 @@ export default function Certificates() {
       link.remove();
       toast.success('Certificate downloaded!');
     } catch (err) {
-      toast.error(err.message || 'Download failed');
+      toast.error(err.response?.data?.message || err.message || 'Download failed');
     }
   };
 
   return (
     <div className="page-wrapper">
       <div className="page-header">
-        <div className="container">
-          <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-            <Award size={28} color="var(--color-primary-light)" /> My Certificates
-          </h1>
-          <p>View and download your earned course completion certificates</p>
+        <div className="container" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button
+            onClick={() => {
+              if (window.history.length > 1 && window.history.state?.idx > 0) {
+                navigate(-1);
+              } else {
+                navigate('/dashboard');
+              }
+            }}
+            className="btn btn-secondary btn-sm"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}
+          >
+            <ArrowLeft size={16} /> Back
+          </button>
+          <div>
+            <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+              <Award size={28} color="var(--color-primary-light)" /> My Certificates
+            </h1>
+            <p>View and download your earned course completion certificates</p>
+          </div>
         </div>
       </div>
 
