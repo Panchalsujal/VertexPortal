@@ -222,7 +222,7 @@ export default function StudentNotes() {
               </div>
 
               <div className="flex justify-between items-center text-xs text-gray-400 border-t border-gray-100 pt-3">
-                <span className="truncate max-w-[180px]" title={n.lectureId?.title || 'Lecture Note'}>
+                <span className="truncate max-w-45" title={n.lectureId?.title || 'Lecture Note'}>
                   {n.lectureId?.title || 'Lecture Note'}
                 </span>
                 <div className="flex gap-2">

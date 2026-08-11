@@ -91,7 +91,7 @@ export default function Profile() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-[Inter,sans-serif] pb-16">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-purple-900/10 via-indigo-900/10 to-slate-900/5 dark:from-purple-950/40 dark:to-slate-900 border-b border-gray-200 dark:border-slate-800 py-8">
+      <div className="bg-linear-to-r from-purple-900/10 via-indigo-900/10 to-slate-900/5 dark:from-purple-950/40 dark:to-slate-900 border-b border-gray-200 dark:border-slate-800 py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 mb-3">
             <button
@@ -122,7 +122,7 @@ export default function Profile() {
         {/* User Card */}
         <div className="bg-white dark:bg-slate-900 border border-gray-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm mb-8 flex flex-col sm:flex-row items-center gap-6">
           <div className="relative group shrink-0">
-            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-purple-100 dark:border-purple-950/50 shadow-md bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white text-2xl font-extrabold">
+            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-purple-100 dark:border-purple-950/50 shadow-md bg-linear-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white text-2xl font-extrabold">
               {user.avatarUrl ? (
                 <img src={user.avatarUrl} alt={user.fullName} className="w-full h-full object-cover" />
               ) : (
@@ -138,7 +138,7 @@ export default function Profile() {
 
             <button
               onClick={() => fileRef.current?.click()}
-              className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-lg border-2 border-white dark:border-slate-900 hover:scale-110 transition cursor-pointer"
+              className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-linear-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-lg border-2 border-white dark:border-slate-900 hover:scale-110 transition cursor-pointer"
               id="change-avatar-btn"
               title="Change Profile Photo"
             >
@@ -244,7 +244,7 @@ export default function Profile() {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl inline-flex items-center gap-2 shadow-md shadow-purple-950/20 transition cursor-pointer disabled:opacity-50"
+                  className="bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl inline-flex items-center gap-2 shadow-md shadow-purple-950/20 transition cursor-pointer disabled:opacity-50"
                   disabled={profileLoading}
                   id="save-profile-btn"
                 >
@@ -337,7 +337,7 @@ export default function Profile() {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl inline-flex items-center gap-2 shadow-md shadow-purple-950/20 transition cursor-pointer disabled:opacity-50"
+                  className="bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl inline-flex items-center gap-2 shadow-md shadow-purple-950/20 transition cursor-pointer disabled:opacity-50"
                   disabled={pwLoading}
                   id="save-pw-btn"
                 >
