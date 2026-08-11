@@ -7,30 +7,32 @@ import {
   toggleDiscussionUpvote, toggleReplyUpvote, getDiscussionVoteStatus,
 } from '../../api/discussion.api';
 
+const getErr = (e) => e?.message || e?.response?.data?.message || 'Failed';
+
 // ─── Async Thunks ─────────────────────────────────────────────────────────────
 export const fetchDiscussions = createAsyncThunk('discussions/fetchAll', async (params, { rejectWithValue }) => {
   try { const r = await getDiscussions(params); return r.data; }
-  catch (e) { return rejectWithValue(e.response?.data?.message || 'Failed'); }
+  catch (e) { return rejectWithValue(getErr(e)); }
 });
 
 export const fetchDiscussionById = createAsyncThunk('discussions/fetchOne', async (id, { rejectWithValue }) => {
   try { const r = await getDiscussionById(id); return r.data.discussion; }
-  catch (e) { return rejectWithValue(e.response?.data?.message || 'Failed'); }
+  catch (e) { return rejectWithValue(getErr(e)); }
 });
 
 export const addDiscussion = createAsyncThunk('discussions/create', async (data, { rejectWithValue }) => {
   try { const r = await createDiscussion(data); return r.data.discussion; }
-  catch (e) { return rejectWithValue(e.response?.data?.message || 'Failed'); }
+  catch (e) { return rejectWithValue(getErr(e)); }
 });
 
 export const editDiscussion = createAsyncThunk('discussions/update', async ({ id, data }, { rejectWithValue }) => {
   try { const r = await updateDiscussion(id, data); return r.data.discussion; }
-  catch (e) { return rejectWithValue(e.response?.data?.message || 'Failed'); }
+  catch (e) { return rejectWithValue(getErr(e)); }
 });
 
 export const removeDiscussion = createAsyncThunk('discussions/delete', async (id, { rejectWithValue }) => {
   try { await deleteDiscussion(id); return id; }
-  catch (e) { return rejectWithValue(e.response?.data?.message || 'Failed'); }
+  catch (e) { return rejectWithValue(getErr(e)); }
 });
 
 export const addReply = createAsyncThunk('discussions/addReply', async ({ discussionId, data }, { dispatch, rejectWithValue }) => {
@@ -39,7 +41,7 @@ export const addReply = createAsyncThunk('discussions/addReply', async ({ discus
     dispatch(fetchDiscussionById(discussionId));
     return r.data;
   } catch (e) {
-    return rejectWithValue(e.response?.data?.message || 'Failed');
+    return rejectWithValue(getErr(e));
   }
 });
 
@@ -49,7 +51,7 @@ export const removeReply = createAsyncThunk('discussions/removeReply', async ({ 
     dispatch(fetchDiscussionById(discussionId));
     return r.data;
   } catch (e) {
-    return rejectWithValue(e.response?.data?.message || 'Failed');
+    return rejectWithValue(getErr(e));
   }
 });
 
@@ -59,7 +61,7 @@ export const acceptAnswer = createAsyncThunk('discussions/acceptAnswer', async (
     dispatch(fetchDiscussionById(discussionId));
     return r.data;
   } catch (e) {
-    return rejectWithValue(e.response?.data?.message || 'Failed');
+    return rejectWithValue(getErr(e));
   }
 });
 
@@ -69,7 +71,7 @@ export const markResolved = createAsyncThunk('discussions/resolve', async ({ id,
     dispatch(fetchDiscussionById(id));
     return r.data.discussion;
   } catch (e) {
-    return rejectWithValue(e.response?.data?.message || 'Failed');
+    return rejectWithValue(getErr(e));
   }
 });
 
@@ -79,7 +81,7 @@ export const moderateDiscussion = createAsyncThunk('discussions/moderate', async
     dispatch(fetchDiscussionById(id));
     return r.data.discussion;
   } catch (e) {
-    return rejectWithValue(e.response?.data?.message || 'Failed');
+    return rejectWithValue(getErr(e));
   }
 });
 
@@ -89,7 +91,7 @@ export const upvoteDiscussion = createAsyncThunk('discussions/upvote', async (id
     dispatch(fetchDiscussionById(id));
     return r.data;
   } catch (e) {
-    return rejectWithValue(e.response?.data?.message || 'Failed');
+    return rejectWithValue(getErr(e));
   }
 });
 
@@ -99,13 +101,13 @@ export const upvoteReply = createAsyncThunk('discussions/upvoteReply', async ({ 
     dispatch(fetchDiscussionById(discussionId));
     return r.data;
   } catch (e) {
-    return rejectWithValue(e.response?.data?.message || 'Failed');
+    return rejectWithValue(getErr(e));
   }
 });
 
 export const fetchVoteStatus = createAsyncThunk('discussions/voteStatus', async (id, { rejectWithValue }) => {
   try { const r = await getDiscussionVoteStatus(id); return r.data; }
-  catch (e) { return rejectWithValue(e.response?.data?.message || 'Failed'); }
+  catch (e) { return rejectWithValue(getErr(e)); }
 });
 
 // ─── Slice ────────────────────────────────────────────────────────────────────

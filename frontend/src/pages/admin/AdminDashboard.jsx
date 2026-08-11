@@ -5,7 +5,7 @@ import {
   Star, FileText, Bell, ShoppingBag, Tag as CouponTag, BarChart2,
   Settings, FileCode, Globe, LogOut, Menu, X, TrendingUp,
   TrendingDown, ArrowUpRight, ChevronDown, Award, RotateCcw, Plus,
-  Activity, Zap, DollarSign, GraduationCap
+  Activity, Zap, DollarSign, GraduationCap, MessageSquare, User
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { selectUser, logoutUser } from '../../store/slices/authSlice';
@@ -31,6 +31,7 @@ const sidebarSections = [
     label: 'CONTENT',
     items: [
       { to: '/admin/courses',          icon: FileText,        label: 'Lectures & Course Content' },
+      { to: '/discussions',            icon: MessageSquare,   label: 'Discussions & Q&A' },
       { to: '/student/notes',          icon: Bell,            label: 'Notes & Documents' },
       { to: '/instructor/announcements', icon: Zap,          label: 'Announcements' },
     ],
@@ -146,6 +147,7 @@ export default function AdminDashboard() {
   const navigate  = useNavigate();
   const location  = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -173,8 +175,9 @@ export default function AdminDashboard() {
   }, [period]);
 
   const handleLogout = async () => {
+    setUserMenuOpen(false);
     await dispatch(logoutUser());
-    toast.success('Logged out');
+    toast.success('Logged out successfully');
     navigate('/login');
   };
 
@@ -196,8 +199,8 @@ export default function AdminDashboard() {
   const liveClassGrowth  = periodStats?.liveClasses?.growthPercentage;
 
   const topCourses      = dashboardData?.topCourses || [];
-  const recentUsers     = dashboardData?.recentUsers || [];
-  const roleDist        = dashboardData?.userRoleDistribution || [];
+  const recentUsers     = dashboardData?.recent?.users || dashboardData?.recentUsers || [];
+  const roleDist        = dashboardData?.distributions?.users || dashboardData?.userRoleDistribution || [];
 
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif]">
@@ -328,18 +331,70 @@ export default function AdminDashboard() {
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
               </Link>
 
-              <div className="flex items-center gap-2.5 ml-2 pl-3 border-l border-gray-200 dark:border-gray-700">
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm"
-                  style={{ background: 'linear-gradient(135deg, #6C5CE7, #a29bfe)' }}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setUserMenuOpen((prev) => !prev)}
+                  className="flex items-center gap-2.5 ml-2 pl-3 border-l border-gray-200 dark:border-gray-700 hover:opacity-80 transition cursor-pointer text-left"
                 >
-                  {user?.fullName?.[0]?.toUpperCase() || 'A'}
-                </div>
-                <div className="ad-header-name hidden sm:block">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">{user?.fullName || 'Admin'}</p>
-                  <p className="text-[10px] text-purple-500 font-semibold capitalize">{user?.role || 'Super Admin'}</p>
-                </div>
-                <ChevronDown className="w-4 h-4 text-gray-400" />
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0"
+                    style={{ background: 'linear-gradient(135deg, #6C5CE7, #a29bfe)' }}
+                  >
+                    {user?.fullName?.[0]?.toUpperCase() || 'A'}
+                  </div>
+                  <div className="ad-header-name hidden sm:block">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">{user?.fullName || 'Admin'}</p>
+                    <p className="text-[10px] text-purple-500 font-semibold capitalize">{user?.role || 'Super Admin'}</p>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {userMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-30" onClick={() => setUserMenuOpen(false)} />
+                    <div className="absolute right-0 top-12 w-56 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 py-2 z-40 animate-in fade-in slide-in-from-top-2">
+                      <div className="px-4 py-2.5 border-b border-gray-100 dark:border-gray-800">
+                        <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{user?.fullName || 'Admin'}</p>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+                      </div>
+
+                      <Link
+                        to="/profile"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/30 transition-colors"
+                      >
+                        <User className="w-4 h-4 text-purple-600" /> My Profile & Settings
+                      </Link>
+
+                      <Link
+                        to="/admin"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/30 transition-colors"
+                      >
+                        <LayoutDashboard className="w-4 h-4 text-purple-600" /> Admin Dashboard
+                      </Link>
+
+                      <Link
+                        to="/"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/30 transition-colors"
+                      >
+                        <Globe className="w-4 h-4 text-purple-600" /> Visit Main Website
+                      </Link>
+
+                      <div className="border-t border-gray-100 dark:border-gray-800 my-1" />
+
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-left cursor-pointer"
+                      >
+                        <LogOut className="w-4 h-4" /> Logout Account
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

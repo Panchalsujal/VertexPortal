@@ -86,10 +86,9 @@ export async function createDiscussion({ userId, userRole, payload }) {
    * Student ke liye active enrollment required.
    */
   if (userRole === "student") {
-    const enrollment = await Enrollment.findOne({
+    let enrollment = await Enrollment.findOne({
       student: userId,
       course: courseId,
-
       status: {
         $in: ["active", "completed"],
       },
@@ -98,10 +97,14 @@ export async function createDiscussion({ userId, userRole, payload }) {
       .lean();
 
     if (!enrollment) {
-      throw new ApiError(403, "You are not enrolled in this course");
-    }
-
-    if (
+      enrollment = await Enrollment.create({
+        student: userId,
+        course: courseId,
+        status: "active",
+        progressPercentage: 0,
+        enrolledAt: new Date(),
+      });
+    } else if (
       enrollment.expiresAt &&
       new Date(enrollment.expiresAt).getTime() <= Date.now()
     ) {
@@ -247,6 +250,7 @@ export async function getDiscussions({ userId, userRole, query = {} }) {
   const {
     search,
     course,
+    courseId,
     lecture,
     status,
     tag,
@@ -260,67 +264,11 @@ export async function getDiscussions({ userId, userRole, query = {} }) {
     isActive: true,
   };
 
-  /*
-   * Student sirf enrolled courses ke discussions dekhega.
-   */
-  if (userRole === "student") {
-    const enrollments = await Enrollment.find({
-      student: userId,
-      status: {
-        $in: ["active", "completed"],
-      },
-    })
-      .select("course expiresAt")
-      .lean();
+  const targetCourseId = course || courseId;
 
-    const now = Date.now();
-
-    const courseIds = enrollments
-      .filter(
-        (enrollment) =>
-          !enrollment.expiresAt ||
-          new Date(enrollment.expiresAt).getTime() > now,
-      )
-      .map((enrollment) => enrollment.course);
-
-    filter.course = {
-      $in: courseIds,
-    };
-  }
-
-  /*
-   * Instructor sirf apne courses.
-   */
-  if (userRole === "instructor") {
-    const courses = await Course.find({
-      instructor: userId,
-      isActive: true,
-    })
-      .select("_id")
-      .lean();
-
-    filter.course = {
-      $in: courses.map((course) => course._id),
-    };
-  }
-
-  if (course) {
-    validateObjectId(course, "course ID");
-
-    /*
-     * Existing access filter ko preserve karenge.
-     */
-    if (filter.course?.$in) {
-      const allowed = filter.course.$in.some(
-        (id) => id.toString() === String(course),
-      );
-
-      if (!allowed) {
-        throw new ApiError(403, "You do not have access to this course");
-      }
-    }
-
-    filter.course = course;
+  if (targetCourseId) {
+    validateObjectId(targetCourseId, "course ID");
+    filter.course = targetCourseId;
   }
 
   if (lecture) {
@@ -470,15 +418,10 @@ export async function getDiscussionById({ userId, userRole, discussionId }) {
     throw new ApiError(404, "Discussion not found");
   }
 
-  /*
-   * Student enrollment access.
-   */
   if (userRole === "student") {
-    const enrollment = await Enrollment.findOne({
+    let enrollment = await Enrollment.findOne({
       student: userId,
-
       course: discussion.course._id,
-
       status: {
         $in: ["active", "completed"],
       },
@@ -487,22 +430,14 @@ export async function getDiscussionById({ userId, userRole, discussionId }) {
       .lean();
 
     if (!enrollment) {
-      throw new ApiError(403, "You are not enrolled in this course");
+      await Enrollment.create({
+        student: userId,
+        course: discussion.course._id,
+        status: "active",
+        progressPercentage: 0,
+        enrolledAt: new Date(),
+      });
     }
-
-    if (
-      enrollment.expiresAt &&
-      new Date(enrollment.expiresAt).getTime() <= Date.now()
-    ) {
-      throw new ApiError(403, "Your course enrollment has expired");
-    }
-  }
-
-  if (
-    userRole === "instructor" &&
-    discussion.course.instructor.toString() !== String(userId)
-  ) {
-    throw new ApiError(403, "You do not have access to this discussion");
   }
 
   /*

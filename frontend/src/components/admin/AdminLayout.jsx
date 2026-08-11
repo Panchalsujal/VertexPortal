@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, BookOpen, Tag, UserCog, Video, ClipboardList,
   Star, FileText, Bell, ShoppingBag, Tag as CouponTag, BarChart2,
   Settings, Globe, LogOut, ArrowUpRight, Menu, ChevronDown,
-  GraduationCap, DollarSign, Zap, ArrowLeft, User
+  GraduationCap, DollarSign, Zap, ArrowLeft, User, MessageSquare
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { selectUser, logoutUser } from '../../store/slices/authSlice';
@@ -28,6 +28,7 @@ const sidebarSections = [
     label: 'CONTENT',
     items: [
       { to: '/admin/courses',          icon: FileText,        label: 'Lectures & Course Content' },
+      { to: '/discussions',            icon: MessageSquare,   label: 'Discussions & Q&A' },
       { to: '/student/notes',          icon: Bell,            label: 'Notes & Documents' },
       { to: '/instructor/announcements', icon: Zap,          label: 'Announcements' },
     ],

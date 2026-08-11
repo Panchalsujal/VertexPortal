@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   fetchNotifications,
@@ -33,6 +34,7 @@ const NOTIFICATION_TYPES = [
 
 export default function Notifications() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const notifications = useAppSelector(selectNotifications);
   const unreadCount = useAppSelector(selectUnreadCount);
   const loading = useAppSelector(selectNotifLoading);

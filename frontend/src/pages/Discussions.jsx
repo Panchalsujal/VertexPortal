@@ -4,8 +4,8 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   fetchDiscussions, fetchDiscussionById, addDiscussion, addReply,
   acceptAnswer, markResolved, moderateDiscussion, upvoteDiscussion, upvoteReply,
-  removeDiscussion, removeReply,
-  selectDiscussions, selectCurrentDiscussion, selectDiscussionLoading,
+  removeDiscussion, removeReply, fetchVoteStatus,
+  selectDiscussions, selectCurrentDiscussion, selectDiscussionLoading, selectDiscussionVoteStatus,
 } from '../store/slices/discussionsSlice';
 import { getAllCourses } from '../api/course.api';
 import { MessageSquare, ThumbsUp, CheckCircle, Lock, Pin, Send, Plus, Filter, Trash2, Shield, Unlock, ArrowLeft } from 'lucide-react';
@@ -17,6 +17,7 @@ export default function Discussions() {
   const discussions = useAppSelector(selectDiscussions);
   const current = useAppSelector(selectCurrentDiscussion);
   const loading = useAppSelector(selectDiscussionLoading);
+  const voteStatus = useAppSelector(selectDiscussionVoteStatus);
 
   const [coursesList, setCoursesList] = useState([]);
   const [filterCourseId, setFilterCourseId] = useState('');
@@ -66,7 +67,7 @@ export default function Discussions() {
       setNewBody('');
       dispatch(fetchDiscussions(filterCourseId ? { courseId: filterCourseId } : {}));
     } catch (err) {
-      toast.error(err || 'Failed to create discussion');
+      toast.error(typeof err === 'string' ? err : err?.message || 'Failed to create discussion');
     } finally {
       setSubmittingDiscussion(false);
     }
@@ -146,13 +147,32 @@ export default function Discussions() {
     }
   };
 
+  // 3. Fetch vote status when selecting a discussion
+  useEffect(() => {
+    if (current?._id) {
+      dispatch(fetchVoteStatus(current._id));
+    }
+  }, [current?._id, dispatch]);
+
   const handleUpvoteDiscussion = async (id) => {
-    await dispatch(upvoteDiscussion(id));
+    try {
+      const res = await dispatch(upvoteDiscussion(id)).unwrap();
+      dispatch(fetchVoteStatus(id));
+      if (res?.message) toast.success(res.message);
+    } catch (err) {
+      toast.error(typeof err === 'string' ? err : err?.message || 'Failed to update vote');
+    }
   };
 
   const handleUpvoteReply = async (replyId) => {
     if (!current) return;
-    await dispatch(upvoteReply({ discussionId: current._id, replyId }));
+    try {
+      const res = await dispatch(upvoteReply({ discussionId: current._id, replyId })).unwrap();
+      dispatch(fetchVoteStatus(current._id));
+      if (res?.message) toast.success(res.message);
+    } catch (err) {
+      toast.error(typeof err === 'string' ? err : err?.message || 'Failed to update reply vote');
+    }
   };
 
   const handleAcceptAnswer = async (replyId) => {
@@ -293,12 +313,23 @@ export default function Discussions() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleUpvoteDiscussion(current._id)}
-                      className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium px-3 py-1.5 rounded-lg"
-                    >
-                      <ThumbsUp className="w-4 h-4" /> {current.upvotesCount || current.upvoteCount || 0}
-                    </button>
+                    {(() => {
+                      const isDiscussionUpvoted = Boolean(voteStatus?.discussionUpvoted);
+                      return (
+                        <button
+                          onClick={() => handleUpvoteDiscussion(current._id)}
+                          className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl transition cursor-pointer ${
+                            isDiscussionUpvoted
+                              ? 'bg-purple-600 text-white shadow-md shadow-purple-950/20'
+                              : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600'
+                          }`}
+                          title={isDiscussionUpvoted ? 'Remove upvote' : 'Upvote discussion'}
+                        >
+                          <ThumbsUp className={`w-4 h-4 ${isDiscussionUpvoted ? 'fill-white' : ''}`} />
+                          <span>{current.upvoteCount ?? current.upvotesCount ?? 0}</span>
+                        </button>
+                      );
+                    })()}
 
                     {isOwnerOrAdmin && (
                       <button
@@ -388,12 +419,23 @@ export default function Discussions() {
                                 Mark Accepted
                               </button>
                             )}
-                            <button
-                              onClick={() => handleUpvoteReply(r._id)}
-                              className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-600"
-                            >
-                              <ThumbsUp className="w-3 h-3" /> {r.upvotesCount || 0}
-                            </button>
+                            {(() => {
+                              const isReplyUpvoted = (voteStatus?.replyUpvotes || []).includes(r._id?.toString());
+                              return (
+                                <button
+                                  onClick={() => handleUpvoteReply(r._id)}
+                                  className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg transition cursor-pointer ${
+                                    isReplyUpvoted
+                                      ? 'bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold'
+                                      : 'text-gray-500 hover:text-purple-600'
+                                  }`}
+                                  title={isReplyUpvoted ? 'Remove upvote' : 'Upvote reply'}
+                                >
+                                  <ThumbsUp className={`w-3.5 h-3.5 ${isReplyUpvoted ? 'fill-purple-600 text-purple-600' : ''}`} />
+                                  <span>{r.upvoteCount ?? r.upvotesCount ?? 0}</span>
+                                </button>
+                              );
+                            })()}
                             {isReplyOwnerOrAdmin && (
                               <button
                                 onClick={() => handleDeleteReply(r._id)}

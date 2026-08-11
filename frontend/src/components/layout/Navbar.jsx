@@ -240,6 +240,7 @@ export function Navbar() {
 
                     <Link
                       to="/profile"
+                      onClick={() => setDropdownOpen(false)}
                       className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
                     >
                       <User className="w-4 h-4 text-purple-600" /> Profile & Settings
@@ -248,6 +249,7 @@ export function Navbar() {
                     {user.role === 'student' && (
                       <Link
                         to="/my-learning"
+                        onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
                       >
                         <BookOpen className="w-4 h-4 text-purple-600" /> My Learning
@@ -257,6 +259,7 @@ export function Navbar() {
                     {user.role === 'admin' && (
                       <Link
                         to="/admin"
+                        onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
                       >
                         <Award className="w-4 h-4 text-purple-600" /> Admin Dashboard

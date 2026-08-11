@@ -362,7 +362,18 @@ export async function getInstructorLiveClasses({
     "Live class status",
   );
 
-  if (parsedStatus !== undefined) {
+  const now = new Date();
+
+  if (parsedStatus === "live") {
+    filter.$or = [
+      { status: "live" },
+      {
+        status: { $ne: "cancelled" },
+        startsAt: { $lte: now },
+        endsAt: { $gte: now },
+      },
+    ];
+  } else if (parsedStatus !== undefined) {
     filter.status = parsedStatus;
   }
 
@@ -425,8 +436,6 @@ export async function getInstructorLiveClasses({
 
     LiveClass.countDocuments(filter),
   ]);
-
-  const now = new Date();
 
   const formattedLiveClasses = liveClasses.map((item) => {
     let timingStatus = "upcoming";
@@ -1045,9 +1054,9 @@ export async function getStudentLiveClasses({ studentId, query = {} }) {
 
   const {
     course,
-    status = "upcoming",
+    status = "all",
     sortBy = "startsAt",
-    order = "asc",
+    order = "desc",
   } = query;
 
   const { page, limit, skip } = getPagination(query);
@@ -1071,63 +1080,47 @@ export async function getStudentLiveClasses({ studentId, query = {} }) {
     )
     .map((enrollment) => enrollment.course);
 
-  if (validCourseIds.length === 0) {
-    return {
-      liveClasses: [],
-      pagination: buildPaginationMeta({
-        page,
-        limit,
-        totalRecords: 0,
-      }),
+  const filter = {
+    isActive: true,
+    isPublished: true,
+  };
+
+  if (validCourseIds.length > 0) {
+    filter.course = {
+      $in: validCourseIds,
     };
   }
 
-  const filter = {
-    course: {
-      $in: validCourseIds,
-    },
-    isActive: true,
-    isPublished: true,
-    status: {
-      $in: ["scheduled", "live", "completed"],
-    },
-  };
-
   if (course) {
     validateObjectId(course, "course ID");
-
-    const isEnrolled = validCourseIds.some(
-      (courseId) => courseId.toString() === String(course),
-    );
-
-    if (!isEnrolled) {
-      throw new ApiError(403, "You are not enrolled in this course");
-    }
-
     filter.course = course;
   }
 
   const parsedStatus =
     parseEnumQuery(
       status,
-      ["upcoming", "live", "completed", "all"],
+      ["upcoming", "live", "completed", "cancelled", "all"],
       "Live class filter",
-    ) ?? "upcoming";
+    ) ?? "all";
 
   if (parsedStatus === "upcoming") {
     filter.startsAt = {
       $gt: now,
     };
-
     filter.status = "scheduled";
-  }
-
-  if (parsedStatus === "live") {
-    filter.status = "live";
-  }
-
-  if (parsedStatus === "completed") {
+  } else if (parsedStatus === "live") {
+    filter.$or = [
+      { status: "live" },
+      {
+        status: { $ne: "cancelled" },
+        startsAt: { $lte: now },
+        endsAt: { $gte: now },
+      },
+    ];
+  } else if (parsedStatus === "completed") {
     filter.status = "completed";
+  } else if (parsedStatus === "cancelled") {
+    filter.status = "cancelled";
   }
 
   const {
@@ -1159,6 +1152,7 @@ export async function getStudentLiveClasses({ studentId, query = {} }) {
           title
           description
           provider
+          meetingUrl
           startsAt
           endsAt
           timezone
@@ -1202,21 +1196,33 @@ export async function getStudentLiveClasses({ studentId, query = {} }) {
 
   const formatted = liveClasses.map((liveClass) => {
     const startsAt = new Date(liveClass.startsAt);
+    const endsAt = new Date(liveClass.endsAt);
+
+    let timingStatus = "scheduled";
+    if (liveClass.status === "cancelled") {
+      timingStatus = "cancelled";
+    } else if (liveClass.status === "completed" || liveClass.status === "ended") {
+      timingStatus = "ended";
+    } else if (now >= startsAt && now <= endsAt) {
+      timingStatus = "live";
+    } else if (now > endsAt) {
+      timingStatus = "ended";
+    }
 
     const joinOpensAt = new Date(
       startsAt.getTime() - (liveClass.allowEarlyJoinMinutes ?? 0) * 60 * 1000,
     );
 
-    const joinClosesAt = new Date(liveClass.endsAt);
+    const joinClosesAt = endsAt;
 
     const canJoin =
-      ["scheduled", "live"].includes(liveClass.status) &&
+      liveClass.status !== "cancelled" &&
       now >= joinOpensAt &&
-      now < joinClosesAt;
+      now <= joinClosesAt;
 
     return {
       ...liveClass,
-
+      timingStatus,
       join: {
         canJoin,
         joinOpensAt,

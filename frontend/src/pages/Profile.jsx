@@ -1,9 +1,9 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { updateMyProfile, updatePassword, updateAvatar } from '../api/user.api';
 import { Spinner } from '../components/ui/Spinner';
-import { User, Lock, Camera, Save, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { User, Lock, Camera, Save, Eye, EyeOff, ArrowLeft, ShieldCheck, Mail, Sparkles, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Profile() {
@@ -12,37 +12,60 @@ export default function Profile() {
   const fileRef = useRef(null);
 
   const [profileForm, setProfileForm] = useState({ fullName: user?.fullName || '' });
-  const [pwForm, setPwForm] = useState({ oldPassword: '', newPassword: '' });
+  const [pwForm, setPwForm] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
   const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [pwLoading, setPwLoading] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
   const [tab, setTab] = useState('profile');
+
+  useEffect(() => {
+    if (user?.fullName) {
+      setProfileForm({ fullName: user.fullName });
+    }
+  }, [user?.fullName]);
 
   const handleProfileSave = async (e) => {
     e.preventDefault();
     if (!profileForm.fullName.trim()) { toast.error('Name cannot be empty'); return; }
     setProfileLoading(true);
     try {
-      await updateMyProfile({ fullName: profileForm.fullName });
+      await updateMyProfile({ fullName: profileForm.fullName.trim() });
       await refreshUser();
-      toast.success('Profile updated!');
-    } catch (err) { toast.error(err.message); }
-    finally { setProfileLoading(false); }
+      toast.success('Profile updated successfully!');
+    } catch (err) {
+      toast.error(typeof err === 'string' ? err : err?.message || 'Failed to update profile');
+    } finally {
+      setProfileLoading(false);
+    }
   };
 
   const handlePasswordSave = async (e) => {
     e.preventDefault();
-    if (!pwForm.oldPassword || !pwForm.newPassword) { toast.error('Both fields are required'); return; }
-    if (pwForm.newPassword.length < 6) { toast.error('New password must be at least 6 characters'); return; }
+    if (!pwForm.oldPassword || !pwForm.newPassword || !pwForm.confirmPassword) {
+      toast.error('All password fields are required');
+      return;
+    }
+    if (pwForm.newPassword.length < 8) {
+      toast.error('New password must be at least 8 characters long');
+      return;
+    }
+    if (pwForm.newPassword !== pwForm.confirmPassword) {
+      toast.error('New password and confirm password do not match');
+      return;
+    }
     setPwLoading(true);
     try {
       await updatePassword(pwForm);
-      setPwForm({ oldPassword: '', newPassword: '' });
-      toast.success('Password updated!');
-    } catch (err) { toast.error(err.message); }
-    finally { setPwLoading(false); }
+      setPwForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+      toast.success('Password updated successfully!');
+    } catch (err) {
+      toast.error(typeof err === 'string' ? err : err?.message || 'Failed to update password');
+    } finally {
+      setPwLoading(false);
+    }
   };
 
   const handleAvatarChange = async (e) => {
@@ -55,168 +78,272 @@ export default function Profile() {
     try {
       await updateAvatar(fd);
       await refreshUser();
-      toast.success('Avatar updated!');
-    } catch (err) { toast.error(err.message); }
-    finally { setAvatarLoading(false); }
+      toast.success('Avatar updated successfully!');
+    } catch (err) {
+      toast.error(typeof err === 'string' ? err : err?.message || 'Failed to update avatar');
+    } finally {
+      setAvatarLoading(false);
+    }
   };
 
-  if (!user) return <div className="page-loader"><Spinner /></div>;
+  if (!user) return <div className="min-h-screen flex items-center justify-center"><Spinner /></div>;
 
   return (
-    <div className="page-wrapper">
-      <div className="page-header">
-        <div className="container" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <button
-            onClick={() => {
-              if (window.history.length > 1 && window.history.state?.idx > 0) {
-                navigate(-1);
-              } else {
-                navigate('/dashboard');
-              }
-            }}
-            className="btn btn-secondary btn-sm"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}
-          >
-            <ArrowLeft size={16} /> Back
-          </button>
-          <div>
-            <h1 style={{ marginBottom: '0.25rem' }}>Account Settings</h1>
-            <p>Manage your profile and security</p>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-[Inter,sans-serif] pb-16">
+      {/* Header Banner */}
+      <div className="bg-gradient-to-r from-purple-900/10 via-indigo-900/10 to-slate-900/5 dark:from-purple-950/40 dark:to-slate-900 border-b border-gray-200 dark:border-slate-800 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3 mb-3">
+            <button
+              onClick={() => {
+                if (window.history.length > 1 && window.history.state?.idx > 0) {
+                  navigate(-1);
+                } else {
+                  navigate('/dashboard');
+                }
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 transition cursor-pointer"
+              title="Go back"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Back
+            </button>
+            <span className="inline-flex items-center gap-1 text-xs font-extrabold uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 px-3 py-1 rounded-full">
+              <Sparkles className="w-3 h-3 text-purple-600" /> Account Settings
+            </span>
           </div>
+          <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">User Profile & Security</h1>
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Manage your personal profile information, avatar, and security credentials.
+          </p>
         </div>
       </div>
 
-      <div className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem', maxWidth: 800 }}>
-        {/* Avatar Section */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '1.5rem',
-          padding: '1.5rem',
-          background: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          borderRadius: 'var(--radius-xl)',
-          marginBottom: '2rem',
-        }}>
-          <div style={{ position: 'relative' }}>
-            <img
-              src={user.avatarUrl}
-              alt={user.fullName}
-              className="avatar"
-              style={{ width: 80, height: 80 }}
-            />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        {/* User Card */}
+        <div className="bg-white dark:bg-slate-900 border border-gray-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm mb-8 flex flex-col sm:flex-row items-center gap-6">
+          <div className="relative group shrink-0">
+            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-purple-100 dark:border-purple-950/50 shadow-md bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white text-2xl font-extrabold">
+              {user.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user.fullName} className="w-full h-full object-cover" />
+              ) : (
+                user.fullName?.[0]?.toUpperCase() || 'U'
+              )}
+            </div>
+
             {avatarLoading && (
-              <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div className="absolute inset-0 rounded-full bg-black/60 backdrop-blur-xs flex items-center justify-center">
                 <Spinner size="sm" />
               </div>
             )}
+
             <button
               onClick={() => fileRef.current?.click()}
-              style={{
-                position: 'absolute', bottom: 0, right: 0,
-                width: 28, height: 28,
-                background: 'var(--gradient-primary)',
-                borderRadius: '50%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', border: '2px solid var(--color-bg)',
-              }}
+              className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-lg border-2 border-white dark:border-slate-900 hover:scale-110 transition cursor-pointer"
               id="change-avatar-btn"
-              title="Change avatar"
+              title="Change Profile Photo"
             >
-              <Camera size={13} color="white" />
+              <Camera className="w-4 h-4" />
             </button>
-            <input type="file" ref={fileRef} accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
+            <input type="file" ref={fileRef} accept="image/*" onChange={handleAvatarChange} className="hidden" />
           </div>
-          <div>
-            <h3>{user.fullName}</h3>
-            <p style={{ fontSize: '0.9375rem', marginBottom: '0.5rem' }}>{user.email}</p>
-            <span className="badge badge-primary">{user.role}</span>
+
+          <div className="text-center sm:text-left flex-1 space-y-1">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white capitalize">{user.fullName}</h2>
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center sm:justify-start gap-1.5">
+              <Mail className="w-3.5 h-3.5 text-purple-500" /> {user.email}
+            </p>
+            <div className="pt-2 flex items-center justify-center sm:justify-start gap-2">
+              <span className="inline-flex items-center gap-1 bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                <ShieldCheck className="w-3.5 h-3.5" /> {user.role}
+              </span>
+              <span className="inline-flex items-center gap-1 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 text-xs font-semibold px-2.5 py-1 rounded-full">
+                <CheckCircle2 className="w-3 h-3" /> Active Account
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="tabs">
-          <button className={`tab-btn ${tab === 'profile' ? 'active' : ''}`} onClick={() => setTab('profile')} id="tab-profile">
-            <User size={15} /> Profile
+        {/* Tab Navigation */}
+        <div className="flex border-b border-gray-200 dark:border-slate-800 mb-8 gap-4">
+          <button
+            className={`pb-3 px-1 font-bold text-sm flex items-center gap-2 border-b-2 transition cursor-pointer ${
+              tab === 'profile'
+                ? 'border-purple-600 text-purple-600 dark:text-purple-400'
+                : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
+            }`}
+            onClick={() => setTab('profile')}
+            id="tab-profile"
+          >
+            <User className="w-4 h-4" /> Profile Details
           </button>
-          <button className={`tab-btn ${tab === 'security' ? 'active' : ''}`} onClick={() => setTab('security')} id="tab-security">
-            <Lock size={15} /> Security
+          <button
+            className={`pb-3 px-1 font-bold text-sm flex items-center gap-2 border-b-2 transition cursor-pointer ${
+              tab === 'security'
+                ? 'border-purple-600 text-purple-600 dark:text-purple-400'
+                : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
+            }`}
+            onClick={() => setTab('security')}
+            id="tab-security"
+          >
+            <Lock className="w-4 h-4" /> Security & Password
           </button>
         </div>
 
-        {/* Profile Tab */}
+        {/* Profile Details Form */}
         {tab === 'profile' && (
-          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-xl)', padding: '2rem', maxWidth: 500 }}>
-            <h3 style={{ marginBottom: '1.5rem' }}>Personal Information</h3>
-            <form onSubmit={handleProfileSave} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <div className="input-group">
-                <label className="input-label" htmlFor="profile-name">Full Name</label>
+          <div className="bg-white dark:bg-slate-900 border border-gray-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm">
+            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+              <User className="w-5 h-5 text-purple-600" /> Personal Information
+            </h3>
+            <form onSubmit={handleProfileSave} className="space-y-5">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2" htmlFor="profile-name">
+                  Full Name
+                </label>
                 <input
                   id="profile-name"
                   type="text"
-                  className="input-field"
+                  className="w-full border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
                   value={profileForm.fullName}
                   onChange={e => setProfileForm({ fullName: e.target.value })}
+                  placeholder="Enter your full name"
                 />
               </div>
-              <div className="input-group">
-                <label className="input-label">Email Address</label>
-                <input type="email" className="input-field" value={user.email} disabled style={{ opacity: 0.6 }} />
-                <span className="input-error-msg" style={{ color: 'var(--text-muted)' }}>Email cannot be changed</span>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    className="w-full border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50 rounded-xl px-4 py-2.5 text-sm text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                    value={user.email}
+                    disabled
+                  />
+                  <Lock className="w-4 h-4 text-gray-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
+                </div>
+                <p className="text-xs text-gray-400 mt-1.5">Email address cannot be changed once registered.</p>
               </div>
-              <div className="input-group">
-                <label className="input-label">Account Role</label>
-                <input type="text" className="input-field" value={user.role} disabled style={{ opacity: 0.6, textTransform: 'capitalize' }} />
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
+                  Account Role
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    className="w-full border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50 rounded-xl px-4 py-2.5 text-sm text-gray-500 dark:text-gray-400 capitalize cursor-not-allowed"
+                    value={user.role}
+                    disabled
+                  />
+                  <ShieldCheck className="w-4 h-4 text-purple-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
+                </div>
               </div>
-              <button type="submit" className="btn btn-primary" disabled={profileLoading} id="save-profile-btn">
-                {profileLoading ? <div className="spinner spinner-sm" /> : <><Save size={16} /> Save Changes</>}
-              </button>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl inline-flex items-center gap-2 shadow-md shadow-purple-950/20 transition cursor-pointer disabled:opacity-50"
+                  disabled={profileLoading}
+                  id="save-profile-btn"
+                >
+                  {profileLoading ? <Spinner size="sm" /> : <><Save className="w-4 h-4" /> Save Changes</>}
+                </button>
+              </div>
             </form>
           </div>
         )}
 
-        {/* Security Tab */}
+        {/* Security & Password Form */}
         {tab === 'security' && (
-          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-xl)', padding: '2rem', maxWidth: 500 }}>
-            <h3 style={{ marginBottom: '1.5rem' }}>Change Password</h3>
-            <form onSubmit={handlePasswordSave} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <div className="input-group">
-                <label className="input-label" htmlFor="old-password">Current Password</label>
-                <div style={{ position: 'relative' }}>
+          <div className="bg-white dark:bg-slate-900 border border-gray-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm">
+            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+              <Lock className="w-5 h-5 text-purple-600" /> Change Security Password
+            </h3>
+            <form onSubmit={handlePasswordSave} className="space-y-5">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2" htmlFor="old-password">
+                  Current Password
+                </label>
+                <div className="relative">
                   <input
                     id="old-password"
                     type={showOld ? 'text' : 'password'}
-                    className="input-field"
-                    placeholder="Current password"
+                    className="w-full border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl pl-4 pr-11 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+                    placeholder="Enter current password"
                     value={pwForm.oldPassword}
                     onChange={e => setPwForm(f => ({ ...f, oldPassword: e.target.value }))}
-                    style={{ paddingRight: 44 }}
                   />
-                  <button type="button" onClick={() => setShowOld(s => !s)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', background: 'none' }} id="toggle-old-pw">
-                    {showOld ? <EyeOff size={17} /> : <Eye size={17} />}
+                  <button
+                    type="button"
+                    onClick={() => setShowOld(s => !s)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-600 transition cursor-pointer"
+                    id="toggle-old-pw"
+                  >
+                    {showOld ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
-              <div className="input-group">
-                <label className="input-label" htmlFor="new-password">New Password</label>
-                <div style={{ position: 'relative' }}>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2" htmlFor="new-password">
+                  New Password
+                </label>
+                <div className="relative">
                   <input
                     id="new-password"
                     type={showNew ? 'text' : 'password'}
-                    className="input-field"
-                    placeholder="Minimum 6 characters"
+                    className="w-full border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl pl-4 pr-11 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+                    placeholder="Minimum 8 characters"
                     value={pwForm.newPassword}
                     onChange={e => setPwForm(f => ({ ...f, newPassword: e.target.value }))}
-                    style={{ paddingRight: 44 }}
                   />
-                  <button type="button" onClick={() => setShowNew(s => !s)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', background: 'none' }} id="toggle-new-pw">
-                    {showNew ? <EyeOff size={17} /> : <Eye size={17} />}
+                  <button
+                    type="button"
+                    onClick={() => setShowNew(s => !s)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-600 transition cursor-pointer"
+                    id="toggle-new-pw"
+                  >
+                    {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
-              <button type="submit" className="btn btn-primary" disabled={pwLoading} id="save-pw-btn">
-                {pwLoading ? <div className="spinner spinner-sm" /> : <><Lock size={16} /> Update Password</>}
-              </button>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2" htmlFor="confirm-password">
+                  Confirm New Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="confirm-password"
+                    type={showConfirm ? 'text' : 'password'}
+                    className="w-full border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl pl-4 pr-11 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+                    placeholder="Re-enter new password"
+                    value={pwForm.confirmPassword}
+                    onChange={e => setPwForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm(s => !s)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-600 transition cursor-pointer"
+                    id="toggle-confirm-pw"
+                  >
+                    {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl inline-flex items-center gap-2 shadow-md shadow-purple-950/20 transition cursor-pointer disabled:opacity-50"
+                  disabled={pwLoading}
+                  id="save-pw-btn"
+                >
+                  {pwLoading ? <Spinner size="sm" /> : <><Lock className="w-4 h-4" /> Update Password</>}
+                </button>
+              </div>
             </form>
           </div>
         )}

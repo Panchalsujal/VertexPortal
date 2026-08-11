@@ -530,11 +530,11 @@ export default function StudentDashboard() {
                 </div>
 
                 <div className="flex flex-wrap gap-2 mt-3">
-                  {['Explain this topic', 'Summarize this lecture', 'Quiz me'].map((prompt) => (
+                  {['Explain useEffect in React', 'What is Big O notation?', 'Help me with this error'].map((prompt) => (
                     <button
                       key={prompt}
                       onClick={() => navigate('/ai-chat')}
-                      className="px-3 py-1.5 text-xs font-semibold text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/30 hover:bg-purple-100 dark:hover:bg-purple-950/50 rounded-lg transition-colors"
+                      className="px-3 py-1.5 text-xs font-semibold text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/30 hover:bg-purple-100 dark:hover:bg-purple-950/50 rounded-lg transition-colors cursor-pointer"
                     >
                       {prompt}
                     </button>

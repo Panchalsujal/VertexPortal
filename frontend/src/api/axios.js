@@ -21,7 +21,10 @@ api.interceptors.response.use(
       }
     }
 
-    return Promise.reject(new Error(message));
+    const customErr = new Error(message);
+    customErr.response = error.response;
+    customErr.status = status;
+    return Promise.reject(customErr);
   }
 );
 

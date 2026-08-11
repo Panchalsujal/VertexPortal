@@ -163,6 +163,7 @@ function AppRoot() {
           <Route path="/admin/courses" element={<ProtectedRoute allowedRoles={['admin']}><AdminCourses /></ProtectedRoute>} />
           <Route path="/admin/audit" element={<ProtectedRoute allowedRoles={['admin']}><AdminAuditLogs /></ProtectedRoute>} />
           <Route path="/admin/reviews" element={<ProtectedRoute allowedRoles={['admin']}><AdminReviews /></ProtectedRoute>} />
+          <Route path="/admin/discussions" element={<ProtectedRoute allowedRoles={['admin']}><Discussions /></ProtectedRoute>} />
 
           {/* Catch All */}
           <Route path="*" element={<Navigate to="/" replace />} />

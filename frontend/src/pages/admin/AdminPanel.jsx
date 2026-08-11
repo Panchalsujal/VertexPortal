@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import toast from 'react-hot-toast';
 import { getAllCategories, createCategory, updateCategory, deleteCategory } from '../../api/category.api';
 import { getAllCoupons, createCoupon, updateCoupon, toggleCouponStatus, deleteCoupon } from '../../api/coupon.api';
 import { getAllCourses } from '../../api/course.api';
