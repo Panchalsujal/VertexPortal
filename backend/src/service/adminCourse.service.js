@@ -273,10 +273,6 @@ export async function publishAdminCourse({ courseId }) {
     throw new ApiError(404, "Course not found");
   }
 
-  if (!course.isActive) {
-    throw new ApiError(409, "Inactive course cannot be published");
-  }
-
   if (course.status === "published" && course.isPublished) {
     return {
       course,
@@ -287,31 +283,11 @@ export async function publishAdminCourse({ courseId }) {
     };
   }
 
-  /*
-   * Instructor validation.
-   */
-  const instructor = await User.findOne({
-    _id: course.instructor,
-
-    role: "instructor",
-
-    status: "active",
-
-    isActive: true,
-  })
-    .select("_id")
-    .lean();
-
-  if (!instructor) {
-    throw new ApiError(
-      409,
-      "Course instructor must be active before publishing",
-    );
-  }
-
   course.status = "published";
 
   course.isPublished = true;
+
+  course.isActive = true;
 
   /*
    * Agar tumhare Course model me publishedAt field hai,

@@ -352,6 +352,7 @@ export const publishCourseController = asyncHandler(async (req, res) => {
 
   course.status = "published";
   course.isPublished = true;
+  course.isActive = true;
   course.publishedAt = new Date();
 
   await course.save();
