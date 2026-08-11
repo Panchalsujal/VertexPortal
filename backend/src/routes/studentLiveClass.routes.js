@@ -18,6 +18,12 @@ router.use(authMiddleware, authorizeRoles("student", "admin", "instructor"));
 
 router.get("/", getStudentLiveClassesController);
 
+// IMPORTANT: static routes must be defined BEFORE param routes
+router.get(
+  "/attendance/history",
+  getStudentLiveClassAttendanceHistoryController,
+);
+
 router.get("/:liveClassId/resources", getStudentLiveClassResourcesController);
 
 router.post("/:liveClassId/join", joinStudentLiveClassController);
@@ -25,10 +31,5 @@ router.post("/:liveClassId/join", joinStudentLiveClassController);
 router.post("/:liveClassId/leave", leaveStudentLiveClassController);
 
 router.get("/:liveClassId", getStudentLiveClassByIdController);
-
-router.get(
-  "/attendance/history",
-  getStudentLiveClassAttendanceHistoryController,
-);
 
 export default router;

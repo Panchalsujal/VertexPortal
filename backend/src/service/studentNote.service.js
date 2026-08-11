@@ -2,6 +2,9 @@ import StudentNote from "../models/studentNote.model.js";
 import Lecture from "../models/lecture.model.js";
 import Enrollment from "../models/enrollment.model.js";
 import User from "../models/user.model.js";
+import Course from "../models/course.model.js";
+import CourseModule from "../models/courseModule.model.js";
+import mongoose from "mongoose";
 
 import {
   validateObjectId,
@@ -18,6 +21,44 @@ import {
 
 /*
  * ============================================
+ * RESOLVE COURSE OBJECT ID
+ * ============================================
+ *
+ * Accepts Mongo ObjectId, Course Document, Course Object,
+ * Course Slug, or Title and resolves to valid Course _id string.
+ */
+async function resolveCourseObjectId(courseInput) {
+  if (!courseInput) {
+    throw new ApiError(400, "Invalid course ID");
+  }
+
+  const raw =
+    typeof courseInput === "object" && courseInput !== null
+      ? courseInput._id || courseInput.id || courseInput
+      : courseInput;
+
+  const str = String(raw).trim();
+
+  if (mongoose.Types.ObjectId.isValid(str)) {
+    const exists = await Course.exists({ _id: str });
+    if (exists) return str;
+  }
+
+  const courseBySlug = await Course.findOne({ slug: str }).select("_id").lean();
+  if (courseBySlug) {
+    return courseBySlug._id.toString();
+  }
+
+  const courseByTitle = await Course.findOne({ title: str }).select("_id").lean();
+  if (courseByTitle) {
+    return courseByTitle._id.toString();
+  }
+
+  throw new ApiError(400, "Invalid course ID");
+}
+
+/*
+ * ============================================
  * STUDENT COURSE ACCESS
  * ============================================
  */
@@ -25,29 +66,22 @@ async function validateStudentCourseAccess({
   studentId,
   courseId,
 }) {
-  validateObjectId(
+  const validStudentId = validateObjectId(
     studentId,
     "student ID",
   );
 
-  validateObjectId(
-    courseId,
-    "course ID",
-  );
+  const validCourseId = await resolveCourseObjectId(courseId);
 
-  const user = await User.findById(studentId).select("role").lean();
+  const user = await User.findById(validStudentId).select("role").lean();
   if (user && (user.role === "admin" || user.role === "instructor")) {
-    return { status: "active" };
+    return { status: "active", courseId: validCourseId };
   }
 
   const enrollment =
     await Enrollment.findOne({
-      student:
-        studentId,
-
-      course:
-        courseId,
-
+      student: validStudentId,
+      course: validCourseId,
       status: {
         $in: [
           "active",
@@ -61,13 +95,10 @@ async function validateStudentCourseAccess({
       .lean();
 
   if (!enrollment) {
-    const newEnrollment = await Enrollment.create({
-      student: studentId,
-      course: courseId,
-      status: "active",
-      enrolledAt: new Date(),
-    });
-    return newEnrollment;
+    throw new ApiError(
+      403,
+      "You are not enrolled in this course",
+    );
   }
 
   if (
@@ -82,7 +113,7 @@ async function validateStudentCourseAccess({
     );
   }
 
-  return enrollment;
+  return { ...enrollment, courseId: validCourseId };
 }
 
 /*
@@ -93,28 +124,20 @@ async function validateStudentCourseAccess({
 async function getAccessibleLecture({
   studentId,
   lectureId,
+  fallbackCourseId = null,
 }) {
-  validateObjectId(
+  const validLectureId = validateObjectId(
     lectureId,
     "lecture ID",
   );
 
   const lecture =
     await Lecture.findOne({
-      _id:
-        lectureId,
-
-      isActive:
-        true,
+      _id: validLectureId,
+      isActive: true,
     })
-      .select(`
-        _id
-        course
-        module
-        title
-        isPublished
-        isActive
-      `)
+      .select("_id course module title isPublished isActive")
+      .populate({ path: "module", select: "course" })
       .lean();
 
   if (!lecture) {
@@ -131,13 +154,39 @@ async function getAccessibleLecture({
     );
   }
 
+  let rawCourse =
+    lecture.course ||
+    (lecture.module && typeof lecture.module === "object"
+      ? lecture.module.course
+      : null) ||
+    fallbackCourseId;
+
+  if (!rawCourse && lecture.module) {
+    const modDoc = await CourseModule.findById(lecture.module).select("course").lean();
+    if (modDoc) {
+      rawCourse = modDoc.course;
+    }
+  }
+
+  if (!rawCourse) {
+    throw new ApiError(
+      400,
+      "Invalid course ID",
+    );
+  }
+
+  const resolvedCourseId = await resolveCourseObjectId(rawCourse);
+
   await validateStudentCourseAccess({
     studentId,
-    courseId:
-      lecture.course,
+    courseId: resolvedCourseId,
   });
 
-  return lecture;
+  return {
+    ...lecture,
+    course: resolvedCourseId,
+    module: lecture.module && typeof lecture.module === "object" ? lecture.module._id : lecture.module,
+  };
 }
 
 /*
@@ -156,6 +205,7 @@ export async function createStudentNote({
 
   const {
     lectureId,
+    courseId = null,
     title = "",
     content,
     isPinned = false,
@@ -215,34 +265,24 @@ export async function createStudentNote({
     await getAccessibleLecture({
       studentId,
       lectureId,
+      fallbackCourseId: courseId,
     });
 
-  const note =
-    await StudentNote.create({
-      student:
-        studentId,
+  const note = await StudentNote.create({
+    student: studentId,
+    course: lecture.course,
+    module: lecture.module ?? null,
+    lecture: lecture._id,
+    title: normalizedTitle,
+    content: normalizedContent,
+    isPinned,
+    isActive: true,
+  });
 
-      course:
-        lecture.course,
-
-      module:
-        lecture.module ??
-        null,
-
-      lecture:
-        lecture._id,
-
-      title:
-        normalizedTitle,
-
-      content:
-        normalizedContent,
-
-      isPinned,
-
-      isActive:
-        true,
-    });
+  await note.populate([
+    { path: "lecture", select: "title type order" },
+    { path: "module", select: "title order" },
+  ]);
 
   return note;
 }
@@ -344,19 +384,16 @@ export async function getStudentCourseNotes({
   courseId,
   query = {},
 }) {
-  validateObjectId(
+  const validStudentId = validateObjectId(
     studentId,
     "student ID",
   );
 
-  validateObjectId(
-    courseId,
-    "course ID",
-  );
+  const validCourseId = await resolveCourseObjectId(courseId);
 
   await validateStudentCourseAccess({
-    studentId,
-    courseId,
+    studentId: validStudentId,
+    courseId: validCourseId,
   });
 
   const {
@@ -374,11 +411,9 @@ export async function getStudentCourseNotes({
   } = query;
 
   const filter = {
-    student:
-      studentId,
+    student: validStudentId,
 
-    course:
-      courseId,
+    course: validCourseId,
 
     isActive:
       true,

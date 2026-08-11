@@ -38,9 +38,11 @@ export default function StudentNotes() {
         const list = res.data.enrollments || res.data.data?.enrollments || res.data.data || [];
         setEnrollments(list);
         if (list.length > 0) {
-          const firstCourseId = list[0].course?._id || list[0].course;
+          const firstItem = list[0];
+          const firstCourse = firstItem.course || firstItem;
+          const firstCourseId = typeof firstCourse === 'object' ? (firstCourse._id || firstCourse.id) : firstCourse;
           if (firstCourseId) {
-            setSelectedCourseId(firstCourseId);
+            setSelectedCourseId(String(firstCourseId));
           }
         }
       })
@@ -71,6 +73,9 @@ export default function StudentNotes() {
           })
         );
         setLecturesList(allLecs);
+        if (allLecs.length > 0 && !lectureId) {
+          setLectureId(allLecs[0]._id);
+        }
       })
       .catch(() => setLecturesList([]))
       .finally(() => setLoadingLectures(false));
@@ -86,7 +91,7 @@ export default function StudentNotes() {
         await dispatch(editNote({ noteId: editingNote._id, data: { title, content, isPinned } })).unwrap();
         toast.success('Note updated');
       } else {
-        await dispatch(addNote({ lectureId, title, content, isPinned })).unwrap();
+        await dispatch(addNote({ courseId: selectedCourseId, lectureId, title, content, isPinned })).unwrap();
         toast.success('Note created');
       }
       setShowModal(false);
@@ -165,9 +170,10 @@ export default function StudentNotes() {
               <option value="">No Enrolled Courses Found</option>
             ) : (
               enrollments.map((enr) => {
-                const c = enr.course || {};
+                const c = typeof enr.course === 'object' ? enr.course : { _id: enr.course, title: 'Enrolled Course' };
+                const courseId = c._id || enr.course || enr._id;
                 return (
-                  <option key={enr._id} value={c._id}>
+                  <option key={enr._id} value={courseId}>
                     {c.title || 'Enrolled Course'}
                   </option>
                 );
@@ -222,8 +228,8 @@ export default function StudentNotes() {
               </div>
 
               <div className="flex justify-between items-center text-xs text-gray-400 border-t border-gray-100 pt-3">
-                <span className="truncate max-w-45" title={n.lectureId?.title || 'Lecture Note'}>
-                  {n.lectureId?.title || 'Lecture Note'}
+                <span className="truncate max-w-45" title={n.lecture?.title || 'Lecture Note'}>
+                  {n.lecture?.title || 'Lecture Note'}
                 </span>
                 <div className="flex gap-2">
                   <button

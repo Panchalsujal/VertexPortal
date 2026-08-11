@@ -8,14 +8,28 @@ export function validateObjectId(
   value,
   fieldName = "ID",
 ) {
-  if (!mongoose.Types.ObjectId.isValid(value)) {
+  if (!value) {
     throw new ApiError(
       400,
       `Invalid ${fieldName}`,
     );
   }
 
-  return value;
+  const rawId =
+    typeof value === "object" && value !== null
+      ? value._id || value.id || value
+      : value;
+
+  const idStr = String(rawId);
+
+  if (!mongoose.Types.ObjectId.isValid(idStr)) {
+    throw new ApiError(
+      400,
+      `Invalid ${fieldName}`,
+    );
+  }
+
+  return idStr;
 }
 
 export function validateRequired(

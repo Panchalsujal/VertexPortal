@@ -47,6 +47,8 @@ import AdminOrders from './pages/admin/AdminOrders';
 import AdminCourses from './pages/admin/AdminCourses';
 import AdminAuditLogs from './pages/admin/AdminAuditLogs';
 import AdminReviews from './pages/admin/AdminReviews';
+import AdminNotes from './pages/admin/AdminNotes';
+import AdminLiveAttendance from './pages/admin/AdminLiveAttendance';
 
 // ─── Protected Route ─────────────────────────────────────────────────────────
 function ProtectedRoute({ children, allowedRoles }) {
@@ -164,6 +166,8 @@ function AppRoot() {
           <Route path="/admin/audit" element={<ProtectedRoute allowedRoles={['admin']}><AdminAuditLogs /></ProtectedRoute>} />
           <Route path="/admin/reviews" element={<ProtectedRoute allowedRoles={['admin']}><AdminReviews /></ProtectedRoute>} />
           <Route path="/admin/discussions" element={<ProtectedRoute allowedRoles={['admin']}><Discussions /></ProtectedRoute>} />
+          <Route path="/admin/notes" element={<ProtectedRoute allowedRoles={['admin']}><AdminNotes /></ProtectedRoute>} />
+          <Route path="/admin/live-attendance" element={<ProtectedRoute allowedRoles={['admin','instructor']}><AdminLiveAttendance /></ProtectedRoute>} />
 
           {/* Catch All */}
           <Route path="*" element={<Navigate to="/" replace />} />

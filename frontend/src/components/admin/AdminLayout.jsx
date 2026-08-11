@@ -29,7 +29,8 @@ const sidebarSections = [
     items: [
       { to: '/admin/courses',          icon: FileText,        label: 'Lectures & Course Content' },
       { to: '/discussions',            icon: MessageSquare,   label: 'Discussions & Q&A' },
-      { to: '/student/notes',          icon: Bell,            label: 'Notes & Documents' },
+      { to: '/admin/notes',            icon: Bell,            label: 'Notes & Documents' },
+      { to: '/admin/live-attendance',  icon: Video,           label: 'Live Attendance' },
       { to: '/instructor/announcements', icon: Zap,          label: 'Announcements' },
     ],
   },
