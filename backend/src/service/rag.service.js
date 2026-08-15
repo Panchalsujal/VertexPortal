@@ -846,68 +846,135 @@ export async function searchCourseKnowledge({
 
   /*
    * ==================================
-   * VECTOR SEARCH
+   * VECTOR SEARCH (With In-Memory Cosine Similarity Fallback)
    * ==================================
    */
-  const rawResults = await RagChunk.aggregate([
-    {
-      $vectorSearch: {
-        index: "rag_vector_index",
+  let rawResults = [];
 
-        path: "embedding",
-
-        queryVector: queryEmbedding,
-
-        numCandidates: Math.max(vectorLimit * 10, 100),
-
-        limit: vectorLimit,
-
-        filter: vectorFilter,
-      },
-    },
-
-    {
-      $project: {
-        _id: 1,
-
-        course: 1,
-
-        module: 1,
-
-        lecture: 1,
-
-        resourceType: 1,
-
-        resourceId: 1,
-
-        title: 1,
-
-        content: 1,
-
-        chunkIndex: 1,
-
-        metadata: 1,
-
-        score: {
-          $meta: "vectorSearchScore",
+  try {
+    rawResults = await RagChunk.aggregate([
+      {
+        $vectorSearch: {
+          index: "rag_vector_index",
+          path: "embedding",
+          queryVector: queryEmbedding,
+          numCandidates: Math.max(vectorLimit * 10, 100),
+          limit: vectorLimit,
+          filter: vectorFilter,
         },
       },
-    },
-
-    {
-      $match: {
-        score: {
-          $gte: parsedMinimumScore,
+      {
+        $project: {
+          _id: 1,
+          course: 1,
+          module: 1,
+          lecture: 1,
+          resourceType: 1,
+          resourceId: 1,
+          title: 1,
+          content: 1,
+          chunkIndex: 1,
+          metadata: 1,
+          score: {
+            $meta: "vectorSearchScore",
+          },
         },
       },
-    },
-
-    {
-      $sort: {
-        score: -1,
+      {
+        $match: {
+          score: {
+            $gte: parsedMinimumScore,
+          },
+        },
       },
-    },
-  ]);
+      {
+        $sort: {
+          score: -1,
+        },
+      },
+    ]);
+  } catch (vectorSearchError) {
+    console.warn(
+      "[RAG VECTOR SEARCH] Atlas $vectorSearch index not available, using in-memory semantic fallback:",
+      vectorSearchError?.message
+    );
+    rawResults = [];
+  }
+
+  /*
+   * If Atlas $vectorSearch returned 0 results or threw an error (e.g. Atlas search index not yet built),
+   * perform exact Cosine Similarity + Keyword match on all course chunks.
+   */
+  if (!rawResults || rawResults.length === 0) {
+    const chunkFilter = {
+      course: courseId,
+      isActive: true,
+    };
+    if (moduleId) chunkFilter.module = moduleId;
+    if (lectureId) chunkFilter.lecture = lectureId;
+    if (parsedResourceType) chunkFilter.resourceType = parsedResourceType;
+
+    const allChunks = await RagChunk.find(chunkFilter)
+      .select("+embedding")
+      .lean();
+
+    if (allChunks && allChunks.length > 0) {
+      const scoredChunks = allChunks.map((chunk) => {
+        let score = 0;
+        if (
+          Array.isArray(chunk.embedding) &&
+          chunk.embedding.length > 0 &&
+          Array.isArray(queryEmbedding) &&
+          queryEmbedding.length > 0
+        ) {
+          let dot = 0;
+          let normA = 0;
+          let normB = 0;
+          for (let i = 0; i < queryEmbedding.length; i++) {
+            dot += (queryEmbedding[i] || 0) * (chunk.embedding[i] || 0);
+            normA += (queryEmbedding[i] || 0) * (queryEmbedding[i] || 0);
+            normB += (chunk.embedding[i] || 0) * (chunk.embedding[i] || 0);
+          }
+          if (normA > 0 && normB > 0) {
+            score = dot / (Math.sqrt(normA) * Math.sqrt(normB));
+          }
+        }
+
+        // Keyword boost for high-relevance terms (e.g. capstone, projects, WeIntern, etc.)
+        const queryTerms = normalizedQuery
+          .toLowerCase()
+          .split(/\s+/)
+          .filter((w) => w.length > 2);
+        const contentLower = `${chunk.title || ""} ${chunk.content || ""}`.toLowerCase();
+        let keywordHits = 0;
+        for (const term of queryTerms) {
+          if (contentLower.includes(term)) keywordHits += 1;
+        }
+        if (queryTerms.length > 0) {
+          score += (keywordHits / queryTerms.length) * 0.15;
+        }
+
+        return {
+          _id: chunk._id,
+          course: chunk.course,
+          module: chunk.module,
+          lecture: chunk.lecture,
+          resourceType: chunk.resourceType,
+          resourceId: chunk.resourceId,
+          title: chunk.title,
+          content: chunk.content,
+          chunkIndex: chunk.chunkIndex,
+          metadata: chunk.metadata,
+          score,
+        };
+      });
+
+      rawResults = scoredChunks
+        .filter((c) => c.score >= 0.35)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, vectorLimit);
+    }
+  }
 
   if (rawResults.length === 0) {
     return [];
