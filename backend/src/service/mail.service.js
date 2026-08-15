@@ -12,6 +12,7 @@ const createTransporter = () => {
         user: process.env.SMTP_USER || config.EMAIL_USER,
         pass: process.env.SMTP_PASS,
       },
+      family: 4,
       connectionTimeout: 8000,
       greetingTimeout: 8000,
       socketTimeout: 8000,
@@ -21,11 +22,14 @@ const createTransporter = () => {
   // Option 2: Gmail with App Password (if EMAIL_PASS is provided)
   if (process.env.EMAIL_PASS) {
     return nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
       auth: {
         user: config.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      family: 4,
       connectionTimeout: 8000,
       greetingTimeout: 8000,
       socketTimeout: 8000,
@@ -44,6 +48,7 @@ const createTransporter = () => {
       clientSecret: config.GOOGLE_CLIENT_SECRET,
       refreshToken: config.GOOGLE_REFRESH_TOKEN,
     },
+    family: 4,
     connectionTimeout: 8000,
     greetingTimeout: 8000,
     socketTimeout: 8000,
@@ -52,12 +57,12 @@ const createTransporter = () => {
 
 const transporter = createTransporter();
 
-// Non-blocking verification so server startup is never delayed
-if (process.env.DISABLE_EMAIL_VERIFY !== "true") {
+// Non-blocking verification check (skip in production or when DISABLE_EMAIL_VERIFY=true)
+if (process.env.DISABLE_EMAIL_VERIFY !== "true" && process.env.NODE_ENV !== "production") {
   transporter.verify((error) => {
     if (error) {
       console.warn(
-        "⚠️ Email server connection warning (SMTP may be restricted on cloud host):",
+        "ℹ️ Email verification note:",
         error.message || error
       );
       return;
