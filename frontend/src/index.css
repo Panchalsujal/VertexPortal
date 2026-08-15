@@ -80,14 +80,26 @@
     --color-success: #00b894;
   }
 
-  body {
+  html, body {
     background-color: var(--vp-bg);
     color: var(--vp-text);
     font-family: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
     letter-spacing: -0.011em;
+  }
+
+  #root {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -96,7 +108,7 @@
     color: var(--vp-text);
   }
 
-  * {
+  *, *::before, *::after {
     box-sizing: border-box;
   }
 

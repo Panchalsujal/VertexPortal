@@ -87,7 +87,7 @@ function Layout({ children }) {
   return (
     <>
       {!hideNavbar && <Navbar />}
-      <main className={hideNavbar ? '' : 'min-h-[80vh]'}>{children}</main>
+      <main className={`w-full overflow-x-hidden ${hideNavbar ? '' : 'min-h-[80vh]'}`}>{children}</main>
       {isLandingPage && <Footer />}
     </>
   );
