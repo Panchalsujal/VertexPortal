@@ -10,22 +10,18 @@ export const generateAiAnswerController = asyncHandler(async (req, res) => {
     moduleId = null,
     lectureId = null,
     resourceType = null,
+    courseId = null,
   } = req.body || {};
 
   const result = await generateAiAnswer({
     userId: req.user.id,
-
     userRole: req.user.role,
-
     conversationId,
-
     content,
-
     moduleId,
-
     lectureId,
-
     resourceType,
+    courseId,
   });
 
   return res.status(201).json({

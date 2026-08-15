@@ -70,9 +70,36 @@ function CodeBlock({ children, className }) {
   );
 }
 
-// Render markdown stream content nicely
-function FormattedMarkdown({ content, isTyping = false }) {
-  const displayedText = content;
+// Render markdown stream content with smooth Typewriter animation
+function FormattedMarkdown({ content = '', isLatest = false, isStreaming = false }) {
+  const [displayedText, setDisplayedText] = useState(() => (isLatest ? '' : content));
+  const [isTyping, setIsTyping] = useState(() => isLatest && content.length > 0);
+
+  useEffect(() => {
+    if (!isLatest || !content) {
+      setDisplayedText(content);
+      setIsTyping(false);
+      return;
+    }
+
+    let currentIndex = 0;
+    setIsTyping(true);
+
+    // Adaptive typing speed based on content length
+    const step = Math.max(3, Math.ceil(content.length / 90));
+    const interval = setInterval(() => {
+      currentIndex += step;
+      if (currentIndex >= content.length) {
+        setDisplayedText(content);
+        setIsTyping(false);
+        clearInterval(interval);
+      } else {
+        setDisplayedText(content.slice(0, currentIndex));
+      }
+    }, 16);
+
+    return () => clearInterval(interval);
+  }, [content, isLatest]);
 
   return (
     <div className="prose dark:prose-invert max-w-none text-xs sm:text-sm leading-relaxed">
@@ -83,10 +110,10 @@ function FormattedMarkdown({ content, isTyping = false }) {
           h2: (props) => <h2 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white mt-3 mb-1.5" {...props} />,
           h3: (props) => <h3 className="text-xs sm:text-sm font-bold text-purple-700 dark:text-purple-300 mt-2.5 mb-1" {...props} />,
           p: ({ node, children, ...props }) => <div className="mb-2.5 last:mb-0 leading-relaxed text-gray-800 dark:text-gray-200" {...props}>{children}</div>,
-          strong: (props) => <strong className="font-bold text-gray-900 dark:text-white" {...props} />,
+          strong: (props) => <strong className="font-bold text-purple-950 dark:text-purple-200 bg-purple-50/70 dark:bg-purple-950/40 px-1 py-0.5 rounded" {...props} />,
           em: (props) => <em className="italic text-purple-600 dark:text-purple-400" {...props} />,
-          ul: (props) => <ul className="list-disc pl-5 mb-3 space-y-1 text-gray-800 dark:text-gray-200" {...props} />,
-          ol: (props) => <ol className="list-decimal pl-5 mb-3 space-y-1 text-gray-800 dark:text-gray-200" {...props} />,
+          ul: (props) => <ul className="list-disc pl-5 mb-3 space-y-1.5 text-gray-800 dark:text-gray-200" {...props} />,
+          ol: (props) => <ol className="list-decimal pl-5 mb-3 space-y-1.5 text-gray-800 dark:text-gray-200" {...props} />,
           li: (props) => <li className="leading-relaxed" {...props} />,
           code: ({ inline, className, children, ...props }) =>
             inline ? (
@@ -113,8 +140,8 @@ function FormattedMarkdown({ content, isTyping = false }) {
       >
         {displayedText}
       </ReactMarkdown>
-      {isTyping && (
-        <span className="inline-block w-2 h-4 bg-purple-600 ml-1 animate-pulse align-middle rounded-xs" />
+      {(isTyping || isStreaming) && (
+        <span className="inline-block w-1.5 h-4 bg-purple-600 dark:bg-purple-400 ml-1 animate-pulse align-middle rounded-xs" />
       )}
     </div>
   );
@@ -214,7 +241,11 @@ export default function AiChat() {
       await dispatch(
         sendMessage({
           conversationId: targetConv._id,
-          data: { content: textToSend, message: textToSend },
+          data: {
+            content: textToSend,
+            message: textToSend,
+            courseId: courseId || targetConv.course || undefined,
+          },
         })
       ).unwrap();
     } catch (err) {
