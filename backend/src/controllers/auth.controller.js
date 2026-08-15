@@ -158,7 +158,7 @@ export const loginController = asyncHandler(async (req, res) => {
       httpOnly: true,
       secure: isSecureCookie,
       sameSite: isSecureCookie ? "none" : "lax",
-      maxAge: 1000 * 60 * 60 * 24,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     return res.status(200).json({
