@@ -15,12 +15,25 @@ export function validateObjectId(
     );
   }
 
-  const rawId =
-    typeof value === "object" && value !== null
-      ? value._id || value.id || value
-      : value;
+  let idStr;
 
-  const idStr = String(rawId);
+  if (typeof value === "string") {
+    idStr = value.trim();
+  } else if (value instanceof mongoose.Types.ObjectId) {
+    idStr = value.toString();
+  } else if (typeof value === "object" && value !== null) {
+    if (value._id) {
+      idStr = String(value._id).trim();
+    } else if (typeof value.id === "string") {
+      idStr = value.id.trim();
+    } else if (typeof value.toString === "function" && value.toString() !== "[object Object]") {
+      idStr = value.toString().trim();
+    } else {
+      idStr = String(value).trim();
+    }
+  } else {
+    idStr = String(value).trim();
+  }
 
   if (!mongoose.Types.ObjectId.isValid(idStr)) {
     throw new ApiError(

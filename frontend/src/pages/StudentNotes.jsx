@@ -36,11 +36,15 @@ export default function StudentNotes() {
     getMyEnrollments()
       .then((res) => {
         const list = res.data.enrollments || res.data.data?.enrollments || res.data.data || [];
-        setEnrollments(list);
-        if (list.length > 0) {
-          const firstItem = list[0];
+        const validList = list.filter((item) => item && (item.course || typeof item === 'object'));
+        setEnrollments(validList);
+        if (validList.length > 0) {
+          const firstItem = validList[0];
           const firstCourse = firstItem.course || firstItem;
-          const firstCourseId = typeof firstCourse === 'object' ? (firstCourse._id || firstCourse.id) : firstCourse;
+          const firstCourseId =
+            typeof firstCourse === 'object' && firstCourse !== null
+              ? firstCourse._id || firstCourse.id
+              : firstCourse;
           if (firstCourseId) {
             setSelectedCourseId(String(firstCourseId));
           }
@@ -73,11 +77,16 @@ export default function StudentNotes() {
           })
         );
         setLecturesList(allLecs);
-        if (allLecs.length > 0 && !lectureId) {
-          setLectureId(allLecs[0]._id);
+        if (allLecs.length > 0) {
+          setLectureId((prev) => (prev && allLecs.some((l) => l._id === prev) ? prev : allLecs[0]._id));
+        } else {
+          setLectureId('');
         }
       })
-      .catch(() => setLecturesList([]))
+      .catch(() => {
+        setLecturesList([]);
+        setLectureId('');
+      })
       .finally(() => setLoadingLectures(false));
   }, [dispatch, selectedCourseId, search]);
 
@@ -170,7 +179,7 @@ export default function StudentNotes() {
               <option value="">No Enrolled Courses Found</option>
             ) : (
               enrollments.map((enr) => {
-                const c = typeof enr.course === 'object' ? enr.course : { _id: enr.course, title: 'Enrolled Course' };
+                const c = typeof enr.course === 'object' && enr.course !== null ? enr.course : { _id: enr.course, title: 'Enrolled Course' };
                 const courseId = c._id || enr.course || enr._id;
                 return (
                   <option key={enr._id} value={courseId}>

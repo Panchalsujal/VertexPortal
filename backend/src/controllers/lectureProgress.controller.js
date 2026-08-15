@@ -8,6 +8,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { validateEnrollmentAccess } from "../utils/validateEnrollmentAccess.js";
 import { completeLectureProgress } from "../service/progress.service.js";
 import { issueCertificate } from "../service/certificate.service.js";
+import { ApiError } from "../utils/ApiError.js";
 
 export const markLectureCompletedController = asyncHandler(async (req, res) => {
   const { lectureId } = req.params;

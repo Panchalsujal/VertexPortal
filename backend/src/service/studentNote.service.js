@@ -29,19 +29,35 @@ import {
  */
 async function resolveCourseObjectId(courseInput) {
   if (!courseInput) {
-    throw new ApiError(400, "Invalid course ID");
+    throw new ApiError(400, "Course ID is required");
   }
 
-  const raw =
-    typeof courseInput === "object" && courseInput !== null
-      ? courseInput._id || courseInput.id || courseInput
-      : courseInput;
+  let str;
+  if (typeof courseInput === "string") {
+    str = courseInput.trim();
+  } else if (courseInput instanceof mongoose.Types.ObjectId) {
+    return courseInput.toString();
+  } else if (typeof courseInput === "object" && courseInput !== null) {
+    if (courseInput._id) {
+      const inner = courseInput._id;
+      str = inner instanceof mongoose.Types.ObjectId ? inner.toString() : String(inner).trim();
+    } else if (typeof courseInput.id === "string") {
+      str = courseInput.id.trim();
+    } else if (typeof courseInput.toString === "function" && courseInput.toString() !== "[object Object]") {
+      str = courseInput.toString().trim();
+    } else {
+      str = String(courseInput).trim();
+    }
+  } else {
+    str = String(courseInput).trim();
+  }
 
-  const str = String(raw).trim();
+  if (!str) {
+    throw new ApiError(400, "Course ID is required");
+  }
 
   if (mongoose.Types.ObjectId.isValid(str)) {
-    const exists = await Course.exists({ _id: str });
-    if (exists) return str;
+    return str;
   }
 
   const courseBySlug = await Course.findOne({ slug: str }).select("_id").lean();
@@ -144,13 +160,6 @@ async function getAccessibleLecture({
     throw new ApiError(
       404,
       "Lecture not found",
-    );
-  }
-
-  if (!lecture.isPublished) {
-    throw new ApiError(
-      403,
-      "This lecture is not available",
     );
   }
 
@@ -420,32 +429,12 @@ export async function getStudentCourseNotes({
   };
 
   if (lectureId) {
-    validateObjectId(
+    const validLecId = validateObjectId(
       lectureId,
       "lecture ID",
     );
 
-    const lectureExists =
-      await Lecture.exists({
-        _id:
-          lectureId,
-
-        course:
-          courseId,
-
-        isActive:
-          true,
-      });
-
-    if (!lectureExists) {
-      throw new ApiError(
-        404,
-        "Lecture not found in this course",
-      );
-    }
-
-    filter.lecture =
-      lectureId;
+    filter.lecture = validLecId;
   }
 
   if (moduleId) {
