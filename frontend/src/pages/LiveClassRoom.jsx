@@ -519,6 +519,7 @@ export default function LiveClassRoom() {
     let mounted = true;
     let clientInstance = null;
     let callInstance = null;
+    let hasJoinedSuccessfully = false;
 
     async function initRoom() {
       try {
