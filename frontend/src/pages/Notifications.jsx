@@ -44,7 +44,9 @@ function getNotificationUrl(item) {
       try {
         const parsed = new URL(url);
         url = parsed.pathname + parsed.search;
-      } catch {}
+      } catch (_err) {
+        // Fallback to unparsed url
+      }
     }
     return url;
   }

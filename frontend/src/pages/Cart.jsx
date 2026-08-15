@@ -381,7 +381,7 @@ export default function Cart() {
                   <div className="flex justify-between text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                     <span>Subtotal ({cartItems.length} item{cartItems.length !== 1 ? 's' : ''})</span>
                     <span className="font-semibold text-gray-900 dark:text-gray-200">
-                      ₹{(preview ? preview.pricing?.subtotal : subtotal).toLocaleString()}
+                      ₹{(preview ? (preview.pricing?.subtotal ?? 0) : subtotal).toLocaleString()}
                     </span>
                   </div>
 
@@ -398,7 +398,7 @@ export default function Cart() {
                   <div className="pt-3 border-t border-gray-100 dark:border-gray-800 flex justify-between items-baseline">
                     <span className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">Total</span>
                     <span className="text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-400">
-                      ₹{(preview ? preview.pricing?.totalAmount : subtotal).toLocaleString()}
+                      ₹{(preview ? (preview.pricing?.totalAmount ?? 0) : subtotal).toLocaleString()}
                     </span>
                   </div>
                 </div>

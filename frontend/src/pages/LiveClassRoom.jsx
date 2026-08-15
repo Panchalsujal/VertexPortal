@@ -540,6 +540,7 @@ export default function LiveClassRoom() {
               hostMode = true;
             }
           } catch (e) {
+            // Log instructor endpoint warning but continue
             console.warn('Instructor endpoint fallback:', e?.message);
           }
         }
@@ -562,7 +563,7 @@ export default function LiveClassRoom() {
                 joinErr?.response?.data?.message ||
                 fallbackErr?.response?.data?.message ||
                 'Unable to join live class';
-              throw new Error(errMsg);
+              throw new Error(errMsg, { cause: fallbackErr });
             }
           }
         }
@@ -684,7 +685,9 @@ export default function LiveClassRoom() {
       if (window.confirm('Are you sure you want to end this live session?')) {
         try {
           await updateLiveClassStatus(liveClassId, { status: 'completed' });
-        } catch (e) {}
+        } catch (_e) {
+          // ignore status update error
+        }
         if (streamCall) await streamCall.leave().catch(() => {});
         navigate('/instructor/live-classes');
       }
