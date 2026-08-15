@@ -19,7 +19,6 @@ function cleanNoSqlInjection(data) {
   ) {
     const cleaned = {};
     for (const [key, value] of Object.entries(data)) {
-      // Sanitize keys starting with '$' or containing '.'
       if (key.startsWith("$") || key.includes(".")) {
         const safeKey = key.replace(/^\$+/, "").replace(/\./g, "_");
         if (safeKey) {
@@ -36,19 +35,40 @@ function cleanNoSqlInjection(data) {
 }
 
 /**
- * Middleware to sanitize req.body, req.query, and req.params against NoSQL injection
+ * Middleware to sanitize req.body, req.query, and req.params against NoSQL injection.
+ * Uses Object.defineProperty to support Express 5 getter-only properties on req.
  */
 export const sanitizeInput = (req, res, next) => {
-  if (req.body) {
-    req.body = cleanNoSqlInjection(req.body);
-  }
+  try {
+    if (req.body && typeof req.body === "object") {
+      req.body = cleanNoSqlInjection(req.body);
+    }
 
-  if (req.query) {
-    req.query = cleanNoSqlInjection(req.query);
-  }
+    if (req.query && typeof req.query === "object") {
+      const sanitizedQuery = cleanNoSqlInjection(req.query);
+      Object.defineProperty(req, "query", {
+        value: sanitizedQuery,
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
+    }
 
-  if (req.params) {
-    req.params = cleanNoSqlInjection(req.params);
+    if (req.params && typeof req.params === "object") {
+      const sanitizedParams = cleanNoSqlInjection(req.params);
+      try {
+        req.params = sanitizedParams;
+      } catch {
+        Object.defineProperty(req, "params", {
+          value: sanitizedParams,
+          writable: true,
+          enumerable: true,
+          configurable: true,
+        });
+      }
+    }
+  } catch (err) {
+    console.error("Sanitize input warning:", err);
   }
 
   next();
