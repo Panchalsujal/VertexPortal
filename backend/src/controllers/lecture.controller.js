@@ -799,10 +799,7 @@ export const uploadLectureVideoController = asyncHandler(async (req, res) => {
   }
 
   if (lecture.type !== "video") {
-    return res.status(400).json({
-      success: false,
-      message: "Lecture type must be video before uploading a video",
-    });
+    lecture.type = "video";
   }
 
   const course = await Course.findOne({
@@ -1015,10 +1012,7 @@ export const uploadLectureDocumentController = asyncHandler(
     }
 
     if (lecture.type !== "document") {
-      return res.status(400).json({
-        success: false,
-        message: "Lecture type must be document before uploading a PDF",
-      });
+      lecture.type = "document";
     }
 
     const course = await Course.findOne({
