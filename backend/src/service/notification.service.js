@@ -795,7 +795,7 @@ export async function updateNotificationPreferences({ userId, payload }) {
     },
 
     {
-      new: true,
+      returnDocument: 'after',
 
       upsert: true,
 

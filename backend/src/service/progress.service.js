@@ -11,7 +11,7 @@ export async function completeLectureProgress({
   const now = new Date();
 
   const queryOptions = {
-    new: true,
+    returnDocument: 'after',
     upsert: true,
     runValidators: true,
     setDefaultsOnInsert: true,

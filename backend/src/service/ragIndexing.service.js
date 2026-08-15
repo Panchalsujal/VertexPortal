@@ -160,7 +160,7 @@ export async function createOrResetRagIndexingJob({
         },
       },
       {
-        new: true,
+        returnDocument: 'after',
         upsert: true,
         runValidators: true,
       },
@@ -206,7 +206,7 @@ export async function markRagIndexingProcessing(
         },
       },
       {
-        new: true,
+        returnDocument: 'after',
         runValidators: true,
       },
     );
@@ -275,7 +275,7 @@ export async function markRagIndexingCompleted({
       },
       update,
       {
-        new: true,
+        returnDocument: 'after',
         runValidators: true,
       },
     );
@@ -326,7 +326,7 @@ export async function markRagIndexingFailed({
         },
       },
       {
-        new: true,
+        returnDocument: 'after',
         runValidators: true,
       },
     );

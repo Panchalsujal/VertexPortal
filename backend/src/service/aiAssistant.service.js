@@ -537,7 +537,7 @@ export async function renameAiConversation({
       },
 
       {
-        new: true,
+        returnDocument: 'after',
         runValidators: true,
       },
     );
@@ -602,7 +602,7 @@ export async function updateAiConversationArchive({
       },
 
       {
-        new: true,
+        returnDocument: 'after',
         runValidators: true,
       },
     );

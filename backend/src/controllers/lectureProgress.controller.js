@@ -181,7 +181,7 @@ export const updateWatchTimeController = asyncHandler(async (req, res) => {
           },
         },
         {
-          new: true,
+          returnDocument: 'after',
           upsert: true,
           runValidators: true,
           setDefaultsOnInsert: true,

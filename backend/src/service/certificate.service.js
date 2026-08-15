@@ -644,7 +644,7 @@ export async function markCertificateIssued({ enrollmentId }) {
       },
     },
     {
-      new: true,
+      returnDocument: 'after',
     },
   );
 }
@@ -667,7 +667,7 @@ export async function markCertificateIssueFailed({ enrollmentId, error }) {
       },
     },
     {
-      new: true,
+      returnDocument: 'after',
     },
   );
 }
@@ -688,7 +688,7 @@ async function markCertificateIssuePending(enrollmentId) {
       },
     },
     {
-      new: true,
+      returnDocument: 'after',
     },
   );
 }

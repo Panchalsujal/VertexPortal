@@ -147,7 +147,7 @@ export const updateMyProfileController = asyncHandler(
         },
       },
       {
-        new: true,
+        returnDocument: 'after',
         runValidators: true,
       },
     ).select("-password");

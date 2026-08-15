@@ -1452,7 +1452,7 @@ async function recalculateQuizTotals({ quizId, session = null }) {
   const totalMarks = result[0]?.totalMarks ?? 0;
 
   const updateOptions = {
-    new: true,
+    returnDocument: 'after',
   };
 
   if (session) {
@@ -3258,7 +3258,7 @@ export async function saveQuizAnswer({
       },
     },
     {
-      new: true,
+      returnDocument: 'after',
       upsert: true,
       runValidators: true,
       setDefaultsOnInsert: true,

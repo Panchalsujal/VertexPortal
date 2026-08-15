@@ -118,7 +118,7 @@ export async function toggleDiscussionUpvote({
     const updatedDiscussion = await Discussion.findByIdAndUpdate(
       discussionId,
       { upvoteCount: realCount },
-      { new: true }
+      { returnDocument: 'after' }
     )
       .select("_id upvoteCount")
       .lean();
@@ -164,7 +164,7 @@ export async function toggleDiscussionUpvote({
   const updatedDiscussion = await Discussion.findByIdAndUpdate(
     discussionId,
     { upvoteCount: realCount },
-    { new: true }
+    { returnDocument: 'after' }
   )
     .select("_id upvoteCount")
     .lean();
@@ -230,7 +230,7 @@ export async function toggleDiscussionReplyUpvote({
     const updatedReply = await DiscussionReply.findByIdAndUpdate(
       replyId,
       { upvoteCount: realCount },
-      { new: true }
+      { returnDocument: 'after' }
     )
       .select("_id upvoteCount")
       .lean();
@@ -276,7 +276,7 @@ export async function toggleDiscussionReplyUpvote({
   const updatedReply = await DiscussionReply.findByIdAndUpdate(
     replyId,
     { upvoteCount: realCount },
-    { new: true }
+    { returnDocument: 'after' }
   )
     .select("_id upvoteCount")
     .lean();
