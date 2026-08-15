@@ -290,20 +290,13 @@ function StreamConnectedStage({
   const toggleCamera = async () => {
     try {
       if (!call) return;
-      if (navigator?.mediaDevices?.getUserMedia) {
-        try {
-          const probe = await navigator.mediaDevices.getUserMedia({ video: true });
-          probe.getTracks().forEach((t) => t.stop());
-        } catch (_err) {
-          // Probe may fail if blocked, let SDK handler format toast
-        }
-      }
-      await call.camera.toggle();
-      const status = call.camera?.state?.status;
-      if (status === 'enabled') {
-        toast.success('Camera turned on 📹');
-      } else {
+      const isCurrentlyEnabled = call.camera?.state?.status === 'enabled';
+      if (isCurrentlyEnabled) {
+        await call.camera.disable();
         toast('Camera turned off');
+      } else {
+        await call.camera.enable();
+        toast.success('Camera turned on 📹');
       }
     } catch (e) {
       console.warn('Failed to toggle camera:', e);
@@ -321,21 +314,22 @@ function StreamConnectedStage({
   const toggleMic = async () => {
     try {
       if (!call) return;
-      // Proactively trigger browser permission prompt if not yet granted
-      if (navigator?.mediaDevices?.getUserMedia) {
+      // Resume browser audio context on user interaction
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
         try {
-          const probe = await navigator.mediaDevices.getUserMedia({ audio: true });
-          probe.getTracks().forEach((t) => t.stop());
-        } catch (_probeErr) {
-          // Will be handled below if permanently blocked
-        }
+          const ctx = new AudioCtx();
+          if (ctx.state === 'suspended') await ctx.resume();
+        } catch (_ctxErr) {}
       }
-      await call.microphone.toggle();
-      const status = call.microphone?.state?.status;
-      if (status === 'enabled') {
-        toast.success('Microphone connected & unmuted 🎙️');
-      } else {
+
+      const isCurrentlyEnabled = call.microphone?.state?.status === 'enabled';
+      if (isCurrentlyEnabled) {
+        await call.microphone.disable();
         toast('Microphone muted');
+      } else {
+        await call.microphone.enable();
+        toast.success('Microphone connected! Speak to test audio 🎙️');
       }
     } catch (e) {
       console.warn('Failed to toggle mic:', e);
