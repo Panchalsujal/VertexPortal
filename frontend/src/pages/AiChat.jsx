@@ -97,7 +97,7 @@ function FormattedMarkdown({ content, isTyping = false }) {
           ),
           thead: (props) => <thead className="bg-purple-50/70 dark:bg-purple-950/40 border-b border-gray-200 dark:border-gray-700 text-purple-950 dark:text-purple-200 font-bold" {...props} />,
           th: (props) => <th className="px-4 py-3 font-bold text-xs uppercase tracking-wider text-gray-700 dark:text-gray-300 border-r border-gray-200/60 dark:border-gray-700/60 last:border-r-0" {...props} />,
-          td: (props) => <td className="px-4 py-2.5 border-t border-gray-100 dark:border-gray-800 border-r border-gray-100 dark:border-gray-800/60 last:border-r-0 text-gray-700 dark:text-gray-200" {...props} />,
+          td: (props) => <td className="px-4 py-2.5 border-t border-r border-gray-100 dark:border-gray-800/60 last:border-r-0 text-gray-700 dark:text-gray-200" {...props} />,
           tr: (props) => <tr className="hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors" {...props} />,
           hr: (props) => <hr className="my-4 border-gray-200 dark:border-gray-800" {...props} />,
         }}
