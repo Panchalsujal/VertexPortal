@@ -5,6 +5,7 @@ import {
   getMeController,
   logoutController,
   verifyEmailController,
+  resendVerificationController,
 } from "../controllers/auth.controller.js";
 import {
   registerValidator,
@@ -26,7 +27,6 @@ router.post("/register", registerValidator, registerController);
  * @desc Login a user
  * @Api /api/auth/login
  */
-
 router.post("/login", loginValidator, loginController);
 
 /**
@@ -34,7 +34,6 @@ router.post("/login", loginValidator, loginController);
  *  @desc Get the currently logged-in user
  *  @Api /api/auth/me
  */
-
 router.get("/me", authMiddleware, getMeController);
 
 /**
@@ -42,15 +41,20 @@ router.get("/me", authMiddleware, getMeController);
  *  @desc Logout the currently logged-in user
  *  @Api /api/auth/logout
  */
-
 router.post("/logout", authMiddleware, logoutController);
 
 /**
- *  @access Private
+ *  @access Public
  *  @desc Verify email address
  *  @Api /api/auth/verify-email/:userId/:token
  */
-
 router.get("/verify-email/:userId/:token", verifyEmailController);
+
+/**
+ *  @access Public
+ *  @desc Resend verification email
+ *  @Api /api/auth/resend-verification
+ */
+router.post("/resend-verification", resendVerificationController);
 
 export default router;

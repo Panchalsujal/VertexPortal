@@ -47,40 +47,29 @@ export const registerController = asyncHandler(async (req, res) => {
       email: normalizedEmail,
       password: hashedPassword,
       role: "student",
+      isEmailVerified: false,
       emailVerificationToken: hashedVerificationToken,
       emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
 
-    const verificationLink = `${config.API_URL}/api/auth/verify-email/${user._id}/${verificationToken}`;
+    const frontendBase = config.FRONTEND_URL
+      ? config.FRONTEND_URL.split(",")[0].trim()
+      : "https://vertex-mu-eight.vercel.app";
+    const verificationLink = `${frontendBase}/verify-email/${user._id}/${verificationToken}`;
 
-    const autoVerify = process.env.AUTO_VERIFY_EMAIL === "true";
-    if (autoVerify) {
-      user.isEmailVerified = true;
-      user.emailVerificationToken = null;
-      user.emailVerificationExpires = null;
-      await user.save();
-    } else {
-      try {
-        await sendVerificationEmail({
-          user,
-          verificationLink,
-        });
-      } catch (emailError) {
-        console.error("Verification email error:", emailError);
-        // If email fails due to cloud SMTP blocks, log verification link to console
-        console.warn(`[RECOVERY] Verify manually via link: ${verificationLink}`);
-        
-        // Auto-verify as graceful fallback if email service is unreachable
-        user.isEmailVerified = true;
-        user.emailVerificationToken = null;
-        user.emailVerificationExpires = null;
-        await user.save();
-      }
+    try {
+      await sendVerificationEmail({
+        user,
+        verificationLink,
+      });
+      console.log(`[AUTH] Verification email dispatched to ${user.email}`);
+    } catch (emailError) {
+      console.error("Verification email error:", emailError);
     }
 
     return res.status(201).json({
       success: true,
-      message: "Registration successful. Please verify your email.",
+      message: "Registration successful. Please verify your email to log in.",
       data: {
         user: {
           id: user._id,
@@ -90,7 +79,7 @@ export const registerController = asyncHandler(async (req, res) => {
           avatarUrl: user.avatarUrl,
           status: user.status,
           isActive: user.isActive,
-          isEmailVerified: user.isEmailVerified,
+          isEmailVerified: false,
           createdAt: user.createdAt,
         },
       },
@@ -306,6 +295,66 @@ export const verifyEmailController = asyncHandler(async (req, res) => {
   } catch (error) {
     console.error("Verify email controller error:", error);
 
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+});
+
+export const resendVerificationController = asyncHandler(async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "No account found with this email",
+      });
+    }
+
+    if (user.isEmailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "This account is already verified. Please log in.",
+      });
+    }
+
+    const verificationToken = randomBytes(32).toString("hex");
+    const hashedVerificationToken = createHash("sha256")
+      .update(verificationToken)
+      .digest("hex");
+
+    user.emailVerificationToken = hashedVerificationToken;
+    user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await user.save();
+
+    const frontendBase = config.FRONTEND_URL
+      ? config.FRONTEND_URL.split(",")[0].trim()
+      : "https://vertex-mu-eight.vercel.app";
+    const verificationLink = `${frontendBase}/verify-email/${user._id}/${verificationToken}`;
+
+    await sendVerificationEmail({
+      user,
+      verificationLink,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Verification email sent successfully. Please check your inbox.",
+    });
+  } catch (error) {
+    console.error("Resend verification error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",

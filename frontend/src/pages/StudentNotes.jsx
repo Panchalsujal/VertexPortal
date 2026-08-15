@@ -106,9 +106,10 @@ export default function StudentNotes() {
       } else {
         await dispatch(
           addNote({
-            courseId: selectedCourseId,
             lectureId,
-            data: { title, content, isPinned },
+            title,
+            content,
+            isPinned,
           })
         ).unwrap();
         toast.success('Note added!');
@@ -116,7 +117,7 @@ export default function StudentNotes() {
       setShowModal(false);
       resetForm();
     } catch (err) {
-      toast.error(err.message || 'Failed to save note');
+      toast.error(typeof err === 'string' ? err : err?.message || 'Failed to save note');
     }
   };
 

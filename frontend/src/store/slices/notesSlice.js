@@ -12,8 +12,13 @@ export const fetchLectureNotes = createAsyncThunk('notes/byLecture', async (lect
 });
 
 export const addNote = createAsyncThunk('notes/create', async (data, { rejectWithValue }) => {
-  try { const r = await createNote(data); return r.data.note; }
-  catch (e) { return rejectWithValue(e.response?.data?.message || 'Failed'); }
+  try {
+    const payload = data?.data ? { lectureId: data.lectureId, ...data.data } : data;
+    const r = await createNote(payload);
+    return r.data.note;
+  } catch (e) {
+    return rejectWithValue(e.response?.data?.message || 'Failed to save note');
+  }
 });
 
 export const editNote = createAsyncThunk('notes/update', async ({ noteId, data }, { rejectWithValue }) => {

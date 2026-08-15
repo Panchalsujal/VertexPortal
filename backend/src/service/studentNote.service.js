@@ -153,12 +153,13 @@ export async function createStudentNote({
       "student ID",
     );
 
-  const {
-    lectureId,
-    title = "",
-    content,
-    isPinned = false,
-  } = payload || {};
+  const rawPayload = payload || {};
+  const nestedData = rawPayload.data && typeof rawPayload.data === "object" ? rawPayload.data : {};
+
+  const lectureId = rawPayload.lectureId || nestedData.lectureId;
+  const title = rawPayload.title !== undefined ? rawPayload.title : (nestedData.title || "");
+  const content = rawPayload.content !== undefined ? rawPayload.content : nestedData.content;
+  const isPinned = rawPayload.isPinned !== undefined ? rawPayload.isPinned : (nestedData.isPinned || false);
 
   if (!lectureId) {
     throw new ApiError(
@@ -663,11 +664,12 @@ export async function updateStudentNote({
       note.course,
   });
 
-  const {
-    title,
-    content,
-    isPinned,
-  } = payload || {};
+  const rawPayload = payload || {};
+  const nestedData = rawPayload.data && typeof rawPayload.data === "object" ? rawPayload.data : {};
+
+  const title = rawPayload.title !== undefined ? rawPayload.title : nestedData.title;
+  const content = rawPayload.content !== undefined ? rawPayload.content : nestedData.content;
+  const isPinned = rawPayload.isPinned !== undefined ? rawPayload.isPinned : nestedData.isPinned;
 
   if (
     title === undefined &&
