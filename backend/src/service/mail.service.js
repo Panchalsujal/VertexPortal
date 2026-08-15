@@ -1,39 +1,71 @@
 import nodemailer from "nodemailer";
 import { config } from "../config/config.js";
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-
-  auth: {
-    type: "OAuth2",
-
-    user: config.EMAIL_USER,
-
-    clientId:
-      config.GOOGLE_CLIENT_ID,
-
-    clientSecret:
-      config.GOOGLE_CLIENT_SECRET,
-
-    refreshToken:
-      config.GOOGLE_REFRESH_TOKEN,
-  },
-});
-
-transporter.verify((error) => {
-  if (error) {
-    console.error(
-      "Error connecting to email server:",
-      error,
-    );
-
-    return;
+const createTransporter = () => {
+  // Option 1: Custom SMTP (e.g. Brevo, SendGrid, Mailgun on port 587 or 2525)
+  if (process.env.SMTP_HOST) {
+    return nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: Number(process.env.SMTP_PORT) === 465,
+      auth: {
+        user: process.env.SMTP_USER || config.EMAIL_USER,
+        pass: process.env.SMTP_PASS,
+      },
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 8000,
+    });
   }
 
-  console.log(
-    "Email server is ready to send messages",
-  );
-});
+  // Option 2: Gmail with App Password (if EMAIL_PASS is provided)
+  if (process.env.EMAIL_PASS) {
+    return nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: config.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 8000,
+    });
+  }
+
+  // Option 3: Gmail with OAuth2
+  return nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+      type: "OAuth2",
+      user: config.EMAIL_USER,
+      clientId: config.GOOGLE_CLIENT_ID,
+      clientSecret: config.GOOGLE_CLIENT_SECRET,
+      refreshToken: config.GOOGLE_REFRESH_TOKEN,
+    },
+    connectionTimeout: 8000,
+    greetingTimeout: 8000,
+    socketTimeout: 8000,
+  });
+};
+
+const transporter = createTransporter();
+
+// Non-blocking verification so server startup is never delayed
+if (process.env.DISABLE_EMAIL_VERIFY !== "true") {
+  transporter.verify((error) => {
+    if (error) {
+      console.warn(
+        "⚠️ Email server connection warning (SMTP may be restricted on cloud host):",
+        error.message || error
+      );
+      return;
+    }
+
+    console.log("Email server is ready to send messages");
+  });
+}
 
 /*
  * Generic reusable email sender.
@@ -356,6 +388,10 @@ export async function sendVerificationEmail({
       </body>
     </html>
   `;
+
+  console.log(
+    `[EMAIL] Verification Link for ${user.email}: ${verificationLink}`
+  );
 
   return sendEmail({
     to: user.email,

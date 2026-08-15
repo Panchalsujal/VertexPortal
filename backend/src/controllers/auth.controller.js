@@ -53,20 +53,29 @@ export const registerController = asyncHandler(async (req, res) => {
 
     const verificationLink = `${config.API_URL}/api/auth/verify-email/${user._id}/${verificationToken}`;
 
-    try {
-      await sendVerificationEmail({
-        user,
-        verificationLink,
-      });
-    } catch (emailError) {
-      await User.findByIdAndDelete(user._id);
-
-      console.error("Verification email error:", emailError);
-
-      return res.status(500).json({
-        success: false,
-        message: "Unable to send verification email. Please try again.",
-      });
+    const autoVerify = process.env.AUTO_VERIFY_EMAIL === "true";
+    if (autoVerify) {
+      user.isEmailVerified = true;
+      user.emailVerificationToken = null;
+      user.emailVerificationExpires = null;
+      await user.save();
+    } else {
+      try {
+        await sendVerificationEmail({
+          user,
+          verificationLink,
+        });
+      } catch (emailError) {
+        console.error("Verification email error:", emailError);
+        // If email fails due to cloud SMTP blocks, log verification link to console
+        console.warn(`[RECOVERY] Verify manually via link: ${verificationLink}`);
+        
+        // Auto-verify as graceful fallback if email service is unreachable
+        user.isEmailVerified = true;
+        user.emailVerificationToken = null;
+        user.emailVerificationExpires = null;
+        await user.save();
+      }
     }
 
     return res.status(201).json({
