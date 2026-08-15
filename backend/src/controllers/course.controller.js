@@ -282,7 +282,7 @@ export const getAllCoursesController = asyncHandler(async (req, res) => {
       .populate("category", "name slug")
       .populate("instructor", "fullName avatarUrl")
       .select(
-        "title slug subtitle thumbnailUrl category instructor level language price discountPrice averageRating totalReviews enrolledStudentsCount totalDurationInSeconds createdAt",
+        "title slug subtitle thumbnailUrl category instructor level language price discountPrice averageRating totalReviews enrolledStudentsCount totalDurationInSeconds status isPublished isActive publishedAt totalModules totalLectures createdAt updatedAt",
       )
       .sort(selectedSort)
       .skip(skip)
@@ -337,9 +337,14 @@ export const publishCourseController = asyncHandler(async (req, res) => {
   }
 
   if (course.status === "published" && course.isPublished) {
-    return res.status(400).json({
-      success: false,
-      message: "Course is already published",
+    course.status = "draft";
+    course.isPublished = false;
+    await course.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Course unpublished successfully",
+      course,
     });
   }
 

@@ -63,9 +63,11 @@ export default function Register() {
   };
 
   const handleGoogleAuth = () => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const clientId =
+      import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+      '437241590710-ce84o2fcqnbg1esivhsbgcdr8cpfs0m3.apps.googleusercontent.com';
     if (!clientId) {
-      toast.error('Google Client ID is not configured in .env');
+      toast.error('Google Client ID is not configured');
       return;
     }
 
