@@ -213,30 +213,114 @@ export function SkeletonAttendanceList({ count = 4 }) {
 }
 
 // ── Live Room Skeleton ──────────────────────────────────────────────────────
+// Full-bleed studio skeleton — matches actual LiveClassRoom layout exactly
 export function SkeletonLiveRoom() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col animate-pulse">
-      <div className="h-14 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between">
+    <div className="fixed inset-0 z-[9999] h-screen w-screen bg-slate-950 flex flex-col overflow-hidden font-[Inter,sans-serif]">
+      {/* Shimmer keyframe via inline style */}
+      <style>{`
+        @keyframes skshimmer {
+          0% { background-position: -600px 0; }
+          100% { background-position: 600px 0; }
+        }
+        .sk-shimmer {
+          background: linear-gradient(90deg, #1e293b 25%, #293548 50%, #1e293b 75%);
+          background-size: 600px 100%;
+          animation: skshimmer 1.6s infinite linear;
+          border-radius: 0.75rem;
+        }
+      `}</style>
+
+      {/* ── Top Header Bar (matches real header) ── */}
+      <header className="h-14 shrink-0 bg-slate-900/90 border-b border-slate-800/80 px-4 sm:px-6 flex items-center justify-between">
+        {/* Left: back button + LIVE pill + title */}
         <div className="flex items-center gap-3">
-          <div className="w-7 h-7 bg-slate-800 rounded-lg" />
-          <div className="w-40 h-4 bg-slate-800 rounded-md" />
+          <div className="sk-shimmer w-8 h-8 rounded-xl shrink-0" />
+          <div className="flex items-center gap-2">
+            <div className="sk-shimmer w-2.5 h-2.5 rounded-full" />
+            <div className="sk-shimmer w-10 h-3.5 rounded-full" />
+            <div className="sk-shimmer w-44 h-4 rounded-lg hidden sm:block" />
+          </div>
         </div>
-        <div className="w-24 h-6 bg-slate-800 rounded-full" />
-      </div>
-      <div className="flex-1 flex flex-col lg:flex-row p-4 gap-4">
-        <div className="flex-1 bg-slate-900/80 border border-slate-800 rounded-3xl flex flex-col items-center justify-center p-8">
-          <div className="w-20 h-20 rounded-3xl bg-slate-800 mb-4" />
-          <div className="w-48 h-4 bg-slate-800 rounded-md mb-2" />
-          <div className="w-32 h-3 bg-slate-800 rounded-md" />
+        {/* Right: layout switch + role badge + participants */}
+        <div className="flex items-center gap-2">
+          <div className="sk-shimmer w-8 h-8 rounded-xl" />
+          <div className="sk-shimmer w-32 h-7 rounded-full hidden sm:block" />
+          <div className="sk-shimmer w-14 h-7 rounded-full" />
         </div>
-        <div className="w-full lg:w-80 bg-slate-900 border border-slate-800 rounded-3xl p-4 hidden lg:flex flex-col gap-3">
-          <div className="h-4 bg-slate-800 rounded w-28 mb-2" />
-          <div className="space-y-3 flex-1">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-12 bg-slate-800/60 rounded-2xl" />
+      </header>
+
+      {/* ── Main Stage ── */}
+      <div className="flex-1 min-h-0 flex overflow-hidden">
+        {/* Video grid area */}
+        <div className="flex-1 min-w-0 flex flex-col bg-slate-950 p-2 sm:p-3 gap-2 sm:gap-3">
+          {/* Video tile grid — 2×2 on mobile/tablet, 3×2 on desktop */}
+          <div className="flex-1 min-h-0 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="sk-shimmer rounded-2xl relative overflow-hidden"
+                style={{ display: i >= 4 ? 'none' : undefined }}
+              >
+                {/* Avatar placeholder */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none">
+                  <div
+                    className="rounded-full"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      background: 'rgba(255,255,255,0.06)',
+                      border: '1.5px solid rgba(255,255,255,0.1)',
+                    }}
+                  />
+                  <div
+                    style={{
+                      width: 72,
+                      height: 10,
+                      borderRadius: 8,
+                      background: 'rgba(255,255,255,0.07)',
+                    }}
+                  />
+                </div>
+                {/* Name tag at bottom */}
+                <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2">
+                  <div style={{ width: 80, height: 10, borderRadius: 6, background: 'rgba(255,255,255,0.07)' }} />
+                </div>
+              </div>
             ))}
           </div>
-          <div className="h-10 bg-slate-800 rounded-xl" />
+
+          {/* ── Floating Control Bar ── */}
+          <div className="h-16 pt-2 flex items-center justify-center shrink-0">
+            <div className="sk-shimmer flex items-center gap-2 sm:gap-3 px-4 py-2 rounded-2xl" style={{ minWidth: 260, height: 52 }}>
+              {/* Mic */}
+              <div style={{ width: 72, height: 36, borderRadius: 12, background: 'rgba(255,255,255,0.07)' }} />
+              {/* Cam */}
+              <div style={{ width: 72, height: 36, borderRadius: 12, background: 'rgba(255,255,255,0.07)' }} />
+              {/* Screen / Hand */}
+              <div style={{ width: 64, height: 36, borderRadius: 12, background: 'rgba(255,255,255,0.07)' }} />
+              {/* Chat */}
+              <div style={{ width: 80, height: 36, borderRadius: 12, background: 'rgba(255,255,255,0.07)' }} />
+              {/* End */}
+              <div style={{ width: 88, height: 36, borderRadius: 12, background: 'rgba(239,68,68,0.18)' }} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Connecting overlay text */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+        <div className="flex flex-col items-center gap-3 bg-slate-950/70 backdrop-blur-sm px-8 py-6 rounded-3xl border border-slate-800/60 shadow-2xl">
+          <div className="flex gap-1.5">
+            {[0, 1, 2].map((i) => (
+              <span
+                key={i}
+                className="w-2 h-2 rounded-full bg-purple-500"
+                style={{ animation: `skshimmer 1.2s ${i * 0.2}s infinite alternate`, animationName: 'bounce' }}
+              />
+            ))}
+          </div>
+          <p className="text-xs font-semibold text-slate-400 tracking-wide">Setting up your live room…</p>
         </div>
       </div>
     </div>

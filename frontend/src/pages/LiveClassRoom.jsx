@@ -960,6 +960,7 @@ export default function LiveClassRoom() {
     return <SkeletonLiveRoom />;
   }
 
+
   // Friendly error card instead of blank screen
   if (errorMsg) {
     return (
