@@ -70,10 +70,10 @@ function CodeBlock({ children, className }) {
   );
 }
 
-// Render markdown stream content with smooth Typewriter animation
-function FormattedMarkdown({ content = '', isLatest = false, isStreaming = false }) {
+// Render markdown stream content with smooth visible Typewriter animation
+function FormattedMarkdown({ content = '', isLatest = false }) {
   const [displayedText, setDisplayedText] = useState(() => (isLatest ? '' : content));
-  const [isTyping, setIsTyping] = useState(() => isLatest && content.length > 0);
+  const [isTyping, setIsTyping] = useState(() => isLatest && Boolean(content));
 
   useEffect(() => {
     if (!isLatest || !content) {
@@ -82,24 +82,35 @@ function FormattedMarkdown({ content = '', isLatest = false, isStreaming = false
       return;
     }
 
-    let currentIndex = 0;
+    // Reset displayed text on new content
+    setDisplayedText('');
     setIsTyping(true);
 
-    // Adaptive typing speed based on content length
-    const step = Math.max(3, Math.ceil(content.length / 90));
+    let currentIndex = 0;
+    const totalLength = content.length;
+
+    // Smooth, realistic typing cadence (2-3 chars every 20ms)
+    const chunkSize = Math.max(2, Math.min(6, Math.ceil(totalLength / 220)));
     const interval = setInterval(() => {
-      currentIndex += step;
-      if (currentIndex >= content.length) {
+      currentIndex += chunkSize;
+      if (currentIndex >= totalLength) {
         setDisplayedText(content);
         setIsTyping(false);
         clearInterval(interval);
       } else {
         setDisplayedText(content.slice(0, currentIndex));
       }
-    }, 16);
+    }, 20);
 
     return () => clearInterval(interval);
   }, [content, isLatest]);
+
+  const handleSkipTypewriter = () => {
+    if (isTyping) {
+      setDisplayedText(content);
+      setIsTyping(false);
+    }
+  };
 
   return (
     <div className="prose dark:prose-invert max-w-none text-xs sm:text-sm leading-relaxed">
@@ -558,7 +569,7 @@ export default function AiChat() {
 
               return (
                 <div
-                  key={idx}
+                  key={m._id || m.id || `msg-${idx}`}
                   className={`flex items-start gap-2 sm:gap-3.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   {isAssistant && (

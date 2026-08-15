@@ -5,7 +5,7 @@ import Enrollment from "../models/enrollment.model.js";
 
 import { ApiError } from "../utils/ApiError.js";
 import { validateObjectId, validateRequired } from "../utils/validator.js";
-
+import { buildSearchFilter } from "../utils/searchFilterBuilder.js";
 import { logAdminAction } from "../service/adminAuditLogger.service.js";
 import { AUDIT_ACTIONS } from "../constants/auditActions.js";
 import { getPagination, buildPaginationMeta } from "../utils/pagination.js";
