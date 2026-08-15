@@ -222,80 +222,96 @@ export default function Notifications() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-gray-50 dark:bg-[#0b0f17] font-[Inter,sans-serif] py-6 sm:py-10 px-3 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-[calc(100vh-4rem)] bg-gray-50 dark:bg-[#0b0f17] font-[Inter,sans-serif] py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
         {/* Header Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-gray-900 p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
-          <div className="flex items-center gap-3.5">
-            <button
-              onClick={() => {
-                if (window.history.length > 1 && window.history.state?.idx > 0) {
-                  navigate(-1);
-                } else {
-                  navigate('/dashboard');
-                }
-              }}
-              className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition cursor-pointer"
-              title="Go back"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-                Notifications <Sparkles className="w-5 h-5 text-purple-600" />
-              </h1>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                Stay updated on course announcements, quizzes, grades, assignments, and platform events
-              </p>
+        <div className="bg-white dark:bg-gray-900 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                onClick={() => {
+                  if (window.history.length > 1 && window.history.state?.idx > 0) {
+                    navigate(-1);
+                  } else {
+                    navigate('/dashboard');
+                  }
+                }}
+                className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition cursor-pointer shrink-0"
+                title="Go back"
+              >
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-1.5 sm:gap-2 truncate">
+                  <span>Notifications</span>
+                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 shrink-0" />
+                </h1>
+                <p className="text-[11px] sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5 truncate sm:whitespace-normal">
+                  Stay updated on course announcements, quizzes, assignments, and live classes
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={loadCurrentNotifications}
+                className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-gray-800 rounded-xl transition cursor-pointer"
+                title="Refresh notifications"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              </button>
+              {unreadCount > 0 && activeTab !== 'preferences' && (
+                <button
+                  onClick={handleMarkAllRead}
+                  className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-300 text-xs font-bold hover:bg-purple-100 transition cursor-pointer"
+                >
+                  <CheckCheck className="w-3.5 h-3.5" />
+                  <span>Mark all read</span>
+                </button>
+              )}
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto">
-            <button
-              onClick={loadCurrentNotifications}
-              className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-gray-800 rounded-xl transition cursor-pointer"
-              title="Refresh notifications"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            </button>
-            {unreadCount > 0 && activeTab !== 'preferences' && (
+          {/* Mobile Mark all read button */}
+          {unreadCount > 0 && activeTab !== 'preferences' && (
+            <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 flex sm:hidden justify-end">
               <button
                 onClick={handleMarkAllRead}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-300 text-xs font-bold hover:bg-purple-100 transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-300 text-xs font-bold hover:bg-purple-100 transition cursor-pointer"
               >
                 <CheckCheck className="w-3.5 h-3.5" />
-                <span>Mark all as read</span>
+                <span>Mark all as read ({unreadCount})</span>
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-2 bg-white dark:bg-gray-900 p-1.5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-1 sm:gap-2 bg-white dark:bg-gray-900 p-1 sm:p-1.5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-x-auto scrollbar-none">
           <button
             onClick={() => setActiveTab('all')}
-            className={`flex-1 min-w-[90px] py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 min-w-[70px] sm:min-w-[90px] py-2 sm:py-2.5 px-2.5 sm:px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0 ${
               activeTab === 'all'
                 ? 'bg-purple-600 text-white shadow-sm'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
             }`}
           >
-            <Inbox className="w-4 h-4" />
-            All
+            <Inbox className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span>All</span>
           </button>
 
           <button
             onClick={() => setActiveTab('unread')}
-            className={`flex-1 min-w-[90px] py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 min-w-[80px] sm:min-w-[90px] py-2 sm:py-2.5 px-2.5 sm:px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0 ${
               activeTab === 'unread'
                 ? 'bg-purple-600 text-white shadow-sm'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
             }`}
           >
-            <Bell className="w-4 h-4" />
-            Unread
+            <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span>Unread</span>
             {unreadCount > 0 && (
-              <span className={`px-2 py-0.2 rounded-full text-[10px] font-extrabold ${
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
                 activeTab === 'unread' ? 'bg-white text-purple-600' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/60 dark:text-purple-300'
               }`}>
                 {unreadCount}
@@ -305,35 +321,35 @@ export default function Notifications() {
 
           <button
             onClick={() => setActiveTab('archived')}
-            className={`flex-1 min-w-[90px] py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 min-w-[80px] sm:min-w-[90px] py-2 sm:py-2.5 px-2.5 sm:px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0 ${
               activeTab === 'archived'
                 ? 'bg-purple-600 text-white shadow-sm'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
             }`}
           >
-            <Archive className="w-4 h-4" />
-            Archived
+            <Archive className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span>Archived</span>
           </button>
 
           <button
             onClick={() => setActiveTab('preferences')}
-            className={`flex-1 min-w-[90px] py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 min-w-[90px] sm:min-w-[100px] py-2 sm:py-2.5 px-2.5 sm:px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0 ${
               activeTab === 'preferences'
                 ? 'bg-purple-600 text-white shadow-sm'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
             }`}
           >
-            <Settings className="w-4 h-4" />
-            Preferences
+            <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span>Preferences</span>
           </button>
         </div>
 
         {/* Category Filters */}
         {activeTab !== 'preferences' && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-3 scrollbar-none text-xs">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs">
             <button
               onClick={() => setSelectedTypeFilter('all')}
-              className={`px-3.5 py-1.5 rounded-full font-bold transition shrink-0 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-full font-bold transition shrink-0 cursor-pointer text-xs ${
                 selectedTypeFilter === 'all'
                   ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
                   : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800 hover:bg-gray-50'
@@ -345,32 +361,31 @@ export default function Notifications() {
               <button
                 key={cat.key}
                 onClick={() => setSelectedTypeFilter(cat.key)}
-                className={`px-3.5 py-1.5 rounded-full font-bold transition shrink-0 flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-1.5 rounded-full font-bold transition shrink-0 flex items-center gap-1.5 cursor-pointer text-xs ${
                   selectedTypeFilter === cat.key
                     ? 'bg-purple-600 text-white shadow-sm'
                     : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800 hover:bg-gray-50'
                 }`}
               >
                 <cat.icon className="w-3.5 h-3.5" />
-                {cat.label}
+                <span>{cat.label}</span>
               </button>
             ))}
           </div>
         )}
 
-        {/* Tab 1: Preferences View */}
+        {/* Main Content Area */}
         {activeTab === 'preferences' ? (
+          /* Preferences Panel */
           prefLoading ? (
             <SkeletonTable rows={5} cols={3} />
           ) : (
-            <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-6 sm:p-8 shadow-sm">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm p-4 sm:p-6 space-y-6">
               <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-6 mb-6">
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                    Notification Preferences
-                  </h2>
+                  <h2 className="text-base font-bold text-gray-900 dark:text-white">Notification Channels & Delivery</h2>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Choose how and where you receive notifications across email and in-app alerts
+                    Choose how and when you want to receive alerts across channels
                   </p>
                 </div>
                 {savingPrefs && (
@@ -381,10 +396,10 @@ export default function Notifications() {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+                <table className="w-full text-left text-xs sm:text-sm">
                   <thead>
-                    <tr className="border-b border-gray-100 dark:border-gray-800 text-gray-400 font-bold uppercase tracking-wider">
-                      <th className="pb-3">Notification Type</th>
+                    <tr className="border-b border-gray-100 dark:border-gray-800 text-gray-400 text-xs font-bold uppercase tracking-wider">
+                      <th className="pb-3">Category</th>
                       <th className="pb-3 text-center">
                         <span className="inline-flex items-center gap-1">
                           <Mail className="w-3.5 h-3.5" /> Email
@@ -419,7 +434,6 @@ export default function Notifications() {
                             </div>
                           </td>
 
-                          {/* Email Toggle */}
                           <td className="py-4 text-center">
                             <label className="relative inline-flex items-center cursor-pointer">
                               <input
@@ -432,7 +446,6 @@ export default function Notifications() {
                             </label>
                           </td>
 
-                          {/* In-App Toggle */}
                           <td className="py-4 text-center">
                             <label className="relative inline-flex items-center cursor-pointer">
                               <input
@@ -469,101 +482,100 @@ export default function Notifications() {
                     if (isUnread) handleMarkRead(item._id);
                     navigate(targetUrl);
                   }}
-                  className={`bg-white dark:bg-gray-900 rounded-2xl border p-5 shadow-sm transition flex items-start justify-between gap-4 cursor-pointer group ${
+                  className={`bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl border p-4 sm:p-5 shadow-xs hover:shadow-md transition flex items-start gap-3 sm:gap-4 cursor-pointer group relative ${
                     isUnread
-                      ? 'border-purple-200 dark:border-purple-900/60 bg-gradient-to-r from-purple-50/40 to-white dark:from-purple-950/20 dark:to-gray-900 hover:border-purple-300'
+                      ? 'border-purple-200 dark:border-purple-900/60 bg-gradient-to-r from-purple-50/40 to-white dark:from-purple-950/20 dark:to-gray-900'
                       : 'border-gray-100 dark:border-gray-800 hover:bg-gray-50/60 dark:hover:bg-gray-800/40'
                   }`}
                 >
-                  <div className="flex items-start gap-4 flex-1 min-w-0">
-                    <div
-                      className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-sm mt-0.5"
-                      style={{ backgroundColor: cat.bg, color: cat.color }}
-                    >
-                      <Icon className="w-5 h-5" />
-                    </div>
+                  <div
+                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 shadow-xs mt-0.5"
+                    style={{ backgroundColor: cat.bg, color: cat.color }}
+                  >
+                    <Icon className="w-5 h-5" />
+                  </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+                  <div className="flex-1 min-w-0 pr-1 sm:pr-0">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-[11px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 truncate">
                           {cat.label}
                         </span>
                         {isUnread && (
-                          <span className="w-2 h-2 rounded-full bg-purple-600" />
+                          <span className="w-2 h-2 rounded-full bg-purple-600 shrink-0" />
                         )}
-                        <span className="text-xs text-gray-400 flex items-center gap-1 ml-auto sm:ml-0">
+                        <span className="text-[11px] text-gray-400 flex items-center gap-1 shrink-0 ml-1">
                           <Clock className="w-3 h-3" />
                           {formatRelativeTime(item.createdAt)}
                         </span>
                       </div>
 
-                      <h3 className={`text-sm font-bold text-gray-900 dark:text-white leading-snug ${isUnread ? 'font-extrabold' : 'font-semibold'}`}>
-                        {item.title || 'Notification'}
-                      </h3>
+                      <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        {isUnread && (
+                          <button
+                            type="button"
+                            onClick={(e) => handleMarkRead(item._id, e)}
+                            className="p-1.5 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition cursor-pointer"
+                            title="Mark as read"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                          </button>
+                        )}
 
-                      {item.message && (
-                        <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 leading-relaxed whitespace-pre-line line-clamp-3">
-                          {item.message}
-                        </p>
-                      )}
+                        {activeTab === 'archived' ? (
+                          <button
+                            type="button"
+                            onClick={(e) => handleRestore(item._id, e)}
+                            className="p-1.5 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition cursor-pointer"
+                            title="Restore"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(e) => handleArchive(item._id, e)}
+                            className="p-1.5 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition cursor-pointer"
+                            title="Archive"
+                          >
+                            <Archive className="w-3.5 h-3.5" />
+                          </button>
+                        )}
 
-                      <div className="mt-2.5">
-                        <span
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (isUnread) handleMarkRead(item._id);
-                            navigate(targetUrl);
-                          }}
-                          className="inline-flex items-center gap-1 text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 underline cursor-pointer"
+                        <button
+                          type="button"
+                          onClick={(e) => handleDelete(item._id, e)}
+                          className="p-1.5 rounded-lg bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-300 hover:bg-red-100 transition cursor-pointer"
+                          title="Delete"
                         >
-                          View details
-                          <ExternalLink className="w-3 h-3" />
-                        </span>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-1 shrink-0 self-center" onClick={(e) => e.stopPropagation()}>
-                    {isUnread && (
-                      <button
-                        type="button"
-                        onClick={(e) => handleMarkRead(item._id, e)}
-                        className="p-2 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition cursor-pointer"
-                        title="Mark as read"
-                      >
-                        <Check className="w-4 h-4" />
-                      </button>
+                    <h3 className={`text-xs sm:text-sm text-gray-900 dark:text-white leading-snug mt-1 ${isUnread ? 'font-black' : 'font-bold'}`}>
+                      {item.title || 'Notification'}
+                    </h3>
+
+                    {item.message && (
+                      <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 leading-relaxed whitespace-pre-line line-clamp-3">
+                        {item.message}
+                      </p>
                     )}
 
-                    {activeTab === 'archived' ? (
-                      <button
-                        type="button"
-                        onClick={(e) => handleRestore(item._id, e)}
-                        className="p-2 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition cursor-pointer"
-                        title="Restore to Inbox"
+                    <div className="mt-2">
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isUnread) handleMarkRead(item._id);
+                          navigate(targetUrl);
+                        }}
+                        className="inline-flex items-center gap-1 text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 underline cursor-pointer"
                       >
-                        <RotateCcw className="w-4 h-4" />
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={(e) => handleArchive(item._id, e)}
-                        className="p-2 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition cursor-pointer"
-                        title="Archive notification"
-                      >
-                        <Archive className="w-4 h-4" />
-                      </button>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={(e) => handleDelete(item._id, e)}
-                      className="p-2 rounded-xl bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-300 hover:bg-red-100 transition cursor-pointer"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                        View details
+                        <ExternalLink className="w-3 h-3" />
+                      </span>
+                    </div>
                   </div>
                 </div>
               );

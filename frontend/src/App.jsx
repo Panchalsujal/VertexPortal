@@ -122,6 +122,7 @@ function AppRoot() {
           <Route path="/register" element={<Register />} />
           <Route path="/verify-email/:userId/:token" element={<VerifyEmail />} />
           <Route path="/verify-certificate/:verificationCode" element={<VerifyCertificate />} />
+          <Route path="/certificates/verify/:verificationCode" element={<VerifyCertificate />} />
 
           {/* Student Dashboard */}
           <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['student']}><StudentDashboard /></ProtectedRoute>} />

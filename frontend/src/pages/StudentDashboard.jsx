@@ -25,8 +25,11 @@ const navItems = [
   { to: '/profile',             icon: Settings,        label: 'Settings'      },
 ];
 
+import { AnimatedThreeDots } from '../components/ui/Spinner';
+
 // ── Stat Card ─────────────────────────────────────────────────
 function StatCard({ icon, color, bg, title, value, sub }) {
+  const isLoading = value === '...' || value === undefined || value === null;
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 flex items-center gap-4 shadow-sm">
       <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: bg }}>
@@ -34,7 +37,9 @@ function StatCard({ icon, color, bg, title, value, sub }) {
       </div>
       <div className="min-w-0">
         <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{title}</p>
-        <p className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">{value}</p>
+        <div className="text-2xl font-bold text-gray-900 dark:text-white leading-tight flex items-center min-h-[1.75rem]">
+          {isLoading ? <AnimatedThreeDots color={color} /> : value}
+        </div>
         {sub && <p className="text-xs text-green-600 font-semibold mt-0.5">{sub}</p>}
       </div>
     </div>

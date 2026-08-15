@@ -79,7 +79,12 @@ export const downloadMyCertificateController = asyncHandler(
 
     // Dynamically render fresh executive PDF certificate
     try {
-      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+      const frontendBase = (config.FRONTEND_URL || process.env.FRONTEND_URL || "https://vertex-mu-eight.vercel.app")
+        .split(",")[0]
+        .trim()
+        .replace(/\/$/, "");
+      const verificationUrl = `${frontendBase}/verify-certificate/${result.verificationCode}`;
+
       const pdfBuffer = await generateCertificatePdf({
         certificateNumber: result.certificateNumber,
         studentName: result.studentName,
@@ -88,7 +93,7 @@ export const downloadMyCertificateController = asyncHandler(
         completedAt: result.completedAt || result.issuedAt,
         issuedAt: result.issuedAt,
         verificationCode: result.verificationCode,
-        verificationUrl: `${frontendUrl}/certificates/verify/${result.verificationCode}`,
+        verificationUrl,
       });
 
       res.setHeader("Content-Type", "application/pdf");

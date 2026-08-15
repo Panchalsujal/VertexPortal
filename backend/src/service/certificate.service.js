@@ -151,12 +151,12 @@ export async function issueCertificate({ studentId, courseId, enrollmentId }) {
 
     const issuedAt = new Date();
 
-    const completedAt =
-      enrollment.completedAt ?? enrollment.updatedAt ?? issuedAt;
+    const frontendBase = (config.FRONTEND_URL || process.env.FRONTEND_URL || "https://vertex-mu-eight.vercel.app")
+      .split(",")[0]
+      .trim()
+      .replace(/\/$/, "");
 
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-
-    const verificationUrl = `${frontendUrl}/certificates/verify/${verificationCode}`;
+    const verificationUrl = `${frontendBase}/verify-certificate/${verificationCode}`;
 
     const pdfBuffer = await generateCertificatePdf({
       certificateNumber,

@@ -57,8 +57,11 @@ const sidebarSections = [
   },
 ];
 
+import { AnimatedThreeDots } from '../../components/ui/Spinner';
+
 // ── Stat Card Component ──────────────────────────────────────
 function StatCard({ icon, title, value, sub, subUp = true, color, bg }) {
+  const isLoading = value === '...' || value === undefined || value === null;
   return (
     <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-5 flex items-start gap-4 shadow-xs hover:shadow-md transition-all">
       <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-xs" style={{ backgroundColor: bg }}>
@@ -66,7 +69,9 @@ function StatCard({ icon, title, value, sub, subUp = true, color, bg }) {
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-1 truncate">{title}</p>
-        <p className="text-2xl font-black text-gray-900 dark:text-white leading-none tracking-tight">{value}</p>
+        <div className="text-2xl font-black text-gray-900 dark:text-white leading-none tracking-tight flex items-center min-h-[1.75rem]">
+          {isLoading ? <AnimatedThreeDots color={color} /> : value}
+        </div>
         {sub && (
           <p className={`text-[11px] font-bold mt-1.5 flex items-center gap-1 ${subUp ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
             {subUp ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}

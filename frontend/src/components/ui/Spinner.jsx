@@ -11,6 +11,26 @@ export function Spinner({ size = 'md', className = '' }) {
   );
 }
 
+// ── Animated 3-Dots Loader ──────────────────────────────────────────────────
+export function AnimatedThreeDots({ className = '', color }) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 py-1 ${className}`}>
+      <span
+        className="w-2 h-2 rounded-full bg-purple-600 animate-bounce [animation-delay:-0.3s]"
+        style={color ? { backgroundColor: color } : undefined}
+      />
+      <span
+        className="w-2 h-2 rounded-full bg-purple-600 animate-bounce [animation-delay:-0.15s]"
+        style={color ? { backgroundColor: color } : undefined}
+      />
+      <span
+        className="w-2 h-2 rounded-full bg-purple-600 animate-bounce"
+        style={color ? { backgroundColor: color } : undefined}
+      />
+    </span>
+  );
+}
+
 // ── Course Card Skeleton (16:9) ──────────────────────────────────────────────
 export function SkeletonCard() {
   return (
