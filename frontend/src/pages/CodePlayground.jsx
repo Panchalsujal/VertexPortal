@@ -16,12 +16,15 @@ import {
   Smartphone,
   Tablet,
   Zap,
+  Sparkles,
+  Eye,
+  Settings,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const JS_SNIPPETS = [
   {
-    title: 'Array Transformations (Map / Filter / Reduce)',
+    title: 'Array Transformations',
     code: `// 🚀 Array Transformations in Modern JavaScript
 const courses = [
   { title: 'Full Stack React & Node', price: 99, students: 1420, rating: 4.9 },
@@ -48,7 +51,7 @@ console.table(promoPrices);
 `,
   },
   {
-    title: 'Async / Await Simulated API Call',
+    title: 'Async / Await API Call',
     code: `// ⚡ Simulating Asynchronous Student Learning API
 function fetchStudentProgress(studentId) {
   return new Promise((resolve) => {
@@ -79,7 +82,7 @@ loadStudentData();
 `,
   },
   {
-    title: 'Binary Search Algorithm (O(log n))',
+    title: 'Binary Search Algorithm',
     code: `// 🔍 Classic Binary Search Algorithm
 function binarySearch(arr, target) {
   let left = 0;
@@ -115,7 +118,7 @@ console.log(\`Index Position: \${index}\`);
 
 const HTML_SNIPPETS = [
   {
-    title: 'Modern Glassmorphism Card',
+    title: 'Glassmorphism Card',
     code: `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -148,63 +151,47 @@ const HTML_SNIPPETS = [
     }
     .card:hover {
       transform: translateY(-6px);
-      border-color: rgba(168, 85, 247, 0.4);
       box-shadow: 0 35px 70px -15px rgba(108, 92, 231, 0.4);
+      border-color: rgba(168, 85, 247, 0.4);
     }
-    .icon-badge {
-      width: 60px;
-      height: 60px;
-      margin: 0 auto 18px;
+    .icon {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
       border-radius: 20px;
-      background: linear-gradient(135deg, #6C5CE7, #a29bfe);
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 26px;
-      box-shadow: 0 12px 24px -6px rgba(108, 92, 231, 0.5);
-    }
-    .tag {
-      display: inline-block;
-      padding: 5px 14px;
-      border-radius: 99px;
-      background: rgba(108, 92, 231, 0.25);
-      border: 1px solid rgba(168, 85, 247, 0.4);
-      color: #ddd6fe;
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      margin-bottom: 14px;
+      font-size: 32px;
+      margin-bottom: 20px;
+      box-shadow: 0 12px 24px -6px rgba(99, 102, 241, 0.5);
     }
     h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
-    p { color: #94a3b8; font-size: 13px; line-height: 1.6; margin-bottom: 26px; }
+    p { font-size: 14px; color: #94a3b8; line-height: 1.6; margin-bottom: 24px; }
     .btn {
+      display: block;
       width: 100%;
-      padding: 13px 20px;
-      border-radius: 16px;
-      border: none;
-      background: linear-gradient(135deg, #6C5CE7, #8b5cf6);
+      padding: 14px;
+      background: linear-gradient(135deg, #6C5CE7, #5046d4);
       color: white;
+      text-decoration: none;
       font-weight: 700;
       font-size: 14px;
+      border-radius: 16px;
+      border: none;
       cursor: pointer;
-      box-shadow: 0 8px 24px -4px rgba(108, 92, 231, 0.5);
-      transition: all 0.2s ease;
+      box-shadow: 0 10px 20px -5px rgba(108, 92, 231, 0.5);
+      transition: all 0.2s;
     }
-    .btn:hover {
-      filter: brightness(1.1);
-      transform: scale(1.02);
-    }
-    .btn:active { transform: scale(0.98); }
+    .btn:hover { opacity: 0.95; transform: scale(1.02); }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="icon-badge">⚡</div>
-    <div class="tag">VertexPortal Sandbox</div>
-    <h2>Interactive Component</h2>
-    <p>Write modern HTML & CSS in the editor and watch it render live with instant updates!</p>
-    <button class="btn" onclick="alert('🎉 Live interaction is working smoothly!')">Test Click 🚀</button>
+    <div class="icon">🚀</div>
+    <h2>VertexPortal</h2>
+    <p>Empowering millions of students with interactive AI-powered learning.</p>
+    <button class="btn">Explore Courses</button>
   </div>
 </body>
 </html>`,
@@ -224,29 +211,21 @@ const HTML_SNIPPETS = [
       align-items: center;
       justify-content: center;
       background: #0f172a;
-      font-family: system-ui, -apple-system, sans-serif;
-      color: white;
-      padding: 20px;
+      font-family: system-ui, sans-serif;
+      color: #fff;
     }
     .box {
       background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 24px;
-      padding: 32px;
+      padding: 30px;
+      border-radius: 20px;
       text-align: center;
-      width: 100%;
-      max-width: 300px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      border: 1px solid #334155;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      width: 280px;
     }
-    .label {
-      font-size: 12px;
-      text-transform: uppercase;
-      font-weight: 800;
-      color: #94a3b8;
-      letter-spacing: 1px;
-    }
+    .label { font-size: 13px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; font-weight: bold; }
     .number {
-      font-size: 64px;
+      font-size: 54px;
       font-weight: 900;
       color: #a855f7;
       margin: 16px 0 24px;
@@ -310,6 +289,7 @@ export default function CodePlayground() {
   const [copied, setCopied] = useState(false);
   const [fullScreen, setFullScreen] = useState(false);
   const [deviceMode, setDeviceMode] = useState('desktop'); // 'desktop' | 'tablet' | 'mobile'
+  const [mobileTab, setMobileTab] = useState('editor'); // 'editor' | 'output'
 
   const activeCode = lang === 'javascript' ? jsCode : htmlCode;
 
@@ -367,6 +347,11 @@ export default function CodePlayground() {
     setExecTime(elapsed);
     setLogs(capturedLogs);
     toast.success('Code executed!');
+    
+    // On mobile, auto-switch to output pane so student sees result immediately
+    if (window.innerWidth < 1024) {
+      setMobileTab('output');
+    }
   };
 
   const handleRun = () => {
@@ -374,6 +359,9 @@ export default function CodePlayground() {
       runJsCode();
     } else {
       toast.success('Live preview updated!');
+      if (window.innerWidth < 1024) {
+        setMobileTab('output');
+      }
     }
   };
 
@@ -417,67 +405,62 @@ export default function CodePlayground() {
       style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif" }}
     >
       {/* ── Subheader / Toolbar ── */}
-      <header className="h-14 bg-white dark:bg-[#111827] border-b border-gray-200 dark:border-slate-800/80 px-4 sm:px-6 flex items-center justify-between gap-3 shrink-0 shadow-2xs">
+      <header className="h-14 bg-white dark:bg-[#111827] border-b border-gray-200 dark:border-slate-800/80 px-3 sm:px-6 flex items-center justify-between gap-2 shrink-0 shadow-2xs">
         {/* Left: Brand / Title */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <Link
             to="/dashboard"
-            className="flex items-center gap-1.5 text-xs font-bold text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 px-2.5 py-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800/60 transition"
+            className="flex items-center gap-1 text-xs font-bold text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 px-2 py-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800/60 transition shrink-0"
           >
-            <ArrowLeft className="w-4 h-4" /> Back
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden xs:inline">Back</span>
           </Link>
 
-          <div className="h-4 w-px bg-gray-200 dark:bg-slate-800" />
+          <div className="h-4 w-px bg-gray-200 dark:bg-slate-800 shrink-0" />
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             <div
-              className="w-7 h-7 rounded-xl flex items-center justify-center text-white shadow-md shadow-purple-600/30"
+              className="w-7 h-7 rounded-xl flex items-center justify-center text-white shadow-md shadow-purple-600/30 shrink-0"
               style={{ background: 'linear-gradient(135deg, #6C5CE7, #a29bfe)' }}
             >
               <Code2 className="w-4 h-4" />
             </div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-sm sm:text-base font-extrabold text-gray-900 dark:text-white tracking-tight">
-                Code Playground
-              </h1>
-              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 dark:bg-purple-950/80 text-purple-600 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 font-mono shadow-2xs">
-                <Zap className="w-3 h-3 text-purple-600 dark:text-purple-400 fill-purple-600 dark:fill-purple-400" />
-                Live Compiler
-              </span>
-            </div>
+            <h1 className="text-xs sm:text-base font-extrabold text-gray-900 dark:text-white tracking-tight truncate">
+              Playground
+            </h1>
           </div>
         </div>
 
-        {/* Right: Controls */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
+        {/* Right: Language Switcher, Presets, Run Button */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* Language Toggle (JavaScript vs HTML/CSS) */}
-          <div className="flex items-center bg-gray-100 dark:bg-[#090d16] p-1 rounded-xl border border-gray-200 dark:border-slate-800 shadow-inner">
+          <div className="flex items-center bg-gray-100 dark:bg-[#090d16] p-0.5 sm:p-1 rounded-xl border border-gray-200 dark:border-slate-800">
             <button
               onClick={() => {
                 setLang('javascript');
                 setLogs([]);
               }}
-              className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              className={`px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 lang === 'javascript'
-                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-900/30'
+                  ? 'bg-purple-600 text-white shadow-xs'
                   : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
-              JavaScript
+              JS
             </button>
             <button
               onClick={() => setLang('html')}
-              className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              className={`px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 lang === 'html'
-                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-900/30'
+                  ? 'bg-purple-600 text-white shadow-xs'
                   : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
-              HTML / CSS
+              HTML
             </button>
           </div>
 
-          {/* Snippet Presets */}
+          {/* Snippet Presets Selector */}
           <select
             onChange={(e) => {
               const item = activeSnippetList.find((s) => s.title === e.target.value);
@@ -490,7 +473,7 @@ export default function CodePlayground() {
                 }
               }
             }}
-            className="hidden md:block text-xs bg-white dark:bg-[#090d16] border border-gray-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-gray-700 dark:text-slate-300 font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer shadow-xs"
+            className="hidden md:block text-xs bg-white dark:bg-[#090d16] border border-gray-200 dark:border-slate-800 rounded-xl px-2.5 py-1.5 text-gray-700 dark:text-slate-300 font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer shadow-xs"
           >
             {activeSnippetList.map((s) => (
               <option key={s.title} value={s.title}>
@@ -499,23 +482,21 @@ export default function CodePlayground() {
             ))}
           </select>
 
-          {/* Run Button */}
-          {lang === 'javascript' && (
-            <button
-              onClick={handleRun}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-white text-xs font-bold shadow-md shadow-purple-600/30 transition-all hover:scale-105 active:scale-95 cursor-pointer"
-              style={{ background: 'linear-gradient(135deg, #6C5CE7, #5046d4)' }}
-              title="Run code (Ctrl + Enter)"
-            >
-              <Play className="w-3.5 h-3.5 fill-white" />
-              <span>Run Code</span>
-            </button>
-          )}
+          {/* Run Code Button */}
+          <button
+            onClick={handleRun}
+            className="flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-white text-xs font-bold shadow-md shadow-purple-600/30 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            style={{ background: 'linear-gradient(135deg, #6C5CE7, #5046d4)' }}
+            title="Run code (Ctrl + Enter)"
+          >
+            <Play className="w-3.5 h-3.5 fill-white" />
+            <span>Run</span>
+          </button>
 
           {/* Fullscreen Toggle */}
           <button
             onClick={() => setFullScreen(!fullScreen)}
-            className="p-2 text-gray-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer"
+            className="hidden sm:inline-flex p-2 text-gray-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer"
             title={fullScreen ? 'Exit Fullscreen' : 'Fullscreen'}
           >
             {fullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -523,14 +504,55 @@ export default function CodePlayground() {
         </div>
       </header>
 
-      {/* ── Main Split View ── */}
-      <div className="flex-1 p-3 sm:p-4 grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 overflow-hidden min-h-0 bg-[#f7f8fc] dark:bg-[#0b0f19]">
+      {/* ── Mobile Tab Switcher (Visible on small screens < 1024px) ── */}
+      <div className="lg:hidden flex items-center justify-between bg-white dark:bg-[#111827] px-3 py-1.5 border-b border-gray-200 dark:border-slate-800">
+        <div className="flex items-center gap-1 bg-gray-100 dark:bg-slate-800/80 p-1 rounded-xl w-full">
+          <button
+            onClick={() => setMobileTab('editor')}
+            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              mobileTab === 'editor'
+                ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-xs'
+                : 'text-gray-600 dark:text-slate-400'
+            }`}
+          >
+            <FileCode className="w-3.5 h-3.5" />
+            <span>Editor</span>
+          </button>
+          <button
+            onClick={() => setMobileTab('output')}
+            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              mobileTab === 'output'
+                ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-xs'
+                : 'text-gray-600 dark:text-slate-400'
+            }`}
+          >
+            {lang === 'javascript' ? (
+              <>
+                <Terminal className="w-3.5 h-3.5" />
+                <span>Console {logs.length > 0 ? `(${logs.length})` : ''}</span>
+              </>
+            ) : (
+              <>
+                <Eye className="w-3.5 h-3.5" />
+                <span>Live Preview</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* ── Main Viewport (Responsive Grid / Stack) ── */}
+      <div className="flex-1 p-2 sm:p-4 grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 overflow-hidden min-h-0 bg-[#f7f8fc] dark:bg-[#0b0f19]">
         
         {/* ══ Left Card: Code Editor ══ */}
-        <div className="flex flex-col h-full bg-white dark:bg-[#111827] rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden min-h-0">
+        <div
+          className={`flex flex-col h-full bg-white dark:bg-[#111827] rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden min-h-0 ${
+            mobileTab === 'editor' ? 'flex' : 'hidden lg:flex'
+          }`}
+        >
           {/* Window Header */}
-          <div className="h-10 bg-gray-50 dark:bg-[#0f172a] border-b border-gray-200 dark:border-slate-800 px-4 flex items-center justify-between text-xs text-gray-600 dark:text-slate-400 shrink-0">
-            <div className="flex items-center gap-3">
+          <div className="h-10 bg-gray-50 dark:bg-[#0f172a] border-b border-gray-200 dark:border-slate-800 px-3 sm:px-4 flex items-center justify-between text-xs text-gray-600 dark:text-slate-400 shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3">
               {/* macOS Window Dots */}
               <div className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block" />
@@ -542,11 +564,11 @@ export default function CodePlayground() {
                 <span className="font-mono font-bold text-gray-800 dark:text-slate-200">
                   {lang === 'javascript' ? 'main.js' : 'index.html'}
                 </span>
-                <span className="text-[10px] text-gray-400 font-sans">(Editable)</span>
+                <span className="hidden sm:inline text-[10px] text-gray-400 font-sans">(Editable)</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
               <button
                 onClick={handleCopyCode}
                 className="p-1.5 text-gray-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
@@ -557,7 +579,7 @@ export default function CodePlayground() {
               <button
                 onClick={handleReset}
                 className="p-1.5 text-gray-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
-                title="Reset code template"
+                title="Reset snippet"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
@@ -567,7 +589,7 @@ export default function CodePlayground() {
           {/* Editor Area with Line Numbers */}
           <div className="flex-1 relative overflow-hidden min-h-0 bg-[#fafbfc] dark:bg-[#090d16] flex">
             {/* Gutter: Line Numbers */}
-            <div className="w-11 py-4 pr-3 text-right font-mono text-xs text-gray-400 dark:text-slate-600 select-none bg-gray-50 dark:bg-[#070a10] border-r border-gray-200 dark:border-slate-800/60 leading-relaxed overflow-hidden">
+            <div className="w-10 sm:w-11 py-3.5 sm:py-4 pr-2.5 sm:pr-3 text-right font-mono text-xs text-gray-400 dark:text-slate-600 select-none bg-gray-50 dark:bg-[#070a10] border-r border-gray-200 dark:border-slate-800/60 leading-relaxed overflow-hidden">
               {lineNumbers.map((num) => (
                 <div key={num}>{num}</div>
               ))}
@@ -585,18 +607,21 @@ export default function CodePlayground() {
               }}
               onKeyDown={handleKeyDown}
               spellCheck="false"
-              className="flex-1 h-full p-4 bg-transparent text-gray-800 dark:text-[#e2e8f0] font-mono text-xs sm:text-sm resize-none focus:outline-none leading-relaxed selection:bg-purple-100 dark:selection:bg-purple-900 selection:text-purple-900 dark:selection:text-purple-100"
+              className="flex-1 h-full p-3 sm:p-4 bg-transparent text-gray-800 dark:text-[#e2e8f0] font-mono text-xs sm:text-sm resize-none focus:outline-none leading-relaxed selection:bg-purple-100 dark:selection:bg-purple-900 selection:text-purple-900 dark:selection:text-purple-100 overflow-y-auto"
               placeholder="Write your code here..."
             />
           </div>
         </div>
 
         {/* ══ Right Card: Output Console / Live Web Preview ══ */}
-        <div className="flex flex-col h-full bg-white dark:bg-[#111827] rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden min-h-0">
-          
+        <div
+          className={`flex flex-col h-full bg-white dark:bg-[#111827] rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden min-h-0 ${
+            mobileTab === 'output' ? 'flex' : 'hidden lg:flex'
+          }`}
+        >
           {/* Header */}
-          <div className="h-10 bg-gray-50 dark:bg-[#0f172a] border-b border-gray-200 dark:border-slate-800 px-4 flex items-center justify-between text-xs text-gray-600 dark:text-slate-400 shrink-0">
-            <div className="flex items-center gap-3">
+          <div className="h-10 bg-gray-50 dark:bg-[#0f172a] border-b border-gray-200 dark:border-slate-800 px-3 sm:px-4 flex items-center justify-between text-xs text-gray-600 dark:text-slate-400 shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3">
               {/* macOS Dots */}
               <div className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block" />
@@ -604,24 +629,21 @@ export default function CodePlayground() {
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block" />
               </div>
 
-              <div className="flex items-center gap-2 ml-1">
+              <div className="flex items-center gap-1.5 ml-1">
                 {lang === 'javascript' ? (
                   <>
                     <Terminal className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                    <span className="font-bold text-gray-800 dark:text-slate-200">Terminal Output</span>
+                    <span className="font-bold text-gray-800 dark:text-slate-200">Terminal</span>
                     {execTime && (
-                      <span className="text-[11px] text-purple-600 dark:text-purple-300 font-mono font-bold bg-purple-50 dark:bg-purple-950/80 px-2 py-0.5 rounded-md border border-purple-200 dark:border-purple-800/50">
-                        ⚡ {execTime}ms
+                      <span className="text-[10px] text-purple-600 dark:text-purple-300 font-mono font-bold bg-purple-50 dark:bg-purple-950/80 px-1.5 py-0.5 rounded border border-purple-200 dark:border-purple-800/50">
+                        {execTime}ms
                       </span>
                     )}
                   </>
                 ) : (
                   <>
                     <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
-                    <span className="font-bold text-gray-800 dark:text-slate-200">Live Browser Preview</span>
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-300 font-bold bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800/50 px-2 py-0.5 rounded-md">
-                      Auto-Reload
-                    </span>
+                    <span className="font-bold text-gray-800 dark:text-slate-200">Live Preview</span>
                   </>
                 )}
               </div>
@@ -676,22 +698,22 @@ export default function CodePlayground() {
           </div>
 
           {/* Content Pane */}
-          <div className="flex-1 overflow-hidden p-3 min-h-0 flex flex-col bg-gray-50/70 dark:bg-[#090d16]">
+          <div className="flex-1 overflow-hidden p-2 sm:p-3 min-h-0 flex flex-col bg-gray-50/70 dark:bg-[#090d16]">
             {lang === 'javascript' ? (
-              <div className="flex-1 overflow-auto p-4 font-mono text-xs bg-white dark:bg-[#070a10] text-gray-800 dark:text-slate-200 rounded-xl border border-gray-200 dark:border-slate-800/80 shadow-2xs">
+              <div className="flex-1 overflow-auto p-3 sm:p-4 font-mono text-xs bg-white dark:bg-[#070a10] text-gray-800 dark:text-slate-200 rounded-xl border border-gray-200 dark:border-slate-800/80 shadow-2xs">
                 {logs.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-slate-500 space-y-2.5 py-12">
-                    <Terminal className="w-9 h-9 opacity-30 text-purple-600 dark:text-purple-400" />
+                  <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-slate-500 space-y-2.5 py-8 text-center">
+                    <Terminal className="w-8 h-8 opacity-30 text-purple-600 dark:text-purple-400" />
                     <p className="font-sans font-medium text-xs text-gray-500 dark:text-slate-400">
-                      Press <kbd className="px-2 py-0.5 rounded bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-purple-600 dark:text-purple-300 font-mono">Run Code</kbd> or <kbd className="px-2 py-0.5 rounded bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-purple-600 dark:text-purple-300 font-mono">Ctrl + Enter</kbd> to execute.
+                      Press <span className="font-bold text-purple-600 dark:text-purple-400">Run</span> above to execute code.
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-2.5">
+                  <div className="space-y-2">
                     {logs.map((log, idx) => (
                       <div
                         key={idx}
-                        className={`p-3 rounded-xl border leading-relaxed whitespace-pre-wrap ${
+                        className={`p-2.5 sm:p-3 rounded-xl border leading-relaxed whitespace-pre-wrap ${
                           log.type === 'error'
                             ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/60 text-rose-700 dark:text-rose-300 shadow-xs'
                             : log.type === 'warn'

@@ -624,6 +624,7 @@ export function Navbar() {
 
           <div className="space-y-1">
             <NavItem to="/courses" icon={Compass} onNavigate={closeMobile}>Browse Courses</NavItem>
+            <NavItem to="/playground" icon={Code2} onNavigate={closeMobile}>Code Playground</NavItem>
             <NavItem to="/discussions" icon={MessageSquareIcon} onNavigate={closeMobile}>Discussions</NavItem>
             <NavItem to="/ai-chat" icon={BrainIcon} onNavigate={closeMobile}>AI Tutor</NavItem>
           </div>
