@@ -2,6 +2,7 @@ import { Mistral } from "@mistralai/mistralai";
 
 import AiConversation from "../models/aiConversation.model.js";
 import AiMessage from "../models/aiMessage.model.js";
+import Course from "../models/course.model.js";
 
 import { searchCourseKnowledge } from "./rag.service.js";
 
@@ -465,36 +466,36 @@ export async function generateAiAnswer({
 
   /*
    * ======================================
-   * RAG RETRIEVAL
+   * RAG RETRIEVAL & COURSE CONTEXT
    * ======================================
    */
 
   let ragResults = [];
+  let courseDetails = null;
 
   if (conversation.course) {
     try {
-      ragResults = await searchCourseKnowledge({
+      courseDetails = await Course.findById(conversation.course)
+        .populate("instructor", "fullName email")
+        .select("title description category level price totalLectures totalDuration")
+        .lean();
+    } catch (err) {
+      console.warn("Could not fetch course metadata for AI Tutor:", err?.message || err);
+    }
+
+    try {
+      const results = await searchCourseKnowledge({
         userId,
-
         userRole,
-
         courseId: conversation.course,
-
         query: normalizedContent,
-
-        /*
-         * Optional scope.
-         */
         moduleId,
-
         lectureId,
-
         resourceType,
-
         limit: RAG_RESULT_LIMIT,
       });
 
-      ragResults = searchResult?.results || [];
+      ragResults = Array.isArray(results) ? results : [];
     } catch (error) {
       console.warn("RAG retrieval failed, falling back to direct AI chat:", error?.message || error);
       ragResults = [];
@@ -531,7 +532,6 @@ export async function generateAiAnswer({
 
   const systemPrompt = buildSystemPrompt({
     hasCourse: Boolean(conversation.course),
-
     hasLectureScope: Boolean(lectureId),
   });
 
@@ -541,34 +541,37 @@ export async function generateAiAnswer({
    * ======================================
    */
 
+  const courseOverviewText = courseDetails
+    ? `ACTIVE COURSE INFORMATION:
+- Course Title: ${courseDetails.title}
+- Description: ${courseDetails.description || "Comprehensive hands-on training"}
+- Instructor: ${courseDetails.instructor?.fullName || "VertexPortal Faculty"}
+- Level: ${courseDetails.level || "All Levels"}
+- Category: ${courseDetails.category || "Development"}
+- Total Lectures: ${courseDetails.totalLectures || 0}`
+    : "";
+
   const modelMessages = [
     {
       role: "system",
-
       content: systemPrompt,
     },
-
     ...previousHistory,
-
     {
       role: "user",
-
       content: conversation.course
         ? `
-COURSE CONTEXT:
+${courseOverviewText}
 
-${ragContext || "No relevant course context was retrieved."}
+RETRIEVED COURSE MATERIAL & TRANSCRIPTS (RAG):
+${ragContext || "No specific sub-topics/transcripts matched this query. Please answer using the course overview information above and your domain expertise."}
 
 RAG SCOPE:
-
 Module ID: ${moduleId || "none"}
-
 Lecture ID: ${lectureId || "none"}
-
 Resource Type: ${resourceType || "any"}
 
 USER QUESTION:
-
 ${normalizedContent}
 `.trim()
         : normalizedContent,

@@ -633,6 +633,15 @@ html.dark .stitch-glass {
   50% { opacity: 0.7; }
 }
 
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .animate-fade-in-up { animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both; }
 .animate-fade-in { animation: fadeIn 0.3s ease both; }
 .animate-slide-in-left { animation: slideInLeft 0.35s cubic-bezier(0.4, 0, 0.2, 1) both; }

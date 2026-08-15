@@ -243,14 +243,63 @@ export function SkeletonLiveRoom() {
   );
 }
 
-// ── PageLoader fallback ──────────────────────────────────────────────────────
-export function PageLoader() {
+// ── Ultra-Modern SaaS PageLoader ──────────────────────────────────────────────
+export function PageLoader({ text = 'Preparing your workspace...' }) {
   return (
-    <div className="min-h-[70vh] flex flex-col items-center justify-center gap-4">
-      <div className="w-12 h-12 rounded-2xl bg-purple-600/20 text-purple-600 border border-purple-500/30 flex items-center justify-center animate-bounce">
-        <div className="w-5 h-5 rounded-md bg-purple-600" />
+    <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 relative overflow-hidden font-[Inter,sans-serif]">
+      {/* Background Soft Ambient Glow */}
+      <div className="absolute w-72 h-72 rounded-full bg-purple-500/10 dark:bg-purple-600/15 blur-3xl pointer-events-none animate-pulse" />
+      <div className="absolute w-60 h-60 rounded-full bg-sky-500/10 dark:bg-sky-600/10 blur-3xl pointer-events-none animate-pulse [animation-delay:1s]" />
+
+      <div className="relative z-10 flex flex-col items-center max-w-xs text-center space-y-6">
+        {/* Glowing Brand Emblem */}
+        <div className="relative group">
+          {/* Pulsing Outer Gradient Ring */}
+          <div className="absolute -inset-1.5 bg-gradient-to-r from-purple-600 via-indigo-500 to-sky-500 rounded-3xl blur-md opacity-70 animate-pulse group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+          
+          {/* Inner Logo Badge */}
+          <div className="relative w-16 h-16 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900 border border-white/20 shadow-xl flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-md">
+              <svg
+                className="w-5 h-5 animate-pulse"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 14l9-5-9-5-9 5 9 5z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Text & Status */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-center gap-1.5">
+            <span className="text-sm font-extrabold text-gray-900 dark:text-white tracking-tight">
+              Vertex<span className="text-purple-600 dark:text-purple-400">Portal</span>
+            </span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium animate-pulse">
+            {text}
+          </p>
+        </div>
+
+        {/* Sleek Gradient Shimmer Progress Line */}
+        <div className="w-48 sm:w-56 h-1.5 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden relative shadow-inner">
+          <div className="absolute top-0 bottom-0 left-0 right-0 bg-gradient-to-r from-transparent via-purple-600 to-transparent animate-shimmer" />
+        </div>
       </div>
-      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider animate-pulse">Loading VertexPortal...</p>
     </div>
   );
 }
