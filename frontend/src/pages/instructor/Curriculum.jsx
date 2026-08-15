@@ -5,9 +5,10 @@ import {
   getManageLectures, createLecture, updateLecture, archiveLecture,
   publishLecture, uploadLectureVideo, uploadLectureDocument,
 } from '../../api/lecture.api';
+import { indexCourseForRag } from '../../api/rag.api';
 import { Modal } from '../../components/ui/Modal';
 import { Spinner } from '../../components/ui/Spinner';
-import { Plus, Edit3, Trash2, Globe, Video, FileText, Upload, ArrowLeft, Eye, Download, X } from 'lucide-react';
+import { Plus, Edit3, Trash2, Globe, Video, FileText, Upload, ArrowLeft, Eye, Download, X, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 
@@ -176,6 +177,18 @@ export default function Curriculum() {
     }
   };
 
+  const handleIndexRag = async () => {
+    setUploading(true);
+    try {
+      await indexCourseForRag(courseId);
+      toast.success('Course curriculum and resources indexed into AI RAG knowledge base!');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || 'AI RAG indexing failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const closeAssetModal = () => {
     if (uploading) return; // prevent accidental close during upload
     setAssetModalOpen(false);
@@ -208,13 +221,23 @@ export default function Curriculum() {
               <p>Upload videos directly to ImageKit cloud — no server size limits</p>
             </div>
           </div>
-          <button
-            className="btn btn-primary"
-            onClick={() => { setActiveModule(null); setModuleTitle(''); setModuleModalOpen(true); }}
-            id="add-module-btn"
-          >
-            <Plus size={18} /> Add Module
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button
+              className="btn btn-secondary"
+              onClick={handleIndexRag}
+              disabled={uploading}
+              title="Index course curriculum for AI Tutor"
+            >
+              <Sparkles size={16} color="#8b5cf6" /> Index AI RAG
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={() => { setActiveModule(null); setModuleTitle(''); setModuleModalOpen(true); }}
+              id="add-module-btn"
+            >
+              <Plus size={18} /> Add Module
+            </button>
+          </div>
         </div>
       </div>
 

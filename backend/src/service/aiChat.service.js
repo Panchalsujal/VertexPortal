@@ -493,48 +493,11 @@ export async function generateAiAnswer({
 
         limit: RAG_RESULT_LIMIT,
       });
+
+      ragResults = searchResult?.results || [];
     } catch (error) {
-      /*
-       * IMPORTANT:
-       * Original Atlas/Mongo error terminal
-       * me visible rahega.
-       */
-      console.error("RAG retrieval failed:", error);
-
-      console.error("RAG retrieval details:", {
-        name: error?.name,
-
-        message: error?.message,
-
-        code: error?.code,
-
-        status: error?.status,
-
-        statusCode: error?.statusCode,
-
-        cause: error?.cause,
-
-        stack: error?.stack,
-
-        scope: {
-          courseId: String(conversation.course),
-
-          moduleId: moduleId ?? null,
-
-          lectureId: lectureId ?? null,
-
-          resourceType: resourceType ?? null,
-        },
-      });
-
-      /*
-       * Apne ApiError ko preserve karo.
-       */
-      if (error instanceof ApiError) {
-        throw error;
-      }
-
-      throw new ApiError(500, "Failed to retrieve course knowledge");
+      console.warn("RAG retrieval failed, falling back to direct AI chat:", error?.message || error);
+      ragResults = [];
     }
   }
 

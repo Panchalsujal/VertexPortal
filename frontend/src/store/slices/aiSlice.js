@@ -58,7 +58,10 @@ const aiSlice = createSlice({
         s.sending = false;
         if (a.payload.userMessage) s.messages.push(a.payload.userMessage);
         const botMsg = a.payload.assistantMessage || a.payload.aiMessage;
-        if (botMsg) s.messages.push(botMsg);
+        if (botMsg) {
+          if (a.payload.sources) botMsg.sources = a.payload.sources;
+          s.messages.push(botMsg);
+        }
       })
       .addCase(sendMessage.rejected, (s, a) => { s.sending = false; s.error = a.payload; })
       .addCase(renameConversation.fulfilled, (s, a) => {

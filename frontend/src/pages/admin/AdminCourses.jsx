@@ -4,7 +4,8 @@ import {
   fetchCourseAnalytics, fetchAdminCourses, publishCourse, unpublishCourse, archiveCourse,
   selectAdminCoursesList, selectAdminCoursesAnalytics, selectAdminCoursesLoading,
 } from '../../store/slices/admin/coursesSlice';
-import { BookOpen, CheckCircle, Clock, Archive, Search } from 'lucide-react';
+import { indexCourseForRag } from '../../api/rag.api';
+import { BookOpen, CheckCircle, Clock, Archive, Search, Sparkles } from 'lucide-react';
 import { SkeletonTable } from '../../components/ui/Spinner';
 import AdminLayout from '../../components/admin/AdminLayout';
 import toast from 'react-hot-toast';
@@ -17,11 +18,24 @@ export default function AdminCourses() {
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [indexingId, setIndexingId] = useState(null);
 
   useEffect(() => {
     dispatch(fetchCourseAnalytics());
     dispatch(fetchAdminCourses({ search, status: statusFilter }));
   }, [dispatch, search, statusFilter]);
+
+  const handleIndexRag = async (courseId, courseTitle) => {
+    setIndexingId(courseId);
+    try {
+      await indexCourseForRag(courseId);
+      toast.success(`"${courseTitle}" indexed into AI RAG knowledge base!`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'AI indexing failed');
+    } finally {
+      setIndexingId(null);
+    }
+  };
 
   const handlePublishToggle = async (id, isPublished) => {
     try {
@@ -167,10 +181,19 @@ export default function AdminCourses() {
                           {statusLabel}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-right space-x-2">
+                      <td className="px-5 py-4 text-right space-x-1.5 whitespace-nowrap">
+                        <button
+                          onClick={() => handleIndexRag(c._id, c.title)}
+                          disabled={indexingId === c._id}
+                          className="text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 font-bold px-2.5 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1 disabled:opacity-50 cursor-pointer"
+                          title="Index course curriculum and resources into AI RAG"
+                        >
+                          <Sparkles className={`w-3.5 h-3.5 ${indexingId === c._id ? 'animate-spin' : 'text-purple-600'}`} />
+                          {indexingId === c._id ? 'Indexing…' : 'AI Index'}
+                        </button>
                         <button
                           onClick={() => handlePublishToggle(c._id, isPub)}
-                          className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
+                          className={`text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer ${
                             isPub ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 hover:bg-emerald-100'
                           }`}
                         >
@@ -179,7 +202,7 @@ export default function AdminCourses() {
                         {statusLabel !== 'archived' && (
                           <button
                             onClick={() => handleArchive(c._id)}
-                            className="text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold px-3 py-1.5 rounded-lg transition-colors"
+                            className="text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
                           >
                             Archive
                           </button>
