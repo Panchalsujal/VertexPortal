@@ -13,7 +13,6 @@ import {
   StreamTheme,
   PaginatedGridLayout,
   SpeakerLayout,
-  ParticipantsAudio,
   useCallStateHooks,
   useCall,
   CallingState,
@@ -446,9 +445,6 @@ function StreamConnectedStage({
       className="h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col font-[Inter,sans-serif] select-none"
       onClick={() => { if (audioBlocked) doUnblockAudio(call); }}
     >
-      {/* Audio Stream — participants prop is REQUIRED by SDK, must never be undefined */}
-      <ParticipantsAudio participants={isJoined ? (participants || []) : []} />
-
       {/* Top Header Bar */}
       <header className="h-14 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/90 px-3 sm:px-5 flex items-center justify-between z-20 shrink-0">
         <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
