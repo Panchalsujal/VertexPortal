@@ -404,8 +404,8 @@ function StreamConnectedStage({
       className="h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col font-[Inter,sans-serif] select-none"
       onClick={() => { if (audioBlocked) doUnblockAudio(call); }}
     >
-      {/* Explicit Audio Stream Element for Remote Participants */}
-      <ParticipantsAudio />
+      {/* Audio Stream — only render when call is fully JOINED, SDK calls participants.map() internally */}
+      {isJoined && <ParticipantsAudio />}
 
       {/* Top Header Bar */}
       <header className="h-14 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/90 px-3 sm:px-5 flex items-center justify-between z-20 shrink-0">
