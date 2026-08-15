@@ -169,7 +169,7 @@ function StreamConnectedStage({
   const isRecording = useIsCallRecordingInProgress();
   const { isMute: isMicMuted } = useMicrophoneState();
   const { isMute: isCamMuted } = useCameraState();
-  const { screenShare, isEnabled: isScreenSharing } = useScreenShareState();
+  const { screenShare, isEnabled: isScreenSharing } = useScreenShareState() || {};
   // Detect if ANY participant is sharing their screen (screenShareStream is set when active)
   const hasOngoingScreenShare = Array.isArray(participants) && participants.some(
     (p) => !!p.screenShareStream || (Array.isArray(p.publishedTracks) && p.publishedTracks.includes(3))
@@ -391,7 +391,12 @@ function StreamConnectedStage({
   };
 
   const isConnecting =
-    callingState === CallingState.JOINING || callingState === CallingState.RECONNECTING;
+    callingState === CallingState.JOINING ||
+    callingState === CallingState.RECONNECTING ||
+    callingState === CallingState.IDLE ||
+    callingState === CallingState.LEFT;
+
+  const isJoined = callingState === CallingState.JOINED;
 
   return (
     <div
@@ -471,12 +476,16 @@ function StreamConnectedStage({
         {/* Stream Video Stage */}
         <div className="flex-1 min-w-0 flex flex-col bg-slate-950 relative overflow-hidden p-2 sm:p-3">
           <div className="flex-1 min-h-0 w-full relative rounded-2xl overflow-hidden bg-[#080c15] flex items-stretch justify-stretch">
-            {isConnecting ? (
+            {(!isJoined || isConnecting) ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-3">
                 <div className="w-16 h-16 rounded-3xl bg-slate-800/90 border border-slate-700/60 flex items-center justify-center shadow-lg">
                   <Radio className="w-8 h-8 text-purple-400 animate-pulse" />
                 </div>
-                <p className="text-sm font-semibold text-slate-300">Connecting to live classroom...</p>
+                <p className="text-sm font-semibold text-slate-300">
+                  {callingState === CallingState.JOINING ? 'Joining live room…' :
+                   callingState === CallingState.RECONNECTING ? 'Reconnecting…' :
+                   'Connecting to live classroom…'}
+                </p>
               </div>
             ) : (
               <div className="absolute inset-0 stream-stage-container">
@@ -796,6 +805,22 @@ export default function LiveClassRoom() {
   const chatBottomRef = useRef(null);
 
   const isHost = currentUser?.role === 'admin' || currentUser?.role === 'instructor';
+
+  const handleSendMessage = async (e) => {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    const msgObj = {
+      type: 'chat_message',
+      id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      senderName: currentUser?.fullName || (isHost ? 'Instructor' : 'Student'),
+      senderRole: isHost ? 'instructor' : 'student',
+      text: inputText.trim(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    if (!msgObj.text) return;
+    setMessages((prev) => [...(Array.isArray(prev) ? prev : []), msgObj]);
+    setInputText('');
+    setTimeout(() => { chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, 100);
+  };
 
   useEffect(() => {
     let mounted = true;
