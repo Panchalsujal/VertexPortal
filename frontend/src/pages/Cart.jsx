@@ -237,6 +237,16 @@ export default function Cart() {
                 const originalPrice = course?.price;
                 const hasDiscount = originalPrice && price < originalPrice;
                 const courseId = course?._id || item._id;
+                // category may be a populated object { _id, name, slug } or a plain string
+                const categoryName = course?.category
+                  ? typeof course.category === 'object' ? course.category.name : course.category
+                  : null;
+                // instructor may be a populated object or a plain string
+                const instructorName = course?.instructor
+                  ? typeof course.instructor === 'object'
+                    ? (course.instructor.fullName || course.instructor.name || 'Instructor')
+                    : course.instructor
+                  : 'Instructor';
 
                 return (
                   <div
@@ -260,9 +270,9 @@ export default function Cart() {
 
                     {/* Course Details */}
                     <div className="flex-1 min-w-0 space-y-1.5 w-full">
-                      {course?.category && (
+                      {categoryName && (
                         <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-900/40 uppercase tracking-wider">
-                          {course.category}
+                          {categoryName}
                         </span>
                       )}
                       <Link
@@ -272,7 +282,7 @@ export default function Cart() {
                         {course?.title || 'Untitled Course'}
                       </Link>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        By <span className="font-medium text-gray-700 dark:text-gray-300">{course?.instructor?.fullName || 'Instructor'}</span>
+                        By <span className="font-medium text-gray-700 dark:text-gray-300">{instructorName}</span>
                       </p>
                       {item.priceChanged && (
                         <div className="inline-flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 font-medium">
