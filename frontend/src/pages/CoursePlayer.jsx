@@ -32,6 +32,9 @@ import {
   Trash2,
   Plus,
   Code2,
+  Info,
+  MessageSquare,
+  Share2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -47,11 +50,13 @@ export default function CoursePlayer() {
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sidebarTab, setSidebarTab] = useState('syllabus'); // 'syllabus' | 'notes'
+  const [mobileTab, setMobileTab] = useState('overview'); // 'overview' | 'syllabus' | 'notes' | 'ai'
   const [notes, setNotes] = useState([]);
   const [newNoteContent, setNewNoteContent] = useState('');
   const [noteTimestamp, setNoteTimestamp] = useState(null);
   const [submittingNote, setSubmittingNote] = useState(false);
   const [marking, setMarking] = useState(false);
+  const [aiQuestion, setAiQuestion] = useState('');
   const videoRef = useRef(null);
 
   const isAdminOrInstructor = user?.role === 'admin' || user?.role === 'instructor';
@@ -149,7 +154,9 @@ export default function CoursePlayer() {
       }
     }
     loadNotes();
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, [activeLecture?._id]);
 
   // Video Resume playback handlers
@@ -161,7 +168,7 @@ export default function CoursePlayer() {
       const parsed = parseFloat(savedTime);
       if (!isNaN(parsed) && parsed > 0 && parsed < (videoRef.current.duration - 5)) {
         videoRef.current.currentTime = parsed;
-        toast('Resumed video playback', { icon: '⏱️', id: 'resume-toast' });
+        toast('Resumed playback position', { icon: '⏱️', id: 'resume-toast' });
       }
     }
   };
@@ -258,7 +265,7 @@ export default function CoursePlayer() {
         res.data.enrollment?.progressPercentage ??
           Math.min(100, Math.round(((completedIds.length + 1) / allLectures.length) * 100))
       );
-      toast.success('Lesson marked as completed!');
+      toast.success('Lesson marked as completed! 🎉');
 
       if (hasNext) {
         goToNextLecture();
@@ -274,23 +281,20 @@ export default function CoursePlayer() {
 
   if (loading) {
     return (
-      <div className="flex flex-col h-screen bg-slate-50 dark:bg-slate-950 font-[Inter,sans-serif] animate-pulse">
-        <div className="h-14 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-6 flex items-center justify-between">
-          <div className="h-5 bg-gray-200 dark:bg-slate-800 rounded w-40" />
-          <div className="h-5 bg-gray-200 dark:bg-slate-800 rounded w-24" />
+      <div className="flex flex-col h-screen bg-slate-900 text-white font-[Inter,sans-serif] animate-pulse">
+        <div className="h-14 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between">
+          <div className="h-5 bg-slate-800 rounded w-40" />
+          <div className="h-5 bg-slate-800 rounded w-24" />
         </div>
         <div className="flex-1 flex overflow-hidden">
           <div className="flex-1 p-6 flex flex-col justify-between">
-            <div className="w-full max-w-5xl aspect-video mx-auto rounded-2xl bg-gray-200 dark:bg-slate-900 border border-gray-200 dark:border-slate-800" />
-            <div className="h-12 w-full rounded-2xl bg-gray-200 dark:bg-slate-900 border border-gray-200 dark:border-slate-800" />
+            <div className="w-full max-w-5xl aspect-video mx-auto rounded-2xl bg-slate-800 border border-slate-700" />
+            <div className="h-12 w-full rounded-2xl bg-slate-800 border border-slate-700" />
           </div>
-          <div className="w-80 border-l border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3 hidden md:block">
-            <div className="w-32 h-5 rounded-md bg-gray-200 dark:bg-slate-800 mb-4" />
+          <div className="w-80 border-l border-slate-800 bg-slate-900 p-4 space-y-3 hidden md:block">
+            <div className="w-32 h-5 rounded-md bg-slate-800 mb-4" />
             {Array.from({ length: 4 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-16 rounded-2xl bg-gray-100 dark:bg-slate-800/80 border border-gray-200/80 dark:border-slate-800"
-              />
+              <div key={i} className="h-16 rounded-2xl bg-slate-800/80 border border-slate-700" />
             ))}
           </div>
         </div>
@@ -299,10 +303,10 @@ export default function CoursePlayer() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50 dark:bg-slate-950 text-gray-900 dark:text-white font-[Inter,sans-serif] overflow-hidden select-none transition-colors duration-200">
+    <div className="flex flex-col h-screen bg-[#0b0f19] text-slate-100 font-[Inter,sans-serif] overflow-hidden select-none">
       {/* ── Top Navigation Header ─────────────────────────────────────────── */}
-      <header className="h-14 bg-white/95 dark:bg-slate-900/95 border-b border-gray-200/90 dark:border-slate-800 px-4 sm:px-6 flex items-center justify-between gap-4 z-30 shrink-0 shadow-xs backdrop-blur-md">
-        <div className="flex items-center gap-3 min-w-0">
+      <header className="h-14 bg-[#111827] border-b border-slate-800 px-3 sm:px-6 flex items-center justify-between gap-3 z-30 shrink-0 shadow-md">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             onClick={() => {
               if (window.history.length > 1 && window.history.state?.idx > 0) {
@@ -317,33 +321,31 @@ export default function CoursePlayer() {
                 );
               }
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200 text-xs font-semibold text-gray-700 dark:text-slate-200 transition cursor-pointer shrink-0"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800 hover:bg-purple-950/40 hover:text-purple-300 hover:border-purple-600/50 text-xs font-semibold text-slate-200 transition cursor-pointer shrink-0"
             id="back-to-learning-btn"
           >
-            <ChevronLeft className="w-4 h-4" /> Back
+            <ChevronLeft className="w-4 h-4" />
+            <span className="hidden xs:inline">Back</span>
           </button>
 
-          <div className="h-4 w-px bg-gray-200 dark:bg-slate-800 hidden sm:block shrink-0" />
+          <div className="h-4 w-px bg-slate-800 hidden sm:block shrink-0" />
 
           <div className="flex items-center gap-2 min-w-0">
-            <span className="hidden md:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 text-[10px] font-bold uppercase tracking-wider shrink-0">
-              <BookOpen className="w-3 h-3 text-purple-600 dark:text-purple-400" /> Lesson
-            </span>
-            <h2 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white truncate max-w-sm sm:max-w-md">
+            <h2 className="text-xs sm:text-sm font-bold text-white truncate max-w-[140px] xs:max-w-[200px] sm:max-w-md">
               {activeLecture?.title || 'Course Content'}
             </h2>
           </div>
         </div>
 
         {/* Top Right Actions */}
-        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           {/* Ask AI Tutor Link */}
           <Link
             to="/ai-chat"
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 text-xs font-bold transition shadow-xs"
+            className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 text-purple-300 border border-purple-800/60 text-xs font-bold transition shadow-xs"
             title="Ask AI Tutor about this lecture"
           >
-            <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 fill-purple-600/30" />
+            <Sparkles className="w-3.5 h-3.5 text-purple-400 fill-purple-400/30" />
             <span>AI Tutor</span>
           </Link>
 
@@ -352,10 +354,10 @@ export default function CoursePlayer() {
             to="/playground"
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-bold transition shadow-xs"
+            className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold transition shadow-xs"
             title="Open Code Playground in new tab"
           >
-            <Code2 className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+            <Code2 className="w-3.5 h-3.5 text-purple-400" />
             <span>Playground</span>
           </Link>
 
@@ -363,7 +365,7 @@ export default function CoursePlayer() {
           {Number(progressPct) >= 100 && (
             <button
               onClick={() => navigate('/certificates')}
-              className="inline-flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow-sm cursor-pointer"
+              className="inline-flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm cursor-pointer"
             >
               <Award className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Certificate</span>
@@ -371,14 +373,14 @@ export default function CoursePlayer() {
           )}
 
           {/* Progress Bar */}
-          <div className="flex items-center gap-2.5 bg-gray-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-gray-200/90 dark:border-slate-700/60">
-            <div className="w-16 sm:w-24 h-1.5 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+          <div className="flex items-center gap-2 bg-slate-800/90 px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-700/80">
+            <div className="w-12 sm:w-20 h-1.5 bg-slate-700 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-purple-600 to-indigo-500 transition-all duration-500 rounded-full"
+                className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all duration-500 rounded-full"
                 style={{ width: `${progressPct}%` }}
               />
             </div>
-            <span className="text-xs font-extrabold text-purple-700 dark:text-purple-300 font-mono">
+            <span className="text-xs font-extrabold text-purple-300 font-mono">
               {Number(progressPct).toFixed(0)}%
             </span>
           </div>
@@ -386,7 +388,7 @@ export default function CoursePlayer() {
           {/* Toggle Syllabus Sidebar */}
           <button
             onClick={() => setSidebarOpen((o) => !o)}
-            className="p-2 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-xl transition cursor-pointer"
+            className="p-2 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition cursor-pointer"
             title={sidebarOpen ? 'Hide Syllabus' : 'Show Syllabus'}
           >
             {sidebarOpen ? (
@@ -401,192 +403,353 @@ export default function CoursePlayer() {
       {/* ── Main Workspace Body ────────────────────────────────────────────── */}
       <div className="flex-1 flex overflow-hidden relative">
         {/* Main Content Area */}
-        <main className="flex-1 flex flex-col h-full overflow-hidden bg-slate-100/70 dark:bg-slate-950 relative">
-          {/* Lecture Viewer Container */}
-          <div className="flex-1 flex flex-col h-full overflow-hidden">
-            {activeLecture ? (
-              activeLecture.videoUrl ? (
-                /* ── VIDEO PLAYER ── */
-                <div className="flex-1 flex items-center justify-center p-4 sm:p-6 overflow-hidden">
-                  <div className="w-full max-w-5xl aspect-video max-h-[calc(100vh-140px)] rounded-3xl overflow-hidden shadow-xl border border-gray-200 dark:border-slate-800 bg-black flex items-center justify-center">
-                    <video
-                      ref={videoRef}
-                      src={activeLecture.videoUrl}
-                      controls
-                      controlsList="nodownload noremoteplayback"
-                      disablePictureInPicture
-                      onContextMenu={(e) => e.preventDefault()}
-                      onLoadedMetadata={handleVideoLoadedMetadata}
-                      onTimeUpdate={handleVideoTimeUpdate}
-                      className="w-full h-full object-contain"
-                      id="lecture-video"
-                    />
-                  </div>
-                </div>
-              ) : activeLecture.documentUrl ? (
-                /* ── DOCUMENT / PDF VIEWER ── */
-                <div className="flex-1 flex flex-col h-full overflow-hidden">
-                  {/* Slim Integrated Document Toolbar */}
-                  <div className="h-12 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-4 sm:px-6 flex items-center justify-between gap-3 shrink-0 shadow-xs">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 flex items-center justify-center text-purple-700 dark:text-purple-300 shrink-0">
-                        <FileText className="w-4 h-4" />
-                      </div>
-                      <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white truncate">
-                        {activeLecture.title}
-                      </span>
-                      <span className="hidden sm:inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60">
-                        PDF Resource
-                      </span>
+        <main className="flex-1 flex flex-col h-full overflow-y-auto bg-[#07090e] scrollbar-thin">
+          {/* Lecture Cinema Stage */}
+          <div className="w-full bg-black flex items-center justify-center border-b border-slate-800/80 shrink-0">
+            <div className="w-full max-w-5xl aspect-video max-h-[58vh] sm:max-h-[64vh] flex items-center justify-center relative bg-black">
+              {activeLecture ? (
+                activeLecture.videoUrl ? (
+                  /* ── VIDEO PLAYER ── */
+                  <video
+                    ref={videoRef}
+                    src={activeLecture.videoUrl}
+                    controls
+                    controlsList="nodownload noremoteplayback"
+                    disablePictureInPicture
+                    onContextMenu={(e) => e.preventDefault()}
+                    onLoadedMetadata={handleVideoLoadedMetadata}
+                    onTimeUpdate={handleVideoTimeUpdate}
+                    className="w-full h-full object-contain"
+                    id="lecture-video"
+                  />
+                ) : activeLecture.documentUrl ? (
+                  /* ── DOCUMENT PREVIEW ── */
+                  <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center space-y-3 bg-slate-900">
+                    <div className="w-14 h-14 rounded-2xl bg-purple-950/60 border border-purple-800/60 flex items-center justify-center text-purple-300">
+                      <FileText className="w-7 h-7" />
                     </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div>
+                      <h4 className="text-sm sm:text-base font-bold text-white">{activeLecture.title}</h4>
+                      <p className="text-xs text-slate-400 mt-1">Study document attachment ready to view or download.</p>
+                    </div>
+                    <div className="flex items-center gap-2 pt-2">
                       <a
                         href={activeLecture.documentUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs font-semibold px-3 py-1.5 rounded-xl border border-gray-200 dark:border-slate-700 transition shadow-xs"
+                        className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-md"
                       >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Open in Tab</span>
+                        <ExternalLink className="w-3.5 h-3.5" /> Open Document
                       </a>
                       <a
                         href={activeLecture.documentUrl}
                         download
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl transition shadow-xs"
+                        className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold inline-flex items-center gap-1.5"
                       >
-                        <Download className="w-3.5 h-3.5" />
-                        <span>Download</span>
+                        <Download className="w-3.5 h-3.5" /> Download
                       </a>
                     </div>
                   </div>
-
-                  {/* Full Height Embedded PDF */}
-                  <div className="flex-1 w-full h-full bg-slate-200/50 dark:bg-slate-950 overflow-hidden">
-                    {activeLecture.documentUrl.toLowerCase().includes('.pdf') ? (
-                      <iframe
-                        src={`${activeLecture.documentUrl}#toolbar=1&navpanes=0`}
-                        title={activeLecture.title}
-                        className="w-full h-full border-0 bg-white"
-                      />
-                    ) : (
-                      <div className="h-full flex flex-col items-center justify-center p-8 text-center space-y-4">
-                        <div className="w-16 h-16 rounded-2xl bg-purple-100 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 flex items-center justify-center text-purple-700 dark:text-purple-300">
-                          <FileText className="w-8 h-8" />
-                        </div>
-                        <div>
-                          <h4 className="text-base font-bold text-gray-900 dark:text-white">
-                            {activeLecture.title}
-                          </h4>
-                          <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                            Study document attachment ready to view or download.
-                          </p>
-                        </div>
-                        <a
-                          href={activeLecture.documentUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md"
-                        >
-                          <ExternalLink className="w-4 h-4" /> Open Document
-                        </a>
-                      </div>
-                    )}
+                ) : activeLecture.type === 'text' || activeLecture.content ? (
+                  /* ── TEXT / READING ── */
+                  <div className="w-full h-full overflow-y-auto p-6 flex flex-col justify-center items-center bg-slate-900 text-center">
+                    <span className="text-xs font-bold uppercase tracking-wider text-purple-400 mb-2">
+                      Reading Lesson
+                    </span>
+                    <h3 className="text-xl font-bold text-white max-w-lg mb-3">{activeLecture.title}</h3>
+                    <p className="text-xs text-slate-300 max-w-md line-clamp-4 leading-relaxed">
+                      {activeLecture.content || activeLecture.description || 'Written reading material.'}
+                    </p>
                   </div>
-                </div>
-              ) : activeLecture.type === 'text' || activeLecture.content ? (
-                /* ── TEXT / READING VIEWER ── */
-                <div className="flex-1 overflow-y-auto p-6 sm:p-10 flex justify-center scrollbar-thin bg-white dark:bg-slate-950">
-                  <div className="w-full max-w-3xl space-y-4">
-                    <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 text-xs font-bold uppercase tracking-wider">
-                      <Sparkles className="w-4 h-4" /> Reading Lesson
-                    </div>
-                    <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white">
-                      {activeLecture.title}
-                    </h1>
-                    <div className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap pt-4 border-t border-gray-200 dark:border-slate-800">
-                      {activeLecture.content ||
-                        activeLecture.description ||
-                        'Written lecture notes.'}
-                    </div>
+                ) : (
+                  /* ── PENDING MEDIA ── */
+                  <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center space-y-2 bg-slate-900">
+                    <Lock className="w-10 h-10 text-slate-600" />
+                    <h4 className="text-sm font-bold text-white">Content in Preparation</h4>
+                    <p className="text-xs text-slate-400 max-w-sm">No media file has been attached yet.</p>
                   </div>
-                </div>
+                )
               ) : (
-                /* ── EMPTY / PENDING CONTENT ── */
-                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-3 bg-white dark:bg-slate-950">
-                  <Lock className="w-12 h-12 text-gray-400 dark:text-slate-600" />
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white">
-                    Content in Preparation
-                  </h3>
-                  <p className="text-xs text-gray-500 dark:text-slate-400 max-w-sm">
-                    No media file has been attached to this lecture yet.
-                  </p>
+                <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center space-y-2 bg-slate-900 text-slate-400">
+                  <PlayCircle className="w-12 h-12 text-purple-400/40" />
+                  <p className="text-xs font-semibold">Select a lesson to begin</p>
                 </div>
-              )
-            ) : (
-              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-3 text-gray-500 dark:text-slate-400 bg-white dark:bg-slate-950">
-                <PlayCircle className="w-16 h-16 text-purple-400/40" />
-                <p className="text-sm font-semibold">
-                  Select a lecture from the syllabus to start learning
-                </p>
+              )}
+            </div>
+          </div>
+
+          {/* ── Below-Video Interactive Tabs & Details ──────────────────────── */}
+          <div className="flex-1 max-w-5xl mx-auto w-full p-4 sm:p-6 space-y-5">
+            {/* Lecture Meta & Tabs Switcher */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-purple-950/80 text-purple-300 border border-purple-800/60">
+                    {currentIndex >= 0 ? `Lesson ${currentIndex + 1} of ${allLectures.length}` : 'Lesson'}
+                  </span>
+                  {activeLecture?.duration && (
+                    <span className="text-xs text-slate-400 flex items-center gap-1 font-medium">
+                      <Clock className="w-3.5 h-3.5 text-slate-500" /> {activeLecture.duration}
+                    </span>
+                  )}
+                </div>
+                <h1 className="text-lg sm:text-xl font-bold text-white">{activeLecture?.title || 'Lesson Overview'}</h1>
+              </div>
+
+              {/* Action Buttons on top right */}
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={handleMarkComplete}
+                  disabled={marking || isCompleted}
+                  className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer ${
+                    isCompleted
+                      ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800'
+                      : 'bg-purple-600 hover:bg-purple-700 text-white shadow-purple-600/30'
+                  }`}
+                >
+                  {isCompleted ? <CheckCheck className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                  <span>{isCompleted ? 'Completed' : marking ? 'Saving…' : 'Mark as Complete'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* In-Page Navigation Tabs */}
+            <div className="flex items-center gap-2 border-b border-slate-800/80 pb-2 overflow-x-auto scrollbar-none">
+              {[
+                { id: 'overview', label: 'Overview', icon: Info },
+                { id: 'syllabus', label: `Syllabus (${allLectures.length})`, icon: Layers },
+                { id: 'notes', label: `My Notes (${notes.length})`, icon: FileText },
+                { id: 'ai', label: 'AI Doubt Solver', icon: Sparkles },
+              ].map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => setMobileTab(id)}
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer ${
+                    mobileTab === id
+                      ? 'bg-purple-600 text-white shadow-sm'
+                      : 'bg-slate-800/70 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Content Panels */}
+            {mobileTab === 'overview' && (
+              <div className="space-y-4">
+                {activeLecture?.description ? (
+                  <div className="bg-slate-900/90 rounded-2xl p-5 border border-slate-800">
+                    <h3 className="text-sm font-bold text-white mb-2">Lesson Description</h3>
+                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">
+                      {activeLecture.description}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-slate-900/90 rounded-2xl p-5 border border-slate-800 text-slate-400 text-xs">
+                    No additional description provided for this lesson.
+                  </div>
+                )}
+
+                {/* Quick Resources & Downloads */}
+                {activeLecture?.documentUrl && (
+                  <div className="bg-slate-900/90 rounded-2xl p-5 border border-slate-800 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-purple-950/60 text-purple-400 flex items-center justify-center shrink-0">
+                        <FileText className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs sm:text-sm font-bold text-white">Lesson Resource File</h4>
+                        <p className="text-[11px] text-slate-400">PDF and supplemental study documents</p>
+                      </div>
+                    </div>
+                    <a
+                      href={activeLecture.documentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold inline-flex items-center gap-1.5"
+                    >
+                      <Download className="w-3.5 h-3.5" /> Download
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {mobileTab === 'syllabus' && (
+              <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800">
+                <CurriculumAccordion
+                  modules={modules}
+                  completedLectureIds={completedIds}
+                  activeLectureId={activeLecture?._id}
+                  onLectureSelect={setActiveLecture}
+                />
+              </div>
+            )}
+
+            {mobileTab === 'notes' && (
+              <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 space-y-4">
+                {/* Note creation form */}
+                <form onSubmit={handleCreateNote} className="space-y-2.5">
+                  <textarea
+                    value={newNoteContent}
+                    onChange={(e) => setNewNoteContent(e.target.value)}
+                    placeholder="Take notes with optional video timestamp..."
+                    rows={3}
+                    className="w-full text-xs bg-slate-800/80 border border-slate-700 rounded-xl p-3 text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 resize-none"
+                  />
+                  <div className="flex items-center justify-between gap-2">
+                    {activeLecture?.videoUrl ? (
+                      <button
+                        type="button"
+                        onClick={captureTimestamp}
+                        className={`text-xs font-bold px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition cursor-pointer ${
+                          noteTimestamp !== null
+                            ? 'bg-purple-950/60 border-purple-600 text-purple-300'
+                            : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                        }`}
+                      >
+                        <Clock className="w-3.5 h-3.5" />
+                        {noteTimestamp !== null ? `Tagged: ${formatTimestamp(noteTimestamp)}` : '📍 Tag Current Video Time'}
+                      </button>
+                    ) : <div />}
+
+                    <button
+                      type="submit"
+                      disabled={submittingNote || !newNoteContent.trim()}
+                      className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Save Note
+                    </button>
+                  </div>
+                </form>
+
+                {/* Notes List */}
+                <div className="space-y-2 pt-2 border-t border-slate-800">
+                  {notes.length === 0 ? (
+                    <div className="text-center py-6 text-slate-400 text-xs">
+                      No notes saved for this lesson yet.
+                    </div>
+                  ) : (
+                    notes.map((n) => (
+                      <div key={n._id} className="p-3 bg-slate-800/70 border border-slate-700/60 rounded-xl space-y-1">
+                        <div className="flex items-center justify-between">
+                          {n.timestampInSeconds !== null && n.timestampInSeconds !== undefined ? (
+                            <button
+                              type="button"
+                              onClick={() => handleSeekToTimestamp(n.timestampInSeconds)}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-950 text-purple-300 text-[10px] font-mono font-bold hover:bg-purple-900 cursor-pointer"
+                            >
+                              <Clock className="w-2.5 h-2.5" /> {formatTimestamp(n.timestampInSeconds)}
+                            </button>
+                          ) : (
+                            <span className="text-[10px] text-slate-500 font-medium">Note</span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteNote(n._id)}
+                            className="text-slate-400 hover:text-red-400 p-1 cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <p className="text-xs text-slate-200 whitespace-pre-wrap">{n.content}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {mobileTab === 'ai' && (
+              <div className="bg-slate-900/90 rounded-2xl p-5 border border-slate-800 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-950/80 border border-purple-800/60 flex items-center justify-center text-purple-400">
+                    <Bot className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">AI Doubt Solver</h3>
+                    <p className="text-xs text-slate-400">Ask questions about "{activeLecture?.title || 'this lesson'}"</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={aiQuestion}
+                    onChange={(e) => setAiQuestion(e.target.value)}
+                    placeholder="Ask AI anything about this lesson..."
+                    className="flex-1 text-xs bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white placeholder-slate-400 focus:outline-none focus:border-purple-500"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && aiQuestion.trim()) {
+                        navigate(`/ai-chat?q=${encodeURIComponent(aiQuestion.trim())}`);
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (aiQuestion.trim()) {
+                        navigate(`/ai-chat?q=${encodeURIComponent(aiQuestion.trim())}`);
+                      }
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-md"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" /> Ask AI
+                  </button>
+                </div>
               </div>
             )}
           </div>
 
-          {/* ── Bottom Control Bar ─────────────────────────────────────────── */}
-          <footer className="h-14 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 px-4 sm:px-6 flex items-center justify-between gap-4 shrink-0 shadow-sm z-20">
+          {/* ── Sticky Bottom Control Bar ──────────────────────────────────── */}
+          <footer className="sticky bottom-0 h-14 bg-[#111827] border-t border-slate-800 px-3 sm:px-6 flex items-center justify-between gap-3 shrink-0 shadow-lg z-20">
             {/* Prev Button */}
             <button
               onClick={goToPrevLecture}
               disabled={!hasPrev}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 disabled:opacity-40 disabled:pointer-events-none text-gray-700 dark:text-slate-200 text-xs font-semibold border border-gray-200 dark:border-slate-700 transition cursor-pointer"
+              className="inline-flex items-center gap-1 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:pointer-events-none text-slate-200 text-xs font-bold border border-slate-700 transition cursor-pointer shrink-0"
+              title="Previous Lesson"
             >
               <ChevronLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Previous</span>
             </button>
 
-            {/* Now Playing Title */}
-            <div className="text-center min-w-0 px-2">
-              <p className="text-[10px] font-mono uppercase tracking-wider text-purple-600 dark:text-purple-400 font-bold">
-                {currentIndex >= 0
-                  ? `Lesson ${currentIndex + 1} of ${allLectures.length}`
-                  : 'Now Playing'}
-              </p>
-              <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white truncate max-w-xs sm:max-w-md">
+            {/* Now Playing Title - Sized Responsively */}
+            <div className="text-center min-w-0 px-2 flex-1">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-purple-400 font-bold block sm:inline sm:mr-2">
+                {currentIndex >= 0 ? `Lesson ${currentIndex + 1} of ${allLectures.length}` : 'Now Playing'}
+              </span>
+              <span className="text-xs sm:text-sm font-bold text-white truncate inline-block max-w-[130px] xs:max-w-[200px] sm:max-w-md align-bottom">
                 {activeLecture?.title || 'Select Lesson'}
-              </p>
+              </span>
             </div>
 
             {/* Right Actions: Complete & Next */}
-            <div className="flex items-center gap-2 shrink-0">
-              {!isCompleted ? (
-                <button
-                  onClick={handleMarkComplete}
-                  disabled={marking}
-                  className="inline-flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-bold px-3.5 sm:px-4 py-2 rounded-xl transition shadow-sm cursor-pointer"
-                  id="mark-complete-btn"
-                >
-                  {marking ? (
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <CheckCircle className="w-3.5 h-3.5" />
-                  )}
-                  <span>{marking ? 'Saving…' : 'Complete'}</span>
-                </button>
-              ) : (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
-                  <CheckCheck className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Completed</span>
-                </div>
-              )}
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <button
+                onClick={handleMarkComplete}
+                disabled={marking || isCompleted}
+                className={`inline-flex items-center gap-1 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer ${
+                  isCompleted
+                    ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/80'
+                    : 'bg-purple-600 hover:bg-purple-700 text-white'
+                }`}
+                id="mark-complete-btn"
+              >
+                {isCompleted ? <CheckCheck className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                <span className="hidden xs:inline">{isCompleted ? 'Done' : marking ? 'Saving…' : 'Complete'}</span>
+              </button>
 
               <button
                 onClick={goToNextLecture}
                 disabled={!hasNext}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 disabled:opacity-40 disabled:pointer-events-none text-gray-800 dark:text-white text-xs font-bold border border-gray-200 dark:border-slate-700 transition cursor-pointer"
+                className="inline-flex items-center gap-1 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:pointer-events-none text-slate-200 text-xs font-bold border border-slate-700 transition cursor-pointer shrink-0"
                 id="next-lecture-btn"
+                title="Next Lesson"
               >
                 <span className="hidden sm:inline">Next</span>
                 <ChevronRight className="w-4 h-4" />
@@ -595,21 +758,21 @@ export default function CoursePlayer() {
           </footer>
         </main>
 
-        {/* ── Right Sidebar: Course Syllabus & Notes ──────────────────────────────── */}
+        {/* ── Right Sidebar: Desktop Syllabus & Notes ─────────────────────── */}
         <aside
           className={`${
             sidebarOpen ? 'w-80 sm:w-96' : 'w-0 -translate-x-full'
-          } transition-all duration-300 ease-in-out shrink-0 bg-white dark:bg-slate-900 border-l border-gray-200 dark:border-slate-800 flex flex-col h-full overflow-hidden shadow-lg z-20`}
+          } transition-all duration-300 ease-in-out shrink-0 bg-[#111827] border-l border-slate-800 flex flex-col h-full overflow-hidden shadow-xl z-20`}
         >
           {/* Tab Header: Syllabus vs Notes */}
-          <div className="p-3 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between shrink-0 bg-gray-50/80 dark:bg-slate-900/80 gap-2">
-            <div className="flex items-center gap-1 bg-gray-200/70 dark:bg-slate-800 p-1 rounded-xl">
+          <div className="p-3 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-900/90 gap-2">
+            <div className="flex items-center gap-1 bg-slate-800 p-1 rounded-xl">
               <button
                 onClick={() => setSidebarTab('syllabus')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                   sidebarTab === 'syllabus'
-                    ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-2xs'
-                    : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
+                    ? 'bg-purple-600 text-white shadow-xs'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" /> Syllabus
@@ -618,8 +781,8 @@ export default function CoursePlayer() {
                 onClick={() => setSidebarTab('notes')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                   sidebarTab === 'notes'
-                    ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-2xs'
-                    : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
+                    ? 'bg-purple-600 text-white shadow-xs'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
                 <FileText className="w-3.5 h-3.5" /> Notes ({notes.length})
@@ -627,7 +790,7 @@ export default function CoursePlayer() {
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="p-1.5 text-gray-400 hover:text-gray-700 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer"
               title="Close sidebar"
             >
               <X className="w-4 h-4" />
@@ -635,7 +798,7 @@ export default function CoursePlayer() {
           </div>
 
           {sidebarTab === 'syllabus' ? (
-            <div className="flex-1 overflow-y-auto p-4 scrollbar-thin bg-white dark:bg-slate-900">
+            <div className="flex-1 overflow-y-auto p-4 scrollbar-thin bg-[#111827]">
               <CurriculumAccordion
                 modules={modules}
                 completedLectureIds={completedIds}
@@ -644,16 +807,16 @@ export default function CoursePlayer() {
               />
             </div>
           ) : (
-            /* Notes Tab with Timestamp Tagging */
-            <div className="flex-1 flex flex-col h-full overflow-hidden bg-white dark:bg-slate-900">
+            /* Notes Tab */
+            <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#111827]">
               {/* Create Note Form */}
-              <form onSubmit={handleCreateNote} className="p-3 border-b border-gray-200 dark:border-slate-800 space-y-2">
+              <form onSubmit={handleCreateNote} className="p-3 border-b border-slate-800 space-y-2">
                 <textarea
                   value={newNoteContent}
                   onChange={(e) => setNewNoteContent(e.target.value)}
                   placeholder="Take a note for this lesson..."
                   rows={3}
-                  className="w-full text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-2.5 text-gray-800 dark:text-slate-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                  className="w-full text-xs bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white placeholder:text-slate-400 focus:outline-none focus:border-purple-500 resize-none"
                 />
                 <div className="flex items-center justify-between gap-2">
                   {activeLecture?.videoUrl ? (
@@ -662,10 +825,9 @@ export default function CoursePlayer() {
                       onClick={captureTimestamp}
                       className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1 transition cursor-pointer ${
                         noteTimestamp !== null
-                          ? 'bg-purple-50 dark:bg-purple-950/50 border-purple-300 text-purple-600'
-                          : 'bg-gray-100 dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200'
+                          ? 'bg-purple-950 border-purple-600 text-purple-300'
+                          : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
                       }`}
-                      title="Attach current video timestamp"
                     >
                       <Clock className="w-3 h-3" />
                       {noteTimestamp !== null ? `Tagged: ${formatTimestamp(noteTimestamp)}` : '📍 Tag Current Time'}
@@ -677,7 +839,7 @@ export default function CoursePlayer() {
                     disabled={submittingNote || !newNoteContent.trim()}
                     className="px-3 py-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg shadow-xs transition flex items-center gap-1 cursor-pointer"
                   >
-                    <Plus className="w-3.5 h-3.5" /> Save Note
+                    <Plus className="w-3.5 h-3.5" /> Save
                   </button>
                 </div>
               </form>
@@ -685,40 +847,40 @@ export default function CoursePlayer() {
               {/* Notes List */}
               <div className="flex-1 overflow-y-auto p-3 space-y-2.5 scrollbar-thin">
                 {notes.length === 0 ? (
-                  <div className="text-center py-8 text-gray-400">
-                    <FileText className="w-8 h-8 mx-auto mb-1 opacity-50" />
-                    <p className="text-xs font-semibold">No notes for this lesson yet</p>
+                  <div className="text-center py-8 text-slate-500">
+                    <FileText className="w-8 h-8 mx-auto mb-1 opacity-40" />
+                    <p className="text-xs font-semibold">No notes for this lesson</p>
                     <p className="text-[11px]">Type above to save your first note.</p>
                   </div>
                 ) : (
                   notes.map((note) => (
                     <div
                       key={note._id}
-                      className="p-3 bg-gray-50 dark:bg-slate-800/70 border border-gray-100 dark:border-slate-800 rounded-xl space-y-1.5"
+                      className="p-3 bg-slate-800/70 border border-slate-700/60 rounded-xl space-y-1.5"
                     >
                       <div className="flex items-center justify-between gap-2">
                         {note.timestampInSeconds !== null && note.timestampInSeconds !== undefined ? (
                           <button
                             type="button"
                             onClick={() => handleSeekToTimestamp(note.timestampInSeconds)}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-[10px] font-extrabold hover:bg-purple-200 transition cursor-pointer font-mono"
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-950 text-purple-300 text-[10px] font-mono font-bold hover:bg-purple-900 transition cursor-pointer"
                             title="Click to jump to this video time"
                           >
                             <Clock className="w-2.5 h-2.5" /> {formatTimestamp(note.timestampInSeconds)}
                           </button>
                         ) : (
-                          <span className="text-[10px] text-gray-400 font-medium">Note</span>
+                          <span className="text-[10px] text-slate-400 font-medium">Note</span>
                         )}
                         <button
                           type="button"
                           onClick={() => handleDeleteNote(note._id)}
-                          className="text-gray-400 hover:text-red-500 p-1 transition cursor-pointer"
+                          className="text-slate-400 hover:text-red-400 p-1 transition cursor-pointer"
                           title="Delete note"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                      <p className="text-xs text-gray-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
+                      <p className="text-xs text-slate-200 whitespace-pre-wrap leading-relaxed">
                         {note.content}
                       </p>
                     </div>
