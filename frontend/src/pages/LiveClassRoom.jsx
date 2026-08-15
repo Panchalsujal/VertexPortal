@@ -185,11 +185,6 @@ function StreamConnectedStage({
   // Audio autoplay unblocker — runs on mount and whenever a new participant joins
   const doUnblockAudio = async (callRef) => {
     try {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (AudioCtx) {
-        const ctx = new AudioCtx();
-        if (ctx.state === 'suspended') await ctx.resume();
-      }
       if (callRef?.resumeAudio) await callRef.resumeAudio();
       document.querySelectorAll('audio, video').forEach((el) => {
         if (el.paused) el.play().catch(() => {});
@@ -197,7 +192,7 @@ function StreamConnectedStage({
       });
       setAudioBlocked(false);
     } catch (e) {
-      console.warn('Audio unblock attempt:', e?.message);
+      console.warn('Audio resume attempt:', e?.message);
     }
   };
 
@@ -290,19 +285,18 @@ function StreamConnectedStage({
   const toggleCamera = async () => {
     try {
       if (!call) return;
-      const isCurrentlyEnabled = call.camera?.state?.status === 'enabled';
-      if (isCurrentlyEnabled) {
-        await call.camera.disable();
-        toast('Camera turned off');
-      } else {
-        await call.camera.enable();
+      await call.camera.toggle();
+      const isEnabled = call.camera?.state?.status === 'enabled';
+      if (isEnabled) {
         toast.success('Camera turned on 📹');
+      } else {
+        toast('Camera turned off');
       }
     } catch (e) {
       console.warn('Failed to toggle camera:', e);
       const msg = e?.message || '';
       if (msg.includes('Permission') || msg.includes('NotAllowedError')) {
-        toast.error('Camera blocked! Click the lock/settings icon in your browser URL bar and allow Camera.', { duration: 6000 });
+        toast.error('Camera blocked by browser! Please allow camera access in site settings.', { duration: 6000 });
       } else if (msg.includes('NotFound') || msg.includes('DevicesNotFoundError')) {
         toast.error('No camera found on this device.', { duration: 5000 });
       } else {
@@ -314,35 +308,25 @@ function StreamConnectedStage({
   const toggleMic = async () => {
     try {
       if (!call) return;
-      // Resume browser audio context on user interaction
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (AudioCtx) {
-        try {
-          const ctx = new AudioCtx();
-          if (ctx.state === 'suspended') await ctx.resume();
-        } catch (_ctxErr) {}
-      }
-
-      const isCurrentlyEnabled = call.microphone?.state?.status === 'enabled';
-      if (isCurrentlyEnabled) {
-        await call.microphone.disable();
-        toast('Microphone muted');
+      await call.microphone.toggle();
+      const isEnabled = call.microphone?.state?.status === 'enabled';
+      if (isEnabled) {
+        toast.success('Microphone unmuted 🎙️');
       } else {
-        await call.microphone.enable();
-        toast.success('Microphone connected! Speak to test audio 🎙️');
+        toast('Microphone muted');
       }
     } catch (e) {
       console.warn('Failed to toggle mic:', e);
       const msg = e?.message || '';
       if (msg.includes('Permission') || msg.includes('NotAllowedError')) {
         toast.error(
-          'Microphone blocked! Click the lock/tune icon in your browser URL bar -> set Microphone to Allow, then refresh.',
+          'Microphone blocked by browser! Click the lock/settings icon in URL bar and allow Microphone.',
           { duration: 7000 }
         );
       } else if (msg.includes('NotFound') || msg.includes('DevicesNotFoundError')) {
-        toast.error('No microphone found. Please connect a microphone or headset to your PC.', { duration: 5000 });
+        toast.error('No microphone found. Please check your PC audio device.', { duration: 5000 });
       } else if (msg.includes('NotReadableError') || msg.includes('TrackStartError')) {
-        toast.error('Microphone is in use by another app (Zoom, Teams, Discord). Please close it.', { duration: 5000 });
+        toast.error('Microphone is in use by another app. Please close other meeting apps.', { duration: 5000 });
       } else {
         toast.error(msg || 'Could not access microphone');
       }
