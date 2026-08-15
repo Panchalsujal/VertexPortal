@@ -71,44 +71,45 @@ function CodeBlock({ children, className }) {
 }
 
 // Render markdown stream content with smooth visible Typewriter animation
-function FormattedMarkdown({ content = '', isLatest = false }) {
-  const [displayedText, setDisplayedText] = useState(() => (isLatest ? '' : content));
-  const [isTyping, setIsTyping] = useState(() => isLatest && Boolean(content));
+function FormattedMarkdown({ content = '', animate = false, onComplete }) {
+  const [displayedText, setDisplayedText] = useState(() => (animate ? '' : content));
+  const [isTyping, setIsTyping] = useState(() => animate && Boolean(content));
 
   useEffect(() => {
-    if (!isLatest || !content) {
+    if (!animate || !content) {
       setDisplayedText(content);
       setIsTyping(false);
       return;
     }
 
-    // Reset displayed text on new content
     setDisplayedText('');
     setIsTyping(true);
 
     let currentIndex = 0;
     const totalLength = content.length;
+    // Smooth typing cadence: 3 characters every 18ms
+    const step = 3;
 
-    // Smooth, realistic typing cadence (2-3 chars every 20ms)
-    const chunkSize = Math.max(2, Math.min(6, Math.ceil(totalLength / 220)));
     const interval = setInterval(() => {
-      currentIndex += chunkSize;
+      currentIndex += step;
       if (currentIndex >= totalLength) {
         setDisplayedText(content);
         setIsTyping(false);
+        onComplete?.();
         clearInterval(interval);
       } else {
         setDisplayedText(content.slice(0, currentIndex));
       }
-    }, 20);
+    }, 18);
 
     return () => clearInterval(interval);
-  }, [content, isLatest]);
+  }, [content, animate, onComplete]);
 
   const handleSkipTypewriter = () => {
     if (isTyping) {
       setDisplayedText(content);
       setIsTyping(false);
+      onComplete?.();
     }
   };
 
@@ -180,6 +181,7 @@ export default function AiChat() {
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const [copiedMsgId, setCopiedMsgId] = useState(null);
+  const [animatingMsgId, setAnimatingMsgId] = useState(null);
 
   // Responsive sidebar: closed by default on mobile screens
   const [sidebarOpen, setSidebarOpen] = useState(() => {
@@ -221,6 +223,7 @@ export default function AiChat() {
   };
 
   const handleSelectConversation = (id) => {
+    setAnimatingMsgId(null);
     dispatch(fetchConversation({ id }));
     if (window.innerWidth < 1024) setSidebarOpen(false);
   };
@@ -249,7 +252,7 @@ export default function AiChat() {
     }
 
     try {
-      await dispatch(
+      const res = await dispatch(
         sendMessage({
           conversationId: targetConv._id,
           data: {
@@ -259,6 +262,9 @@ export default function AiChat() {
           },
         })
       ).unwrap();
+
+      const newBotId = res?.assistantMessage?._id || res?.aiMessage?._id || 'latest-response';
+      setAnimatingMsgId(newBotId);
     } catch (err) {
       toast.error(err || 'Failed to generate AI response');
     }
@@ -589,7 +595,16 @@ export default function AiChat() {
                       {m.role === 'user' ? (
                         <p className="whitespace-pre-wrap leading-relaxed">{m.content}</p>
                       ) : (
-                        <FormattedMarkdown content={m.content} isLatest={isLatest} />
+                        <FormattedMarkdown
+                          content={m.content}
+                          animate={Boolean(
+                            animatingMsgId &&
+                              (animatingMsgId === m._id ||
+                                animatingMsgId === m.id ||
+                                (animatingMsgId === 'latest-response' && isLatest))
+                          )}
+                          onComplete={() => setAnimatingMsgId(null)}
+                        />
                       )}
                     </div>
 
