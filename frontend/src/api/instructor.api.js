@@ -76,6 +76,8 @@ export const updateAnnouncement = (announcementId, data) =>
   api.patch(`/instructor/announcements/${announcementId}`, data);
 export const updateAnnouncementStatus = (announcementId, data) =>
   api.patch(`/instructor/announcements/${announcementId}/status`, data);
+export const deleteAnnouncement = (announcementId) =>
+  api.delete(`/instructor/announcements/${announcementId}`);
 
 // ─── Instructor Live Class APIs ────────────────────────────────────────────
 export const createLiveClass = (data) => api.post('/instructor/live-classes', data);

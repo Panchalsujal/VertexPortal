@@ -408,7 +408,8 @@ export async function getMyNotifications({ userId, query = {} }) {
   const {
     type,
     isRead,
-    isArchived = false,
+    isArchived,
+    status,
 
     sortBy = "createdAt",
 
@@ -435,6 +436,20 @@ export async function getMyNotifications({ userId, query = {} }) {
     ],
   };
 
+  if (status === "unread") {
+    filter.isRead = false;
+    filter.isArchived = false;
+  } else if (status === "archived") {
+    filter.isArchived = true;
+  } else if (status === "read") {
+    filter.isRead = true;
+    filter.isArchived = false;
+  } else if (status === "all") {
+    filter.isArchived = false;
+  } else {
+    filter.isArchived = isArchived !== undefined ? parseBooleanQuery(isArchived, "isArchived") : false;
+  }
+
   const parsedType = parseEnumQuery(
     type,
     NOTIFICATION_TYPES,
@@ -453,7 +468,7 @@ export async function getMyNotifications({ userId, query = {} }) {
 
   const parsedIsArchived = parseBooleanQuery(isArchived, "isArchived");
 
-  if (parsedIsArchived !== undefined) {
+  if (parsedIsArchived !== undefined && status === undefined) {
     filter.isArchived = parsedIsArchived;
   }
 

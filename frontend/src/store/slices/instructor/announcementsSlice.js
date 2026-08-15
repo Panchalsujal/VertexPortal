@@ -4,6 +4,7 @@ import {
   createAnnouncement as createAnnouncementApi,
   updateAnnouncement as updateAnnouncementApi,
   updateAnnouncementStatus as updateAnnouncementStatusApi,
+  deleteAnnouncement as deleteAnnouncementApi,
 } from '../../../api/instructor.api';
 
 const norm = (res) => {
@@ -14,8 +15,11 @@ const norm = (res) => {
 export const fetchInstructorAnnouncements = createAsyncThunk(
   'instructorAnnouncements/fetch',
   async (_, { rejectWithValue }) => {
-    try { return norm(await getInstructorAnnouncements()); }
-    catch (err) { return rejectWithValue(err.message); }
+    try {
+      return norm(await getInstructorAnnouncements());
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message || 'Failed to fetch announcements');
+    }
   }
 );
 
@@ -25,7 +29,9 @@ export const createAnnouncement = createAsyncThunk(
     try {
       const res = await createAnnouncementApi(payload);
       return res.data.announcement || res.data.data?.announcement || res.data.data;
-    } catch (err) { return rejectWithValue(err.message); }
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message || 'Failed to create announcement');
+    }
   }
 );
 
@@ -35,7 +41,9 @@ export const updateAnnouncement = createAsyncThunk(
     try {
       const res = await updateAnnouncementApi(id, payload);
       return res.data.announcement || res.data.data?.announcement || res.data.data;
-    } catch (err) { return rejectWithValue(err.message); }
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message || 'Failed to update announcement');
+    }
   }
 );
 
@@ -45,7 +53,21 @@ export const updateAnnouncementStatus = createAsyncThunk(
     try {
       const res = await updateAnnouncementStatusApi(id, { status });
       return res.data.announcement || res.data.data?.announcement || res.data.data;
-    } catch (err) { return rejectWithValue(err.message); }
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message || 'Failed to update announcement status');
+    }
+  }
+);
+
+export const deleteAnnouncement = createAsyncThunk(
+  'instructorAnnouncements/delete',
+  async (id, { rejectWithValue }) => {
+    try {
+      await deleteAnnouncementApi(id);
+      return id;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message || 'Failed to delete announcement');
+    }
   }
 );
 
@@ -71,6 +93,9 @@ const instructorAnnouncementsSlice = createSlice({
         if (!a.payload) return;
         const idx = s.items.findIndex(x => x._id === a.payload._id);
         if (idx !== -1) s.items[idx] = { ...s.items[idx], ...a.payload };
+      })
+      .addCase(deleteAnnouncement.fulfilled, (s, a) => {
+        s.items = s.items.filter(x => x._id !== a.payload);
       });
   },
 });
@@ -78,3 +103,4 @@ const instructorAnnouncementsSlice = createSlice({
 export default instructorAnnouncementsSlice.reducer;
 export const selectInstructorAnnouncements        = (s) => s.instructorAnnouncements.items;
 export const selectInstructorAnnouncementsLoading = (s) => s.instructorAnnouncements.loading;
+

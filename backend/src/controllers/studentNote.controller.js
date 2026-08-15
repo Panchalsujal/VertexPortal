@@ -9,6 +9,9 @@ import {
   getStudentNoteById,
   updateStudentNote,
   deleteStudentNote,
+  getAdminNotes,
+  getAdminNoteById,
+  deleteAdminNote,
 } from "../service/studentNote.service.js";
 
 /*
@@ -234,3 +237,64 @@ export const deleteStudentNoteController =
           result.noteId,
       });
   });
+
+/*
+ * ============================================
+ * ADMIN: GET ALL NOTES
+ * ============================================
+ *
+ * GET /api/admin/notes
+ */
+export const getAdminNotesController = asyncHandler(async (req, res) => {
+  const result = await getAdminNotes({
+    query: req.query,
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "Admin notes fetched successfully",
+    ...result,
+  });
+});
+
+/*
+ * ============================================
+ * ADMIN: GET SINGLE NOTE
+ * ============================================
+ *
+ * GET /api/admin/notes/:noteId
+ */
+export const getAdminNoteByIdController = asyncHandler(async (req, res) => {
+  const { noteId } = req.params;
+
+  const note = await getAdminNoteById({
+    noteId,
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "Note fetched successfully",
+    note,
+  });
+});
+
+/*
+ * ============================================
+ * ADMIN: DELETE NOTE
+ * ============================================
+ *
+ * DELETE /api/admin/notes/:noteId
+ */
+export const deleteAdminNoteController = asyncHandler(async (req, res) => {
+  const { noteId } = req.params;
+
+  const result = await deleteAdminNote({
+    noteId,
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: result.message,
+    noteId: result.noteId,
+  });
+});

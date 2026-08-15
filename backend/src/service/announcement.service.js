@@ -49,7 +49,11 @@ function parseAnnouncementDate(value, fieldName, { required = false } = {}) {
   return date;
 }
 
-export async function createAnnouncement({ instructorId, payload }) {
+export async function createAnnouncement({
+  instructorId,
+  userRole = "instructor",
+  payload,
+}) {
   validateObjectId(instructorId, "instructor ID");
 
   const {
@@ -57,6 +61,7 @@ export async function createAnnouncement({ instructorId, payload }) {
     title,
     content,
     type = "general",
+    status = "published",
 
     relatedResourceType = null,
     relatedResourceId = null,
@@ -73,18 +78,22 @@ export async function createAnnouncement({ instructorId, payload }) {
 
   validateObjectId(courseId, "course ID");
 
-  const course = await Course.findOne({
+  const courseQuery = {
     _id: courseId,
-    instructor: instructorId,
     isActive: true,
-  })
+  };
+  if (userRole !== "admin") {
+    courseQuery.instructor = instructorId;
+  }
+
+  const course = await Course.findOne(courseQuery)
     .select("title instructor status isPublished isActive")
     .lean();
 
   if (!course) {
     throw new ApiError(
       404,
-      "Course not found or you are not the course instructor",
+      "Course not found or you do not have permission for this course",
     );
   }
 
@@ -155,6 +164,9 @@ export async function createAnnouncement({ instructorId, payload }) {
       ? isPinned
       : parseBooleanQuery(isPinned, "isPinned");
 
+  const effectiveStatus = (status === "draft" || status === "archived") ? status : "published";
+  const isNowPublished = effectiveStatus === "published";
+
   const announcement = await Announcement.create({
     course: course._id,
     instructor: instructorId,
@@ -174,16 +186,66 @@ export async function createAnnouncement({ instructorId, payload }) {
 
     isPinned: parsedIsPinned ?? false,
 
-    status: "draft",
-    isPublished: false,
-    publishedAt: null,
+    status: effectiveStatus,
+    isPublished: isNowPublished,
+    publishedAt: isNowPublished ? new Date() : null,
     isActive: true,
   });
+
+  if (isNowPublished) {
+    try {
+      const enrollments = await Enrollment.find({
+        course: course._id,
+        status: {
+          $in: ["active", "completed"],
+        },
+      })
+        .select("student expiresAt")
+        .lean();
+
+      const now = new Date();
+
+      const studentIds = enrollments
+        .filter(
+          (enrollment) =>
+            !enrollment.expiresAt ||
+            new Date(enrollment.expiresAt).getTime() > now.getTime(),
+        )
+        .map((enrollment) => enrollment.student.toString());
+
+      if (studentIds.length > 0) {
+        await createBulkNotifications({
+          userIds: studentIds,
+          title: announcement.title,
+          message:
+            announcement.content.length > 250
+              ? `${announcement.content.slice(0, 247)}...`
+              : announcement.content,
+          type: "announcement",
+          resourceType: "announcement",
+          resourceId: announcement._id,
+          courseId: announcement.course,
+          actionUrl: `/student/announcements/${announcement._id}`,
+          metadata: {
+            announcementType: announcement.type,
+            isPinned: announcement.isPinned,
+          },
+          expiresAt: announcement.expiresAt,
+        });
+      }
+    } catch (error) {
+      console.error("Announcement notifications failed:", error);
+    }
+  }
 
   return announcement;
 }
 
-export async function getInstructorAnnouncements({ instructorId, query = {} }) {
+export async function getInstructorAnnouncements({
+  instructorId,
+  userRole = "instructor",
+  query = {},
+}) {
   validateObjectId(instructorId, "instructor ID");
 
   const {
@@ -200,8 +262,11 @@ export async function getInstructorAnnouncements({ instructorId, query = {} }) {
   const { page, limit, skip } = getPagination(query);
 
   const filter = {
-    instructor: instructorId,
+    isActive: true,
   };
+  if (userRole !== "admin") {
+    filter.instructor = instructorId;
+  }
 
   const searchFilter = buildSearchFilter(search, ["title", "content"]);
 
@@ -308,15 +373,21 @@ export async function getInstructorAnnouncements({ instructorId, query = {} }) {
 
 export async function getInstructorAnnouncementById({
   instructorId,
+  userRole = "instructor",
   announcementId,
 }) {
   validateObjectId(instructorId, "instructor ID");
   validateObjectId(announcementId, "announcement ID");
 
-  const announcement = await Announcement.findOne({
+  const filter = {
     _id: announcementId,
-    instructor: instructorId,
-  })
+    isActive: true,
+  };
+  if (userRole !== "admin") {
+    filter.instructor = instructorId;
+  }
+
+  const announcement = await Announcement.findOne(filter)
     .populate({
       path: "course",
       select: "title slug thumbnailUrl status isPublished isActive",
@@ -332,6 +403,7 @@ export async function getInstructorAnnouncementById({
 
 export async function updateAnnouncementStatus({
   instructorId,
+  userRole = "instructor",
   announcementId,
   status,
 }) {
@@ -344,10 +416,15 @@ export async function updateAnnouncementStatus({
     "Announcement status",
   );
 
-  const announcement = await Announcement.findOne({
+  const filter = {
     _id: announcementId,
-    instructor: instructorId,
-  });
+    isActive: true,
+  };
+  if (userRole !== "admin") {
+    filter.instructor = instructorId;
+  }
+
+  const announcement = await Announcement.findOne(filter);
 
   if (!announcement) {
     throw new ApiError(404, "Announcement not found");
@@ -361,18 +438,20 @@ export async function updateAnnouncementStatus({
   }
 
   if (parsedStatus === "published") {
-    const course = await Course.findOne({
+    const courseQuery = {
       _id: announcement.course,
-      instructor: instructorId,
-      status: "published",
-      isPublished: true,
       isActive: true,
-    });
+    };
+    if (userRole !== "admin") {
+      courseQuery.instructor = instructorId;
+    }
+
+    const course = await Course.findOne(courseQuery);
 
     if (!course) {
       throw new ApiError(
         400,
-        "Course must be published and active before publishing announcement",
+        "Course must be active before publishing announcement",
       );
     }
 
@@ -401,7 +480,6 @@ export async function updateAnnouncementStatus({
     try {
       const enrollments = await Enrollment.find({
         course: announcement.course,
-
         status: {
           $in: ["active", "completed"],
         },
@@ -422,34 +500,22 @@ export async function updateAnnouncementStatus({
       if (studentIds.length > 0) {
         await createBulkNotifications({
           userIds: studentIds,
-
           title: announcement.title,
-
           message:
             announcement.content.length > 250
               ? `${announcement.content.slice(0, 247)}...`
               : announcement.content,
-
           type: "announcement",
-
           resourceType: "announcement",
-
           resourceId: announcement._id,
-
           courseId: announcement.course,
-
           actionUrl: `/student/announcements/${announcement._id}`,
-
           metadata: {
             announcementType: announcement.type,
-
             isPinned: announcement.isPinned,
-
             relatedResourceType: announcement.relatedResourceType,
-
             relatedResourceId: announcement.relatedResourceId,
           },
-
           expiresAt: announcement.expiresAt,
         });
       }
@@ -466,6 +532,7 @@ export async function updateAnnouncementStatus({
 
 export async function updateAnnouncement({
   instructorId,
+  userRole = "instructor",
   announcementId,
   payload,
 }) {
@@ -476,10 +543,15 @@ export async function updateAnnouncement({
     throw new ApiError(400, "At least one field is required for update");
   }
 
-  const announcement = await Announcement.findOne({
+  const filter = {
     _id: announcementId,
-    instructor: instructorId,
-  });
+    isActive: true,
+  };
+  if (userRole !== "admin") {
+    filter.instructor = instructorId;
+  }
+
+  const announcement = await Announcement.findOne(filter);
 
   if (!announcement) {
     throw new ApiError(404, "Announcement not found");
@@ -489,7 +561,7 @@ export async function updateAnnouncement({
     throw new ApiError(400, "Archived announcement cannot be updated");
   }
 
-  if (payload.courseId !== undefined) {
+  if (payload.courseId !== undefined && payload.courseId !== announcement.course?.toString()) {
     throw new ApiError(400, "Announcement course cannot be changed");
   }
 
@@ -611,6 +683,37 @@ export async function updateAnnouncement({
   return {
     announcement,
     message: "Announcement updated successfully",
+  };
+}
+
+export async function deleteAnnouncement({
+  instructorId,
+  userRole = "instructor",
+  announcementId,
+}) {
+  validateObjectId(instructorId, "instructor ID");
+  validateObjectId(announcementId, "announcement ID");
+
+  const filter = {
+    _id: announcementId,
+    isActive: true,
+  };
+  if (userRole !== "admin") {
+    filter.instructor = instructorId;
+  }
+
+  const announcement = await Announcement.findOne(filter);
+
+  if (!announcement) {
+    throw new ApiError(404, "Announcement not found");
+  }
+
+  announcement.isActive = false;
+  await announcement.save();
+
+  return {
+    announcementId: announcement._id,
+    message: "Announcement deleted successfully",
   };
 }
 

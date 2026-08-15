@@ -1,6 +1,8 @@
 import StudentNote from "../models/studentNote.model.js";
 import Lecture from "../models/lecture.model.js";
 import Enrollment from "../models/enrollment.model.js";
+import User from "../models/user.model.js";
+import Course from "../models/course.model.js";
 
 import {
   validateObjectId,
@@ -833,5 +835,182 @@ export async function deleteStudentNote({
 
     message:
       "Note deleted successfully",
+  };
+}
+
+/*
+ * ============================================
+ * ADMIN: GET ALL NOTES
+ * ============================================
+ */
+export async function getAdminNotes({ query = {} }) {
+  const { page, limit, skip } = getPagination(query);
+  const { search = "", courseId, studentId, pinned } = query;
+
+  const filter = { isActive: true };
+
+  if (courseId) {
+    validateObjectId(courseId, "course ID");
+    filter.course = courseId;
+  }
+
+  if (studentId) {
+    validateObjectId(studentId, "student ID");
+    filter.student = studentId;
+  }
+
+  if (pinned !== null && pinned !== undefined && pinned !== "") {
+    filter.isPinned = pinned === "true" || pinned === true;
+  }
+
+  const normalizedSearch = String(search || "").trim();
+  if (normalizedSearch) {
+    const searchRegex = new RegExp(
+      normalizedSearch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+      "i"
+    );
+
+    const matchingUsers = await User.find({
+      $or: [{ fullName: searchRegex }, { email: searchRegex }],
+    })
+      .select("_id")
+      .lean();
+    const userIds = matchingUsers.map((u) => u._id);
+
+    const matchingCourses = await Course.find({
+      title: searchRegex,
+    })
+      .select("_id")
+      .lean();
+    const courseIds = matchingCourses.map((c) => c._id);
+
+    const searchConditions = [
+      { title: searchRegex },
+      { content: searchRegex },
+    ];
+
+    if (userIds.length > 0) {
+      searchConditions.push({ student: { $in: userIds } });
+    }
+    if (courseIds.length > 0) {
+      searchConditions.push({ course: { $in: courseIds } });
+    }
+
+    filter.$or = searchConditions;
+  }
+
+  const [
+    notes,
+    totalRecords,
+    totalAllNotes,
+    pinnedAllNotes,
+    distinctCourses,
+    distinctStudents,
+  ] = await Promise.all([
+    StudentNote.find(filter)
+      .populate({
+        path: "student",
+        select: "fullName email avatarUrl role status",
+      })
+      .populate({
+        path: "course",
+        select: "title slug thumbnailUrl",
+      })
+      .populate({
+        path: "lecture",
+        select: "title type order",
+      })
+      .populate({
+        path: "module",
+        select: "title order",
+      })
+      .sort({
+        isPinned: -1,
+        updatedAt: -1,
+        createdAt: -1,
+      })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+
+    StudentNote.countDocuments(filter),
+    StudentNote.countDocuments({ isActive: true }),
+    StudentNote.countDocuments({ isActive: true, isPinned: true }),
+    StudentNote.distinct("course", { isActive: true }),
+    StudentNote.distinct("student", { isActive: true }),
+  ]);
+
+  return {
+    notes,
+    total: totalRecords,
+    stats: {
+      total: totalAllNotes,
+      pinned: pinnedAllNotes,
+      courses: distinctCourses.length,
+      students: distinctStudents.length,
+    },
+    pagination: buildPaginationMeta({
+      page,
+      limit,
+      totalRecords,
+    }),
+  };
+}
+
+/*
+ * ============================================
+ * ADMIN: GET SINGLE NOTE
+ * ============================================
+ */
+export async function getAdminNoteById({ noteId }) {
+  const validNoteId = validateObjectId(noteId, "note ID");
+  const note = await StudentNote.findOne({
+    _id: validNoteId,
+    isActive: true,
+  })
+    .populate({
+      path: "student",
+      select: "fullName email avatarUrl role status",
+    })
+    .populate({
+      path: "course",
+      select: "title slug thumbnailUrl",
+    })
+    .populate({
+      path: "lecture",
+      select: "title type order",
+    })
+    .populate({
+      path: "module",
+      select: "title order",
+    })
+    .lean();
+
+  if (!note) {
+    throw new ApiError(404, "Note not found");
+  }
+
+  return note;
+}
+
+/*
+ * ============================================
+ * ADMIN: DELETE NOTE
+ * ============================================
+ */
+export async function deleteAdminNote({ noteId }) {
+  const validNoteId = validateObjectId(noteId, "note ID");
+  const note = await StudentNote.findById(validNoteId);
+
+  if (!note) {
+    throw new ApiError(404, "Note not found");
+  }
+
+  note.isActive = false;
+  await note.save();
+
+  return {
+    noteId: note._id,
+    message: "Note deleted successfully",
   };
 }

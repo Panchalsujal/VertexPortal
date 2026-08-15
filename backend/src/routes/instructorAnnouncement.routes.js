@@ -6,6 +6,7 @@ import {
   getInstructorAnnouncementByIdController,
   updateAnnouncementController,
   updateAnnouncementStatusController,
+  deleteAnnouncementController,
 } from "../controllers/announcement.controller.js";
 
 import { authMiddleware } from "../middlewares/auth.middleware.js";
@@ -24,5 +25,7 @@ router.patch("/:announcementId/status", updateAnnouncementStatusController);
 router.get("/:announcementId", getInstructorAnnouncementByIdController);
 
 router.patch("/:announcementId", updateAnnouncementController);
+
+router.delete("/:announcementId", deleteAnnouncementController);
 
 export default router;

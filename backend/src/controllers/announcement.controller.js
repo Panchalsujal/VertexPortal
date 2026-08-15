@@ -6,12 +6,13 @@ import {
   getInstructorAnnouncementById,
   updateAnnouncement,
   updateAnnouncementStatus,
-
+  deleteAnnouncement,
 } from "../service/announcement.service.js";
 
 export const createAnnouncementController = asyncHandler(async (req, res) => {
   const announcement = await createAnnouncement({
     instructorId: req.user.id,
+    userRole: req.user.role,
     payload: req.body,
   });
 
@@ -26,6 +27,7 @@ export const getInstructorAnnouncementsController = asyncHandler(
   async (req, res) => {
     const result = await getInstructorAnnouncements({
       instructorId: req.user.id,
+      userRole: req.user.role,
       query: req.query,
     });
 
@@ -43,6 +45,7 @@ export const getInstructorAnnouncementByIdController = asyncHandler(
 
     const announcement = await getInstructorAnnouncementById({
       instructorId: req.user.id,
+      userRole: req.user.role,
       announcementId,
     });
 
@@ -59,6 +62,7 @@ export const updateAnnouncementController = asyncHandler(async (req, res) => {
 
   const result = await updateAnnouncement({
     instructorId: req.user.id,
+    userRole: req.user.role,
     announcementId,
     payload: req.body,
   });
@@ -78,6 +82,7 @@ export const updateAnnouncementStatusController = asyncHandler(
 
     const result = await updateAnnouncementStatus({
       instructorId: req.user.id,
+      userRole: req.user.role,
       announcementId,
       status,
     });
@@ -89,3 +94,20 @@ export const updateAnnouncementStatusController = asyncHandler(
     });
   },
 );
+
+export const deleteAnnouncementController = asyncHandler(async (req, res) => {
+  const { announcementId } = req.params;
+
+  const result = await deleteAnnouncement({
+    instructorId: req.user.id,
+    userRole: req.user.role,
+    announcementId,
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: result.message,
+    announcementId: result.announcementId,
+  });
+});
+
