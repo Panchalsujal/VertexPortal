@@ -1,17 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, BookOpen, Tag, UserCog, Video, ClipboardList,
   Star, FileText, Bell, ShoppingBag, Tag as CouponTag, BarChart2,
   Settings, FileCode, Globe, LogOut, Menu, X, TrendingUp,
-  TrendingDown, ArrowUpRight, ChevronDown, Award, RotateCcw, Plus,
-  Activity, Zap, DollarSign, GraduationCap, MessageSquare, User,
-  CheckCircle2, HardDrive, Cpu, ShieldCheck
+  TrendingDown, ArrowUpRight, Award,
+  Activity, Zap, DollarSign, GraduationCap, MessageSquare, ShieldCheck
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { selectUser, logoutUser } from '../../store/slices/authSlice';
 import { getAdminDashboardStats } from '../../api/adminDashboard.api';
-import { SkeletonDashboard, SkeletonFeed } from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
 
 // ── Sidebar Navigation Sections ──────────────────────────────
@@ -167,7 +165,6 @@ export default function AdminDashboard() {
   const dispatch  = useAppDispatch();
   const user      = useAppSelector(selectUser);
   const navigate  = useNavigate();
-  const location  = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 

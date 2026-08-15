@@ -2,17 +2,17 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   fetchConversations, fetchConversation, startConversation, sendMessage,
-  renameConversation, removeConversation, clearAiChat,
+  renameConversation, removeConversation,
   selectAiConversations, selectCurrentConversation, selectAiMessages,
   selectAiSending, selectAiLoading,
 } from '../store/slices/aiSlice';
 import { getAllCourses } from '../api/course.api';
 import {
   Bot, Send, Plus, MessageSquare, User, Sparkles, Trash2,
-  Edit2, Check, X, Copy, CheckCheck, BookOpen, Layers,
-  Search, RefreshCw, HelpCircle, ChevronRight, CornerDownLeft,
-  ExternalLink, Zap, Lightbulb, GraduationCap, ShieldCheck,
-  PanelLeftClose, PanelLeftOpen, MessageCircle
+  Edit2, Check, X, Copy, CheckCheck, BookOpen,
+  Search, RefreshCw,
+  Lightbulb, GraduationCap,
+  PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
@@ -28,24 +28,23 @@ function CodeBlock({ children, className }) {
   const handleCopy = () => {
     navigator.clipboard.writeText(codeContent);
     setCopied(true);
-    toast.success('Code copied to clipboard');
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="relative group my-4 rounded-2xl overflow-hidden border border-gray-800 bg-[#0d1117] shadow-xl">
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[#161b22] border-b border-gray-800 text-xs font-mono text-gray-400">
-        <span className="font-semibold uppercase tracking-wider text-purple-400">
+    <div className="relative group my-3 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-950 text-gray-100 font-mono text-xs shadow-md">
+      <div className="flex items-center justify-between px-4 py-2 bg-gray-900 border-b border-gray-800 text-gray-400">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-purple-400">
           {language || 'code'}
         </span>
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1.5 text-gray-300 hover:text-white px-2.5 py-1 rounded-lg hover:bg-gray-800 transition text-xs cursor-pointer font-sans"
+          className="flex items-center gap-1 text-[11px] font-semibold text-gray-400 hover:text-white transition-colors cursor-pointer"
         >
           {copied ? (
             <>
               <CheckCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-emerald-400 font-semibold">Copied!</span>
+              <span className="text-emerald-400">Copied!</span>
             </>
           ) : (
             <>
@@ -55,60 +54,32 @@ function CodeBlock({ children, className }) {
           )}
         </button>
       </div>
-      <pre className="p-4 text-xs font-mono overflow-x-auto text-gray-100 leading-relaxed font-normal">
-        <code>{children}</code>
+      <pre className="p-4 overflow-x-auto leading-relaxed scrollbar-thin">
+        <code>{codeContent}</code>
       </pre>
     </div>
   );
 }
 
-// Markdown Renderer Component
-function FormattedMarkdown({ content, isLatest }) {
-  const [displayedText, setDisplayedText] = useState(isLatest ? '' : content);
-  const [isTyping, setIsTyping] = useState(isLatest);
-
-  useEffect(() => {
-    if (!isLatest || !content) {
-      setDisplayedText(content || '');
-      setIsTyping(false);
-      return;
-    }
-
-    setDisplayedText('');
-    setIsTyping(true);
-    let index = 0;
-    const step = Math.max(2, Math.floor(content.length / 100));
-    const speed = 10;
-
-    const interval = setInterval(() => {
-      index += step;
-      if (index >= content.length) {
-        setDisplayedText(content);
-        setIsTyping(false);
-        clearInterval(interval);
-      } else {
-        setDisplayedText(content.slice(0, index));
-      }
-    }, speed);
-
-    return () => clearInterval(interval);
-  }, [content, isLatest]);
+// Render markdown stream content nicely
+function FormattedMarkdown({ content, isTyping = false }) {
+  const displayedText = content;
 
   return (
-    <div className="prose prose-sm dark:prose-invert max-w-none text-sm text-gray-800 dark:text-gray-100 leading-relaxed space-y-3 font-normal">
+    <div className="prose dark:prose-invert max-w-none text-xs sm:text-sm leading-relaxed">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          h1: ({ node, ...props }) => <h1 className="text-lg font-bold text-gray-900 dark:text-white mt-4 mb-2 pb-1 border-b border-gray-100 dark:border-gray-800" {...props} />,
-          h2: ({ node, ...props }) => <h2 className="text-base font-bold text-gray-900 dark:text-white mt-3 mb-1.5" {...props} />,
-          h3: ({ node, ...props }) => <h3 className="text-sm font-bold text-purple-700 dark:text-purple-300 mt-2.5 mb-1" {...props} />,
-          p: ({ node, ...props }) => <p className="mb-2.5 last:mb-0 leading-relaxed text-gray-800 dark:text-gray-200" {...props} />,
-          strong: ({ node, ...props }) => <strong className="font-bold text-gray-900 dark:text-white" {...props} />,
-          em: ({ node, ...props }) => <em className="italic text-purple-600 dark:text-purple-400" {...props} />,
-          ul: ({ node, ...props }) => <ul className="list-disc pl-5 mb-3 space-y-1 text-gray-800 dark:text-gray-200" {...props} />,
-          ol: ({ node, ...props }) => <ol className="list-decimal pl-5 mb-3 space-y-1 text-gray-800 dark:text-gray-200" {...props} />,
-          li: ({ node, ...props }) => <li className="leading-relaxed" {...props} />,
-          code: ({ node, inline, className, children, ...props }) =>
+          h1: (props) => <h1 className="text-lg font-bold text-gray-900 dark:text-white mt-4 mb-2 pb-1 border-b border-gray-100 dark:border-gray-800" {...props} />,
+          h2: (props) => <h2 className="text-base font-bold text-gray-900 dark:text-white mt-3 mb-1.5" {...props} />,
+          h3: (props) => <h3 className="text-sm font-bold text-purple-700 dark:text-purple-300 mt-2.5 mb-1" {...props} />,
+          p: (props) => <p className="mb-2.5 last:mb-0 leading-relaxed text-gray-800 dark:text-gray-200" {...props} />,
+          strong: (props) => <strong className="font-bold text-gray-900 dark:text-white" {...props} />,
+          em: (props) => <em className="italic text-purple-600 dark:text-purple-400" {...props} />,
+          ul: (props) => <ul className="list-disc pl-5 mb-3 space-y-1 text-gray-800 dark:text-gray-200" {...props} />,
+          ol: (props) => <ol className="list-decimal pl-5 mb-3 space-y-1 text-gray-800 dark:text-gray-200" {...props} />,
+          li: (props) => <li className="leading-relaxed" {...props} />,
+          code: ({ inline, className, children, ...props }) =>
             inline ? (
               <code className="bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-mono px-1.5 py-0.5 rounded-md font-semibold border border-purple-200/60 dark:border-purple-800/60" {...props}>
                 {children}
@@ -116,19 +87,19 @@ function FormattedMarkdown({ content, isLatest }) {
             ) : (
               <CodeBlock className={className}>{children}</CodeBlock>
             ),
-          blockquote: ({ node, ...props }) => (
+          blockquote: (props) => (
             <blockquote className="border-l-4 border-purple-500 pl-3.5 italic my-3 text-gray-600 dark:text-gray-300 bg-purple-50/40 dark:bg-purple-950/20 py-2 rounded-r-xl" {...props} />
           ),
-          table: ({ node, ...props }) => (
+          table: (props) => (
             <div className="overflow-x-auto my-4 rounded-2xl border border-gray-200 dark:border-gray-700/80 shadow-sm bg-white dark:bg-gray-900">
               <table className="w-full text-left border-collapse text-xs sm:text-sm" {...props} />
             </div>
           ),
-          thead: ({ node, ...props }) => <thead className="bg-purple-50/70 dark:bg-purple-950/40 border-b border-gray-200 dark:border-gray-700 text-purple-950 dark:text-purple-200 font-bold" {...props} />,
-          th: ({ node, ...props }) => <th className="px-4 py-3 font-bold text-xs uppercase tracking-wider text-gray-700 dark:text-gray-300 border-r border-gray-200/60 dark:border-gray-700/60 last:border-r-0" {...props} />,
-          td: ({ node, ...props }) => <td className="px-4 py-2.5 border-t border-gray-100 dark:border-gray-800 border-r border-gray-100 dark:border-gray-800/60 last:border-r-0 text-gray-700 dark:text-gray-200" {...props} />,
-          tr: ({ node, ...props }) => <tr className="hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors" {...props} />,
-          hr: ({ node, ...props }) => <hr className="my-4 border-gray-200 dark:border-gray-800" {...props} />,
+          thead: (props) => <thead className="bg-purple-50/70 dark:bg-purple-950/40 border-b border-gray-200 dark:border-gray-700 text-purple-950 dark:text-purple-200 font-bold" {...props} />,
+          th: (props) => <th className="px-4 py-3 font-bold text-xs uppercase tracking-wider text-gray-700 dark:text-gray-300 border-r border-gray-200/60 dark:border-gray-700/60 last:border-r-0" {...props} />,
+          td: (props) => <td className="px-4 py-2.5 border-t border-gray-100 dark:border-gray-800 border-r border-gray-100 dark:border-gray-800/60 last:border-r-0 text-gray-700 dark:text-gray-200" {...props} />,
+          tr: (props) => <tr className="hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors" {...props} />,
+          hr: (props) => <hr className="my-4 border-gray-200 dark:border-gray-800" {...props} />,
         }}
       >
         {displayedText}

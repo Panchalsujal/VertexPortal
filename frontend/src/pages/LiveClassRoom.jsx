@@ -446,7 +446,9 @@ export default function LiveClassRoom() {
             try {
               await callInstance.camera.disable();
               await callInstance.microphone.disable();
-            } catch (_) {}
+            } catch (disableErr) {
+              console.debug('Camera/mic initial mute:', disableErr?.message);
+            }
           }
 
           if (mounted) {

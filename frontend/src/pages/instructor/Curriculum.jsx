@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getManageModules, createModule, updateModule, deleteModule, publishModule } from '../../api/module.api';
 import {
@@ -10,7 +10,7 @@ import { Modal } from '../../components/ui/Modal';
 import { Spinner, SkeletonCurriculum } from '../../components/ui/Spinner';
 import {
   Plus, Edit3, Trash2, Globe, Video, FileText, Upload, ArrowLeft,
-  Eye, Download, X, Sparkles, Layers, BookOpen, ExternalLink, Check, Clock
+  Eye, Download, X, Sparkles, Layers
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
