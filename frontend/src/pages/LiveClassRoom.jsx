@@ -11,6 +11,7 @@ import {
   StreamVideo,
   StreamCall,
   StreamTheme,
+  PaginatedGridLayout,
   SpeakerLayout,
   ParticipantsAudio,
   useCallStateHooks,
@@ -44,11 +45,13 @@ import {
   RefreshCw,
   Sun,
   Moon,
+  LayoutGrid,
+  LayoutTemplate,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. Live Chat Drawer Component (Theme-Aware)
+// 1. Live Chat Drawer Component
 // ─────────────────────────────────────────────────────────────────────────────
 function ChatDrawer({
   messages,
@@ -56,41 +59,52 @@ function ChatDrawer({
   setInputText,
   handleSendMessage,
   chatBottomRef,
+  onClose,
 }) {
   return (
-    <div className="w-full lg:w-80 sm:w-96 bg-white dark:bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-800 flex flex-col h-72 lg:h-auto z-10 transition-colors">
-      <div className="p-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+    <div className="w-full lg:w-84 sm:w-96 bg-slate-900/95 backdrop-blur-xl border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col h-72 lg:h-full z-30 transition-all shadow-2xl">
+      <div className="p-3.5 border-b border-slate-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+          <MessageSquare className="w-4 h-4 text-purple-400" />
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
             Class Discussion
           </h3>
         </div>
-        <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-semibold px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-700/60">
-          {messages.length} msgs
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] bg-slate-800 text-slate-400 font-semibold px-2 py-0.5 rounded-full border border-slate-700/60">
+            {messages.length} msgs
+          </span>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded hover:bg-slate-800"
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3.5 space-y-3 bg-slate-50/60 dark:bg-slate-950/50">
+      <div className="flex-1 overflow-y-auto p-3.5 space-y-3 bg-slate-950/60">
         {messages.map((msg) => (
           <div key={msg.id} className="text-xs">
             <div className="flex items-center justify-between gap-1 mb-1">
-              <span className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+              <span className="font-bold text-slate-200 flex items-center gap-1.5">
                 {msg.senderName}
                 {msg.senderRole === 'instructor' && (
-                  <span className="text-[9px] bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30 px-1.5 py-0.2 rounded font-bold uppercase">
+                  <span className="text-[9px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.2 rounded font-bold uppercase">
                     Instructor
                   </span>
                 )}
                 {msg.senderRole === 'system' && (
-                  <span className="text-[9px] bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 px-1.5 py-0.2 rounded font-bold uppercase">
+                  <span className="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.2 rounded font-bold uppercase">
                     Bot
                   </span>
                 )}
               </span>
-              <span className="text-[10px] text-slate-400 dark:text-slate-500">{msg.time}</span>
+              <span className="text-[10px] text-slate-500">{msg.time}</span>
             </div>
-            <div className="bg-white dark:bg-slate-800/80 rounded-xl p-2.5 text-slate-700 dark:text-slate-300 leading-relaxed border border-slate-200 dark:border-slate-700/50 shadow-xs">
+            <div className="bg-slate-800/80 rounded-xl p-2.5 text-slate-200 leading-relaxed border border-slate-700/50 shadow-xs">
               {msg.text}
             </div>
           </div>
@@ -98,13 +112,13 @@ function ChatDrawer({
         <div ref={chatBottomRef} />
       </div>
 
-      <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 flex gap-2">
+      <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-800 bg-slate-900/90 flex gap-2">
         <input
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           placeholder="Ask a question or share thoughts..."
-          className="flex-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+          className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
         />
         <button
           type="submit"
@@ -119,7 +133,7 @@ function ChatDrawer({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. Stream Video Stage Component (ONLY rendered inside <StreamCall> context)
+// 2. Stream Video Stage Component (Rendered inside <StreamCall>)
 // ─────────────────────────────────────────────────────────────────────────────
 function StreamConnectedStage({
   liveClass,
@@ -158,10 +172,11 @@ function StreamConnectedStage({
   const isScreenSharing = !isScreenShareMuted && !!screenShare;
   const callingState = useCallCallingState();
 
+  const [layoutMode, setLayoutMode] = useState('grid'); // 'grid' | 'speaker'
   const [audioBlocked, setAudioBlocked] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Audio autoplay unlocker & resume
+  // Audio autoplay unblocker
   useEffect(() => {
     if (!call) return;
 
@@ -208,7 +223,7 @@ function StreamConnectedStage({
     };
   }, [call]);
 
-  // Real-time custom event listener (Chat, Hand raise, Classroom ended)
+  // Real-time custom event listener
   useEffect(() => {
     if (!call) return;
 
@@ -216,7 +231,6 @@ function StreamConnectedStage({
       const payload = event?.custom || event;
       if (!payload) return;
 
-      // Realtime chat message broadcast
       if (payload.type === 'chat_message') {
         setMessages((prev) => {
           if (prev.some((m) => m.id === payload.id)) return prev;
@@ -230,7 +244,6 @@ function StreamConnectedStage({
         }, 100);
       }
 
-      // Hand raise broadcast
       if (payload.type === 'hand_raise') {
         if (isHost && payload.raised) {
           toast(`${payload.userName || 'A student'} raised their hand! ✋`, {
@@ -240,7 +253,6 @@ function StreamConnectedStage({
         }
       }
 
-      // Live class ended by host
       if (payload.type === 'class_ended') {
         if (!isHost) {
           toast('The instructor has concluded this live class.', { icon: '🏁' });
@@ -359,69 +371,68 @@ function StreamConnectedStage({
   return (
     <div
       ref={roomContainerRef}
-      className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-[Inter,sans-serif] select-none transition-colors duration-200"
+      className="h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col font-[Inter,sans-serif] select-none"
     >
       {/* Explicit Audio Stream Element for Remote Participants */}
       <ParticipantsAudio participants={participants} />
 
       {/* Top Header Bar */}
-      <header className="h-14 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 px-3 sm:px-4 flex items-center justify-between z-20 transition-colors">
+      <header className="h-14 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/90 px-3 sm:px-5 flex items-center justify-between z-20 shrink-0">
         <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
           <button
             onClick={onLeaveOrEnd}
-            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition cursor-pointer shrink-0 border border-slate-200 dark:border-slate-700/60"
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer shrink-0 border border-slate-700/60 shadow-xs"
             title="Exit live room"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div className="flex items-center gap-2 truncate">
             <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shrink-0" />
-            <span className="text-xs font-black uppercase tracking-wider text-red-500 dark:text-red-400 shrink-0">
+            <span className="text-xs font-black uppercase tracking-wider text-red-400 shrink-0">
               LIVE
             </span>
-            <span className="text-slate-300 dark:text-slate-600 hidden sm:inline">|</span>
-            <h2 className="text-xs sm:text-sm font-bold truncate text-slate-900 dark:text-white">
+            <span className="text-slate-600 hidden sm:inline">|</span>
+            <h2 className="text-xs sm:text-sm font-bold truncate text-white">
               {liveClass?.title || 'Live Interactive Class'}
             </h2>
           </div>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {/* Theme Toggle Button */}
+          {/* Layout Grid / Speaker Switcher */}
           <button
-            onClick={toggleTheme}
-            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60 transition cursor-pointer shadow-xs"
-            title={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
-            aria-label="Toggle theme mode"
+            onClick={() => setLayoutMode((prev) => (prev === 'grid' ? 'speaker' : 'grid'))}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition cursor-pointer shadow-xs"
+            title={layoutMode === 'grid' ? 'Switch to Spotlight view' : 'Switch to Gallery grid'}
           >
-            {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-purple-600" />}
+            {layoutMode === 'grid' ? <LayoutTemplate className="w-3.5 h-3.5" /> : <LayoutGrid className="w-3.5 h-3.5" />}
           </button>
 
-          {/* User Role Pill */}
-          <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/50 px-2.5 py-1 rounded-full shadow-xs">
+          {/* User Role Badge */}
+          <div className="flex items-center gap-1.5 text-xs text-slate-300 bg-slate-800/80 border border-slate-700/60 px-3 py-1 rounded-full shadow-xs">
             <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-            <span className="hidden sm:inline">You:</span>
-            <span className="font-semibold text-slate-900 dark:text-white truncate max-w-[120px]">
+            <span className="hidden sm:inline text-slate-400">You:</span>
+            <span className="font-semibold text-white truncate max-w-[120px]">
               {currentUser?.fullName || 'User'}
             </span>
-            <span className="text-[10px] uppercase font-bold text-purple-600 dark:text-purple-400 ml-0.5">
+            <span className="text-[10px] uppercase font-bold text-purple-400 ml-0.5">
               ({isHost ? 'Instructor' : 'Student'})
             </span>
           </div>
 
           {/* Participants Counter */}
-          <div className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/50 px-2.5 py-1 rounded-full shadow-xs">
-            <Users className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+          <div className="flex items-center gap-1.5 text-xs text-slate-300 bg-slate-800/80 border border-slate-700/60 px-3 py-1 rounded-full shadow-xs">
+            <Users className="w-3.5 h-3.5 text-purple-400" />
             <span>{participants?.length || 1}</span>
           </div>
         </div>
       </header>
 
       {/* Main Workspace (Stage + Chat) */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+      <div className="flex-1 flex overflow-hidden relative">
         {/* Stream Video Stage */}
-        <div className="flex-1 flex flex-col bg-slate-100 dark:bg-slate-950 relative overflow-hidden p-2 sm:p-4 transition-colors">
-          <div className="flex-1 w-full h-full bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-2xl sm:rounded-3xl relative flex items-center justify-center overflow-hidden shadow-2xl">
+        <div className="flex-1 flex flex-col bg-slate-950 relative overflow-hidden p-2 sm:p-3">
+          <div className="flex-1 w-full h-full relative rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center">
             {isConnecting ? (
               <div className="w-full h-full flex flex-col items-center justify-center text-center p-8 gap-3 animate-pulse bg-radial from-slate-900 to-slate-950">
                 <div className="w-16 h-16 rounded-3xl bg-slate-800/90 border border-slate-700/60 flex items-center justify-center shadow-lg">
@@ -431,7 +442,11 @@ function StreamConnectedStage({
               </div>
             ) : (
               <div className="w-full h-full stream-stage-container">
-                <SpeakerLayout participantsBarPosition="bottom" />
+                {layoutMode === 'grid' ? (
+                  <PaginatedGridLayout />
+                ) : (
+                  <SpeakerLayout participantsBarPosition="bottom" />
+                )}
               </div>
             )}
 
@@ -453,105 +468,107 @@ function StreamConnectedStage({
             {/* Fullscreen Button */}
             <button
               onClick={toggleFullscreen}
-              className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 transition cursor-pointer z-10 shadow-md"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 transition cursor-pointer z-10 shadow-md backdrop-blur-md"
               title="Toggle Fullscreen"
             >
               {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             </button>
           </div>
 
-          {/* Bottom Floating Controls Bar */}
-          <div className="h-16 pt-2 sm:pt-3 flex items-center justify-center gap-2 sm:gap-3 z-10 flex-wrap">
-            {/* Microphone Toggle (Host & Students) */}
-            <button
-              onClick={toggleMic}
-              className={`p-2.5 sm:p-3 rounded-2xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-md ${
-                !isMicMuted
-                  ? 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-700'
-                  : 'bg-red-600 hover:bg-red-700 text-white'
-              }`}
-              title={!isMicMuted ? 'Mute Microphone' : 'Unmute Microphone'}
-            >
-              {!isMicMuted ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
-              <span className="hidden sm:inline">{!isMicMuted ? 'Mic On' : 'Mic Muted'}</span>
-            </button>
-
-            {/* Camera Toggle (Host & Students) */}
-            <button
-              onClick={toggleCamera}
-              className={`p-2.5 sm:p-3 rounded-2xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-md ${
-                !isCamMuted
-                  ? 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-700'
-                  : 'bg-red-600 hover:bg-red-700 text-white'
-              }`}
-              title={!isCamMuted ? 'Turn Off Camera' : 'Turn On Camera'}
-            >
-              {!isCamMuted ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
-              <span className="hidden sm:inline">{!isCamMuted ? 'Cam On' : 'Cam Off'}</span>
-            </button>
-
-            {/* Screen Share (Host Only) */}
-            {isHost && (
+          {/* Floating Controls Bar */}
+          <div className="h-16 pt-2 flex items-center justify-center z-20">
+            <div className="flex items-center gap-2 sm:gap-3 bg-slate-900/90 backdrop-blur-xl border border-slate-700/80 px-3 sm:px-4 py-2 rounded-2xl shadow-2xl">
+              {/* Microphone Toggle */}
               <button
-                onClick={toggleScreenShare}
-                className={`p-2.5 sm:p-3 rounded-2xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-md ${
-                  isScreenSharing
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700'
+                onClick={toggleMic}
+                className={`px-3 py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-sm ${
+                  !isMicMuted
+                    ? 'bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700'
+                    : 'bg-red-600 hover:bg-red-700 text-white'
                 }`}
-                title={isScreenSharing ? 'Stop Screen Share' : 'Share Screen'}
+                title={!isMicMuted ? 'Mute Microphone' : 'Unmute Microphone'}
               >
-                {isScreenSharing ? <MonitorOff className="w-4 h-4" /> : <Monitor className="w-4 h-4" />}
-                <span className="hidden sm:inline">{isScreenSharing ? 'Sharing' : 'Share'}</span>
+                {!isMicMuted ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
+                <span className="hidden sm:inline">{!isMicMuted ? 'Mic On' : 'Mic Muted'}</span>
               </button>
-            )}
 
-            {/* Raise Hand (Students Only) */}
-            {!isHost && (
+              {/* Camera Toggle */}
               <button
-                onClick={toggleRaiseHand}
-                className={`p-2.5 sm:p-3 rounded-2xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-md ${
-                  handRaised
-                    ? 'bg-amber-500 text-slate-950 font-bold'
-                    : 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700'
+                onClick={toggleCamera}
+                className={`px-3 py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-sm ${
+                  !isCamMuted
+                    ? 'bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700'
+                    : 'bg-red-600 hover:bg-red-700 text-white'
                 }`}
-                title="Raise Hand"
+                title={!isCamMuted ? 'Turn Off Camera' : 'Turn On Camera'}
               >
-                <Hand className="w-4 h-4" />
-                <span className="hidden sm:inline">{handRaised ? 'Hand Raised' : 'Raise Hand'}</span>
+                {!isCamMuted ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
+                <span className="hidden sm:inline">{!isCamMuted ? 'Cam On' : 'Cam Off'}</span>
               </button>
-            )}
 
-            {/* Live Chat Toggle */}
-            <button
-              onClick={() => {
-                setActiveSidebar(activeSidebar === 'chat' ? null : 'chat');
-                setUnreadCount(0);
-              }}
-              className={`p-2.5 sm:p-3 rounded-2xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-md relative ${
-                activeSidebar === 'chat'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700'
-              }`}
-              title="Toggle Live Chat"
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span className="hidden sm:inline">Live Chat</span>
-              {unreadCount > 0 && (
-                <span className="bg-red-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse shadow-md">
-                  {unreadCount}
-                </span>
+              {/* Screen Share (Host Only) */}
+              {isHost && (
+                <button
+                  onClick={toggleScreenShare}
+                  className={`px-3 py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-sm ${
+                    isScreenSharing
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
+                  }`}
+                  title={isScreenSharing ? 'Stop Screen Share' : 'Share Screen'}
+                >
+                  {isScreenSharing ? <MonitorOff className="w-4 h-4" /> : <Monitor className="w-4 h-4" />}
+                  <span className="hidden sm:inline">{isScreenSharing ? 'Sharing' : 'Share'}</span>
+                </button>
               )}
-            </button>
 
-            {/* Leave or End Session */}
-            <button
-              onClick={onLeaveOrEnd}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl font-bold text-xs flex items-center gap-2 shadow-lg shadow-red-950/40 transition cursor-pointer"
-            >
-              <PhoneOff className="w-4 h-4" />
-              <span>{isHost ? 'End Session' : 'Leave Class'}</span>
-            </button>
+              {/* Raise Hand (Students Only) */}
+              {!isHost && (
+                <button
+                  onClick={toggleRaiseHand}
+                  className={`px-3 py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-sm ${
+                    handRaised
+                      ? 'bg-amber-500 text-slate-950 font-bold'
+                      : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
+                  }`}
+                  title="Raise Hand"
+                >
+                  <Hand className="w-4 h-4" />
+                  <span className="hidden sm:inline">{handRaised ? 'Hand Raised' : 'Raise Hand'}</span>
+                </button>
+              )}
+
+              {/* Live Chat Toggle */}
+              <button
+                onClick={() => {
+                  setActiveSidebar(activeSidebar === 'chat' ? null : 'chat');
+                  setUnreadCount(0);
+                }}
+                className={`px-3 py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-sm relative ${
+                  activeSidebar === 'chat'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
+                }`}
+                title="Toggle Live Chat"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span className="hidden sm:inline">Live Chat</span>
+                {unreadCount > 0 && (
+                  <span className="bg-red-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse shadow-md">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* End / Leave Session */}
+              <button
+                onClick={onLeaveOrEnd}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 shadow-lg shadow-red-950/40 transition cursor-pointer"
+              >
+                <PhoneOff className="w-4 h-4" />
+                <span>{isHost ? 'End Session' : 'Leave Class'}</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -563,6 +580,7 @@ function StreamConnectedStage({
             setInputText={setInputText}
             handleSendMessage={handleSendMessage}
             chatBottomRef={chatBottomRef}
+            onClose={() => setActiveSidebar(null)}
           />
         )}
       </div>
@@ -571,7 +589,7 @@ function StreamConnectedStage({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. Standalone / External Stage (No StreamCall hooks dependency)
+// 3. Standalone / External Stage
 // ─────────────────────────────────────────────────────────────────────────────
 function StandaloneLiveStage({
   liveClass,
@@ -589,62 +607,52 @@ function StandaloneLiveStage({
   chatBottomRef,
   roomContainerRef,
 }) {
-  const { isDark, toggleTheme } = useTheme();
   const meetingUrl = liveClass?.meetingUrl || liveClass?.meeting?.url || liveClass?.joinUrl;
 
   return (
     <div
       ref={roomContainerRef}
-      className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-[Inter,sans-serif] select-none transition-colors duration-200"
+      className="h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col font-[Inter,sans-serif] select-none"
     >
-      <header className="h-14 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 px-3 sm:px-4 flex items-center justify-between z-20">
+      <header className="h-14 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/90 px-3 sm:px-5 flex items-center justify-between z-20 shrink-0">
         <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
           <button
             onClick={onLeaveOrEnd}
-            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition cursor-pointer shrink-0 border border-slate-200 dark:border-slate-700/60"
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer shrink-0 border border-slate-700/60 shadow-xs"
             title="Exit live room"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div className="flex items-center gap-2 truncate">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <span className="text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 shrink-0">
+            <span className="text-xs font-black uppercase tracking-wider text-emerald-400 shrink-0">
               {liveClass?.status === 'live' ? 'LIVE NOW' : 'SCHEDULED'}
             </span>
-            <span className="text-slate-300 dark:text-slate-600 hidden sm:inline">|</span>
-            <h2 className="text-xs sm:text-sm font-bold truncate text-slate-900 dark:text-white">
+            <span className="text-slate-600 hidden sm:inline">|</span>
+            <h2 className="text-xs sm:text-sm font-bold truncate text-white">
               {liveClass?.title || 'Live Interactive Class'}
             </h2>
           </div>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60 transition cursor-pointer shadow-xs"
-            title={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
-            aria-label="Toggle theme mode"
-          >
-            {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-purple-600" />}
-          </button>
-
-          <div className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/50 px-2.5 py-1 rounded-full shadow-xs">
-            <Users className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+          <div className="flex items-center gap-1.5 text-xs text-slate-300 bg-slate-800/80 border border-slate-700/60 px-3 py-1 rounded-full shadow-xs">
+            <Users className="w-3.5 h-3.5 text-purple-400" />
             <span>Active</span>
           </div>
         </div>
       </header>
 
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
-        <div className="flex-1 flex flex-col bg-slate-100 dark:bg-slate-950 relative overflow-hidden p-3 sm:p-6 justify-center items-center">
-          <div className="max-w-md w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 text-center space-y-5 shadow-2xl">
-            <div className="w-16 h-16 rounded-3xl bg-purple-100 dark:bg-purple-950/80 border border-purple-200 dark:border-purple-800/60 mx-auto flex items-center justify-center shadow-lg">
-              <Radio className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+      <div className="flex-1 flex overflow-hidden relative">
+        <div className="flex-1 flex flex-col bg-slate-950 relative overflow-hidden p-3 sm:p-6 justify-center items-center">
+          <div className="max-w-md w-full bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 text-center space-y-5 shadow-2xl">
+            <div className="w-16 h-16 rounded-3xl bg-purple-950/80 border border-purple-800/60 mx-auto flex items-center justify-center shadow-lg">
+              <Radio className="w-8 h-8 text-purple-400" />
             </div>
 
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1.5">{liveClass?.title}</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              <h3 className="text-lg font-bold text-white mb-1.5">{liveClass?.title}</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
                 {liveClass?.description || 'Interactive live classroom session.'}
               </p>
             </div>
@@ -660,7 +668,7 @@ function StandaloneLiveStage({
                   <ExternalLink className="w-4 h-4" />
                   <span>Launch Meeting Link</span>
                 </a>
-                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-2">Opens in external meeting app</p>
+                <p className="text-[11px] text-slate-500 mt-2">Opens in external meeting app</p>
               </div>
             )}
 
@@ -671,10 +679,10 @@ function StandaloneLiveStage({
                     setHandRaised(!handRaised);
                     toast(handRaised ? 'Hand lowered' : 'Hand raised! Instructor notified. ✋');
                   }}
-                  className={`p-3 rounded-2xl text-xs font-bold flex items-center gap-2 transition cursor-pointer shadow-md ${
+                  className={`p-3 rounded-2xl text-xs font-bold flex items-center gap-2 transition cursor-pointer ${
                     handRaised
                       ? 'bg-amber-500 text-slate-950'
-                      : 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700'
+                      : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
                   }`}
                 >
                   <Hand className="w-4 h-4" />
@@ -684,9 +692,9 @@ function StandaloneLiveStage({
 
               <button
                 onClick={() => setActiveSidebar(activeSidebar === 'chat' ? null : 'chat')}
-                className="p-3 rounded-2xl text-xs font-bold bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 flex items-center gap-2 transition cursor-pointer shadow-md"
+                className="p-3 rounded-2xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 flex items-center gap-2 transition cursor-pointer shadow-md"
               >
-                <MessageSquare className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                <MessageSquare className="w-4 h-4 text-purple-400" />
                 <span>Discussion</span>
               </button>
 
@@ -708,6 +716,7 @@ function StandaloneLiveStage({
             setInputText={setInputText}
             handleSendMessage={handleSendMessage}
             chatBottomRef={chatBottomRef}
+            onClose={() => setActiveSidebar(null)}
           />
         )}
       </div>
@@ -916,19 +925,19 @@ export default function LiveClassRoom() {
   // Friendly error card instead of blank screen
   if (errorMsg) {
     return (
-      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex items-center justify-center p-4 transition-colors">
-        <div className="max-w-md w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 text-center space-y-5 shadow-2xl">
-          <div className="w-16 h-16 rounded-3xl bg-red-100 dark:bg-red-950/60 border border-red-200 dark:border-red-800/60 mx-auto flex items-center justify-center shadow-lg">
-            <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 text-center space-y-5 shadow-2xl">
+          <div className="w-16 h-16 rounded-3xl bg-red-950/60 border border-red-800/60 mx-auto flex items-center justify-center shadow-lg">
+            <AlertCircle className="w-8 h-8 text-red-400" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Unable to Join Live Class</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{errorMsg}</p>
+            <h3 className="text-lg font-bold text-white mb-2">Unable to Join Live Class</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">{errorMsg}</p>
           </div>
           <div className="flex gap-3 justify-center pt-2">
             <button
               onClick={() => navigate('/student/live-classes')}
-              className="bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white text-xs font-bold px-4 py-2.5 rounded-xl transition cursor-pointer"
+              className="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition cursor-pointer"
             >
               Back to Live Classes
             </button>
