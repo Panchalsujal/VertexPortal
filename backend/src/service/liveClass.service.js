@@ -1568,9 +1568,9 @@ export async function joinStudentLiveClass({
   const joinClosesAt = new Date(liveClass.endsAt);
 
   /*
-   * Too early.
+   * Too early check (only if class is not already started by instructor).
    */
-  if (now < joinOpensAt) {
+  if (liveClass.status !== "live" && now < joinOpensAt) {
     throw new ApiError(
       403,
       `Live class can be joined ${liveClass.allowEarlyJoinMinutes ?? 0} minutes before start time`,
@@ -1578,9 +1578,13 @@ export async function joinStudentLiveClass({
   }
 
   /*
-   * Class ended.
+   * Class ended check.
    */
-  if (now >= joinClosesAt) {
+  if (
+    liveClass.status === "completed" ||
+    liveClass.status === "cancelled" ||
+    (liveClass.status !== "live" && now >= joinClosesAt)
+  ) {
     throw new ApiError(410, "Live class has ended");
   }
 

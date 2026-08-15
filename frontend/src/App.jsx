@@ -75,6 +75,7 @@ function Layout({ children }) {
   // Pages that use their own standalone layout (no shared navbar)
   const hideNavbar = (
     location.pathname.startsWith('/learn/') ||
+    location.pathname.startsWith('/live-class') ||
     location.pathname === '/dashboard' ||
     location.pathname.startsWith('/admin') ||
     location.pathname === '/login' ||

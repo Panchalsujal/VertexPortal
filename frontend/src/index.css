@@ -688,19 +688,47 @@ html.dark .stitch-glass {
   width: 100%;
   height: 100%;
   flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .stream-stage-container .str-video__speaker-layout__spotlight {
   width: 100%;
   height: 100%;
-  border-radius: 1rem;
+  flex: 1;
+  border-radius: 1.25rem;
   overflow: hidden;
   background: #090d16;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .stream-stage-container .str-video__participant-view {
-  border-radius: 1rem;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 1.25rem;
   overflow: hidden;
   background-color: #0b0f19;
+  position: relative;
 }
+
+.stream-stage-container .str-video__participant-view video,
+.stream-stage-container .str-video__video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 1.25rem;
+}
+
+.stream-stage-container .str-video__speaker-layout__participants-bar-wrapper {
+  padding-top: 0.5rem;
+}
+
+.stream-stage-container .str-video__speaker-layout__participant-tile {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 2px solid rgba(108, 92, 231, 0.4);
+}
+
 
