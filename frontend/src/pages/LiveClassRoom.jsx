@@ -148,6 +148,41 @@ function StreamConnectedStage({
   const isScreenSharing = screenShareStatus === 'enabled';
 
   const [audioBlocked, setAudioBlocked] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Listen for real-time chat messages broadcast via GetStream WebRTC
+  useEffect(() => {
+    if (!call) return;
+
+    const unsubscribe = call.on('custom', (event) => {
+      const payload = event?.custom;
+      if (payload?.type === 'chat_message' && payload?.text) {
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === payload.id)) return prev;
+          return [...prev, payload];
+        });
+
+        if (activeSidebar !== 'chat') {
+          setUnreadCount((c) => c + 1);
+        }
+
+        setTimeout(() => {
+          chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    });
+
+    return () => {
+      unsubscribe?.();
+    };
+  }, [call, setMessages, chatBottomRef, activeSidebar]);
+
+  // Reset unread count when chat sidebar is opened
+  useEffect(() => {
+    if (activeSidebar === 'chat') {
+      setUnreadCount(0);
+    }
+  }, [activeSidebar]);
 
   // Unblock and resume audio playback across mobile and desktop browsers
   useEffect(() => {
@@ -388,8 +423,11 @@ function StreamConnectedStage({
 
             {/* Live Chat Toggle */}
             <button
-              onClick={() => setActiveSidebar(activeSidebar === 'chat' ? null : 'chat')}
-              className={`p-2.5 sm:p-3 rounded-2xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-lg ${
+              onClick={() => {
+                setActiveSidebar(activeSidebar === 'chat' ? null : 'chat');
+                setUnreadCount(0);
+              }}
+              className={`p-2.5 sm:p-3 rounded-2xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-lg relative ${
                 activeSidebar === 'chat'
                   ? 'bg-purple-600 text-white'
                   : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
@@ -398,6 +436,11 @@ function StreamConnectedStage({
             >
               <MessageSquare className="w-4 h-4" />
               <span className="hidden sm:inline">Live Chat</span>
+              {unreadCount > 0 && (
+                <span className="bg-red-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse shadow-md">
+                  {unreadCount}
+                </span>
+              )}
             </button>
 
             {/* Leave or End Session */}
@@ -740,23 +783,32 @@ export default function LiveClassRoom() {
     }
   };
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!inputText.trim()) return;
 
-    const newMsg = {
-      id: Date.now().toString(),
+    const msgObj = {
+      type: 'chat_message',
+      id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
       senderName: currentUser?.fullName || (isInstructor ? 'Instructor' : 'Student'),
       senderRole: isInstructor ? 'instructor' : 'student',
       text: inputText.trim(),
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
-    setMessages((prev) => [...prev, newMsg]);
+    setMessages((prev) => [...prev, msgObj]);
     setInputText('');
     setTimeout(() => {
       chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
+
+    if (streamCall) {
+      try {
+        await streamCall.sendCustomEvent(msgObj);
+      } catch (err) {
+        console.warn('Failed to broadcast message via Stream:', err?.message);
+      }
+    }
   };
 
   const handleEndOrLeave = async () => {
