@@ -655,33 +655,33 @@ export default function AiChat() {
         >
           <div className="max-w-3xl mx-auto space-y-3 sm:space-y-6">
             {!current || messages.length === 0 ? (
-              <div className="py-4 sm:py-10 px-2 sm:px-4 text-center space-y-3 sm:space-y-5 animate-in fade-in">
-                <div className="w-11 h-11 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center mx-auto shadow-md">
-                  <SparklesIcon size={22} color="white" />
+              <div className="py-2 sm:py-6 px-1 sm:px-4 text-center space-y-2.5 sm:space-y-4 animate-in fade-in">
+                <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center mx-auto shadow-md">
+                  <SparklesIcon size={20} color="white" />
                 </div>
                 <div>
-                  <h3 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white">
+                  <h3 className="text-sm sm:text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">
                     What would you like to explore today?
                   </h3>
-                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5 max-w-md mx-auto">
+                  <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 max-w-md mx-auto">
                     Ask questions about your lectures, request practice test questions, or get clear step-by-step breakdowns.
                   </p>
                 </div>
 
-                {/* Prompt Starter Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-left pt-1">
+                {/* Prompt Starter Cards - Compact 2-column on mobile */}
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 text-left pt-1">
                   {INSPIRATION_PROMPTS.map((item, i) => (
                     <button
                       key={i}
                       type="button"
                       onClick={() => handleSend(item.prompt)}
-                      className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white dark:bg-[#161f30] hover:bg-purple-50/80 dark:hover:bg-purple-950/40 border border-gray-200 dark:border-gray-800 hover:border-purple-300 dark:hover:border-purple-700 transition-all text-left shadow-xs hover:shadow-md group cursor-pointer"
+                      className="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-white dark:bg-[#161f30] hover:bg-purple-50/80 dark:hover:bg-purple-950/40 border border-gray-200 dark:border-gray-800 hover:border-purple-300 dark:hover:border-purple-700 transition-all text-left shadow-2xs hover:shadow-xs group cursor-pointer flex flex-col justify-between"
                     >
-                      <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 font-bold text-xs mb-0.5 sm:mb-1">
-                        <item.icon size={14} color="#6C5CE7" />
-                        <span>{item.label}</span>
+                      <div className="flex items-center gap-1.5 text-purple-600 dark:text-purple-400 font-bold text-[11px] sm:text-xs mb-0.5">
+                        <item.icon size={13} color="#6C5CE7" />
+                        <span className="truncate">{item.label}</span>
                       </div>
-                      <p className="text-[11px] sm:text-xs text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
+                      <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-tight">
                         {item.prompt}
                       </p>
                     </button>
