@@ -13,9 +13,9 @@ const createTransporter = () => {
         pass: process.env.SMTP_PASS,
       },
       family: 4,
-      connectionTimeout: 8000,
-      greetingTimeout: 8000,
-      socketTimeout: 8000,
+      connectionTimeout: 4000,
+      greetingTimeout: 4000,
+      socketTimeout: 4000,
     });
   }
 
@@ -30,9 +30,9 @@ const createTransporter = () => {
         pass: process.env.EMAIL_PASS,
       },
       family: 4,
-      connectionTimeout: 8000,
-      greetingTimeout: 8000,
-      socketTimeout: 8000,
+      connectionTimeout: 4000,
+      greetingTimeout: 4000,
+      socketTimeout: 4000,
     });
   }
 
@@ -49,9 +49,9 @@ const createTransporter = () => {
       refreshToken: config.GOOGLE_REFRESH_TOKEN,
     },
     family: 4,
-    connectionTimeout: 8000,
-    greetingTimeout: 8000,
-    socketTimeout: 8000,
+    connectionTimeout: 4000,
+    greetingTimeout: 4000,
+    socketTimeout: 4000,
   });
 };
 
@@ -100,39 +100,29 @@ export async function sendEmail({
     );
   }
 
+  // Skip email if disabled via environment variable (e.g. Render free tier)
+  if (process.env.DISABLE_EMAIL === "true" || process.env.DISABLE_EMAIL_NOTIFICATIONS === "true") {
+    console.log(`[EMAIL-MOCK] Skipped (${process.env.DISABLE_EMAIL ? 'DISABLE_EMAIL' : 'DISABLE_EMAIL_NOTIFICATIONS'}=true) to ${to}: ${subject}`);
+    return { messageId: "mock-" + Date.now(), skipped: true };
+  }
+
   try {
-    const info =
-      await transporter.sendMail({
-        from: `"LMS AI" <${config.EMAIL_USER}>`,
+    const info = await transporter.sendMail({
+      from: `"Vertex LMS" <${config.EMAIL_USER}>`,
+      to,
+      subject,
+      text: text || undefined,
+      html: html || undefined,
+      ...(replyTo ? { replyTo } : {}),
+    });
 
-        to,
-
-        subject,
-
-        text: text || undefined,
-
-        html: html || undefined,
-
-        ...(replyTo
-          ? {
-              replyTo,
-            }
-          : {}),
-      });
-
-    console.log(
-      "Email sent:",
-      info.messageId,
-    );
-
+    console.log("Email sent:", info.messageId);
     return info;
   } catch (error) {
-    console.error(
-      "Send email error:",
-      error,
+    console.warn(
+      `[EMAIL] Failed to deliver to ${to} (${error.code || error.message}) - outbound SMTP may be restricted on cloud host`
     );
-
-    throw error;
+    return { messageId: null, failed: true, error: error.message };
   }
 }
 

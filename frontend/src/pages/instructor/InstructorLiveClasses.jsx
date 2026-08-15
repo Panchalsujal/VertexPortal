@@ -70,13 +70,30 @@ export default function InstructorLiveClasses() {
       return;
     }
     if (!form.startsAt || !form.endsAt) { toast.error('Start and end time are required'); return; }
-    if (new Date(form.endsAt) <= new Date(form.startsAt)) { toast.error('End time must be after start time'); return; }
+
+    const startDate = new Date(form.startsAt);
+    const endDate = new Date(form.endsAt);
+
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      toast.error('Invalid start or end date');
+      return;
+    }
+
+    if (endDate <= startDate) {
+      toast.error('End time must be after start time');
+      return;
+    }
 
     setSaving(true);
-    const res = await dispatch(createLiveClass(form));
+    const payload = {
+      ...form,
+      startsAt: startDate.toISOString(),
+      endsAt: endDate.toISOString(),
+    };
+    const res = await dispatch(createLiveClass(payload));
     setSaving(false);
     if (createLiveClass.fulfilled.match(res)) {
-      toast.success('Live class created & email notifications dispatched to enrolled students!');
+      toast.success('Live class scheduled successfully!');
       setModalOpen(false);
       dispatch(fetchLiveClasses());
     } else {
