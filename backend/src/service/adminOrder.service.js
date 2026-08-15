@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 import Order from "../models/order.model.js";
+import User from "../models/user.model.js";
 
 import { validateObjectId } from "../utils/validator.js";
 
@@ -73,6 +74,8 @@ export async function getAdminOrders({ query = {} }) {
     paymentMethod,
     razorpayOrderId,
     razorpayPaymentId,
+    status,
+    search,
 
     sortBy = "createdAt",
     order = "desc",
@@ -103,8 +106,9 @@ export async function getAdminOrders({ query = {} }) {
   /*
    * Order status
    */
+  const effectiveOrderStatus = orderStatus || status;
   const parsedOrderStatus = parseEnumQuery(
-    orderStatus,
+    effectiveOrderStatus,
     ORDER_STATUSES,
     "Order status",
   );
@@ -149,6 +153,36 @@ export async function getAdminOrders({ query = {} }) {
    */
   if (razorpayPaymentId?.trim()) {
     filter.razorpayPaymentId = String(razorpayPaymentId).trim();
+  }
+
+  /*
+   * Search filter by Order ID, Razorpay IDs, Student Name/Email, or Course Title
+   */
+  if (search?.trim()) {
+    const trimmedSearch = String(search).trim();
+    const searchRegex = new RegExp(trimmedSearch, "i");
+
+    const matchingUsers = await User.find({
+      $or: [{ fullName: searchRegex }, { email: searchRegex }],
+    }).select("_id").lean();
+
+    const userIds = matchingUsers.map((u) => u._id);
+
+    const searchConditions = [
+      { razorpayOrderId: searchRegex },
+      { razorpayPaymentId: searchRegex },
+      { "courses.title": searchRegex },
+    ];
+
+    if (userIds.length > 0) {
+      searchConditions.push({ student: { $in: userIds } });
+    }
+
+    if (mongoose.Types.ObjectId.isValid(trimmedSearch)) {
+      searchConditions.push({ _id: new mongoose.Types.ObjectId(trimmedSearch) });
+    }
+
+    filter.$or = searchConditions;
   }
 
   /*
