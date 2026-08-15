@@ -261,56 +261,61 @@ export default function CourseDetail() {
             </div>
           </div>
 
-          {/* Purchase Card */}
-          <div style={{
-            background: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-xl)',
-            overflow: 'hidden',
-            boxShadow: 'var(--shadow-lg)',
-          }}>
+          {/* Purchase / Enrolled Card */}
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xl transition-all">
             {course.thumbnailUrl && (
-              <img src={course.thumbnailUrl} alt={course.title} style={{ width: '100%', height: 200, objectFit: 'cover' }} />
-            )}
-            <div style={{ padding: '1.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', marginBottom: '1.25rem' }}>
-                {effectivePrice === 0 ? (
-                  <span style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-success)' }}>Free</span>
-                ) : (
-                  <>
-                    <span style={{ fontSize: '2rem', fontWeight: 800 }}>₹{effectivePrice}</span>
-                    {course.discountPrice !== null && course.discountPrice < course.price && (
-                      <span style={{ textDecoration: 'line-through', color: 'var(--text-muted)' }}>₹{course.price}</span>
-                    )}
-                  </>
-                )}
+              <div className="relative w-full h-48 sm:h-52 overflow-hidden bg-slate-950">
+                <img
+                  src={course.thumbnailUrl}
+                  alt={course.title}
+                  className="w-full h-full object-cover"
+                />
               </div>
+            )}
+            <div className="p-5 sm:p-6 space-y-5">
+              {!isEnrolled && !enrollment && (
+                <div className="flex items-baseline gap-2.5">
+                  {effectivePrice === 0 ? (
+                    <span className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                      Free
+                    </span>
+                  ) : (
+                    <>
+                      <span className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+                        ₹{effectivePrice}
+                      </span>
+                      {course.discountPrice !== null && course.discountPrice < course.price && (
+                        <span className="text-sm font-semibold line-through text-gray-400">
+                          ₹{course.price}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
 
               {isEnrolled || enrollment ? (
                 <a
                   href={`/learn/${course._id}`}
-                  className="btn btn-primary"
-                  style={{ width: '100%', justifyContent: 'center', marginBottom: '0.75rem' }}
+                  className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25 transition cursor-pointer text-sm"
                   id="go-to-course-btn"
                 >
                   <Play size={18} fill="white" /> Continue Learning
                 </a>
               ) : user?.role === 'student' || !user ? (
-                <>
+                <div className="space-y-2.5">
                   {effectivePrice === 0 ? (
                     <button
-                      className="btn btn-primary"
-                      style={{ width: '100%', justifyContent: 'center', marginBottom: '0.75rem' }}
+                      className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25 transition cursor-pointer text-sm"
                       onClick={handleFreeEnroll}
                       disabled={cartLoading}
                       id="free-enroll-btn"
                     >
-                      {cartLoading ? <div className="spinner spinner-sm" /> : <><Play size={18} /> Enroll for Free</>}
+                      {cartLoading ? <div className="spinner spinner-sm" /> : <><Play size={18} fill="white" /> Enroll for Free</>}
                     </button>
                   ) : (
                     <button
-                      className="btn btn-primary"
-                      style={{ width: '100%', justifyContent: 'center', marginBottom: '0.75rem' }}
+                      className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25 transition cursor-pointer text-sm"
                       onClick={handleAddToCart}
                       disabled={cartLoading}
                       id="add-to-cart-btn"
@@ -320,33 +325,42 @@ export default function CourseDetail() {
                   )}
                   {user ? (
                     <button
-                      className="btn btn-secondary"
-                      style={{ width: '100%', justifyContent: 'center' }}
+                      className="w-full py-2.5 px-4 rounded-2xl bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200 font-semibold flex items-center justify-center gap-2 transition cursor-pointer text-xs"
                       onClick={handleWishlist}
                       id="wishlist-btn"
                     >
-                      <Heart size={16} fill={isWishlisted ? 'var(--color-error)' : 'none'} color={isWishlisted ? 'var(--color-error)' : 'currentColor'} />
+                      <Heart size={15} fill={isWishlisted ? '#ef4444' : 'none'} color={isWishlisted ? '#ef4444' : 'currentColor'} />
                       {isWishlisted ? 'In Wishlist' : 'Add to Wishlist'}
                     </button>
                   ) : (
-                    <a href="/login" className="btn btn-ghost btn-sm" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}>
+                    <a
+                      href="/login"
+                      className="block text-center py-2 text-xs font-semibold text-purple-600 dark:text-purple-400 hover:underline"
+                    >
                       Login to access course options
                     </a>
                   )}
-                </>
+                </div>
               ) : null}
 
-              {/* Includes */}
-              <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+              {/* Includes Checklist */}
+              <div className="pt-5 border-t border-gray-100 dark:border-slate-800 space-y-2.5">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-400">
+                  This Course Includes:
+                </p>
                 {[
-                  `${course.totalLectures} on-demand lectures`,
-                  `${course.totalModules} course modules`,
+                  `${course.totalLectures || 0} on-demand lectures`,
+                  `${course.totalModules || 0} course modules`,
                   `${formatDuration(course.totalDurationInSeconds)} total content`,
                   'Full lifetime access',
-                  'Certificate of completion',
-                ].map(item => (
-                  <div key={item} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                    <CheckCircle size={14} color="var(--color-success)" /> {item}
+                  'Verified certificate of completion',
+                ].map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-2.5 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200"
+                  >
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>{item}</span>
                   </div>
                 ))}
               </div>
@@ -356,44 +370,57 @@ export default function CourseDetail() {
       </div>
 
       {/* Tabs Body */}
-      <div className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
-        <div className="tabs">
-          {['overview', 'curriculum', 'reviews'].map(t => (
-            <button key={t} className={`tab-btn ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)} id={`detail-tab-${t}`}>
-              {t.charAt(0).toUpperCase() + t.slice(1)}
+      <div className="container mx-auto px-4 py-8 sm:py-12">
+        <div className="flex border-b border-gray-200 dark:border-slate-800 mb-8 gap-2">
+          {['overview', 'curriculum', 'reviews'].map((t) => (
+            <button
+              key={t}
+              className={`px-5 py-2.5 font-bold text-xs sm:text-sm capitalize transition border-b-2 cursor-pointer ${
+                tab === t
+                  ? 'border-purple-600 text-purple-600 dark:text-purple-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+              }`}
+              onClick={() => setTab(t)}
+              id={`detail-tab-${t}`}
+            >
+              {t}
             </button>
           ))}
         </div>
 
         {/* Overview */}
         {tab === 'overview' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-xs sm:text-sm">
             {/* Description */}
-            <div>
-              <h3 style={{ marginBottom: '1rem' }}>About This Course</h3>
-              <p style={{ lineHeight: 1.8, whiteSpace: 'pre-line' }}>{course.description}</p>
+            <div className="space-y-3">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">About This Course</h3>
+              <p className="text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                {course.description}
+              </p>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div className="space-y-6">
               {/* Requirements */}
               {course.requirements?.length > 0 && (
-                <div>
-                  <h4 style={{ marginBottom: '0.75rem' }}>Requirements</h4>
-                  <ul style={{ paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {course.requirements.map((r, i) => <li key={i} style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>{r}</li>)}
+                <div className="space-y-2">
+                  <h4 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">Requirements</h4>
+                  <ul className="list-disc pl-5 space-y-1.5 text-gray-600 dark:text-gray-300">
+                    {course.requirements.map((r, i) => (
+                      <li key={i}>{r}</li>
+                    ))}
                   </ul>
                 </div>
               )}
 
               {/* Learning Outcomes */}
               {course.learningOutcomes?.length > 0 && (
-                <div>
-                  <h4 style={{ marginBottom: '0.75rem' }}>What You'll Learn</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div className="space-y-2">
+                  <h4 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">What You'll Learn</h4>
+                  <div className="space-y-2">
                     {course.learningOutcomes.map((o, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-                        <CheckCircle size={16} color="var(--color-success)" style={{ flexShrink: 0, marginTop: 2 }} />
-                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>{o}</span>
+                      <div key={i} className="flex items-start gap-2.5 text-gray-700 dark:text-gray-200">
+                        <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                        <span>{o}</span>
                       </div>
                     ))}
                   </div>

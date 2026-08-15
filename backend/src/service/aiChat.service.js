@@ -271,11 +271,13 @@ async function getConversationHistory(conversationId) {
  */
 
 function buildSystemPrompt({ hasCourse, hasLectureScope }) {
-  const markdownRule = `
-FORMATTING RULES:
-- ALWAYS format your response in clean, beautiful GitHub Flavored Markdown (MD).
-- Use clear section headers (###, ####), bold highlights (**text**), bullet points (- or 1.), and code blocks where helpful.
-- Keep paragraphs structured, readable, and visually engaging.`;
+  const languageAndMarkdownRules = `
+LANGUAGE & FORMATTING RULES:
+1. ALWAYS respond in clear English (or Hinglish if the user explicitly wrote the prompt in Hindi/Hinglish).
+2. STRICTLY FORBIDDEN: Do NOT output Chinese, Japanese, or any Asian script under any circumstances. All explanations, labels, notes, and citations MUST be in English.
+3. ALWAYS format your response in clean, beautiful GitHub Flavored Markdown (MD).
+4. Use clear section headers (###, ####), bold highlights (**text**), bullet points (- or 1.), and code blocks where helpful.
+5. Keep paragraphs structured, readable, and visually engaging.`;
 
   if (hasCourse) {
     return `
@@ -289,7 +291,7 @@ Rules:
 3. If the context contains specific syllabus details (e.g. project names, module topics, tools), extract and quote the exact items from the document.
 4. Keep answers clear, educational, and structured.
 5. When course sources are supplied, refer to them naturally.
-${markdownRule}
+${languageAndMarkdownRules}
 `.trim();
   }
 
@@ -298,7 +300,7 @@ You are an expert AI learning assistant inside VertexPortal LMS.
 
 Help the user understand concepts clearly, accurately, and comprehensively.
 
-${markdownRule}
+${languageAndMarkdownRules}
 `.trim();
 }
 
@@ -502,6 +504,7 @@ ${ragContext || "No specific sub-topics/transcripts matched this query. Please a
 
 CRITICAL INSTRUCTIONS:
 - You are the official AI Teaching Assistant for this course.
+- ALWAYS respond in English. Do NOT output Chinese characters or other non-Latin scripts.
 - If the retrieved course material contains information related to the question, you MUST base your answer directly on that material.
 - If asking about projects, curriculum, modules, or syllabus, list the EXACT project titles and topics from the uploaded document above rather than inventing generic examples.
 
