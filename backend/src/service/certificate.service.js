@@ -51,15 +51,17 @@ export async function issueCertificate({ studentId, courseId, enrollmentId }) {
     throw new ApiError(404, "Enrollment not found");
   }
 
-  if (enrollment.status !== "completed") {
+  const isCompleted =
+    enrollment.status === "completed" ||
+    (enrollment.totalLectures > 0 &&
+      enrollment.completedLecturesCount >= enrollment.totalLectures) ||
+    (enrollment.progressPercentage ?? 0) >= 99.9;
+
+  if (!isCompleted) {
     throw new ApiError(
       400,
       "Course must be completed before issuing certificate",
     );
-  }
-
-  if ((enrollment.progressPercentage ?? 0) < 100) {
-    throw new ApiError(400, "100% course progress is required for certificate");
   }
 
   /*
@@ -79,24 +81,15 @@ export async function issueCertificate({ studentId, courseId, enrollmentId }) {
     try {
       await dispatchNotification({
         userId: enrollment.student._id,
-
         title: "Certificate issued",
-
         message: `Your certificate for "${enrollment.course.title}" is now available.`,
-
         type: "certificate",
-
         resourceType: "certificate",
-
         resourceId: existingCertificate._id,
-
         courseId: enrollment.course._id,
-
         actionUrl: `${process.env.FRONTEND_URL || ""}/certificates`,
-
         metadata: {
           certificateNumber: existingCertificate.certificateNumber,
-
           verificationCode: existingCertificate.verificationCode,
         },
       });
@@ -122,7 +115,6 @@ export async function issueCertificate({ studentId, courseId, enrollmentId }) {
 
     for (let attempt = 0; attempt < 5; attempt += 1) {
       const generatedCertificateNumber = generateCertificateNumber();
-
       const generatedVerificationCode = generateVerificationCode();
 
       const duplicate = await Certificate.exists({
@@ -138,9 +130,7 @@ export async function issueCertificate({ studentId, courseId, enrollmentId }) {
 
       if (!duplicate) {
         certificateNumber = generatedCertificateNumber;
-
         verificationCode = generatedVerificationCode;
-
         break;
       }
     }
@@ -150,23 +140,25 @@ export async function issueCertificate({ studentId, courseId, enrollmentId }) {
     }
 
     const issuedAt = new Date();
+    const completedAt = enrollment.completedAt || issuedAt;
 
-    const frontendBase = (config.FRONTEND_URL || process.env.FRONTEND_URL || "https://vertex-mu-eight.vercel.app")
+    const rawFrontend =
+      config.FRONTEND_URL ||
+      process.env.FRONTEND_URL ||
+      "https://vertex-mu-eight.vercel.app";
+
+    const frontendBase = rawFrontend
       .split(",")[0]
       .trim()
-      .replace(/\/$/, "");
+      .replace(/\/+$/, "");
 
-    const verificationUrl = `${frontendBase}/verify-certificate/${verificationCode}`;
+    const verificationUrl = `${frontendBase}/certificates/verify/${verificationCode}`;
 
     const pdfBuffer = await generateCertificatePdf({
       certificateNumber,
-
       studentName: enrollment.student.fullName,
-
       courseTitle: enrollment.course.title,
-
       instructorName: enrollment.course.instructor?.fullName || "",
-
       completedAt,
       issuedAt,
       verificationCode,
@@ -180,29 +172,18 @@ export async function issueCertificate({ studentId, courseId, enrollmentId }) {
 
     const certificate = await Certificate.create({
       certificateNumber,
-
       student: enrollment.student._id,
-
       course: enrollment.course._id,
-
       enrollment: enrollment._id,
-
       studentName: enrollment.student.fullName,
-
       courseTitle: enrollment.course.title,
-
       instructorName: enrollment.course.instructor?.fullName || "",
-
-      completionPercentage: enrollment.progressPercentage,
-
+      completionPercentage: enrollment.progressPercentage || 100,
       completedAt,
       issuedAt,
-
       certificateUrl,
       certificateFileId,
-
       verificationCode,
-
       status: "issued",
     });
 
@@ -252,9 +233,7 @@ export async function issueCertificate({ studentId, courseId, enrollmentId }) {
 
         return {
           certificate: existingCertificate,
-
           created: false,
-
           message: "Certificate has already been issued",
         };
       }
@@ -268,8 +247,50 @@ export async function issueCertificate({ studentId, courseId, enrollmentId }) {
     throw error;
   }
 }
+
 export async function getMyCertificates(studentId) {
   validateObjectId(studentId, "student ID");
+
+  // Auto-heal missing certificates for completed courses
+  try {
+    const completedEnrollments = await Enrollment.find({
+      student: studentId,
+      $or: [
+        { status: "completed" },
+        { progressPercentage: { $gte: 99.9 } },
+        { certificateStatus: { $in: ["pending", "failed"] } },
+      ],
+    }).lean();
+
+    for (const enr of completedEnrollments) {
+      const isEligible =
+        enr.status === "completed" || (enr.progressPercentage ?? 0) >= 99.9;
+
+      if (isEligible) {
+        const certExists = await Certificate.exists({
+          student: studentId,
+          course: enr.course,
+        });
+
+        if (!certExists) {
+          try {
+            await issueCertificate({
+              studentId: studentId.toString(),
+              courseId: enr.course.toString(),
+              enrollmentId: enr._id.toString(),
+            });
+          } catch (issueErr) {
+            console.error(
+              `Auto-issue certificate failed for enrollment ${enr._id}:`,
+              issueErr.message || issueErr,
+            );
+          }
+        }
+      }
+    }
+  } catch (syncErr) {
+    console.error("Error auto-issuing missing certificates:", syncErr);
+  }
 
   const certificates = await Certificate.find({
     student: studentId,
@@ -1163,9 +1184,17 @@ export async function regenerateCertificatePdf(certificateId) {
     throw new ApiError(400, "Revoked certificate PDF cannot be regenerated");
   }
 
-  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+  const rawFrontend =
+    config.FRONTEND_URL ||
+    process.env.FRONTEND_URL ||
+    "https://vertex-mu-eight.vercel.app";
 
-  const verificationUrl = `${frontendUrl}/certificates/verify/${certificate.verificationCode}`;
+  const frontendBase = rawFrontend
+    .split(",")[0]
+    .trim()
+    .replace(/\/+$/, "");
+
+  const verificationUrl = `${frontendBase}/certificates/verify/${certificate.verificationCode}`;
 
   const pdfBuffer = await generateCertificatePdf({
     certificateNumber: certificate.certificateNumber,

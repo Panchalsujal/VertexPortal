@@ -126,6 +126,7 @@ export const updateWatchTimeController = asyncHandler(async (req, res) => {
   const session = await mongoose.startSession();
 
   let responseData;
+  let completionResult = null;
 
   try {
     await session.withTransaction(async () => {
@@ -202,7 +203,6 @@ export const updateWatchTimeController = asyncHandler(async (req, res) => {
             )
           : 0;
 
-      let completionResult = null;
       let autoCompletedNow = false;
 
       if (currentWatchedPercentage >= 95 && !lectureProgress.isCompleted) {
@@ -261,6 +261,17 @@ export const updateWatchTimeController = asyncHandler(async (req, res) => {
         autoCompletedNow,
       };
     });
+
+    if (
+      completionResult?.shouldIssueCertificate &&
+      completionResult.certificateData
+    ) {
+      try {
+        await issueCertificate(completionResult.certificateData);
+      } catch (error) {
+        console.error("Automatic certificate issue from watch update failed:", error);
+      }
+    }
 
     return res.status(200).json({
       success: true,

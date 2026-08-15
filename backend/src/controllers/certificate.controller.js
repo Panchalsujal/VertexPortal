@@ -1,4 +1,5 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { config } from "../config/config.js";
 
 import {
   getMyCertificates,
@@ -79,11 +80,17 @@ export const downloadMyCertificateController = asyncHandler(
 
     // Dynamically render fresh executive PDF certificate
     try {
-      const frontendBase = (config.FRONTEND_URL || process.env.FRONTEND_URL || "https://vertex-mu-eight.vercel.app")
+      const rawFrontend =
+        config.FRONTEND_URL ||
+        process.env.FRONTEND_URL ||
+        "https://vertex-mu-eight.vercel.app";
+
+      const frontendBase = rawFrontend
         .split(",")[0]
         .trim()
-        .replace(/\/$/, "");
-      const verificationUrl = `${frontendBase}/verify-certificate/${result.verificationCode}`;
+        .replace(/\/+$/, "");
+
+      const verificationUrl = `${frontendBase}/certificates/verify/${result.verificationCode}`;
 
       const pdfBuffer = await generateCertificatePdf({
         certificateNumber: result.certificateNumber,

@@ -322,7 +322,7 @@ export async function generateCertificatePdf({
         .font("Helvetica")
         .fontSize(7)
         .text(
-          `For certificate authentication please visit: ${verificationUrl || "https://vertex-mu-eight.vercel.app/verify-certificate"}`,
+          `For certificate authentication please visit: ${verificationUrl || "https://vertex-mu-eight.vercel.app/certificates/verify"}`,
           0,
           514,
           {
