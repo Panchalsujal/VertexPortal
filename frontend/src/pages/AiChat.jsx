@@ -70,86 +70,129 @@ function CodeBlock({ children, className }) {
   );
 }
 
-// Render markdown stream content with smooth visible Typewriter animation
+// ─── Markdown component config (stable reference — defined outside component) ─
+const MD_COMPONENTS = {
+  h1: (props) => <h1 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mt-4 mb-2 pb-1 border-b border-gray-100 dark:border-gray-800" {...props} />,
+  h2: (props) => <h2 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white mt-3 mb-1.5" {...props} />,
+  h3: (props) => <h3 className="text-xs sm:text-sm font-bold text-purple-700 dark:text-purple-300 mt-2.5 mb-1" {...props} />,
+  p: ({ node, children, ...props }) => <div className="mb-2.5 last:mb-0 leading-relaxed text-gray-800 dark:text-gray-200" {...props}>{children}</div>,
+  strong: (props) => <strong className="font-bold text-purple-950 dark:text-purple-200 bg-purple-50/70 dark:bg-purple-950/40 px-1 py-0.5 rounded" {...props} />,
+  em: (props) => <em className="italic text-purple-600 dark:text-purple-400" {...props} />,
+  ul: (props) => <ul className="list-disc pl-5 mb-3 space-y-1.5 text-gray-800 dark:text-gray-200" {...props} />,
+  ol: (props) => <ol className="list-decimal pl-5 mb-3 space-y-1.5 text-gray-800 dark:text-gray-200" {...props} />,
+  li: (props) => <li className="leading-relaxed" {...props} />,
+  code: ({ inline, className, children, ...props }) =>
+    inline ? (
+      <code className="bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-mono px-1.5 py-0.5 rounded-md font-semibold border border-purple-200/60 dark:border-purple-800/60" {...props}>
+        {children}
+      </code>
+    ) : (
+      <CodeBlock className={className}>{children}</CodeBlock>
+    ),
+  blockquote: (props) => (
+    <blockquote className="border-l-4 border-purple-500 pl-3.5 italic my-3 text-gray-600 dark:text-gray-300 bg-purple-50/40 dark:bg-purple-950/20 py-2 rounded-r-xl" {...props} />
+  ),
+  table: (props) => (
+    <div className="overflow-x-auto my-4 rounded-2xl border border-gray-200 dark:border-gray-700/80 shadow-sm bg-white dark:bg-gray-900">
+      <table className="w-full text-left border-collapse text-xs sm:text-sm" {...props} />
+    </div>
+  ),
+  thead: (props) => <thead className="bg-purple-50/70 dark:bg-purple-950/40 border-b border-gray-200 dark:border-gray-700 text-purple-950 dark:text-purple-200 font-bold" {...props} />,
+  th: (props) => <th className="px-4 py-3 font-bold text-xs uppercase tracking-wider text-gray-700 dark:text-gray-300 border-r border-gray-200/60 dark:border-gray-700/60 last:border-r-0" {...props} />,
+  td: (props) => <td className="px-4 py-2.5 border-t border-r border-gray-100 dark:border-gray-800/60 last:border-r-0 text-gray-700 dark:text-gray-200" {...props} />,
+  tr: (props) => <tr className="hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors" {...props} />,
+  hr: (props) => <hr className="my-4 border-gray-200 dark:border-gray-800" {...props} />,
+};
+
+/**
+ * FormattedMarkdown — renders markdown with an append-only typewriter effect.
+ *
+ * KEY FIX: we track `typedRef.current` (how many chars we've typed so far)
+ * and only schedule new intervals when fresh content arrives beyond what we
+ * already typed.  This prevents the re-start-from-zero bug when `content`
+ * grows incrementally during streaming, and stops the input from blurring.
+ */
 function FormattedMarkdown({ content = '', animate = false, onComplete }) {
   const [displayedText, setDisplayedText] = useState(() => (animate ? '' : content));
-  const [isTyping, setIsTyping] = useState(() => animate && Boolean(content));
+  const [isTyping, setIsTyping]           = useState(() => animate && Boolean(content));
+
+  // How many characters we've already typed — persists across content updates
+  const typedRef     = useRef(animate ? 0 : content.length);
+  const intervalRef  = useRef(null);
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => { onCompleteRef.current = onComplete; });
 
   useEffect(() => {
-    if (!animate || !content) {
+    // Non-animated: just display immediately
+    if (!animate) {
+      setDisplayedText(content);
+      setIsTyping(false);
+      typedRef.current = content.length;
+      return;
+    }
+
+    if (!content) return;
+
+    const totalLength = content.length;
+
+    // Nothing new to type (already fully displayed)
+    if (typedRef.current >= totalLength) {
       setDisplayedText(content);
       setIsTyping(false);
       return;
     }
 
-    setDisplayedText('');
+    // Start / continue the typewriter from where we left off
     setIsTyping(true);
+    const step = 4; // chars per tick
 
-    let currentIndex = 0;
-    const totalLength = content.length;
-    // Smooth typing cadence: 3 characters every 18ms
-    const step = 3;
+    // Clear any previous interval before starting a new one
+    if (intervalRef.current) clearInterval(intervalRef.current);
 
-    const interval = setInterval(() => {
-      currentIndex += step;
-      if (currentIndex >= totalLength) {
+    intervalRef.current = setInterval(() => {
+      typedRef.current += step;
+      if (typedRef.current >= totalLength) {
+        typedRef.current = totalLength;
         setDisplayedText(content);
         setIsTyping(false);
-        onComplete?.();
-        clearInterval(interval);
+        onCompleteRef.current?.();
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       } else {
-        setDisplayedText(content.slice(0, currentIndex));
+        // Only slice from content — never restart from 0
+        setDisplayedText(content.slice(0, typedRef.current));
       }
-    }, 18);
+    }, 16);
 
-    return () => clearInterval(interval);
-  }, [content, animate, onComplete]);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  // We deliberately exclude onComplete from deps — we use a ref for it
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [content, animate]);
 
   const handleSkipTypewriter = () => {
     if (isTyping) {
+      if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+      typedRef.current = content.length;
       setDisplayedText(content);
       setIsTyping(false);
-      onComplete?.();
+      onCompleteRef.current?.();
     }
   };
 
   return (
-    <div className="prose dark:prose-invert max-w-none text-xs sm:text-sm leading-relaxed">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-          h1: (props) => <h1 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mt-4 mb-2 pb-1 border-b border-gray-100 dark:border-gray-800" {...props} />,
-          h2: (props) => <h2 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white mt-3 mb-1.5" {...props} />,
-          h3: (props) => <h3 className="text-xs sm:text-sm font-bold text-purple-700 dark:text-purple-300 mt-2.5 mb-1" {...props} />,
-          p: ({ node, children, ...props }) => <div className="mb-2.5 last:mb-0 leading-relaxed text-gray-800 dark:text-gray-200" {...props}>{children}</div>,
-          strong: (props) => <strong className="font-bold text-purple-950 dark:text-purple-200 bg-purple-50/70 dark:bg-purple-950/40 px-1 py-0.5 rounded" {...props} />,
-          em: (props) => <em className="italic text-purple-600 dark:text-purple-400" {...props} />,
-          ul: (props) => <ul className="list-disc pl-5 mb-3 space-y-1.5 text-gray-800 dark:text-gray-200" {...props} />,
-          ol: (props) => <ol className="list-decimal pl-5 mb-3 space-y-1.5 text-gray-800 dark:text-gray-200" {...props} />,
-          li: (props) => <li className="leading-relaxed" {...props} />,
-          code: ({ inline, className, children, ...props }) =>
-            inline ? (
-              <code className="bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-mono px-1.5 py-0.5 rounded-md font-semibold border border-purple-200/60 dark:border-purple-800/60" {...props}>
-                {children}
-              </code>
-            ) : (
-              <CodeBlock className={className}>{children}</CodeBlock>
-            ),
-          blockquote: (props) => (
-            <blockquote className="border-l-4 border-purple-500 pl-3.5 italic my-3 text-gray-600 dark:text-gray-300 bg-purple-50/40 dark:bg-purple-950/20 py-2 rounded-r-xl" {...props} />
-          ),
-          table: (props) => (
-            <div className="overflow-x-auto my-4 rounded-2xl border border-gray-200 dark:border-gray-700/80 shadow-sm bg-white dark:bg-gray-900">
-              <table className="w-full text-left border-collapse text-xs sm:text-sm" {...props} />
-            </div>
-          ),
-          thead: (props) => <thead className="bg-purple-50/70 dark:bg-purple-950/40 border-b border-gray-200 dark:border-gray-700 text-purple-950 dark:text-purple-200 font-bold" {...props} />,
-          th: (props) => <th className="px-4 py-3 font-bold text-xs uppercase tracking-wider text-gray-700 dark:text-gray-300 border-r border-gray-200/60 dark:border-gray-700/60 last:border-r-0" {...props} />,
-          td: (props) => <td className="px-4 py-2.5 border-t border-r border-gray-100 dark:border-gray-800/60 last:border-r-0 text-gray-700 dark:text-gray-200" {...props} />,
-          tr: (props) => <tr className="hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors" {...props} />,
-          hr: (props) => <hr className="my-4 border-gray-200 dark:border-gray-800" {...props} />,
-        }}
-      >
+    // Clicking the typing response skips to full text instantly
+    <div
+      className="prose dark:prose-invert max-w-none text-xs sm:text-sm leading-relaxed"
+      onClick={handleSkipTypewriter}
+      style={isTyping ? { cursor: 'pointer' } : undefined}
+      title={isTyping ? 'Click to skip animation' : undefined}
+    >
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={MD_COMPONENTS}>
         {displayedText}
       </ReactMarkdown>
       {isTyping && (
@@ -159,12 +202,91 @@ function FormattedMarkdown({ content = '', animate = false, onComplete }) {
   );
 }
 
+/**
+ * ChatMessage — memoized so that previously-sent messages do NOT re-render
+ * while the latest AI message is streaming.  This prevents input focus loss.
+ */
+const ChatMessage = React.memo(function ChatMessage({
+  message: m, isAssistant, isAnimating, sources, copiedMsgId, msgIdx, onCopy, onAnimationComplete,
+}) {
+  return (
+    <div className={`flex items-start gap-2 sm:gap-3.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+      {isAssistant && (
+        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5 sm:mt-1">
+          <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+        </div>
+      )}
+
+      <div className={`max-w-[94%] sm:max-w-[85%] space-y-1.5 ${m.role === 'user' ? 'items-end' : ''}`}>
+        <div
+          className={`p-3 sm:p-4 text-xs sm:text-sm leading-relaxed ${
+            m.role === 'user'
+              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl sm:rounded-3xl rounded-tr-none shadow-xs font-medium'
+              : 'bg-white dark:bg-[#131b2a] border border-gray-200/80 dark:border-gray-800 rounded-2xl sm:rounded-3xl rounded-tl-none shadow-xs text-gray-800 dark:text-gray-100'
+          }`}
+        >
+          {m.role === 'user' ? (
+            <p className="whitespace-pre-wrap leading-relaxed">{m.content}</p>
+          ) : (
+            <FormattedMarkdown
+              content={m.content}
+              animate={isAnimating}
+              onComplete={onAnimationComplete}
+            />
+          )}
+        </div>
+
+        {/* Citations / Sources */}
+        {isAssistant && sources.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5 pl-1">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Sources:</span>
+            {sources.map((s, sIdx) => (
+              <span
+                key={sIdx}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800"
+              >
+                <BookOpenIcon size={11} color="#6C5CE7" />
+                <span>{s.title || `Lecture Resource #${s.sourceIndex || sIdx + 1}`}</span>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Copy Action */}
+        {isAssistant && (
+          <div className="flex items-center gap-2 pl-1">
+            <button
+              type="button"
+              onClick={() => onCopy(m.content, msgIdx)}
+              className="text-[11px] text-gray-400 hover:text-purple-600 flex items-center gap-1 transition p-0.5 cursor-pointer"
+              title="Copy message"
+            >
+              {copiedMsgId === msgIdx ? (
+                <><Check className="w-3 h-3 text-emerald-500" /><span className="text-emerald-500 font-semibold">Copied</span></>
+              ) : (
+                <><Copy className="w-3 h-3" /><span>Copy</span></>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {m.role === 'user' && (
+        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gray-900 dark:bg-gray-700 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5 sm:mt-1">
+          <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+        </div>
+      )}
+    </div>
+  );
+});
+
 const INSPIRATION_PROMPTS = [
   { label: 'Summarize Key Topics', prompt: 'Please provide a clear, comprehensive summary of the main topics in this course.', icon: BookOpenIcon },
   { label: 'Generate Practice Quiz', prompt: 'Generate 5 multiple-choice practice quiz questions with detailed explanations for each answer.', icon: SparklesIcon },
   { label: 'Explain with Analogies', prompt: 'Explain the most complex and difficult concepts of this subject using simple everyday analogies.', icon: Lightbulb },
   { label: 'Exam Study Guide', prompt: 'Create a structured 7-day study plan and revision checklist to prepare for my upcoming exam.', icon: GraduationCap },
 ];
+
 
 export default function AiChat() {
   const dispatch = useAppDispatch();
@@ -572,91 +694,28 @@ export default function AiChat() {
               const isAssistant = m.role === 'assistant' || m.role === 'ai';
               const isLatest = isAssistant && idx === messages.length - 1;
               const sources = m.sources || m.metadata?.sources || [];
+              const isAnimating = Boolean(
+                animatingMsgId &&
+                  (animatingMsgId === m._id ||
+                    animatingMsgId === m.id ||
+                    (animatingMsgId === 'latest-response' && isLatest))
+              );
 
               return (
-                <div
+                // React.memo-like key stability: use a stable key so React
+                // never unmounts/remounts previous messages while the last
+                // one streams. This keeps the input focused during streaming.
+                <ChatMessage
                   key={m._id || m.id || `msg-${idx}`}
-                  className={`flex items-start gap-2 sm:gap-3.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  {isAssistant && (
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5 sm:mt-1">
-                      <BrainIcon size={14} color="white" />
-                    </div>
-                  )}
-
-                  <div className={`max-w-[94%] sm:max-w-[85%] space-y-1.5 ${m.role === 'user' ? 'items-end' : ''}`}>
-                    <div
-                      className={`p-3 sm:p-4 text-xs sm:text-sm leading-relaxed ${
-                        m.role === 'user'
-                          ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl sm:rounded-3xl rounded-tr-none shadow-xs font-medium'
-                          : 'bg-white dark:bg-[#131b2a] border border-gray-200/80 dark:border-gray-800 rounded-2xl sm:rounded-3xl rounded-tl-none shadow-xs text-gray-800 dark:text-gray-100'
-                      }`}
-                    >
-                      {m.role === 'user' ? (
-                        <p className="whitespace-pre-wrap leading-relaxed">{m.content}</p>
-                      ) : (
-                        <FormattedMarkdown
-                          content={m.content}
-                          animate={Boolean(
-                            animatingMsgId &&
-                              (animatingMsgId === m._id ||
-                                animatingMsgId === m.id ||
-                                (animatingMsgId === 'latest-response' && isLatest))
-                          )}
-                          onComplete={() => setAnimatingMsgId(null)}
-                        />
-                      )}
-                    </div>
-
-                    {/* Citations / Sources */}
-                    {isAssistant && sources.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-1.5 pl-1">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                          Sources:
-                        </span>
-                        {sources.map((s, sIdx) => (
-                          <span
-                            key={sIdx}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800"
-                          >
-                            <BookOpenIcon size={11} color="#6C5CE7" />
-                            <span>{s.title || `Lecture Resource #${s.sourceIndex || sIdx + 1}`}</span>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Copy Action */}
-                    {isAssistant && (
-                      <div className="flex items-center gap-2 pl-1">
-                        <button
-                          type="button"
-                          onClick={() => handleCopyMessage(m.content, idx)}
-                          className="text-[11px] text-gray-400 hover:text-purple-600 flex items-center gap-1 transition p-0.5 cursor-pointer"
-                          title="Copy message"
-                        >
-                          {copiedMsgId === idx ? (
-                            <>
-                              <Check className="w-3 h-3 text-emerald-500" />
-                              <span className="text-emerald-500 font-semibold">Copied</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3 h-3" />
-                              <span>Copy</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {m.role === 'user' && (
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gray-900 dark:bg-gray-700 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5 sm:mt-1">
-                      <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    </div>
-                  )}
-                </div>
+                  message={m}
+                  isAssistant={isAssistant}
+                  isAnimating={isAnimating}
+                  sources={sources}
+                  copiedMsgId={copiedMsgId}
+                  msgIdx={idx}
+                  onCopy={handleCopyMessage}
+                  onAnimationComplete={() => setAnimatingMsgId(null)}
+                />
               );
             })}
 
