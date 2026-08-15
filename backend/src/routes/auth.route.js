@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   registerController,
   loginController,
+  googleAuthController,
   getMeController,
   logoutController,
   verifyEmailController,
@@ -28,6 +29,13 @@ router.post("/register", registerValidator, registerController);
  * @Api /api/auth/login
  */
 router.post("/login", loginValidator, loginController);
+
+/**
+ * @access Public
+ * @desc Google OAuth2 One-Tap / Sign-in
+ * @Api /api/auth/google
+ */
+router.post("/google", googleAuthController);
 
 /**
  *  @access Private

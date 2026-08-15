@@ -8,6 +8,7 @@ import {
   updateAiConversationArchive,
   deleteAiConversation,
 } from "../service/aiAssistant.service.js";
+import { generateQuizWithAi } from "../service/aiQuizGenerator.service.js";
 
 export const createAiConversationController = asyncHandler(async (req, res) => {
   const conversation = await createAiConversation({
@@ -111,3 +112,22 @@ export const deleteAiConversationController = asyncHandler(async (req, res) => {
     conversationId: result.conversationId,
   });
 });
+
+export const generateQuizWithAiController = asyncHandler(async (req, res) => {
+  const { topic, count, difficulty } = req.body || {};
+
+  const questions = await generateQuizWithAi({
+    topic,
+    count,
+    difficulty,
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "AI Quiz questions generated successfully",
+    count: questions.length,
+    questions,
+  });
+});
+
+

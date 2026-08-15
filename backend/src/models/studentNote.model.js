@@ -50,6 +50,11 @@ const studentNoteSchema = new mongoose.Schema(
       index: true,
     },
 
+    timestampInSeconds: {
+      type: Number,
+      default: null,
+    },
+
     isActive: {
       type: Boolean,
       default: true,

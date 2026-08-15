@@ -50,6 +50,7 @@ import AdminAuditLogs from './pages/admin/AdminAuditLogs';
 import AdminReviews from './pages/admin/AdminReviews';
 import AdminNotes from './pages/admin/AdminNotes';
 import AdminLiveAttendance from './pages/admin/AdminLiveAttendance';
+import CodePlayground from './pages/CodePlayground';
 
 // ─── Protected Route ─────────────────────────────────────────────────────────
 function ProtectedRoute({ children, allowedRoles }) {
@@ -118,6 +119,7 @@ function AppRoot() {
           <Route path="/" element={<Home />} />
           <Route path="/courses" element={<Courses />} />
           <Route path="/courses/:slug" element={<CourseDetail />} />
+          <Route path="/playground" element={<CodePlayground />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-email/:userId/:token" element={<VerifyEmail />} />

@@ -19,9 +19,10 @@ import {
 } from '../../api/instructor.api';
 import { Spinner, SkeletonFeed } from '../../components/ui/Spinner';
 import { Modal } from '../../components/ui/Modal';
+import { generateQuizWithAi } from '../../api/ai.api';
 import {
   HelpCircle, Plus, Trash2, Edit3, Globe, EyeOff,
-  Users, ChevronLeft, CheckCircle, XCircle, Clock, Award
+  Users, ChevronLeft, CheckCircle, XCircle, Clock, Award, Sparkles, Wand2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -53,6 +54,16 @@ export default function InstructorQuizzes() {
     options: [{ text: '', isCorrect: true }, { text: '', isCorrect: false }],
     marks: 1,
   });
+
+  // ── AI Quiz Generator ──────────────────────────────────────────────────────
+  const [aiModalOpen, setAiModalOpen]             = useState(false);
+  const [selectedQuizForAi, setSelectedQuizForAi] = useState(null);
+  const [aiTopic, setAiTopic]                     = useState('');
+  const [aiCount, setAiCount]                     = useState(5);
+  const [aiDifficulty, setAiDifficulty]           = useState('medium');
+  const [generatingAi, setGeneratingAi]           = useState(false);
+  const [importingAi, setImportingAi]             = useState(false);
+  const [generatedQuestions, setGeneratedQuestions] = useState([]);
 
   // ── Submissions view ───────────────────────────────────────────────────────
   const [view, setView]                     = useState('list');   // 'list' | 'attempts' | 'attempt-detail'
@@ -116,6 +127,58 @@ export default function InstructorQuizzes() {
       setQuestionModalOpen(false);
       dispatch(fetchInstructorQuizzes());
     } catch (err) { toast.error(err.response?.data?.message || err.message); }
+  };
+
+  // ── Handlers: AI Quiz Generation ──────────────────────────────────────────
+  const openAiGenerator = (quiz) => {
+    setSelectedQuizForAi(quiz);
+    setAiTopic(quiz.title || '');
+    setGeneratedQuestions([]);
+    setAiModalOpen(true);
+  };
+
+  const handleGenerateAiQuestions = async (e) => {
+    e.preventDefault();
+    if (!aiTopic.trim()) return;
+    setGeneratingAi(true);
+    try {
+      const res = await generateQuizWithAi({
+        topic: aiTopic.trim(),
+        count: Number(aiCount) || 5,
+        difficulty: aiDifficulty,
+      });
+      const qList = res.data?.questions || res.data?.data?.questions || [];
+      setGeneratedQuestions(Array.isArray(qList) ? qList : []);
+      toast.success(`Generated ${qList.length} questions with AI!`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to generate AI questions');
+    } finally {
+      setGeneratingAi(false);
+    }
+  };
+
+  const handleImportAiQuestions = async () => {
+    if (!selectedQuizForAi || generatedQuestions.length === 0) return;
+    setImportingAi(true);
+    try {
+      for (const q of generatedQuestions) {
+        await addQuizQuestion(selectedQuizForAi._id, {
+          questionText: q.questionText,
+          questionType: 'single_choice',
+          options: q.options,
+          marks: q.points || 1,
+          explanation: q.explanation || '',
+        });
+      }
+      toast.success(`Imported ${generatedQuestions.length} questions to ${selectedQuizForAi.title}!`);
+      setAiModalOpen(false);
+      setGeneratedQuestions([]);
+      dispatch(fetchInstructorQuizzes());
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to import some questions');
+    } finally {
+      setImportingAi(false);
+    }
   };
 
   // ── Handlers: Submissions ─────────────────────────────────────────────────
@@ -304,11 +367,12 @@ export default function InstructorQuizzes() {
           ) : answers.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {answers.map((ans, idx) => {
-                // Answer shape: { _id, question:{questionText,questionType,marks}, response:{answerText,selectedOptionIds,isAnswered}, evaluation:{isCorrect,marksAwarded,maxMarks,evaluatedAt,evaluatorComment} }
                 const needsManualMark = ans.question?.questionType === 'short_answer' && !ans.evaluation?.evaluatedAt;
+                const selIds = (ans.response?.selectedOptionIds || ans.selectedOptionIds || []).map(String);
                 const studentAnswer = ans.response?.answerText ||
-                  (ans.response?.selectedOptionIds?.length
-                    ? ans.question?.options?.filter(o => ans.response.selectedOptionIds.includes(String(o._id))).map(o => o.text).join(', ')
+                  ans.answerText ||
+                  (selIds.length && ans.question?.options?.length
+                    ? ans.question.options.filter(o => selIds.includes(String(o._id))).map(o => o.text).join(', ')
                     : null) || '(no answer)';
                 return (
                   <div key={ans._id} className="glass-card" style={{ padding: '1.25rem', borderLeft: `3px solid ${ans.evaluation?.isCorrect === true ? 'var(--color-success)' : ans.evaluation?.isCorrect === false ? 'var(--color-error)' : 'var(--color-border)'}` }}>
@@ -364,10 +428,14 @@ export default function InstructorQuizzes() {
             <div style={{ background: 'var(--color-bg-secondary)', padding: '0.75rem', borderRadius: 'var(--radius-md)', fontSize: '0.875rem' }}>
               <p style={{ fontWeight: 600, marginBottom: '0.375rem' }}>{evalAnswer?.question?.questionText}</p>
               <p style={{ color: 'var(--text-muted)' }}>
-                Student: <strong>{evalAnswer?.response?.answerText ||
-                  (evalAnswer?.response?.selectedOptionIds?.length
-                    ? evalAnswer?.question?.options?.filter(o => evalAnswer.response.selectedOptionIds.includes(String(o._id))).map(o => o.text).join(', ')
-                    : null) || '(no answer)'}</strong>
+                Student: <strong>{(() => {
+                  const sIds = (evalAnswer?.response?.selectedOptionIds || evalAnswer?.selectedOptionIds || []).map(String);
+                  return evalAnswer?.response?.answerText ||
+                    evalAnswer?.answerText ||
+                    (sIds.length && evalAnswer?.question?.options?.length
+                      ? evalAnswer.question.options.filter(o => sIds.includes(String(o._id))).map(o => o.text).join(', ')
+                      : null) || '(no answer)';
+                })()}</strong>
               </p>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>
                 Max marks: {evalAnswer?.evaluation?.maxMarks ?? evalAnswer?.question?.marks ?? '—'}
@@ -484,8 +552,18 @@ export default function InstructorQuizzes() {
                   </button>
 
                   {/* Add Question */}
-                  <button className="btn btn-ghost btn-sm" onClick={() => { setSelectedQuizForQ(quiz); setQuestionModalOpen(true); }}>
+                  <button className="btn btn-ghost btn-sm" onClick={() => { setSelectedQuizForQ(quiz); setQuestionModalOpen(true); }} title="Add Question">
                     <Plus size={14} />
+                  </button>
+
+                  {/* AI Quiz Generator */}
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    style={{ color: 'var(--color-primary-light)' }}
+                    onClick={() => openAiGenerator(quiz)}
+                    title="⚡ Generate Questions with AI"
+                  >
+                    <Sparkles size={14} />
                   </button>
 
                   {/* Edit */}
@@ -615,6 +693,98 @@ export default function InstructorQuizzes() {
           </div>
           <button type="submit" className="btn btn-primary" style={{ justifyContent: 'center' }}>Save Question</button>
         </form>
+      </Modal>
+
+      {/* ── AI QUIZ GENERATOR MODAL ── */}
+      <Modal isOpen={aiModalOpen} onClose={() => setAiModalOpen(false)} title={`⚡ AI Quiz Generator — ${selectedQuizForAi?.title || ''}`}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <form onSubmit={handleGenerateAiQuestions} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className="input-group">
+              <label className="input-label">Topic or Lecture Content *</label>
+              <textarea
+                className="input-field"
+                rows={3}
+                placeholder="e.g. React Hooks, JavaScript Event Loop, Python Data Structures..."
+                value={aiTopic}
+                onChange={(e) => setAiTopic(e.target.value)}
+                required
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="input-group">
+                <label className="input-label">Number of Questions</label>
+                <select
+                  className="input-field"
+                  value={aiCount}
+                  onChange={(e) => setAiCount(Number(e.target.value))}
+                >
+                  <option value={3}>3 Questions</option>
+                  <option value={5}>5 Questions</option>
+                  <option value={10}>10 Questions</option>
+                </select>
+              </div>
+              <div className="input-group">
+                <label className="input-label">Difficulty Level</label>
+                <select
+                  className="input-field"
+                  value={aiDifficulty}
+                  onChange={(e) => setAiDifficulty(e.target.value)}
+                >
+                  <option value="easy">Beginner / Easy</option>
+                  <option value="medium">Intermediate / Medium</option>
+                  <option value="hard">Advanced / Hard</option>
+                </select>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="btn btn-primary"
+              style={{ justifyContent: 'center' }}
+              disabled={generatingAi || !aiTopic.trim()}
+            >
+              {generatingAi ? <Spinner /> : <><Sparkles size={16} /> Generate Questions with AI</>}
+            </button>
+          </form>
+
+          {/* Generated Preview & Import */}
+          {generatedQuestions.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: '1px solid var(--color-border)', paddingTop: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h4 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Generated Preview ({generatedQuestions.length} Questions)</h4>
+                <button
+                  type="button"
+                  className="btn btn-success btn-sm"
+                  onClick={handleImportAiQuestions}
+                  disabled={importingAi}
+                >
+                  {importingAi ? <Spinner /> : <><CheckCircle size={14} /> Import All to Quiz</>}
+                </button>
+              </div>
+
+              <div style={{ maxHeight: '300px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {generatedQuestions.map((q, idx) => (
+                  <div key={idx} className="glass-card" style={{ padding: '0.85rem', fontSize: '0.8125rem' }}>
+                    <p style={{ fontWeight: 600, marginBottom: '0.35rem' }}>Q{idx + 1}. {q.questionText}</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem', color: 'var(--text-muted)' }}>
+                      {q.options?.map((opt, oIdx) => (
+                        <div key={oIdx} style={{ color: opt.isCorrect ? 'var(--color-success)' : 'inherit', fontWeight: opt.isCorrect ? 600 : 400 }}>
+                          {opt.isCorrect ? '✓ ' : '• '}{opt.text}
+                        </div>
+                      ))}
+                    </div>
+                    {q.explanation && (
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.35rem', fontStyle: 'italic' }}>
+                        💡 {q.explanation}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </Modal>
     </div>
   );

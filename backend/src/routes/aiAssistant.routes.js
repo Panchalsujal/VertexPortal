@@ -7,6 +7,7 @@ import {
   renameAiConversationController,
   updateAiConversationArchiveController,
   deleteAiConversationController,
+  generateQuizWithAiController,
 } from "../controllers/aiAssistant.controller.js";
 
 import { generateAiAnswerController } from "../controllers/aiChat.controller.js";
@@ -99,5 +100,18 @@ router.get("/conversations/:conversationId", getAiConversationByIdController);
  * DELETE /api/ai/conversations/:conversationId
  */
 router.delete("/conversations/:conversationId", deleteAiConversationController);
+
+/*
+ * ============================================
+ * GENERATE QUIZ QUESTIONS WITH AI
+ * ============================================
+ *
+ * POST /api/ai/generate-quiz
+ */
+router.post(
+  "/generate-quiz",
+  authorizeRoles("instructor", "admin"),
+  generateQuizWithAiController,
+);
 
 export default router;

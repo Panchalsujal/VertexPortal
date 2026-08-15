@@ -2320,8 +2320,9 @@ export async function getStudentQuizzes({ studentId, query = {} }) {
 
     const attemptsUsed = stats?.attemptsUsed ?? 0;
 
+    const maxAttempts = quiz.maxAttempts ?? 10;
     const attemptsRemaining = Math.max(
-      (quiz.maxAttempts ?? 1) - attemptsUsed,
+      maxAttempts - attemptsUsed,
       0,
     );
 
@@ -2873,7 +2874,8 @@ export async function startQuizAttempt({ studentId, quizId }) {
     student: studentId,
   });
 
-  if (attemptsUsed >= (quiz.maxAttempts ?? 1)) {
+  const maxAllowedAttempts = quiz.maxAttempts ?? 10;
+  if (attemptsUsed >= maxAllowedAttempts) {
     throw new ApiError(403, "Maximum quiz attempts reached");
   }
 
@@ -3056,7 +3058,19 @@ export async function saveQuizAnswer({
   validateObjectId(attemptId, "attempt ID");
   validateObjectId(questionId, "question ID");
 
-  const { selectedOptionIds = [], answerText = "" } = payload || {};
+  let { selectedOptionIds = [], selectedOption, selectedOptions, answerText = "" } = payload || {};
+
+  if (!selectedOptionIds || !Array.isArray(selectedOptionIds) || selectedOptionIds.length === 0) {
+    if (selectedOptions && Array.isArray(selectedOptions)) {
+      selectedOptionIds = selectedOptions;
+    } else if (selectedOption) {
+      selectedOptionIds = Array.isArray(selectedOption) ? selectedOption : [selectedOption];
+    } else if (payload?.selectedOptionId) {
+      selectedOptionIds = [payload.selectedOptionId];
+    } else if (!Array.isArray(selectedOptionIds)) {
+      selectedOptionIds = selectedOptionIds ? [selectedOptionIds] : [];
+    }
+  }
 
   const now = new Date();
 
@@ -3407,6 +3421,7 @@ export async function submitQuizAttempt({
   quizId,
   attemptId,
   submissionReason = "manual",
+  incomingAnswers = null,
 }) {
   validateObjectId(studentId, "student ID");
 
@@ -3501,6 +3516,48 @@ export async function submitQuizAttempt({
   const questionMap = new Map(
     questions.map((question) => [question._id.toString(), question]),
   );
+
+  /*
+   * If incomingAnswers were sent with submission, upsert them all first
+   */
+  if (incomingAnswers && typeof incomingAnswers === 'object') {
+    const entries = Array.isArray(incomingAnswers)
+      ? incomingAnswers
+      : Object.entries(incomingAnswers).map(([qId, val]) => ({ questionId: qId, value: val }));
+
+    for (const item of entries) {
+      const qId = item.questionId || item.question || item._id;
+      const val = item.value !== undefined ? item.value : (item.selectedOptionIds || item.selectedOption || item.answerText);
+      if (!qId) continue;
+      const question = questionMap.get(qId.toString());
+      if (!question) continue;
+
+      let selectedOptionIds = [];
+      let answerText = "";
+      if (question.questionType === "short_answer") {
+        answerText = typeof val === "string" ? val : "";
+      } else {
+        if (Array.isArray(val)) selectedOptionIds = val;
+        else if (val) selectedOptionIds = [val];
+      }
+
+      await QuizAnswer.findOneAndUpdate(
+        { attempt: attempt._id, question: question._id },
+        {
+          $set: {
+            quiz: attempt.quiz,
+            student: attempt.student,
+            questionType: question.questionType,
+            selectedOptionIds: selectedOptionIds.map(String),
+            answerText,
+            isAnswered: question.questionType === "short_answer" ? answerText.length > 0 : selectedOptionIds.length > 0,
+            maxMarks: question.marks,
+          },
+        },
+        { upsert: true, returnDocument: 'after' }
+      );
+    }
+  }
 
   const answers = await QuizAnswer.find({
     attempt: attempt._id,

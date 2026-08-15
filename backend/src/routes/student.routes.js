@@ -7,9 +7,35 @@ import {
   getContinueLearningController,
   getResumeLearningController,
   getCoursePlayerController,
+  getGamificationController,
+  getReferralController,
 } from "../controllers/student.controller.js";
 
 const router = Router();
+
+/**
+ * @access Private
+ * @description Get student gamification streak and badges
+ * @api GET /api/student/gamification
+ */
+router.get(
+  "/gamification",
+  authMiddleware,
+  authorizeRoles("student", "admin", "instructor"),
+  getGamificationController,
+);
+
+/**
+ * @access Private
+ * @description Get student referral code and stats
+ * @api GET /api/student/referral
+ */
+router.get(
+  "/referral",
+  authMiddleware,
+  authorizeRoles("student", "admin", "instructor"),
+  getReferralController,
+);
 
 /**
  * @access  Private

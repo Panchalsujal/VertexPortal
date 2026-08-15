@@ -160,6 +160,7 @@ export async function createStudentNote({
   const title = rawPayload.title !== undefined ? rawPayload.title : (nestedData.title || "");
   const content = rawPayload.content !== undefined ? rawPayload.content : nestedData.content;
   const isPinned = rawPayload.isPinned !== undefined ? rawPayload.isPinned : (nestedData.isPinned || false);
+  const timestampInSeconds = rawPayload.timestampInSeconds !== undefined ? Number(rawPayload.timestampInSeconds) : (nestedData.timestampInSeconds !== undefined ? Number(nestedData.timestampInSeconds) : null);
 
   if (!lectureId) {
     throw new ApiError(
@@ -244,6 +245,8 @@ export async function createStudentNote({
         normalizedContent,
 
       isPinned,
+
+      timestampInSeconds: isNaN(timestampInSeconds) ? null : timestampInSeconds,
 
       isActive:
         true,
@@ -670,11 +673,13 @@ export async function updateStudentNote({
   const title = rawPayload.title !== undefined ? rawPayload.title : nestedData.title;
   const content = rawPayload.content !== undefined ? rawPayload.content : nestedData.content;
   const isPinned = rawPayload.isPinned !== undefined ? rawPayload.isPinned : nestedData.isPinned;
+  const timestampInSeconds = rawPayload.timestampInSeconds !== undefined ? rawPayload.timestampInSeconds : nestedData.timestampInSeconds;
 
   if (
     title === undefined &&
     content === undefined &&
-    isPinned === undefined
+    isPinned === undefined &&
+    timestampInSeconds === undefined
   ) {
     throw new ApiError(
       400,
@@ -748,6 +753,11 @@ export async function updateStudentNote({
 
     note.isPinned =
       isPinned;
+  }
+
+  if (timestampInSeconds !== undefined) {
+    const parsedTime = Number(timestampInSeconds);
+    note.timestampInSeconds = isNaN(parsedTime) ? null : parsedTime;
   }
 
   await note.save();

@@ -4,6 +4,7 @@ import { getPublishedModules } from '../api/module.api';
 import { getPublishedLectures } from '../api/lecture.api';
 import { markLectureCompleted, getCourseProgress } from '../api/progress.api';
 import { getEnrollmentByCourse, getMyEnrollments } from '../api/enrollment.api';
+import { createNote, getLectureNotes, deleteNote } from '../api/notes.api';
 import { useAuth } from '../context/AuthContext';
 import { CurriculumAccordion } from '../components/course/CurriculumAccordion';
 import { Spinner } from '../components/ui/Spinner';
@@ -27,6 +28,10 @@ import {
   RefreshCw,
   PanelRightClose,
   PanelRightOpen,
+  Clock,
+  Trash2,
+  Plus,
+  Code2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -41,6 +46,11 @@ export default function CoursePlayer() {
   const [progressPct, setProgressPct] = useState(0);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarTab, setSidebarTab] = useState('syllabus'); // 'syllabus' | 'notes'
+  const [notes, setNotes] = useState([]);
+  const [newNoteContent, setNewNoteContent] = useState('');
+  const [noteTimestamp, setNoteTimestamp] = useState(null);
+  const [submittingNote, setSubmittingNote] = useState(false);
   const [marking, setMarking] = useState(false);
   const videoRef = useRef(null);
 
@@ -124,6 +134,103 @@ export default function CoursePlayer() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Fetch lecture notes when active lecture changes
+  useEffect(() => {
+    if (!activeLecture?._id) return;
+    let isMounted = true;
+    async function loadNotes() {
+      try {
+        const res = await getLectureNotes(activeLecture._id);
+        const list = res.data?.notes || res.data?.data || [];
+        if (isMounted) setNotes(Array.isArray(list) ? list : []);
+      } catch {
+        if (isMounted) setNotes([]);
+      }
+    }
+    loadNotes();
+    return () => { isMounted = false; };
+  }, [activeLecture?._id]);
+
+  // Video Resume playback handlers
+  const handleVideoLoadedMetadata = () => {
+    if (!videoRef.current || !activeLecture?._id) return;
+    const resumeKey = `vp_resume_${courseId}_${activeLecture._id}`;
+    const savedTime = localStorage.getItem(resumeKey);
+    if (savedTime) {
+      const parsed = parseFloat(savedTime);
+      if (!isNaN(parsed) && parsed > 0 && parsed < (videoRef.current.duration - 5)) {
+        videoRef.current.currentTime = parsed;
+        toast('Resumed video playback', { icon: '⏱️', id: 'resume-toast' });
+      }
+    }
+  };
+
+  const handleVideoTimeUpdate = () => {
+    if (!videoRef.current || !activeLecture?._id) return;
+    const current = videoRef.current.currentTime;
+    if (current > 3) {
+      localStorage.setItem(`vp_resume_${courseId}_${activeLecture._id}`, current.toString());
+    }
+  };
+
+  const captureTimestamp = () => {
+    if (videoRef.current) {
+      const sec = Math.floor(videoRef.current.currentTime || 0);
+      setNoteTimestamp(sec);
+      toast.success(`Tagged video at ${formatTimestamp(sec)}`);
+    } else {
+      toast.error('No video is currently playing');
+    }
+  };
+
+  const formatTimestamp = (sec) => {
+    if (sec === null || sec === undefined || isNaN(sec)) return null;
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const handleSeekToTimestamp = (sec) => {
+    if (videoRef.current && sec !== null && sec !== undefined) {
+      videoRef.current.currentTime = sec;
+      videoRef.current.play?.();
+    }
+  };
+
+  const handleCreateNote = async (e) => {
+    e.preventDefault();
+    if (!newNoteContent.trim() || !activeLecture?._id) return;
+    setSubmittingNote(true);
+    try {
+      const res = await createNote({
+        lectureId: activeLecture._id,
+        content: newNoteContent.trim(),
+        timestampInSeconds: noteTimestamp,
+      });
+      const created = res.data?.note || res.data?.data;
+      if (created) {
+        setNotes((prev) => [created, ...prev]);
+      }
+      setNewNoteContent('');
+      setNoteTimestamp(null);
+      toast.success('Note saved!');
+    } catch {
+      toast.error('Failed to save note');
+    } finally {
+      setSubmittingNote(false);
+    }
+  };
+
+  const handleDeleteNote = async (noteId) => {
+    try {
+      await deleteNote(noteId);
+      setNotes((prev) => prev.filter((n) => n._id !== noteId));
+      toast.success('Note deleted');
+    } catch {
+      toast.error('Failed to delete note');
+    }
+  };
 
   // Flatten all lectures to calculate next / prev
   const allLectures = modules.flatMap((m) => m.lectures || []);
@@ -240,6 +347,18 @@ export default function CoursePlayer() {
             <span>AI Tutor</span>
           </Link>
 
+          {/* Code Playground Link */}
+          <Link
+            to="/playground"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-bold transition shadow-xs"
+            title="Open Code Playground in new tab"
+          >
+            <Code2 className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+            <span>Playground</span>
+          </Link>
+
           {/* Certificate Action */}
           {Number(progressPct) >= 100 && (
             <button
@@ -297,6 +416,8 @@ export default function CoursePlayer() {
                       controlsList="nodownload noremoteplayback"
                       disablePictureInPicture
                       onContextMenu={(e) => e.preventDefault()}
+                      onLoadedMetadata={handleVideoLoadedMetadata}
+                      onTimeUpdate={handleVideoTimeUpdate}
                       className="w-full h-full object-contain"
                       id="lecture-video"
                     />
@@ -474,20 +595,35 @@ export default function CoursePlayer() {
           </footer>
         </main>
 
-        {/* ── Right Sidebar: Course Syllabus ──────────────────────────────── */}
+        {/* ── Right Sidebar: Course Syllabus & Notes ──────────────────────────────── */}
         <aside
           className={`${
-            sidebarOpen ? 'w-80 sm:w-90' : 'w-0 -translate-x-full'
+            sidebarOpen ? 'w-80 sm:w-96' : 'w-0 -translate-x-full'
           } transition-all duration-300 ease-in-out shrink-0 bg-white dark:bg-slate-900 border-l border-gray-200 dark:border-slate-800 flex flex-col h-full overflow-hidden shadow-lg z-20`}
         >
-          <div className="p-4 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between shrink-0 bg-gray-50/80 dark:bg-slate-900/80">
-            <div>
-              <h4 className="text-xs font-extrabold uppercase tracking-wider text-purple-700 dark:text-purple-300 flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" /> Course Syllabus
-              </h4>
-              <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
-                {allLectures.length} lessons total
-              </p>
+          {/* Tab Header: Syllabus vs Notes */}
+          <div className="p-3 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between shrink-0 bg-gray-50/80 dark:bg-slate-900/80 gap-2">
+            <div className="flex items-center gap-1 bg-gray-200/70 dark:bg-slate-800 p-1 rounded-xl">
+              <button
+                onClick={() => setSidebarTab('syllabus')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  sidebarTab === 'syllabus'
+                    ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-2xs'
+                    : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" /> Syllabus
+              </button>
+              <button
+                onClick={() => setSidebarTab('notes')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  sidebarTab === 'notes'
+                    ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-2xs'
+                    : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5" /> Notes ({notes.length})
+              </button>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -498,14 +634,99 @@ export default function CoursePlayer() {
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 scrollbar-thin bg-white dark:bg-slate-900">
-            <CurriculumAccordion
-              modules={modules}
-              completedLectureIds={completedIds}
-              activeLectureId={activeLecture?._id}
-              onLectureSelect={setActiveLecture}
-            />
-          </div>
+          {sidebarTab === 'syllabus' ? (
+            <div className="flex-1 overflow-y-auto p-4 scrollbar-thin bg-white dark:bg-slate-900">
+              <CurriculumAccordion
+                modules={modules}
+                completedLectureIds={completedIds}
+                activeLectureId={activeLecture?._id}
+                onLectureSelect={setActiveLecture}
+              />
+            </div>
+          ) : (
+            /* Notes Tab with Timestamp Tagging */
+            <div className="flex-1 flex flex-col h-full overflow-hidden bg-white dark:bg-slate-900">
+              {/* Create Note Form */}
+              <form onSubmit={handleCreateNote} className="p-3 border-b border-gray-200 dark:border-slate-800 space-y-2">
+                <textarea
+                  value={newNoteContent}
+                  onChange={(e) => setNewNoteContent(e.target.value)}
+                  placeholder="Take a note for this lesson..."
+                  rows={3}
+                  className="w-full text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-2.5 text-gray-800 dark:text-slate-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                />
+                <div className="flex items-center justify-between gap-2">
+                  {activeLecture?.videoUrl ? (
+                    <button
+                      type="button"
+                      onClick={captureTimestamp}
+                      className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1 transition cursor-pointer ${
+                        noteTimestamp !== null
+                          ? 'bg-purple-50 dark:bg-purple-950/50 border-purple-300 text-purple-600'
+                          : 'bg-gray-100 dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200'
+                      }`}
+                      title="Attach current video timestamp"
+                    >
+                      <Clock className="w-3 h-3" />
+                      {noteTimestamp !== null ? `Tagged: ${formatTimestamp(noteTimestamp)}` : '📍 Tag Current Time'}
+                    </button>
+                  ) : <div />}
+
+                  <button
+                    type="submit"
+                    disabled={submittingNote || !newNoteContent.trim()}
+                    className="px-3 py-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg shadow-xs transition flex items-center gap-1 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Save Note
+                  </button>
+                </div>
+              </form>
+
+              {/* Notes List */}
+              <div className="flex-1 overflow-y-auto p-3 space-y-2.5 scrollbar-thin">
+                {notes.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">
+                    <FileText className="w-8 h-8 mx-auto mb-1 opacity-50" />
+                    <p className="text-xs font-semibold">No notes for this lesson yet</p>
+                    <p className="text-[11px]">Type above to save your first note.</p>
+                  </div>
+                ) : (
+                  notes.map((note) => (
+                    <div
+                      key={note._id}
+                      className="p-3 bg-gray-50 dark:bg-slate-800/70 border border-gray-100 dark:border-slate-800 rounded-xl space-y-1.5"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        {note.timestampInSeconds !== null && note.timestampInSeconds !== undefined ? (
+                          <button
+                            type="button"
+                            onClick={() => handleSeekToTimestamp(note.timestampInSeconds)}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-[10px] font-extrabold hover:bg-purple-200 transition cursor-pointer font-mono"
+                            title="Click to jump to this video time"
+                          >
+                            <Clock className="w-2.5 h-2.5" /> {formatTimestamp(note.timestampInSeconds)}
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-gray-400 font-medium">Note</span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteNote(note._id)}
+                          className="text-gray-400 hover:text-red-500 p-1 transition cursor-pointer"
+                          title="Delete note"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
+                        {note.content}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
         </aside>
       </div>
     </div>

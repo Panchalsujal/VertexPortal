@@ -5,3 +5,4 @@ export const login = (data) => api.post('/auth/login', data);
 export const getMe = () => api.get('/auth/me');
 export const logout = () => api.post('/auth/logout');
 export const verifyEmail = (userId, token) => api.get(`/auth/verify-email/${userId}/${token}`);
+export const googleAuth = (data) => api.post('/auth/google', data);

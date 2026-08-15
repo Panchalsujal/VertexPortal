@@ -79,13 +79,14 @@ export const saveQuizAnswerController = asyncHandler(async (req, res) => {
 export const submitQuizAttemptController = asyncHandler(async (req, res) => {
   const { quizId, attemptId } = req.params;
 
-  const { submissionReason = "manual" } = req.body || {};
+  const { submissionReason = "manual", answers } = req.body || {};
 
   const result = await submitQuizAttempt({
     studentId: req.user.id,
     quizId,
     attemptId,
     submissionReason,
+    incomingAnswers: answers,
   });
 
   return res.status(200).json({

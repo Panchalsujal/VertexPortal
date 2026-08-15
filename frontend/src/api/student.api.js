@@ -12,8 +12,8 @@ export const getStudentQuiz = (quizId) => api.get(`/student/quizzes/${quizId}`);
 export const startQuizAttempt = (quizId) => api.post(`/student/quizzes/${quizId}/attempts/start`);
 export const saveQuizAnswer = (quizId, attemptId, questionId, data) =>
   api.put(`/student/quizzes/${quizId}/attempts/${attemptId}/answers/${questionId}`, data);
-export const submitQuizAttempt = (quizId, attemptId) =>
-  api.post(`/student/quizzes/${quizId}/attempts/${attemptId}/submit`);
+export const submitQuizAttempt = (quizId, attemptId, data) =>
+  api.post(`/student/quizzes/${quizId}/attempts/${attemptId}/submit`, data);
 export const getQuizAttempts = (quizId) => api.get(`/student/quizzes/${quizId}/attempts`);
 export const getQuizAttempt = (quizId, attemptId) =>
   api.get(`/student/quizzes/${quizId}/attempts/${attemptId}`);
@@ -56,3 +56,8 @@ export const getLiveClassResources = (liveClassId) =>
 export const getLiveClassAttendanceHistory = () =>
   api.get('/student/live-classes/attendance/history');
 
+// ─── Gamification (Streak & Badges) ─────────────────────────────────────────
+export const getGamificationData = () => api.get('/student/gamification');
+
+// ─── Student Referral Program ──────────────────────────────────────────────
+export const getReferralData = () => api.get('/student/referral');

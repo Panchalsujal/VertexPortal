@@ -10,10 +10,12 @@ import {
   startQuizAttempt,
   saveQuizAnswer,
   submitQuizAttempt,
+  getQuizAttempts,
+  getQuizAttemptResult,
 } from '../api/student.api';
 import { Spinner } from '../components/ui/Spinner';
 import { Modal } from '../components/ui/Modal';
-import { HelpCircle, Clock, CheckCircle, XCircle, ArrowRight } from 'lucide-react';
+import { HelpCircle, Clock, CheckCircle, XCircle, ArrowRight, RotateCcw, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function StudentQuizzes() {
@@ -61,29 +63,70 @@ export default function StudentQuizzes() {
     }
   };
 
-  const handleSelectOption = async (questionId, optionId, questionType) => {
-    // Update local state first (optimistic)
-    setAnswers(prev => {
-      if (questionType === 'multiple_choice') {
-        const current = Array.isArray(prev[questionId]) ? prev[questionId] : [];
-        return {
-          ...prev,
-          [questionId]: current.includes(optionId)
-            ? current.filter(id => id !== optionId)
-            : [...current, optionId],
-        };
+  const handleViewResult = async (quiz) => {
+    setActiveQuiz(quiz);
+    setQuizModalOpen(true);
+    setQuizLoading(true);
+    setResult(null);
+    setAnswers({});
+    setQuizQuestions([]);
+    try {
+      const attemptsRes = await getQuizAttempts(quiz._id);
+      const list = attemptsRes.data.attempts || attemptsRes.data.data?.attempts || [];
+      const latestAttempt = list[0] || list[list.length - 1];
+      if (latestAttempt) {
+        const res = await getQuizAttemptResult(quiz._id, latestAttempt._id);
+        const resData = res.data.result || res.data.data?.result || res.data;
+        setResult(resData);
+      } else {
+        toast.error('No previous submission found for this quiz');
+        setQuizModalOpen(false);
       }
-      return { ...prev, [questionId]: optionId };
-    });
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Could not load quiz result');
+      setQuizModalOpen(false);
+    } finally {
+      setQuizLoading(false);
+    }
+  };
 
-    // Save to backend
+  const handleSelectOption = async (questionId, optionId, questionType) => {
+    let updatedOptionIds = [];
+    if (questionType === 'multiple_choice') {
+      const current = Array.isArray(answers[questionId]) ? answers[questionId] : [];
+      updatedOptionIds = current.includes(optionId)
+        ? current.filter(id => id !== optionId)
+        : [...current, optionId];
+    } else {
+      updatedOptionIds = [optionId];
+    }
+
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: questionType === 'multiple_choice' ? updatedOptionIds : optionId,
+    }));
+
+    // Save to backend with selectedOptionIds array
     try {
       const attemptId = attempt?._id || attempt?.attemptId;
       await saveQuizAnswer(activeQuiz._id, attemptId, questionId, {
+        selectedOptionIds: updatedOptionIds,
         selectedOption: optionId,
       });
     } catch (err) {
       console.error('Save answer error:', err.response?.data?.message || err.message);
+    }
+  };
+
+  const handleSaveTextAnswer = async (questionId, text) => {
+    setAnswers(prev => ({ ...prev, [questionId]: text }));
+    try {
+      const attemptId = attempt?._id || attempt?.attemptId;
+      await saveQuizAnswer(activeQuiz._id, attemptId, questionId, {
+        answerText: text,
+      });
+    } catch (err) {
+      console.error('Save text answer error:', err.response?.data?.message || err.message);
     }
   };
 
@@ -92,7 +135,10 @@ export default function StudentQuizzes() {
     setQuizLoading(true);
     try {
       const attemptId = attempt?._id || attempt?.attemptId;
-      const res = await submitQuizAttempt(activeQuiz._id, attemptId);
+      const res = await submitQuizAttempt(activeQuiz._id, attemptId, {
+        answers,
+        submissionReason: 'manual',
+      });
       const resData = res.data.result || res.data.data?.result || res.data;
       setResult(resData);
       toast.success('Quiz submitted!');
@@ -151,14 +197,44 @@ export default function StudentQuizzes() {
                   </div>
                 </div>
 
-                <button
-                  className="btn btn-primary btn-sm"
-                  style={{ marginTop: '1.5rem', width: '100%', justifyContent: 'center' }}
-                  onClick={() => handleStartQuiz(quiz)}
-                  disabled={quiz.attemptSummary?.canStart === false}
-                >
-                  {quiz.attemptSummary?.hasInProgressAttempt ? 'Resume Quiz' : 'Start Quiz'} <ArrowRight size={16} />
-                </button>
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.25rem', flexWrap: 'wrap' }}>
+                  {quiz.attemptSummary?.hasInProgressAttempt ? (
+                    <button
+                      className="btn btn-primary btn-sm"
+                      style={{ flex: 1, justifyContent: 'center' }}
+                      onClick={() => handleStartQuiz(quiz)}
+                    >
+                      Resume Quiz <ArrowRight size={15} />
+                    </button>
+                  ) : quiz.attemptSummary?.attemptsUsed > 0 ? (
+                    <>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        style={{ flex: 1, justifyContent: 'center' }}
+                        onClick={() => handleViewResult(quiz)}
+                        title="View previous submission score and feedback"
+                      >
+                        <Eye size={15} /> Result
+                      </button>
+                      <button
+                        className="btn btn-primary btn-sm"
+                        style={{ flex: 1, justifyContent: 'center' }}
+                        onClick={() => handleStartQuiz(quiz)}
+                        title="Take another attempt"
+                      >
+                        <RotateCcw size={15} /> Retake
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      className="btn btn-primary btn-sm"
+                      style={{ width: '100%', justifyContent: 'center' }}
+                      onClick={() => handleStartQuiz(quiz)}
+                    >
+                      Start Quiz <ArrowRight size={15} />
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -218,7 +294,7 @@ export default function StudentQuizzes() {
                     rows={3}
                     placeholder="Type your answer..."
                     value={answers[q._id] || ''}
-                    onChange={e => setAnswers(prev => ({ ...prev, [q._id]: e.target.value }))}
+                    onChange={e => handleSaveTextAnswer(q._id, e.target.value)}
                     style={{ width: '100%' }}
                   />
                 ) : (

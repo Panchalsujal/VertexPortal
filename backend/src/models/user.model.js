@@ -19,8 +19,33 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: true,
+      required: false,
       select: false,
+    },
+
+    googleId: {
+      type: String,
+      default: null,
+      sparse: true,
+      index: true,
+    },
+
+    referralCode: {
+      type: String,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
+
+    referredBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    referralStats: {
+      totalReferrals: { type: Number, default: 0 },
+      rewardPoints: { type: Number, default: 0 },
     },
 
     avatarUrl: {
@@ -65,6 +90,22 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    learningStreak: {
+      currentStreak: { type: Number, default: 1 },
+      longestStreak: { type: Number, default: 1 },
+      lastActiveDate: { type: Date, default: Date.now },
+    },
+
+    badges: [
+      {
+        id: { type: String, required: true },
+        title: { type: String, required: true },
+        description: { type: String, default: "" },
+        icon: { type: String, default: "award" },
+        earnedAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true,

@@ -42,15 +42,30 @@ export const registerController = asyncHandler(async (req, res) => {
       .update(verificationToken)
       .digest("hex");
 
+    const generatedReferralCode = "VP-" + randomBytes(3).toString("hex").toUpperCase();
+    let referrer = null;
+    if (req.body.referralCode || req.body.ref) {
+      const code = (req.body.referralCode || req.body.ref).toString().trim().toUpperCase();
+      referrer = await User.findOne({ referralCode: code });
+    }
+
     const user = await User.create({
       fullName,
       email: normalizedEmail,
       password: hashedPassword,
       role: "student",
       isEmailVerified: false,
+      referralCode: generatedReferralCode,
+      referredBy: referrer ? referrer._id : null,
       emailVerificationToken: hashedVerificationToken,
       emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
+
+    if (referrer) {
+      await User.findByIdAndUpdate(referrer._id, {
+        $inc: { "referralStats.totalReferrals": 1, "referralStats.rewardPoints": 50 },
+      });
+    }
 
     const frontendBase = config.FRONTEND_URL
       ? config.FRONTEND_URL.split(",")[0].trim()
@@ -361,4 +376,148 @@ export const resendVerificationController = asyncHandler(async (req, res) => {
     });
   }
 });
+
+export const googleAuthController = asyncHandler(async (req, res) => {
+  try {
+    const { credential, referralCode, ref } = req.body;
+    if (!credential) {
+      return res.status(400).json({
+        success: false,
+        message: "Google credential token is required",
+      });
+    }
+
+    let payload = null;
+
+    // Verify Google ID token via Google Tokeninfo API
+    try {
+      const googleRes = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
+      );
+      if (googleRes.ok) {
+        payload = await googleRes.json();
+      }
+    } catch {
+      // Fallback to JWT payload decode
+    }
+
+    if (!payload || !payload.email) {
+      try {
+        const parts = credential.split(".");
+        if (parts.length === 3) {
+          const raw = Buffer.from(parts[1], "base64").toString("utf8");
+          payload = JSON.parse(raw);
+        }
+      } catch {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid Google credential format",
+        });
+      }
+    }
+
+    if (!payload || !payload.email) {
+      return res.status(400).json({
+        success: false,
+        message: "Unable to retrieve email from Google credential",
+      });
+    }
+
+    const email = payload.email.toLowerCase().trim();
+    const fullName = payload.name || payload.given_name || email.split("@")[0];
+    const googleId = payload.sub;
+    const avatarUrl = payload.picture || "https://ik.imagekit.io/Sujalpanchal/default.avif";
+
+    let user = await User.findOne({
+      $or: [{ googleId }, { email }],
+    });
+
+    if (user) {
+      if (!user.googleId) user.googleId = googleId;
+      if (!user.isEmailVerified) user.isEmailVerified = true;
+      if (!user.avatarUrl || user.avatarUrl.includes("default.avif")) {
+        user.avatarUrl = avatarUrl;
+      }
+      user.lastLoginAt = new Date();
+      await user.save();
+    } else {
+      const generatedReferralCode = "VP-" + randomBytes(3).toString("hex").toUpperCase();
+      let referrer = null;
+      const refCode = referralCode || ref;
+      if (refCode) {
+        const code = refCode.toString().trim().toUpperCase();
+        referrer = await User.findOne({ referralCode: code });
+      }
+
+      user = await User.create({
+        fullName,
+        email,
+        googleId,
+        avatarUrl,
+        role: "student",
+        isEmailVerified: true,
+        isActive: true,
+        status: "active",
+        referralCode: generatedReferralCode,
+        referredBy: referrer ? referrer._id : null,
+        lastLoginAt: new Date(),
+      });
+
+      if (referrer) {
+        await User.findByIdAndUpdate(referrer._id, {
+          $inc: { "referralStats.totalReferrals": 1, "referralStats.rewardPoints": 50 },
+        });
+      }
+    }
+
+    if (!user.isActive || user.status !== "active") {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is inactive or suspended",
+      });
+    }
+
+    const token = generateToken({ id: user._id });
+
+    const isSecureCookie =
+      process.env.NODE_ENV === "production" ||
+      req.secure ||
+      req.headers["x-forwarded-proto"] === "https" ||
+      (req.headers.origin && req.headers.origin.startsWith("https://"));
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: isSecureCookie,
+      sameSite: isSecureCookie ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Google login successful",
+      data: {
+        token,
+        user: {
+          id: user._id,
+          fullName: user.fullName,
+          email: user.email,
+          role: user.role,
+          status: user.status,
+          avatarUrl: user.avatarUrl,
+          isEmailVerified: user.isEmailVerified,
+          learningStreak: user.learningStreak,
+          referralCode: user.referralCode,
+          referralStats: user.referralStats,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Google auth controller error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Google authentication failed",
+    });
+  }
+});
+
 

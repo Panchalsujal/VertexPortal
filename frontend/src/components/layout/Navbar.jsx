@@ -24,9 +24,14 @@ import {
   LayoutDashboard,
   Sparkles,
   Compass,
+  Flame,
+  Code2,
+  PlusCircle,
+  Megaphone,
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logoutUser, selectUser } from '../../store/slices/authSlice';
+import { useTheme } from '../../context/ThemeContext.jsx';
 import toast from 'react-hot-toast';
 
 function NavItem({ to, icon: Icon, children, onNavigate, end = false }) {
@@ -58,36 +63,22 @@ export function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [adminDropdownOpen, setAdminDropdownOpen] = useState(false);
   const [studentHubOpen, setStudentHubOpen] = useState(false);
+  const [instructorHubOpen, setInstructorHubOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const dropdownRef = useRef(null);
   const adminDropdownRef = useRef(null);
   const studentHubRef = useRef(null);
+  const instructorHubRef = useRef(null);
 
-  const [darkMode, setDarkMode] = useState(() => {
-    try {
-      return localStorage.getItem('theme') === 'dark';
-    } catch {
-      return false;
-    }
-  });
-
-  useEffect(() => {
-    document.documentElement.classList.add('theme-transition');
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [darkMode]);
+  const { isDark: darkMode, toggleTheme } = useTheme();
 
   useEffect(() => {
     setMobileOpen(false);
     setDropdownOpen(false);
     setAdminDropdownOpen(false);
     setStudentHubOpen(false);
+    setInstructorHubOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -107,6 +98,9 @@ export function Navbar() {
       }
       if (studentHubRef.current && !studentHubRef.current.contains(e.target)) {
         setStudentHubOpen(false);
+      }
+      if (instructorHubRef.current && !instructorHubRef.current.contains(e.target)) {
+        setInstructorHubOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClick);
@@ -158,10 +152,15 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5 text-xs xl:text-sm font-semibold text-gray-700 dark:text-gray-300 min-w-0">
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-2 text-xs xl:text-sm font-semibold text-gray-700 dark:text-gray-300 min-w-0">
             <NavLink to="/courses" className={desktopLinkClass}>
-              <Compass className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-              <span>Browse Courses</span>
+              <Compass className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+              <span>Courses</span>
+            </NavLink>
+
+            <NavLink to="/playground" className={desktopLinkClass}>
+              <Code2 className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+              <span>Playground</span>
             </NavLink>
 
             {user?.role === 'student' && (
@@ -172,16 +171,21 @@ export function Navbar() {
                 </NavLink>
 
                 <NavLink to="/student/live-classes" className={desktopLinkClass}>
-                  <Video className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  <Video className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
                   <span>Live Classes</span>
                 </NavLink>
 
-                {/* Student Hub / Academics Dropdown */}
+                <NavLink to="/ai-chat" className={desktopLinkClass}>
+                  <BrainIcon size={14} color="#6C5CE7" />
+                  <span>AI Tutor</span>
+                </NavLink>
+
+                {/* Student Hub / More Dropdown */}
                 <div className="relative group py-2" ref={studentHubRef}>
                   <button
                     type="button"
                     onClick={() => setStudentHubOpen(prev => !prev)}
-                    className="cursor-pointer whitespace-nowrap px-2.5 xl:px-3 py-1.5 text-xs xl:text-sm font-semibold rounded-xl text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100/70 dark:hover:bg-slate-800/70 transition-all flex items-center gap-1 focus:outline-none"
+                    className="cursor-pointer whitespace-nowrap px-2.5 py-1.5 text-xs xl:text-sm font-semibold rounded-xl text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100/70 dark:hover:bg-slate-800/70 transition-all flex items-center gap-1 focus:outline-none"
                   >
                     <span>More</span>
                     <ChevronDownIcon size={13} color="currentColor" />
@@ -198,7 +202,25 @@ export function Navbar() {
                       className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
                     >
                       <LayoutDashboard className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                      <span>Dashboard</span>
+                      <span>Student Dashboard</span>
+                    </Link>
+
+                    <Link
+                      to="/discussions"
+                      onClick={() => setStudentHubOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
+                    >
+                      <MessageSquareIcon size={14} color="#6C5CE7" />
+                      <span>Discussions</span>
+                    </Link>
+
+                    <Link
+                      to="/student/notes"
+                      onClick={() => setStudentHubOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
+                    >
+                      <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <span>My Notes</span>
                     </Link>
 
                     <Link
@@ -220,15 +242,6 @@ export function Navbar() {
                     </Link>
 
                     <Link
-                      to="/student/notes"
-                      onClick={() => setStudentHubOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
-                    >
-                      <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                      <span>Notes</span>
-                    </Link>
-
-                    <Link
                       to="/certificates"
                       onClick={() => setStudentHubOpen(false)}
                       className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
@@ -244,36 +257,87 @@ export function Navbar() {
             {user && (user.role === 'instructor' || user.role === 'admin') && (
               <>
                 <NavLink to="/instructor/dashboard" className={desktopLinkClass}>
-                  <LayoutDashboard className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  <span>Instructor</span>
+                  <LayoutDashboard className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                  <span>Dashboard</span>
                 </NavLink>
-                <NavLink to="/instructor/live-classes" className={desktopLinkClass}>
-                  <Video className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  <span>Live Classes</span>
+
+                <NavLink to="/instructor/courses/new" className={desktopLinkClass}>
+                  <PlusCircle className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                  <span>Create Course</span>
                 </NavLink>
+
                 <NavLink to="/instructor/quizzes" className={desktopLinkClass}>
-                  <CheckSquare className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  <CheckSquare className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
                   <span>Quizzes</span>
                 </NavLink>
+
+                <NavLink to="/instructor/live-classes" className={desktopLinkClass}>
+                  <Video className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                  <span>Live Classes</span>
+                </NavLink>
+
+                {/* Instructor Hub / More Dropdown */}
+                <div className="relative group py-2" ref={instructorHubRef}>
+                  <button
+                    type="button"
+                    onClick={() => setInstructorHubOpen(prev => !prev)}
+                    className="cursor-pointer whitespace-nowrap px-2.5 py-1.5 text-xs xl:text-sm font-semibold rounded-xl text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100/70 dark:hover:bg-slate-800/70 transition-all flex items-center gap-1 focus:outline-none"
+                  >
+                    <span>More</span>
+                    <ChevronDownIcon size={13} color="currentColor" />
+                  </button>
+
+                  <div
+                    className={`absolute left-0 top-full mt-1 w-52 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-xl py-2 z-50 transition-all ${
+                      instructorHubOpen ? 'block' : 'hidden group-hover:block'
+                    }`}
+                  >
+                    <Link
+                      to="/instructor/assignments"
+                      onClick={() => setInstructorHubOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
+                    >
+                      <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <span>Assignments & Grading</span>
+                    </Link>
+
+                    <Link
+                      to="/instructor/announcements"
+                      onClick={() => setInstructorHubOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
+                    >
+                      <Megaphone className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <span>Announcements</span>
+                    </Link>
+
+                    <Link
+                      to="/discussions"
+                      onClick={() => setInstructorHubOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
+                    >
+                      <MessageSquareIcon size={14} color="#6C5CE7" />
+                      <span>Discussions</span>
+                    </Link>
+
+                    <Link
+                      to="/ai-chat"
+                      onClick={() => setInstructorHubOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
+                    >
+                      <BrainIcon size={14} color="#6C5CE7" />
+                      <span>AI Assistant</span>
+                    </Link>
+                  </div>
+                </div>
               </>
             )}
-
-            <NavLink to="/discussions" className={desktopLinkClass}>
-              <MessageSquareIcon size={14} color="#6C5CE7" />
-              <span>Discussions</span>
-            </NavLink>
-
-            <NavLink to="/ai-chat" className={desktopLinkClass}>
-              <BrainIcon size={14} color="#6C5CE7" />
-              <span>AI Tutor</span>
-            </NavLink>
 
             {user?.role === 'admin' && (
               <div className="relative group py-2" ref={adminDropdownRef}>
                 <button
                   type="button"
                   onClick={() => setAdminDropdownOpen(prev => !prev)}
-                  className="cursor-pointer whitespace-nowrap px-2.5 xl:px-3 py-1.5 text-xs xl:text-sm font-semibold rounded-xl text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100/70 dark:hover:bg-slate-800/70 transition-all flex items-center gap-1 focus:outline-none"
+                  className="cursor-pointer whitespace-nowrap px-2.5 py-1.5 text-xs xl:text-sm font-semibold rounded-xl text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100/70 dark:hover:bg-slate-800/70 transition-all flex items-center gap-1 focus:outline-none"
                 >
                   <span>Admin</span>
                   <ChevronDownIcon size={13} color="currentColor" />
@@ -300,12 +364,24 @@ export function Navbar() {
           </nav>
 
           {/* Right Actions Toolbar */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
             
+            {/* Daily Learning Streak Badge */}
+            {user && user.role === 'student' && (
+              <Link
+                to="/dashboard"
+                className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-orange-50 dark:bg-orange-950/40 border border-orange-200/60 dark:border-orange-800/40 text-orange-600 dark:text-orange-400 text-xs font-bold shadow-2xs hover:scale-105 transition-transform shrink-0"
+                title="Daily Learning Streak"
+              >
+                <Flame className="w-3.5 h-3.5 fill-orange-500 text-orange-500 animate-pulse" />
+                <span>{user.learningStreak?.currentStreak || 1} {user.learningStreak?.currentStreak === 1 ? 'Day' : 'Days'}</span>
+              </Link>
+            )}
+
             {/* Theme Mode Toggle Button */}
             <button
               type="button"
-              onClick={() => setDarkMode(prev => !prev)}
+              onClick={toggleTheme}
               className="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer shrink-0"
               title={darkMode ? 'Switch to light theme' : 'Switch to dark theme'}
               aria-label="Toggle theme mode"
@@ -343,7 +419,7 @@ export function Navbar() {
                 </Link>
                 <Link
                   to="/wishlist"
-                  className="hidden sm:inline-flex p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition-all shrink-0"
+                  className="hidden md:inline-flex p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition-all shrink-0"
                   title="Wishlist"
                   aria-label="Saved Wishlist"
                 >
@@ -351,6 +427,8 @@ export function Navbar() {
                 </Link>
               </>
             )}
+
+            <div className="h-5 w-px bg-gray-200 dark:bg-slate-800 hidden sm:block shrink-0 mx-0.5" />
 
             {/* User Profile Dropdown or Auth Buttons */}
             {user ? (
@@ -427,14 +505,56 @@ export function Navbar() {
                     )}
 
                     {user.role === 'instructor' && (
-                      <Link
-                        to="/instructor/dashboard"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
-                      >
-                        <Award className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                        <span>Instructor Dashboard</span>
-                      </Link>
+                      <>
+                        <Link
+                          to="/instructor/dashboard"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
+                        >
+                          <LayoutDashboard className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                          <span>Instructor Dashboard</span>
+                        </Link>
+                        <Link
+                          to="/instructor/courses/new"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
+                        >
+                          <PlusCircle className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                          <span>Create New Course</span>
+                        </Link>
+                        <Link
+                          to="/instructor/quizzes"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
+                        >
+                          <CheckSquare className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                          <span>Quizzes & AI Generator</span>
+                        </Link>
+                        <Link
+                          to="/instructor/assignments"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                          <span>Assignments & Grading</span>
+                        </Link>
+                        <Link
+                          to="/instructor/announcements"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
+                        >
+                          <Megaphone className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                          <span>Announcements</span>
+                        </Link>
+                        <Link
+                          to="/instructor/live-classes"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
+                        >
+                          <Video className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                          <span>Live Sessions</span>
+                        </Link>
+                      </>
                     )}
 
                     {user.role === 'admin' && (

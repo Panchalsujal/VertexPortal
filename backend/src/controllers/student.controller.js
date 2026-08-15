@@ -1,4 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { randomBytes } from "node:crypto";
+import User from "../models/user.model.js";
+import { recordStudentActivity } from "../service/gamification.service.js";
 
 import {
   getMyCourses,
@@ -69,4 +72,36 @@ export const getCoursePlayerController = asyncHandler(async (req, res) => {
   });
 });
 
+export const getGamificationController = asyncHandler(async (req, res) => {
+  const gamificationData = await recordStudentActivity(req.user.id);
 
+  return res.status(200).json({
+    success: true,
+    message: "Gamification data fetched successfully",
+    data: gamificationData || {
+      streak: req.user.learningStreak || { currentStreak: 1, longestStreak: 1 },
+      badges: req.user.badges || [],
+    },
+  });
+});
+
+export const getReferralController = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User not found" });
+  }
+
+  if (!user.referralCode) {
+    user.referralCode = "VP-" + randomBytes(3).toString("hex").toUpperCase();
+    await user.save();
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: "Referral data fetched successfully",
+    data: {
+      referralCode: user.referralCode,
+      referralStats: user.referralStats || { totalReferrals: 0, rewardPoints: 0 },
+    },
+  });
+});

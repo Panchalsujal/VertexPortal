@@ -14,3 +14,6 @@ export const archiveAiConversation = (conversationId, data) =>
   api.patch(`/ai/conversations/${conversationId}/archive`, data);
 export const deleteAiConversation = (conversationId) =>
   api.delete(`/ai/conversations/${conversationId}`);
+
+// ─── AI Quiz Generation ────────────────────────────────────────────────────
+export const generateQuizWithAi = (data) => api.post('/ai/generate-quiz', data);

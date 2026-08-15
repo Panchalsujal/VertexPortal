@@ -4,11 +4,19 @@ import {
   LayoutDashboard, BookOpen, Video, FileText, Bot, Heart, ShoppingBag,
   Award, Settings, ChevronRight, Bell, MessageSquare, TrendingUp,
   Clock, Star, Play, Users, Zap, LogOut, ChevronDown, Menu, X,
-  GraduationCap, BarChart2, ArrowLeft, User
+  GraduationCap, BarChart2, ArrowLeft, User, Flame, Sparkles,
+  Gift, Share2, Copy, Check, Code2, Sun, Moon
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { selectUser, logoutUser } from '../store/slices/authSlice';
-import { getMyCourses, getContinueLearning, getStudentLiveClasses } from '../api/student.api';
+import { useTheme } from '../context/ThemeContext.jsx';
+import {
+  getMyCourses,
+  getContinueLearning,
+  getStudentLiveClasses,
+  getGamificationData,
+  getReferralData,
+} from '../api/student.api';
 import { getMyCertificates } from '../api/certificate.api';
 import toast from 'react-hot-toast';
 
@@ -86,6 +94,7 @@ export default function StudentDashboard() {
   const dispatch  = useAppDispatch();
   const user      = useAppSelector(selectUser);
   const navigate  = useNavigate();
+  const { isDark, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [aiMsg, setAiMsg] = useState('');
 
@@ -93,6 +102,15 @@ export default function StudentDashboard() {
   const [continueList, setContinueList] = useState([]);
   const [liveClasses, setLiveClasses] = useState([]);
   const [certificates, setCertificates] = useState([]);
+  const [gamification, setGamification] = useState({
+    streak: { currentStreak: 1, longestStreak: 1 },
+    badges: [],
+  });
+  const [referral, setReferral] = useState({
+    referralCode: user?.referralCode || 'VP-LEARN',
+    referralStats: { totalReferrals: 0, rewardPoints: 0 },
+  });
+  const [copiedRef, setCopiedRef] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
@@ -118,11 +136,13 @@ export default function StudentDashboard() {
     async function loadStudentData() {
       setLoading(true);
       try {
-        const [coursesRes, continueRes, liveRes, certRes] = await Promise.allSettled([
+        const [coursesRes, continueRes, liveRes, certRes, gamifyRes, refRes] = await Promise.allSettled([
           getMyCourses(),
           getContinueLearning(),
           getStudentLiveClasses(),
           getMyCertificates(),
+          getGamificationData(),
+          getReferralData(),
         ]);
 
         if (isMounted) {
@@ -142,6 +162,24 @@ export default function StudentDashboard() {
             const list = certRes.value.data?.certificates || certRes.value.data?.data || [];
             setCertificates(Array.isArray(list) ? list : []);
           }
+          if (gamifyRes.status === 'fulfilled') {
+            const gData = gamifyRes.value.data?.data || {};
+            if (gData.streak || gData.badges) {
+              setGamification({
+                streak: gData.streak || { currentStreak: 1, longestStreak: 1 },
+                badges: gData.badges || [],
+              });
+            }
+          }
+          if (refRes.status === 'fulfilled') {
+            const rData = refRes.value.data?.data || {};
+            if (rData.referralCode) {
+              setReferral({
+                referralCode: rData.referralCode,
+                referralStats: rData.referralStats || { totalReferrals: 0, rewardPoints: 0 },
+              });
+            }
+          }
         }
       } catch (err) {
         console.error('Error fetching student dashboard data:', err);
@@ -152,7 +190,7 @@ export default function StudentDashboard() {
 
     loadStudentData();
     return () => { isMounted = false; };
-  }, []);
+  }, [user]);
 
   const handleLogout = async () => {
     setUserMenuOpen(false);
@@ -335,6 +373,17 @@ export default function StudentDashboard() {
             </div>
 
             <div className="flex items-center gap-2 ml-auto relative">
+              {/* Theme Toggle */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="p-2 text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-gray-800 rounded-xl transition cursor-pointer"
+                title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                aria-label="Toggle theme"
+              >
+                {isDark ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-gray-600" />}
+              </button>
+
               <Link to="/notifications" className="relative p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition text-gray-500">
                 <Bell className="w-5 h-5" />
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
@@ -501,6 +550,46 @@ export default function StudentDashboard() {
                   )}
                 </div>
               </div>
+
+              {/* Daily Streak & Achievements Showcase */}
+              <div className="bg-gradient-to-r from-orange-500/10 via-purple-500/10 to-indigo-500/10 dark:from-orange-950/20 dark:via-purple-950/20 dark:to-indigo-950/20 rounded-2xl border border-orange-200/50 dark:border-orange-900/30 p-5 shadow-xs">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center text-white shadow-md shadow-orange-500/30">
+                      <Flame className="w-6 h-6 animate-pulse" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <span>{gamification.streak.currentStreak} Day Learning Streak!</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 font-extrabold">
+                          Best: {gamification.streak.longestStreak}d
+                        </span>
+                      </h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Learn every day to keep your flame burning and unlock badges.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Badges List */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-orange-200/30 dark:border-orange-900/20">
+                  {(gamification.badges.length > 0 ? gamification.badges : [
+                    { id: 'welcome', title: 'Welcome Scholar', description: 'Joined VertexPortal', icon: 'sparkles' },
+                    { id: 'streak_3', title: '3-Day Streak', description: 'Study 3 days in a row', icon: 'flame' },
+                  ]).map((b, idx) => (
+                    <div key={b.id || idx} className="bg-white/80 dark:bg-gray-800/80 rounded-xl p-3 border border-gray-100 dark:border-gray-700/60 flex items-center gap-2.5 shadow-2xs">
+                      <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                        <Award className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{b.title}</p>
+                        <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">{b.description || 'Badge Earned'}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Right Column */}
@@ -582,6 +671,45 @@ export default function StudentDashboard() {
                       {prompt}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* Refer & Earn Rewards Card */}
+              <div className="bg-gradient-to-br from-purple-900/40 via-indigo-900/30 to-slate-900 rounded-2xl border border-purple-800/40 p-5 shadow-sm text-white">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-purple-600 flex items-center justify-center text-white shadow-md">
+                      <Gift className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white">Invite &amp; Earn Rewards</h3>
+                      <p className="text-[11px] text-purple-200">Earn 50 bonus points for every friend who joins!</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-950/60 rounded-xl p-2.5 border border-purple-700/30 flex items-center justify-between gap-2 mt-3">
+                  <div className="min-w-0 font-mono text-xs font-bold text-purple-300 truncate">
+                    {referral.referralCode || 'VP-LEARN'}
+                  </div>
+                  <button
+                    onClick={() => {
+                      const link = `${window.location.origin}/register?ref=${referral.referralCode}`;
+                      navigator.clipboard.writeText(link);
+                      setCopiedRef(true);
+                      toast.success('Referral invite link copied!');
+                      setTimeout(() => setCopiedRef(false), 2000);
+                    }}
+                    className="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer"
+                  >
+                    {copiedRef ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedRef ? 'Copied' : 'Copy Link'}</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] text-purple-300 font-semibold mt-3 pt-2 border-t border-purple-800/40">
+                  <span>Invited: {referral.referralStats?.totalReferrals || 0} friends</span>
+                  <span>Points: {referral.referralStats?.rewardPoints || 0} pts</span>
                 </div>
               </div>
             </div>
