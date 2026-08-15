@@ -5,6 +5,10 @@ import { getMe, logout as logoutApi } from '../../api/auth.api';
 // ─── Async Thunks ────────────────────────────────────────────────────────────
 
 export const fetchMe = createAsyncThunk('auth/fetchMe', async (_, { rejectWithValue }) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    return rejectWithValue(null);
+  }
   try {
     const res = await getMe();
     return res.data.data.user;

@@ -5,7 +5,8 @@ import {
   Award, Settings, ChevronRight, Bell, MessageSquare, TrendingUp,
   Clock, Star, Play, Users, Zap, LogOut, ChevronDown, Menu, X,
   GraduationCap, BarChart2, ArrowLeft, User, Flame, Sparkles,
-  Gift, Share2, Copy, Check, Code2, Sun, Moon
+  Gift, Share2, Copy, Check, Code2, Sun, Moon, CheckSquare, Megaphone,
+  Compass
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { selectUser, logoutUser } from '../store/slices/authSlice';
@@ -22,15 +23,20 @@ import toast from 'react-hot-toast';
 
 // ── Sidebar navigation items ──────────────────────────────────
 const navItems = [
-  { to: '/dashboard',           icon: LayoutDashboard, label: 'Dashboard'     },
-  { to: '/my-learning',         icon: BookOpen,        label: 'My Courses'    },
-  { to: '/student/live-classes',icon: Video,           label: 'Live Classes'  },
-  { to: '/student/notes',       icon: FileText,        label: 'Notes'         },
-  { to: '/ai-chat',             icon: Bot,             label: 'AI Tutor', badge: 'New' },
-  { to: '/wishlist',            icon: Heart,           label: 'Wishlist'      },
-  { to: '/cart',                icon: ShoppingBag,     label: 'Orders'        },
-  { to: '/certificates',        icon: Award,           label: 'Certificates'  },
-  { to: '/profile',             icon: Settings,        label: 'Settings'      },
+  { to: '/dashboard',            icon: LayoutDashboard, label: 'Dashboard'     },
+  { to: '/my-learning',          icon: BookOpen,        label: 'My Courses'    },
+  { to: '/student/quizzes',      icon: CheckSquare,     label: 'Quizzes', badge: 'AI' },
+  { to: '/student/assignments',  icon: FileText,        label: 'Assignments'   },
+  { to: '/student/live-classes', icon: Video,           label: 'Live Classes'  },
+  { to: '/ai-chat',              icon: Bot,             label: 'AI Tutor', badge: 'New' },
+  { to: '/discussions',          icon: MessageSquare,   label: 'Discussions'   },
+  { to: '/playground',           icon: Code2,           label: 'Playground'    },
+  { to: '/student/notes',        icon: FileText,        label: 'Notes'         },
+  { to: '/student/announcements',icon: Megaphone,       label: 'Announcements' },
+  { to: '/certificates',         icon: Award,           label: 'Certificates'  },
+  { to: '/wishlist',             icon: Heart,           label: 'Wishlist'      },
+  { to: '/cart',                 icon: ShoppingBag,     label: 'Orders'        },
+  { to: '/profile',              icon: Settings,        label: 'Settings'      },
 ];
 
 import { AnimatedThreeDots } from '../components/ui/Spinner';
@@ -516,6 +522,77 @@ export default function StudentDashboard() {
               title="Certificates" value={loading ? '...' : certCount}
               sub={<Link to="/certificates" className="text-blue-500 font-semibold text-xs">View all →</Link>}
             />
+          </div>
+
+          {/* Quick Action Hub */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <Link
+              to="/my-learning"
+              className="p-3.5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/80 shadow-2xs hover:shadow-md hover:border-purple-400 hover:-translate-y-0.5 transition-all text-center flex flex-col items-center group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <BookOpen className="w-5 h-5" />
+              </div>
+              <span className="text-xs font-bold text-gray-800 dark:text-gray-200">My Courses</span>
+              <span className="text-[10px] text-gray-400 mt-0.5">Continue study</span>
+            </Link>
+
+            <Link
+              to="/student/quizzes"
+              className="p-3.5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/80 shadow-2xs hover:shadow-md hover:border-amber-400 hover:-translate-y-0.5 transition-all text-center flex flex-col items-center group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <CheckSquare className="w-5 h-5" />
+              </div>
+              <span className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1">
+                Quizzes <Sparkles className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />
+              </span>
+              <span className="text-[10px] text-amber-600 font-semibold mt-0.5">Test knowledge</span>
+            </Link>
+
+            <Link
+              to="/student/assignments"
+              className="p-3.5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/80 shadow-2xs hover:shadow-md hover:border-blue-400 hover:-translate-y-0.5 transition-all text-center flex flex-col items-center group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <FileText className="w-5 h-5" />
+              </div>
+              <span className="text-xs font-bold text-gray-800 dark:text-gray-200">Assignments</span>
+              <span className="text-[10px] text-gray-400 mt-0.5">Submit tasks</span>
+            </Link>
+
+            <Link
+              to="/student/live-classes"
+              className="p-3.5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/80 shadow-2xs hover:shadow-md hover:border-rose-400 hover:-translate-y-0.5 transition-all text-center flex flex-col items-center group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <Video className="w-5 h-5" />
+              </div>
+              <span className="text-xs font-bold text-gray-800 dark:text-gray-200">Live Classes</span>
+              <span className="text-[10px] text-gray-400 mt-0.5">Interactive streams</span>
+            </Link>
+
+            <Link
+              to="/ai-chat"
+              className="p-3.5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/80 shadow-2xs hover:shadow-md hover:border-purple-400 hover:-translate-y-0.5 transition-all text-center flex flex-col items-center group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <Bot className="w-5 h-5" />
+              </div>
+              <span className="text-xs font-bold text-gray-800 dark:text-gray-200">AI Tutor</span>
+              <span className="text-[10px] text-purple-600 font-semibold mt-0.5">Instant help</span>
+            </Link>
+
+            <Link
+              to="/playground"
+              className="p-3.5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/80 shadow-2xs hover:shadow-md hover:border-emerald-400 hover:-translate-y-0.5 transition-all text-center flex flex-col items-center group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <Code2 className="w-5 h-5" />
+              </div>
+              <span className="text-xs font-bold text-gray-800 dark:text-gray-200">Playground</span>
+              <span className="text-[10px] text-gray-400 mt-0.5">Code sandbox</span>
+            </Link>
           </div>
 
           {/* Main 2-column Grid */}

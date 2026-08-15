@@ -22,8 +22,12 @@
           "value": "strict-origin-when-cross-origin"
         },
         {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin-allow-popups"
+        },
+        {
           "key": "Permissions-Policy",
-          "value": "camera=(self 'https://*.stream-io.com' 'https://*.getstream.io'), microphone=(self 'https://*.stream-io.com' 'https://*.getstream.io'), geolocation=(), payment=(self 'https://api.razorpay.com' 'https://checkout.razorpay.com')"
+          "value": "camera=(self), microphone=(self), geolocation=(), payment=(self \"https://api.razorpay.com\" \"https://checkout.razorpay.com\")"
         },
         {
           "key": "Strict-Transport-Security",

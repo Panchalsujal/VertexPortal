@@ -84,6 +84,7 @@ app.use(
   helmet({
     contentSecurityPolicy: false, // APIs return JSON; prevents blocking external embeds/assets
     crossOriginResourcePolicy: { policy: "cross-origin" }, // Allows static images/uploads to be loaded by frontend
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }, // Permits Google OAuth popup postMessage communication
   })
 );
 
