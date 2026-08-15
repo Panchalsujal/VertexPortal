@@ -22,7 +22,20 @@ import {
   parseNumberQuery,
   parseSortQuery,
 } from "../utils/queryParser.js";
-const LIVE_CLASS_PROVIDERS = ["google_meet", "zoom", "livekit", "custom"];
+import { config } from "../config/config.js";
+import {
+  generateStreamUserToken,
+  upsertStreamUser,
+  createStreamCall,
+} from "./stream.service.js";
+
+const LIVE_CLASS_PROVIDERS = [
+  "google_meet",
+  "zoom",
+  "livekit",
+  "getstream",
+  "custom",
+];
 
 function parseLiveClassDate(value, fieldName) {
   if (value === undefined || value === null || value === "") {
@@ -125,7 +138,23 @@ export async function createLiveClass({ instructorId, userRole, payload }) {
     parseEnumQuery(provider, LIVE_CLASS_PROVIDERS, "Live class provider") ??
     "google_meet";
 
-  const normalizedMeetingUrl = normalizeMeetingUrl(meetingUrl);
+  let normalizedMeetingUrl = "";
+  let streamCallId = "";
+  let streamCallType = "default";
+
+  if (parsedProvider === "getstream") {
+    streamCallId = String(
+      payload.streamCallId || `call_${new mongoose.Types.ObjectId()}`,
+    ).trim();
+    streamCallType = String(payload.streamCallType || "default").trim();
+    if (meetingUrl) {
+      normalizedMeetingUrl = normalizeMeetingUrl(meetingUrl);
+    } else {
+      normalizedMeetingUrl = `${config.FRONTEND_URL}/live-class/stream/${streamCallId}`;
+    }
+  } else {
+    normalizedMeetingUrl = normalizeMeetingUrl(meetingUrl);
+  }
 
   const parsedStartsAt = parseLiveClassDate(startsAt, "Start time");
 
@@ -263,6 +292,36 @@ export async function createLiveClass({ instructorId, userRole, payload }) {
     );
   }
 
+  if (parsedProvider === "getstream") {
+    try {
+      const instructorUser = await User.findById(instructorId)
+        .select("fullName avatarUrl email role")
+        .lean();
+      await upsertStreamUser({
+        userId: instructorId,
+        name: instructorUser?.fullName || "Instructor",
+        image: instructorUser?.avatarUrl || "",
+        role: "admin",
+      });
+      await createStreamCall({
+        callId: streamCallId,
+        callType: streamCallType,
+        createdById: instructorId,
+        title: normalizedTitle,
+        startsAt: parsedStartsAt,
+        customData: {
+          courseId: String(courseId),
+          courseTitle: course.title,
+        },
+      });
+    } catch (streamErr) {
+      console.error(
+        "GetStream Call creation error:",
+        streamErr?.message || streamErr,
+      );
+    }
+  }
+
   const liveClass = await LiveClass.create({
     course: new mongoose.Types.ObjectId(courseId),
 
@@ -279,6 +338,10 @@ export async function createLiveClass({ instructorId, userRole, payload }) {
     provider: parsedProvider,
 
     meetingUrl: normalizedMeetingUrl,
+
+    streamCallId,
+
+    streamCallType,
 
     meetingId: String(meetingId || "").trim(),
 
@@ -508,6 +571,34 @@ export async function getInstructorLiveClassById({
 
   if (!liveClass) {
     throw new ApiError(404, "Live class not found");
+  }
+
+  if (liveClass.provider === "getstream") {
+    try {
+      const instructorUser = await User.findById(instructorId)
+        .select("fullName avatarUrl email role")
+        .lean();
+      const streamToken = generateStreamUserToken({
+        userId: instructorId,
+        role: "admin",
+      });
+      liveClass.stream = {
+        apiKey: config.STREAM_API_KEY,
+        token: streamToken,
+        callId: liveClass.streamCallId,
+        callType: liveClass.streamCallType || "default",
+        user: {
+          id: String(instructorId),
+          name: instructorUser?.fullName || "Instructor",
+          image: instructorUser?.avatarUrl || "",
+        },
+      };
+    } catch (e) {
+      console.error(
+        "Failed to generate instructor stream token:",
+        e?.message || e,
+      );
+    }
   }
 
   return liveClass;
@@ -1249,7 +1340,11 @@ export async function getStudentLiveClasses({ studentId, query = {} }) {
   };
 }
 
-export async function getStudentLiveClassById({ studentId, liveClassId }) {
+export async function getStudentLiveClassById({
+  studentId,
+  userRole,
+  liveClassId,
+}) {
   validateObjectId(studentId, "student ID");
   validateObjectId(liveClassId, "live class ID");
 
@@ -1272,6 +1367,8 @@ export async function getStudentLiveClassById({ studentId, liveClassId }) {
         title
         description
         provider
+        streamCallId
+        streamCallType
         startsAt
         endsAt
         timezone
@@ -1307,25 +1404,32 @@ export async function getStudentLiveClassById({ studentId, liveClassId }) {
     throw new ApiError(404, "Live class not found");
   }
 
-  const enrollment = await Enrollment.findOne({
-    student: studentId,
-    course: liveClass.course._id,
-    status: {
-      $in: ["active", "completed"],
-    },
-  })
-    .select("_id expiresAt")
-    .lean();
+  const isPrivileged =
+    userRole === "admin" ||
+    String(liveClass.instructor?._id || liveClass.instructor) ===
+      String(studentId);
 
-  if (!enrollment) {
-    throw new ApiError(403, "You are not enrolled in this course");
-  }
+  if (!isPrivileged) {
+    const enrollment = await Enrollment.findOne({
+      student: studentId,
+      course: liveClass.course._id,
+      status: {
+        $in: ["active", "completed"],
+      },
+    })
+      .select("_id expiresAt")
+      .lean();
 
-  if (
-    enrollment.expiresAt &&
-    new Date(enrollment.expiresAt).getTime() <= now.getTime()
-  ) {
-    throw new ApiError(403, "Your course enrollment has expired");
+    if (!enrollment) {
+      throw new ApiError(403, "You are not enrolled in this course");
+    }
+
+    if (
+      enrollment.expiresAt &&
+      new Date(enrollment.expiresAt).getTime() <= now.getTime()
+    ) {
+      throw new ApiError(403, "Your course enrollment has expired");
+    }
   }
 
   const joinOpensAt = new Date(
@@ -1351,7 +1455,11 @@ export async function getStudentLiveClassById({ studentId, liveClassId }) {
   };
 }
 
-export async function joinStudentLiveClass({ studentId, liveClassId }) {
+export async function joinStudentLiveClass({
+  studentId,
+  userRole,
+  liveClassId,
+}) {
   validateObjectId(studentId, "student ID");
 
   validateObjectId(liveClassId, "live class ID");
@@ -1381,8 +1489,11 @@ export async function joinStudentLiveClass({ studentId, liveClassId }) {
 
         course
         title
+        instructor
 
         provider
+        streamCallId
+        streamCallType
 
         meetingUrl
         meetingId
@@ -1403,38 +1514,41 @@ export async function joinStudentLiveClass({ studentId, liveClassId }) {
     throw new ApiError(404, "Live class not found or not joinable");
   }
 
-  /*
-   * Student enrollment validation.
-   */
-  const enrollment = await Enrollment.findOne({
-    student: studentId,
+  const isPrivileged =
+    userRole === "admin" ||
+    String(liveClass.instructor?._id || liveClass.instructor) ===
+      String(studentId);
 
-    course: liveClass.course,
+  let enrollment = null;
 
-    status: {
-      $in: ["active", "completed"],
-    },
-  })
-    .select(
-      `
-        _id
-        expiresAt
-      `,
-    )
-    .lean();
+  if (!isPrivileged) {
+    enrollment = await Enrollment.findOne({
+      student: studentId,
 
-  if (!enrollment) {
-    throw new ApiError(403, "You are not enrolled in this course");
-  }
+      course: liveClass.course,
 
-  /*
-   * Enrollment expiry validation.
-   */
-  if (
-    enrollment.expiresAt &&
-    new Date(enrollment.expiresAt).getTime() <= now.getTime()
-  ) {
-    throw new ApiError(403, "Your course enrollment has expired");
+      status: {
+        $in: ["active", "completed"],
+      },
+    })
+      .select(
+        `
+          _id
+          expiresAt
+        `,
+      )
+      .lean();
+
+    if (!enrollment) {
+      throw new ApiError(403, "You are not enrolled in this course");
+    }
+
+    if (
+      enrollment.expiresAt &&
+      new Date(enrollment.expiresAt).getTime() <= now.getTime()
+    ) {
+      throw new ApiError(403, "Your course enrollment has expired");
+    }
   }
 
   /*
@@ -1469,10 +1583,48 @@ export async function joinStudentLiveClass({ studentId, liveClassId }) {
    *
    * Iske baad attendance record create/resume karna safe hai.
    */
-  const attendanceResult = await joinLiveClassAttendance({
-    studentId,
-    liveClassId,
-  });
+  let attendanceResult = null;
+  if (!isPrivileged) {
+    attendanceResult = await joinLiveClassAttendance({
+      studentId,
+      liveClassId,
+    });
+  }
+
+  let streamData = null;
+  if (liveClass.provider === "getstream") {
+    try {
+      const studentUser = await User.findById(studentId)
+        .select("fullName avatarUrl email role")
+        .lean();
+      await upsertStreamUser({
+        userId: studentId,
+        name: studentUser?.fullName || "User",
+        image: studentUser?.avatarUrl || "",
+        role: isPrivileged ? "admin" : "user",
+      });
+      const streamToken = generateStreamUserToken({
+        userId: studentId,
+        role: isPrivileged ? "admin" : "user",
+      });
+      streamData = {
+        apiKey: config.STREAM_API_KEY,
+        token: streamToken,
+        callId: liveClass.streamCallId,
+        callType: liveClass.streamCallType || "default",
+        user: {
+          id: String(studentId),
+          name: studentUser?.fullName || "User",
+          image: studentUser?.avatarUrl || "",
+        },
+      };
+    } catch (e) {
+      console.error(
+        "Failed to generate stream token:",
+        e?.message || e,
+      );
+    }
+  }
 
   /*
    * Meeting credentials sirf secure join endpoint
@@ -1486,6 +1638,10 @@ export async function joinStudentLiveClass({ studentId, liveClassId }) {
 
       provider: liveClass.provider,
 
+      streamCallId: liveClass.streamCallId || null,
+
+      streamCallType: liveClass.streamCallType || "default",
+
       status: liveClass.status,
     },
 
@@ -1497,17 +1653,18 @@ export async function joinStudentLiveClass({ studentId, liveClassId }) {
       password: liveClass.meetingPassword || null,
     },
 
-    enrollmentId: enrollment._id,
+    stream: streamData,
 
-    attendance: {
-      id: attendanceResult.attendance._id,
+    enrollmentId: enrollment?._id || null,
 
-      status: attendanceResult.attendance.status,
-
-      joinCount: attendanceResult.attendance.joinCount,
-
-      resumedSession: attendanceResult.resumedSession,
-    },
+    attendance: attendanceResult?.attendance
+      ? {
+          id: attendanceResult.attendance._id,
+          status: attendanceResult.attendance.status,
+          joinCount: attendanceResult.attendance.joinCount,
+          resumedSession: attendanceResult.resumedSession,
+        }
+      : null,
 
     joinWindow: {
       joinOpensAt,
@@ -1659,7 +1816,11 @@ export async function joinLiveClassAttendance({ studentId, liveClassId }) {
   };
 }
 
-export async function leaveLiveClassAttendance({ studentId, liveClassId }) {
+export async function leaveLiveClassAttendance({
+  studentId,
+  userRole,
+  liveClassId,
+}) {
   validateObjectId(studentId, "student ID");
   validateObjectId(liveClassId, "live class ID");
 
@@ -1668,6 +1829,7 @@ export async function leaveLiveClassAttendance({ studentId, liveClassId }) {
   const liveClass = await LiveClass.findById(liveClassId)
     .select(
       `
+        instructor
         durationInMinutes
         status
         endsAt
@@ -1679,12 +1841,23 @@ export async function leaveLiveClassAttendance({ studentId, liveClassId }) {
     throw new ApiError(404, "Live class not found");
   }
 
+  const isPrivileged =
+    userRole === "admin" ||
+    String(liveClass.instructor?._id || liveClass.instructor) ===
+      String(studentId);
+
   const attendance = await LiveClassAttendance.findOne({
     liveClass: liveClassId,
     student: studentId,
   });
 
   if (!attendance) {
+    if (isPrivileged) {
+      return {
+        attendance: null,
+        message: "Host left the session",
+      };
+    }
     throw new ApiError(404, "Attendance record not found");
   }
 
@@ -1735,6 +1908,7 @@ export async function leaveLiveClassAttendance({ studentId, liveClassId }) {
 
 export async function getInstructorLiveClassAttendance({
   instructorId,
+  userRole,
   liveClassId,
   query = {},
 }) {
@@ -1752,10 +1926,12 @@ export async function getInstructorLiveClassAttendance({
 
   const { page, limit, skip } = getPagination(query);
 
-  const liveClass = await LiveClass.findOne({
-    _id: liveClassId,
-    instructor: instructorId,
-  })
+  const filterLiveClass = { _id: liveClassId };
+  if (userRole !== "admin") {
+    filterLiveClass.instructor = instructorId;
+  }
+
+  const liveClass = await LiveClass.findOne(filterLiveClass)
     .select(
       `
         title
@@ -1893,16 +2069,19 @@ export async function getInstructorLiveClassAttendance({
 
 export async function getInstructorLiveClassAttendanceAnalytics({
   instructorId,
+  userRole,
   liveClassId,
 }) {
   validateObjectId(instructorId, "instructor ID");
 
   validateObjectId(liveClassId, "live class ID");
 
-  const liveClass = await LiveClass.findOne({
-    _id: liveClassId,
-    instructor: instructorId,
-  })
+  const filterLiveClass = { _id: liveClassId };
+  if (userRole !== "admin") {
+    filterLiveClass.instructor = instructorId;
+  }
+
+  const liveClass = await LiveClass.findOne(filterLiveClass)
     .select(
       `
         title

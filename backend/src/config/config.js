@@ -92,6 +92,16 @@ if (!process.env.MISTRAL_TRANSCRIPTION_MODEL) {
   );
 }
 
+if (!process.env.STREAM_API_KEY) {
+  throw new Error("STREAM_API_KEY is not defined in the environment variables");
+}
+
+if (!process.env.STREAM_API_SECRET) {
+  throw new Error(
+    "STREAM_API_SECRET is not defined in the environment variables",
+  );
+}
+
 export const config = {
   MONGO_URI: process.env.MONGO_URI,
   JWT_SECRET: process.env.JWT_SECRET,
@@ -112,4 +122,6 @@ export const config = {
   MISTRAL_CHAT_MODEL: process.env.MISTRAL_CHAT_MODEL || "mistral-large-latest",
   MISTRAL_TRANSCRIPTION_MODEL:
     process.env.MISTRAL_TRANSCRIPTION_MODEL || "voxtral-mini-latest",
+  STREAM_API_KEY: process.env.STREAM_API_KEY,
+  STREAM_API_SECRET: process.env.STREAM_API_SECRET,
 };

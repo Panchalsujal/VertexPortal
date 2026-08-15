@@ -47,16 +47,29 @@ const liveClassSchema = new mongoose.Schema(
 
     provider: {
       type: String,
-      enum: ["google_meet", "zoom", "livekit", "custom"],
+      enum: ["google_meet", "zoom", "livekit", "getstream", "custom"],
       default: "google_meet",
       index: true,
     },
 
     meetingUrl: {
       type: String,
-      required: true,
       trim: true,
+      default: "",
       maxlength: 2000,
+    },
+
+    streamCallId: {
+      type: String,
+      trim: true,
+      default: "",
+      index: true,
+    },
+
+    streamCallType: {
+      type: String,
+      trim: true,
+      default: "default",
     },
 
     meetingId: {

@@ -32,6 +32,7 @@ export const getStudentLiveClassByIdController = asyncHandler(
 
     const result = await getStudentLiveClassById({
       studentId: req.user.id,
+      userRole: req.user.role,
       liveClassId,
     });
 
@@ -48,6 +49,7 @@ export const joinStudentLiveClassController = asyncHandler(async (req, res) => {
 
   const result = await joinStudentLiveClass({
     studentId: req.user.id,
+    userRole: req.user.role,
     liveClassId,
   });
 
@@ -56,7 +58,9 @@ export const joinStudentLiveClassController = asyncHandler(async (req, res) => {
     message: result.message,
     liveClass: result.liveClass,
     meeting: result.meeting,
+    stream: result.stream,
     joinWindow: result.joinWindow,
+    attendance: result.attendance,
   });
 });
 
@@ -66,6 +70,7 @@ export const leaveStudentLiveClassController = asyncHandler(
 
     const result = await leaveLiveClassAttendance({
       studentId: req.user.id,
+      userRole: req.user.role,
       liveClassId,
     });
 
@@ -73,17 +78,15 @@ export const leaveStudentLiveClassController = asyncHandler(
       success: true,
       message: result.message,
 
-      attendance: {
-        id: result.attendance._id,
-
-        totalDurationInSeconds: result.attendance.totalDurationInSeconds,
-
-        attendancePercentage: result.attendance.attendancePercentage,
-
-        joinCount: result.attendance.joinCount,
-
-        status: result.attendance.status,
-      },
+      attendance: result.attendance
+        ? {
+            id: result.attendance._id,
+            totalDurationInSeconds: result.attendance.totalDurationInSeconds,
+            attendancePercentage: result.attendance.attendancePercentage,
+            joinCount: result.attendance.joinCount,
+            status: result.attendance.status,
+          }
+        : null,
     });
   },
 );

@@ -16,6 +16,7 @@ import {
 export const createLiveClassController = asyncHandler(async (req, res) => {
   const liveClass = await createLiveClass({
     instructorId: req.user.id,
+    userRole: req.user.role,
     payload: req.body,
   });
 
@@ -30,6 +31,7 @@ export const getInstructorLiveClassesController = asyncHandler(
   async (req, res) => {
     const result = await getInstructorLiveClasses({
       instructorId: req.user.id,
+      userRole: req.user.role,
       query: req.query,
     });
 
@@ -47,6 +49,7 @@ export const getInstructorLiveClassByIdController = asyncHandler(
 
     const liveClass = await getInstructorLiveClassById({
       instructorId: req.user.id,
+      userRole: req.user.role,
       liveClassId,
     });
 
@@ -83,6 +86,7 @@ export const updateLiveClassStatusController = asyncHandler(
 
     const result = await updateLiveClassStatus({
       instructorId: req.user.id,
+      userRole: req.user.role,
       liveClassId,
       status,
     });
@@ -103,6 +107,7 @@ export const cancelLiveClassController = asyncHandler(async (req, res) => {
 
   const result = await cancelLiveClass({
     instructorId: req.user.id,
+    userRole: req.user.role,
     liveClassId,
     reason,
   });
@@ -124,6 +129,7 @@ export const getInstructorLiveClassAttendanceController = asyncHandler(
 
     const result = await getInstructorLiveClassAttendance({
       instructorId: req.user.id,
+      userRole: req.user.role,
       liveClassId,
       query: req.query,
     });
@@ -145,6 +151,7 @@ export const getInstructorLiveClassAttendanceAnalyticsController = asyncHandler(
 
     const analytics = await getInstructorLiveClassAttendanceAnalytics({
       instructorId: req.user.id,
+      userRole: req.user.role,
       liveClassId,
     });
 

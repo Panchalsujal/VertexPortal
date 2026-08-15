@@ -37,6 +37,7 @@ import InstructorQuizzes from './pages/instructor/InstructorQuizzes';
 import InstructorAssignments from './pages/instructor/InstructorAssignments';
 import InstructorLiveClasses from './pages/instructor/InstructorLiveClasses';
 import InstructorAnnouncements from './pages/instructor/InstructorAnnouncements';
+import LiveClassRoom from './pages/LiveClassRoom';
 
 // NEW PAGES (Sections 32-43)
 import Discussions from './pages/Discussions';
@@ -135,6 +136,8 @@ function AppRoot() {
           <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={['student']}><StudentAssignments /></ProtectedRoute>} />
           <Route path="/student/announcements" element={<ProtectedRoute allowedRoles={['student']}><StudentAnnouncements /></ProtectedRoute>} />
           <Route path="/student/live-classes" element={<ProtectedRoute allowedRoles={['student']}><StudentLiveClasses /></ProtectedRoute>} />
+          <Route path="/live-class/:liveClassId" element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><LiveClassRoom /></ProtectedRoute>} />
+          <Route path="/live-class/stream/:liveClassId" element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><LiveClassRoom /></ProtectedRoute>} />
           <Route path="/learn/:courseId" element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><CoursePlayer /></ProtectedRoute>} />
           <Route path="/cart" element={<ProtectedRoute allowedRoles={['student']}><Cart /></ProtectedRoute>} />
           <Route path="/wishlist" element={<ProtectedRoute allowedRoles={['student']}><Wishlist /></ProtectedRoute>} />

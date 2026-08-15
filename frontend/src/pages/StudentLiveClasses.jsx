@@ -23,10 +23,14 @@ export default function StudentLiveClasses() {
   }, [dispatch]);
 
   const handleJoin = async (item) => {
+    if (item.provider === 'getstream') {
+      navigate(`/live-class/stream/${item._id}`);
+      return;
+    }
     try {
       const res = await joinLiveClass(item._id);
       const data = res.data.data || res.data;
-      const meetingUrl = data.joinUrl || data.meetingLink || item.meetingUrl;
+      const meetingUrl = data.meeting?.url || data.joinUrl || data.meetingLink || item.meetingUrl;
       if (meetingUrl) {
         window.open(meetingUrl, '_blank');
       } else {
@@ -163,6 +167,10 @@ export default function StudentLiveClasses() {
                           <Ban className="w-3 h-3" /> Cancelled
                         </span>
                       )}
+
+                      <span className="text-[10px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 px-2 py-0.5 rounded-md capitalize">
+                        {item.provider === 'getstream' ? 'GetStream Video' : item.provider?.replace('_', ' ') || 'Google Meet'}
+                      </span>
                     </div>
 
                     <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1.5 line-clamp-2 leading-snug">
