@@ -665,3 +665,42 @@ html.dark .stitch-glass {
 .stagger-children > *:nth-child(3) { animation-delay: 120ms; }
 .stagger-children > *:nth-child(4) { animation-delay: 180ms; }
 .stagger-children > *:nth-child(5) { animation-delay: 240ms; }
+
+/* ─────────────────────────────────────────────────────────── */
+/*  STREAM WEBRTC CLASSROOM STAGE                              */
+/* ─────────────────────────────────────────────────────────── */
+.stream-stage-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.stream-stage-container .str-video__speaker-layout__wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.stream-stage-container .str-video__speaker-layout {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+}
+
+.stream-stage-container .str-video__speaker-layout__spotlight {
+  width: 100%;
+  height: 100%;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: #090d16;
+}
+
+.stream-stage-container .str-video__participant-view {
+  border-radius: 1rem;
+  overflow: hidden;
+  background-color: #0b0f19;
+}
+

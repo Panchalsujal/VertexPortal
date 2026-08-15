@@ -147,19 +147,81 @@ function StreamConnectedStage({
   const { status: screenShareStatus } = useScreenShareState();
   const isScreenSharing = screenShareStatus === 'enabled';
 
+  const [audioBlocked, setAudioBlocked] = useState(false);
+
+  // Unblock and resume audio playback across mobile and desktop browsers
+  useEffect(() => {
+    const unblockAudio = () => {
+      // 1. Resume AudioContext if suspended
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioContextClass) {
+        try {
+          const ctx = new AudioContextClass();
+          if (ctx.state === 'suspended') {
+            ctx.resume().catch(() => {});
+          }
+        } catch (_e) {}
+      }
+
+      // 2. Unpause and play any HTML5 audio elements bound by Stream SDK
+      let blockedFound = false;
+      const audioElements = document.querySelectorAll('audio');
+      audioElements.forEach((el) => {
+        if (el.paused) {
+          el.play()
+            .then(() => {
+              setAudioBlocked(false);
+            })
+            .catch((err) => {
+              if (err?.name === 'NotAllowedError') {
+                blockedFound = true;
+              }
+            });
+        }
+      });
+      if (!blockedFound && audioElements.length > 0) {
+        setAudioBlocked(false);
+      }
+    };
+
+    unblockAudio();
+
+    const handleInteraction = () => {
+      unblockAudio();
+    };
+
+    window.addEventListener('click', handleInteraction);
+    window.addEventListener('touchstart', handleInteraction);
+    window.addEventListener('keydown', handleInteraction);
+
+    return () => {
+      window.removeEventListener('click', handleInteraction);
+      window.removeEventListener('touchstart', handleInteraction);
+      window.removeEventListener('keydown', handleInteraction);
+    };
+  }, []);
+
   const toggleCamera = async () => {
     try {
-      if (call) await call.camera.toggle();
+      if (call) {
+        await call.camera.toggle();
+        toast.success(!isCamMuted ? 'Camera turned off' : 'Camera turned on');
+      }
     } catch (e) {
       console.warn('Failed to toggle camera:', e?.message);
+      toast.error('Could not access camera');
     }
   };
 
   const toggleMic = async () => {
     try {
-      if (call) await call.microphone.toggle();
+      if (call) {
+        await call.microphone.toggle();
+        toast.success(!isMicMuted ? 'Microphone muted' : 'Microphone unmuted');
+      }
     } catch (e) {
       console.warn('Failed to toggle mic:', e?.message);
+      toast.error('Could not access microphone');
     }
   };
 
@@ -168,6 +230,7 @@ function StreamConnectedStage({
       if (call) await call.screenShare.toggle();
     } catch (e) {
       console.warn('Failed to toggle screen share:', e?.message);
+      toast.error('Could not toggle screen share');
     }
   };
 
@@ -200,9 +263,13 @@ function StreamConnectedStage({
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-purple-400 bg-purple-950/60 border border-purple-800/50 px-2.5 py-1 rounded-full font-medium">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>WebRTC Stream</span>
+          <div className="flex items-center gap-1.5 text-xs text-slate-300 bg-slate-800/70 border border-slate-700/50 px-2.5 py-1 rounded-full">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+            <span className="hidden sm:inline">You:</span>
+            <span className="font-semibold text-white truncate max-w-[120px]">{currentUser?.fullName || 'User'}</span>
+            <span className="text-[10px] uppercase font-bold text-purple-400 ml-0.5">
+              ({isHost ? 'Instructor' : 'Student'})
+            </span>
           </div>
 
           <div className="flex items-center gap-1 text-xs text-slate-400 bg-slate-800/70 border border-slate-700/50 px-2.5 py-1 rounded-full">
@@ -230,11 +297,19 @@ function StreamConnectedStage({
               </div>
             )}
 
-            {/* Overlay Host/Role Pill */}
-            <div className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-slate-900/85 backdrop-blur-md border border-slate-700/60 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold text-white flex items-center gap-1.5 z-10">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>{isHost ? 'Host / Instructor' : `${currentUser?.fullName || 'Student'} (Attending)`}</span>
-            </div>
+            {/* Audio Autoplay Unblock Helper Banner */}
+            {audioBlocked && (
+              <button
+                onClick={() => {
+                  document.querySelectorAll('audio').forEach((el) => el.play().catch(() => {}));
+                  setAudioBlocked(false);
+                  toast.success('Audio enabled!');
+                }}
+                className="absolute top-4 left-1/2 -translate-x-1/2 bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-1.5 rounded-full font-bold text-xs shadow-2xl flex items-center gap-2 animate-bounce z-30 cursor-pointer"
+              >
+                <span>🔊 Tap here to unmute class audio</span>
+              </button>
+            )}
 
             {/* Fullscreen Button */}
             <button
@@ -247,8 +322,8 @@ function StreamConnectedStage({
           </div>
 
           {/* Bottom Floating Controls Bar */}
-          <div className="h-16 pt-2 sm:pt-3 flex items-center justify-center gap-2 sm:gap-4 z-10 flex-wrap">
-            {/* Audio & Mic Controls (Host & Attendees) */}
+          <div className="h-16 pt-2 sm:pt-3 flex items-center justify-center gap-2 sm:gap-3 z-10 flex-wrap">
+            {/* Microphone Toggle (Host & Students) */}
             <button
               onClick={toggleMic}
               className={`p-2.5 sm:p-3 rounded-2xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-lg ${
@@ -262,35 +337,37 @@ function StreamConnectedStage({
               <span className="hidden sm:inline">{!isMicMuted ? 'Mic On' : 'Mic Muted'}</span>
             </button>
 
-            {isHost && (
-              <>
-                <button
-                  onClick={toggleCamera}
-                  className={`p-2.5 sm:p-3 rounded-2xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-lg ${
-                    !isCamMuted
-                      ? 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
-                      : 'bg-red-600 hover:bg-red-700 text-white'
-                  }`}
-                  title={!isCamMuted ? 'Turn Off Camera' : 'Turn On Camera'}
-                >
-                  {!isCamMuted ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
-                </button>
+            {/* Camera Toggle (Host & Students) */}
+            <button
+              onClick={toggleCamera}
+              className={`p-2.5 sm:p-3 rounded-2xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-lg ${
+                !isCamMuted
+                  ? 'bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700'
+                  : 'bg-red-600 hover:bg-red-700 text-white'
+              }`}
+              title={!isCamMuted ? 'Turn Off Camera' : 'Turn On Camera'}
+            >
+              {!isCamMuted ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
+              <span className="hidden sm:inline">{!isCamMuted ? 'Cam On' : 'Cam Off'}</span>
+            </button>
 
-                <button
-                  onClick={toggleScreenShare}
-                  className={`p-2.5 sm:p-3 rounded-2xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-lg ${
-                    isScreenSharing
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
-                  }`}
-                  title={isScreenSharing ? 'Stop Screen Share' : 'Share Screen'}
-                >
-                  {isScreenSharing ? <MonitorOff className="w-4 h-4" /> : <Monitor className="w-4 h-4" />}
-                  <span className="hidden sm:inline">{isScreenSharing ? 'Sharing' : 'Share'}</span>
-                </button>
-              </>
+            {/* Screen Share (Host Only) */}
+            {isHost && (
+              <button
+                onClick={toggleScreenShare}
+                className={`p-2.5 sm:p-3 rounded-2xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-lg ${
+                  isScreenSharing
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
+                }`}
+                title={isScreenSharing ? 'Stop Screen Share' : 'Share Screen'}
+              >
+                {isScreenSharing ? <MonitorOff className="w-4 h-4" /> : <Monitor className="w-4 h-4" />}
+                <span className="hidden sm:inline">{isScreenSharing ? 'Sharing' : 'Share'}</span>
+              </button>
             )}
 
+            {/* Raise Hand (Students Only) */}
             {!isHost && (
               <button
                 onClick={() => {
@@ -309,6 +386,7 @@ function StreamConnectedStage({
               </button>
             )}
 
+            {/* Live Chat Toggle */}
             <button
               onClick={() => setActiveSidebar(activeSidebar === 'chat' ? null : 'chat')}
               className={`p-2.5 sm:p-3 rounded-2xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-lg ${
@@ -322,6 +400,7 @@ function StreamConnectedStage({
               <span className="hidden sm:inline">Live Chat</span>
             </button>
 
+            {/* Leave or End Session */}
             <button
               onClick={onLeaveOrEnd}
               className="bg-red-600 hover:bg-red-700 text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl font-bold text-xs flex items-center gap-2 shadow-lg shadow-red-950/40 transition cursor-pointer"
