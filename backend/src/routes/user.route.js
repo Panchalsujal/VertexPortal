@@ -7,6 +7,8 @@ import { updateMyProfileController } from "../controllers/user.controller.js";
 import { updatePasswordController } from "../controllers/user.controller.js";
 import { updateAvatarController } from "../controllers/user.controller.js";
 
+import { authLimiter } from "../middlewares/rateLimiter.middleware.js";
+
 const router = Router();
 
 /**
@@ -22,7 +24,7 @@ router.patch("/me", authMiddleware, updateMyProfileController);
  * @api PATCH /api/user/me/password
  * @requires oldPassword and newPassword in request body
  */
-router.patch("/me/password", authMiddleware, updatePasswordController);
+router.patch("/me/password", authMiddleware, authLimiter, updatePasswordController);
 
 /**
  * @access Private

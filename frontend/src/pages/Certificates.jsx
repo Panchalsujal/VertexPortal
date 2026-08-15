@@ -134,7 +134,7 @@ export default function Certificates() {
                         <a
                           href={`/verify-certificate/${cert.verificationCode}`}
                           target="_blank"
-                          rel="noreferrer"
+                          rel="noopener noreferrer"
                           className="p-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-gray-600 dark:text-gray-300 hover:text-sky-600 rounded-xl transition"
                           title="Verify Certificate"
                         >

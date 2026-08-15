@@ -323,7 +323,7 @@ export default function CoursePlayer() {
                       <a
                         href={activeLecture.documentUrl}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs font-semibold px-3 py-1.5 rounded-xl border border-gray-200 dark:border-slate-700 transition shadow-xs"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
@@ -333,7 +333,7 @@ export default function CoursePlayer() {
                         href={activeLecture.documentUrl}
                         download
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl transition shadow-xs"
                       >
                         <Download className="w-3.5 h-3.5" />
@@ -366,7 +366,7 @@ export default function CoursePlayer() {
                         <a
                           href={activeLecture.documentUrl}
                           target="_blank"
-                          rel="noreferrer"
+                          rel="noopener noreferrer"
                           className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md"
                         >
                           <ExternalLink className="w-4 h-4" /> Open Document

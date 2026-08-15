@@ -300,7 +300,7 @@ export default function InstructorLiveClasses() {
                         <a
                           href={item.meetingUrl}
                           target="_blank"
-                          rel="noreferrer"
+                          rel="noopener noreferrer"
                           className="w-full bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-md shadow-red-950/20 transition cursor-pointer"
                         >
                           <Video className="w-4 h-4" /> 🔴 Join Live Session <ExternalLink className="w-3.5 h-3.5" />
@@ -321,7 +321,7 @@ export default function InstructorLiveClasses() {
                           <a
                             href={item.meetingUrl}
                             target="_blank"
-                            rel="noreferrer"
+                            rel="noopener noreferrer"
                             className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer"
                           >
                             <ExternalLink className="w-3.5 h-3.5" /> Join Meeting

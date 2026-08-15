@@ -495,7 +495,7 @@ export default function Curriculum() {
                                   <a
                                     href={lec.documentUrl}
                                     target="_blank"
-                                    rel="noreferrer"
+                                    rel="noopener noreferrer"
                                     className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold inline-flex items-center gap-1.5 transition shadow-xs"
                                   >
                                     <Download className="w-3.5 h-3.5" /> Open Document

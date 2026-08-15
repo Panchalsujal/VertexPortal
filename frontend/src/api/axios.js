@@ -22,14 +22,23 @@ api.interceptors.request.use((reqConfig) => {
   return reqConfig;
 });
 
-// Response interceptor for consistent error handling and automatic block on suspended/inactive status
+// Response interceptor for consistent error handling and automatic session cleanup on auth failure
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
     const message = error.response?.data?.message || error.message || 'Something went wrong';
 
+    // Handle token expiration or unauthorized access
+    if (status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
+
+    // Handle suspended/inactive accounts
     if (status === 403 && (message.includes('suspended') || message.includes('inactive'))) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }

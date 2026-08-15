@@ -2,8 +2,21 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
+import helmet from "helmet";
+import hpp from "hpp";
 import path from "path";
 import { fileURLToPath } from "url";
+
+// Security Middlewares
+import {
+  globalLimiter,
+  authLimiter,
+  aiLimiter,
+  orderLimiter,
+} from "./middlewares/rateLimiter.middleware.js";
+import { sanitizeInput } from "./middlewares/sanitize.middleware.js";
+
+// Routes
 import authRoutes from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
 import categoryRouter from "./routes/category.routes.js";
@@ -47,14 +60,32 @@ import instructorDashboardRoutes from "./routes/instructorDashboard.routes.js";
 import aiAssistantRoutes from "./routes/aiAssistant.routes.js";
 import ragRoutes from "./routes/rag.routes.js";
 import ragIndexingRouter from "./routes/ragIndexing.routes.js";
+import studentNoteRoutes from "./routes/studentNote.routes.js";
 import { notFoundHandler } from "./middlewares/notFound.middleware.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
-import studentNoteRoutes from "./routes/studentNote.routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// ============================================
+// SECURITY & ENVIRONMENT CONFIGURATION
+// ============================================
+
+// Disable Express fingerprinting header
+app.disable("x-powered-by");
+
+// Trust reverse proxy (essential for rate limiting & secure cookies on Vercel/Render/Cloudflare)
+app.set("trust proxy", 1);
+
+// HTTP Security Headers
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // APIs return JSON; prevents blocking external embeds/assets
+    crossOriginResourcePolicy: { policy: "cross-origin" }, // Allows static images/uploads to be loaded by frontend
+  })
+);
 
 // Allowed Origins for CORS
 const staticAllowedOrigins = [
@@ -71,12 +102,12 @@ const staticAllowedOrigins = [
 
 const envOrigins = process.env.FRONTEND_URL
   ? process.env.FRONTEND_URL.split(",").map((url) =>
-      url.trim().replace(/\/$/, ""),
+      url.trim().replace(/\/$/, "")
     )
   : [];
 
 const allowedOrigins = Array.from(
-  new Set([...staticAllowedOrigins, ...envOrigins]),
+  new Set([...staticAllowedOrigins, ...envOrigins])
 );
 
 const corsOptions = {
@@ -86,16 +117,16 @@ const corsOptions = {
 
     const normalizedOrigin = origin.replace(/\/$/, "");
 
-    // Allow static whitelist, configured frontend URLs, or any *.vercel.app domain
-    if (
+    // Check whitelist or authorized vercel.app deployments
+    const isAllowed =
       allowedOrigins.includes(normalizedOrigin) ||
-      /\.vercel\.app$/.test(normalizedOrigin)
-    ) {
+      /^https:\/\/([a-zA-Z0-9-]+\.)?vercel\.app$/.test(normalizedOrigin);
+
+    if (isAllowed) {
       return callback(null, true);
     }
 
-    // Default to allowing the origin while reflecting it for security
-    return callback(null, true);
+    return callback(new Error("CORS policy violation: Access not allowed from this origin"));
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
@@ -110,13 +141,25 @@ const corsOptions = {
   exposedHeaders: ["Set-Cookie"],
 };
 
-// CORS Middleware (handles all methods including OPTIONS preflight)
+// CORS Middleware
 app.use(cors(corsOptions));
 
-// Middleware
+// Logging
 app.use(morgan("dev"));
-app.use(express.json());
+
+// Body Parsers with payload size limits to prevent DoS
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
+
+// Prevent HTTP Parameter Pollution (e.g. ?id=1&id=2)
+app.use(hpp());
+
+// Sanitize inputs to prevent MongoDB NoSQL Injection ($gt, $ne, etc.)
+app.use(sanitizeInput);
+
+// Global API rate limiting
+app.use("/api", globalLimiter);
 
 // Serve static uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
@@ -132,8 +175,12 @@ app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome to the Vertex LMS API" });
 });
 
-// Auth & Users
-app.use("/api/auth", authRoutes);
+// ============================================
+// ROUTES MOUNTING (WITH SPECIALIZED RATE LIMITERS)
+// ============================================
+
+// Auth & Users (with strict anti-bruteforce limiter)
+app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/users", userRoutes);
 
 // Specific Admin Sub-Routes (MUST be mounted before general /api/admin)
@@ -159,15 +206,15 @@ app.use("/api/discussions", discussionRoutes);
 app.use("/api/courses", courseRouter);
 app.use("/api/modules", moduleRouter);
 app.use("/api/lectures", lectureRouter);
-app.use("/api/ai/rag", ragRoutes);
+app.use("/api/ai/rag", aiLimiter, ragRoutes);
 app.use("/api/enrollments", enrollmentRouter);
 app.use("/api", lectureProgressRouter);
 app.use("/api", reviewRouter);
 app.use("/api", wishlistRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api", couponRouter);
-app.use("/api", checkoutRouter);
-app.use("/api/orders", orderRouter);
+app.use("/api", orderLimiter, checkoutRouter);
+app.use("/api/orders", orderLimiter, orderRouter);
 
 app.use("/api/instructor/quizzes", instructorQuizRoutes);
 app.use("/api/certificates", certificateRoutes);
@@ -180,11 +227,12 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/instructor/live-classes", instructorLiveClassRoutes);
 app.use("/api/student/live-classes", studentLiveClassRoutes);
 app.use("/api/discussion-reports", discussionReportRoutes);
-app.use("/api/ai", aiAssistantRoutes);
+app.use("/api/ai", aiLimiter, aiAssistantRoutes);
 app.use("/api/ai/indexing", ragIndexingRouter);
 app.use("/api/notes", studentNoteRoutes);
 app.use("/api/instructor/dashboard", instructorDashboardRoutes);
 
+// Error Handlers
 app.use(notFoundHandler);
 app.use(errorHandler);
 

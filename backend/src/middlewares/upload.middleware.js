@@ -23,6 +23,6 @@ export const uploadAvatar = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 1024  * 1024 * 1024,
+    fileSize: 5 * 1024 * 1024, // 5 MB max avatar size
   },
 });
