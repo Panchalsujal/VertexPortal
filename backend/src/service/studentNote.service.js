@@ -1,10 +1,6 @@
 import StudentNote from "../models/studentNote.model.js";
 import Lecture from "../models/lecture.model.js";
 import Enrollment from "../models/enrollment.model.js";
-import User from "../models/user.model.js";
-import Course from "../models/course.model.js";
-import CourseModule from "../models/courseModule.model.js";
-import mongoose from "mongoose";
 
 import {
   validateObjectId,
@@ -21,61 +17,7 @@ import {
 
 /*
  * ============================================
- * RESOLVE COURSE OBJECT ID
- * ============================================
- *
- * Accepts Mongo ObjectId, Course Document, Course Object,
- * Course Slug, or Title and resolves to valid Course _id string.
- */
-async function resolveCourseObjectId(courseInput) {
-  if (!courseInput) {
-    throw new ApiError(400, "Course ID is required");
-  }
-
-  let str;
-  if (typeof courseInput === "string") {
-    str = courseInput.trim();
-  } else if (courseInput instanceof mongoose.Types.ObjectId) {
-    return courseInput.toString();
-  } else if (typeof courseInput === "object" && courseInput !== null) {
-    if (courseInput._id) {
-      const inner = courseInput._id;
-      str = inner instanceof mongoose.Types.ObjectId ? inner.toString() : String(inner).trim();
-    } else if (typeof courseInput.id === "string") {
-      str = courseInput.id.trim();
-    } else if (typeof courseInput.toString === "function" && courseInput.toString() !== "[object Object]") {
-      str = courseInput.toString().trim();
-    } else {
-      str = String(courseInput).trim();
-    }
-  } else {
-    str = String(courseInput).trim();
-  }
-
-  if (!str) {
-    throw new ApiError(400, "Course ID is required");
-  }
-
-  if (mongoose.Types.ObjectId.isValid(str)) {
-    return str;
-  }
-
-  const courseBySlug = await Course.findOne({ slug: str }).select("_id").lean();
-  if (courseBySlug) {
-    return courseBySlug._id.toString();
-  }
-
-  const courseByTitle = await Course.findOne({ title: str }).select("_id").lean();
-  if (courseByTitle) {
-    return courseByTitle._id.toString();
-  }
-
-  throw new ApiError(400, "Invalid course ID");
-}
-
-/*
- * ============================================
- * STUDENT COURSE ACCESS
+ * VALIDATE STUDENT COURSE ACCESS
  * ============================================
  */
 async function validateStudentCourseAccess({
@@ -87,17 +29,17 @@ async function validateStudentCourseAccess({
     "student ID",
   );
 
-  const validCourseId = await resolveCourseObjectId(courseId);
-
-  const user = await User.findById(validStudentId).select("role").lean();
-  if (user && (user.role === "admin" || user.role === "instructor")) {
-    return { status: "active", courseId: validCourseId };
-  }
+  const validCourseId = validateObjectId(
+    courseId,
+    "course ID",
+  );
 
   const enrollment =
     await Enrollment.findOne({
       student: validStudentId,
+
       course: validCourseId,
+
       status: {
         $in: [
           "active",
@@ -129,7 +71,7 @@ async function validateStudentCourseAccess({
     );
   }
 
-  return { ...enrollment, courseId: validCourseId };
+  return enrollment;
 }
 
 /*
@@ -140,20 +82,21 @@ async function validateStudentCourseAccess({
 async function getAccessibleLecture({
   studentId,
   lectureId,
-  fallbackCourseId = null,
 }) {
-  const validLectureId = validateObjectId(
-    lectureId,
-    "lecture ID",
-  );
+  const validLectureId =
+    validateObjectId(
+      lectureId,
+      "lecture ID",
+    );
 
   const lecture =
     await Lecture.findOne({
       _id: validLectureId,
       isActive: true,
     })
-      .select("_id course module title isPublished isActive")
-      .populate({ path: "module", select: "course" })
+      .select(
+        "_id course module title type isPublished isActive",
+      )
       .lean();
 
   if (!lecture) {
@@ -163,38 +106,33 @@ async function getAccessibleLecture({
     );
   }
 
-  let rawCourse =
-    lecture.course ||
-    (lecture.module && typeof lecture.module === "object"
-      ? lecture.module.course
-      : null) ||
-    fallbackCourseId;
-
-  if (!rawCourse && lecture.module) {
-    const modDoc = await CourseModule.findById(lecture.module).select("course").lean();
-    if (modDoc) {
-      rawCourse = modDoc.course;
-    }
-  }
-
-  if (!rawCourse) {
+  /*
+   * Lecture schema me course required hai.
+   * Isliye course frontend se lene ki zarurat nahi.
+   */
+  if (!lecture.course) {
     throw new ApiError(
       400,
-      "Invalid course ID",
+      "Lecture is not linked to a course",
     );
   }
 
-  const resolvedCourseId = await resolveCourseObjectId(rawCourse);
+  const courseId =
+    validateObjectId(
+      lecture.course,
+      "course ID",
+    );
 
   await validateStudentCourseAccess({
     studentId,
-    courseId: resolvedCourseId,
+    courseId,
   });
 
   return {
     ...lecture,
-    course: resolvedCourseId,
-    module: lecture.module && typeof lecture.module === "object" ? lecture.module._id : lecture.module,
+
+    course:
+      courseId,
   };
 }
 
@@ -207,14 +145,14 @@ export async function createStudentNote({
   studentId,
   payload,
 }) {
-  validateObjectId(
-    studentId,
-    "student ID",
-  );
+  const validStudentId =
+    validateObjectId(
+      studentId,
+      "student ID",
+    );
 
   const {
     lectureId,
-    courseId = null,
     title = "",
     content,
     isPinned = false,
@@ -228,10 +166,14 @@ export async function createStudentNote({
   }
 
   const normalizedTitle =
-    String(title || "").trim();
+    String(
+      title || "",
+    ).trim();
 
   const normalizedContent =
-    String(content || "").trim();
+    String(
+      content || "",
+    ).trim();
 
   if (!normalizedContent) {
     throw new ApiError(
@@ -272,25 +214,56 @@ export async function createStudentNote({
 
   const lecture =
     await getAccessibleLecture({
-      studentId,
+      studentId:
+        validStudentId,
+
       lectureId,
-      fallbackCourseId: courseId,
     });
 
-  const note = await StudentNote.create({
-    student: studentId,
-    course: lecture.course,
-    module: lecture.module ?? null,
-    lecture: lecture._id,
-    title: normalizedTitle,
-    content: normalizedContent,
-    isPinned,
-    isActive: true,
-  });
+  const note =
+    await StudentNote.create({
+      student:
+        validStudentId,
+
+      course:
+        lecture.course,
+
+      module:
+        lecture.module ?? null,
+
+      lecture:
+        lecture._id,
+
+      title:
+        normalizedTitle,
+
+      content:
+        normalizedContent,
+
+      isPinned,
+
+      isActive:
+        true,
+    });
 
   await note.populate([
-    { path: "lecture", select: "title type order" },
-    { path: "module", select: "title order" },
+    {
+      path: "course",
+      select:
+        "title slug thumbnailUrl",
+    },
+
+    {
+      path: "lecture",
+      select:
+        "title type order",
+    },
+
+    {
+      path: "module",
+      select:
+        "title order",
+    },
   ]);
 
   return note;
@@ -306,14 +279,17 @@ export async function getStudentLectureNotes({
   lectureId,
   query = {},
 }) {
-  validateObjectId(
-    studentId,
-    "student ID",
-  );
+  const validStudentId =
+    validateObjectId(
+      studentId,
+      "student ID",
+    );
 
   const lecture =
     await getAccessibleLecture({
-      studentId,
+      studentId:
+        validStudentId,
+
       lectureId,
     });
 
@@ -321,12 +297,13 @@ export async function getStudentLectureNotes({
     page,
     limit,
     skip,
-  } =
-    getPagination(query);
+  } = getPagination(
+    query,
+  );
 
   const filter = {
     student:
-      studentId,
+      validStudentId,
 
     lecture:
       lecture._id,
@@ -338,24 +315,33 @@ export async function getStudentLectureNotes({
   const [
     notes,
     totalRecords,
-  ] =
-    await Promise.all([
-      StudentNote.find(
-        filter,
-      )
-        .sort({
-          isPinned: -1,
-          updatedAt: -1,
-          createdAt: -1,
-        })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
+  ] = await Promise.all([
+    StudentNote.find(
+      filter,
+    )
+      .populate({
+        path: "lecture",
+        select:
+          "title type order",
+      })
+      .populate({
+        path: "module",
+        select:
+          "title order",
+      })
+      .sort({
+        isPinned: -1,
+        updatedAt: -1,
+        createdAt: -1,
+      })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
 
-      StudentNote.countDocuments(
-        filter,
-      ),
-    ]);
+    StudentNote.countDocuments(
+      filter,
+    ),
+  ]);
 
   return {
     lecture: {
@@ -393,24 +379,33 @@ export async function getStudentCourseNotes({
   courseId,
   query = {},
 }) {
-  const validStudentId = validateObjectId(
-    studentId,
-    "student ID",
-  );
+  const validStudentId =
+    validateObjectId(
+      studentId,
+      "student ID",
+    );
 
-  const validCourseId = await resolveCourseObjectId(courseId);
+  const validCourseId =
+    validateObjectId(
+      courseId,
+      "course ID",
+    );
 
   await validateStudentCourseAccess({
-    studentId: validStudentId,
-    courseId: validCourseId,
+    studentId:
+      validStudentId,
+
+    courseId:
+      validCourseId,
   });
 
   const {
     page,
     limit,
     skip,
-  } =
-    getPagination(query);
+  } = getPagination(
+    query,
+  );
 
   const {
     lectureId = null,
@@ -420,31 +415,30 @@ export async function getStudentCourseNotes({
   } = query;
 
   const filter = {
-    student: validStudentId,
+    student:
+      validStudentId,
 
-    course: validCourseId,
+    course:
+      validCourseId,
 
     isActive:
       true,
   };
 
   if (lectureId) {
-    const validLecId = validateObjectId(
-      lectureId,
-      "lecture ID",
-    );
-
-    filter.lecture = validLecId;
+    filter.lecture =
+      validateObjectId(
+        lectureId,
+        "lecture ID",
+      );
   }
 
   if (moduleId) {
-    validateObjectId(
-      moduleId,
-      "module ID",
-    );
-
     filter.module =
-      moduleId;
+      validateObjectId(
+        moduleId,
+        "module ID",
+      );
   }
 
   if (
@@ -467,7 +461,9 @@ export async function getStudentCourseNotes({
   }
 
   const normalizedSearch =
-    String(search || "").trim();
+    String(
+      search || "",
+    ).trim();
 
   if (normalizedSearch) {
     const safeSearch =
@@ -502,38 +498,33 @@ export async function getStudentCourseNotes({
   const [
     notes,
     totalRecords,
-  ] =
-    await Promise.all([
-      StudentNote.find(
-        filter,
-      )
-        .populate({
-          path:
-            "lecture",
+  ] = await Promise.all([
+    StudentNote.find(
+      filter,
+    )
+      .populate({
+        path: "lecture",
+        select:
+          "title type order",
+      })
+      .populate({
+        path: "module",
+        select:
+          "title order",
+      })
+      .sort({
+        isPinned: -1,
+        updatedAt: -1,
+        createdAt: -1,
+      })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
 
-          select:
-            "title type order",
-        })
-        .populate({
-          path:
-            "module",
-
-          select:
-            "title order",
-        })
-        .sort({
-          isPinned: -1,
-          updatedAt: -1,
-          createdAt: -1,
-        })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-
-      StudentNote.countDocuments(
-        filter,
-      ),
-    ]);
+    StudentNote.countDocuments(
+      filter,
+    ),
+  ]);
 
   return {
     notes,
@@ -556,45 +547,41 @@ export async function getStudentNoteById({
   studentId,
   noteId,
 }) {
-  validateObjectId(
-    studentId,
-    "student ID",
-  );
+  const validStudentId =
+    validateObjectId(
+      studentId,
+      "student ID",
+    );
 
-  validateObjectId(
-    noteId,
-    "note ID",
-  );
+  const validNoteId =
+    validateObjectId(
+      noteId,
+      "note ID",
+    );
 
   const note =
     await StudentNote.findOne({
       _id:
-        noteId,
+        validNoteId,
 
       student:
-        studentId,
+        validStudentId,
 
       isActive:
         true,
     })
       .populate({
-        path:
-          "lecture",
-
+        path: "lecture",
         select:
           "title type order",
       })
       .populate({
-        path:
-          "module",
-
+        path: "module",
         select:
           "title order",
       })
       .populate({
-        path:
-          "course",
-
+        path: "course",
         select:
           "title slug thumbnailUrl",
       })
@@ -607,11 +594,19 @@ export async function getStudentNoteById({
     );
   }
 
+  /*
+   * Populated course document se _id nikalo.
+   */
+  const noteCourseId =
+    note.course?._id ??
+    note.course;
+
   await validateStudentCourseAccess({
-    studentId,
+    studentId:
+      validStudentId,
+
     courseId:
-      note.course?._id ??
-      note.course,
+      noteCourseId,
   });
 
   return note;
@@ -627,23 +622,25 @@ export async function updateStudentNote({
   noteId,
   payload,
 }) {
-  validateObjectId(
-    studentId,
-    "student ID",
-  );
+  const validStudentId =
+    validateObjectId(
+      studentId,
+      "student ID",
+    );
 
-  validateObjectId(
-    noteId,
-    "note ID",
-  );
+  const validNoteId =
+    validateObjectId(
+      noteId,
+      "note ID",
+    );
 
   const note =
     await StudentNote.findOne({
       _id:
-        noteId,
+        validNoteId,
 
       student:
-        studentId,
+        validStudentId,
 
       isActive:
         true,
@@ -657,7 +654,9 @@ export async function updateStudentNote({
   }
 
   await validateStudentCourseAccess({
-    studentId,
+    studentId:
+      validStudentId,
+
     courseId:
       note.course,
   });
@@ -683,7 +682,9 @@ export async function updateStudentNote({
     title !== undefined
   ) {
     const normalizedTitle =
-      String(title || "").trim();
+      String(
+        title || "",
+      ).trim();
 
     if (
       normalizedTitle.length >
@@ -703,7 +704,9 @@ export async function updateStudentNote({
     content !== undefined
   ) {
     const normalizedContent =
-      String(content || "").trim();
+      String(
+        content || "",
+      ).trim();
 
     if (!normalizedContent) {
       throw new ApiError(
@@ -745,6 +748,26 @@ export async function updateStudentNote({
 
   await note.save();
 
+  await note.populate([
+    {
+      path: "course",
+      select:
+        "title slug thumbnailUrl",
+    },
+
+    {
+      path: "lecture",
+      select:
+        "title type order",
+    },
+
+    {
+      path: "module",
+      select:
+        "title order",
+    },
+  ]);
+
   return note;
 }
 
@@ -752,31 +775,30 @@ export async function updateStudentNote({
  * ============================================
  * DELETE STUDENT NOTE
  * ============================================
- *
- * Soft delete use karenge because model me
- * isActive already available hai.
  */
 export async function deleteStudentNote({
   studentId,
   noteId,
 }) {
-  validateObjectId(
-    studentId,
-    "student ID",
-  );
+  const validStudentId =
+    validateObjectId(
+      studentId,
+      "student ID",
+    );
 
-  validateObjectId(
-    noteId,
-    "note ID",
-  );
+  const validNoteId =
+    validateObjectId(
+      noteId,
+      "note ID",
+    );
 
   const note =
     await StudentNote.findOne({
       _id:
-        noteId,
+        validNoteId,
 
       student:
-        studentId,
+        validStudentId,
 
       isActive:
         true,
@@ -790,11 +812,16 @@ export async function deleteStudentNote({
   }
 
   await validateStudentCourseAccess({
-    studentId,
+    studentId:
+      validStudentId,
+
     courseId:
       note.course,
   });
 
+  /*
+   * Soft delete
+   */
   note.isActive =
     false;
 
