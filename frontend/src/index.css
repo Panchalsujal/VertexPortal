@@ -736,6 +736,17 @@ html.dark .stitch-glass {
   muted: false !important;
 }
 
+/* Hide the erroneous infinite audio-connecting spinner from Stream SDK */
+.stream-stage-container .str-video__participant-details__name--audio-connecting,
+.str-video__participant-details__name--audio-connecting {
+  display: none !important;
+}
+
+/* Highlight speech indicator when active */
+.str-video__speech-indicator--speaking .str-video__speech-indicator__bar {
+  background-color: #10b981 !important;
+}
+
 .stream-stage-container .str-video__speaker-layout__participants-bar-wrapper {
   padding-top: 0.5rem;
   flex-shrink: 0;
@@ -754,4 +765,5 @@ html.dark .stitch-glass {
   padding: 0.5rem 0.75rem !important;
   border-radius: 0 0 0.875rem 0.875rem;
 }
+
 
