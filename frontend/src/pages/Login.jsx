@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, GraduationCap } from 'lucide-react';
 import {
@@ -31,6 +31,9 @@ export default function Login() {
   const [remember, setRemember] = useState(false);
   const [loading, setLoading]   = useState(false);
 
+  const googleBtnRef = useRef(null);
+  const gsiInitializedRef = useRef(false);
+
   const handleGoogleSuccess = async (credential) => {
     setLoading(true);
     try {
@@ -51,55 +54,65 @@ export default function Login() {
     }
   };
 
-  const handleGoogleAuth = () => {
+  useEffect(() => {
     const clientId =
       import.meta.env.VITE_GOOGLE_CLIENT_ID ||
       '437241590710-ce84o2fcqnbg1esivhsbgcdr8cpfs0m3.apps.googleusercontent.com';
-    if (!clientId) {
-      toast.error('Google Client ID is not configured');
-      return;
-    }
 
-    const initGsi = () => {
-      if (window.google?.accounts?.id) {
-        try {
-          window.google.accounts.id.initialize({
-            client_id: clientId,
-            callback: (response) => {
-              if (response?.credential) {
-                handleGoogleSuccess(response.credential);
-              }
-            },
-            cancel_on_tap_outside: false,
-          });
-
-          window.google.accounts.id.prompt((notification) => {
-            if (notification.isNotDisplayed()) {
-              const reason = notification.getNotDisplayedReason();
-              console.warn('Google Prompt Not Displayed:', reason);
-              if (reason === 'suppressed_by_user' || reason === 'opt_out_or_nested_iframe') {
-                toast('Please enable third-party cookies or popups for Google sign-in', { icon: 'ℹ️' });
-              }
-            } else if (notification.isSkippedMoment()) {
-              console.warn('Google Prompt Skipped:', notification.getSkippedReason());
+    const setupGsi = () => {
+      if (!window.google?.accounts?.id || gsiInitializedRef.current) return;
+      try {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (response) => {
+            if (response?.credential) {
+              handleGoogleSuccess(response.credential);
             }
+          },
+          use_fedcm_for_prompt: true,
+          auto_select: false,
+          cancel_on_tap_outside: true,
+        });
+
+        if (googleBtnRef.current) {
+          window.google.accounts.id.renderButton(googleBtnRef.current, {
+            type: 'standard',
+            theme: 'outline',
+            size: 'large',
           });
-        } catch (e) {
-          console.error('Google Auth Init Error:', e);
-          toast.error('Google Sign-In initialization failed');
         }
+
+        gsiInitializedRef.current = true;
+      } catch (err) {
+        console.warn('GSI Init Error:', err);
       }
     };
 
     if (window.google?.accounts?.id) {
-      initGsi();
+      setupGsi();
     } else {
       const script = document.createElement('script');
       script.src = 'https://accounts.google.com/gsi/client';
       script.async = true;
       script.defer = true;
-      script.onload = initGsi;
+      script.onload = setupGsi;
       document.body.appendChild(script);
+    }
+  }, []);
+
+  const handleGoogleAuth = () => {
+    if (googleBtnRef.current) {
+      const btn = googleBtnRef.current.querySelector('div[role=button]');
+      if (btn) {
+        btn.click();
+        return;
+      }
+    }
+
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.prompt();
+    } else {
+      toast.error('Google service is loading, please try again.');
     }
   };
 
@@ -273,6 +286,7 @@ export default function Login() {
                   </button>
                 ))}
               </div>
+              <div ref={googleBtnRef} className="hidden" aria-hidden="true" />
 
               {/* Security note */}
               <div className="flex items-center gap-3 rounded-2xl p-3.5"
