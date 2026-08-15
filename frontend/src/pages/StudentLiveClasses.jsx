@@ -90,15 +90,62 @@ export default function StudentLiveClasses() {
     }
   };
 
-  const getClassTimingStatus = (item) => {
+  const getTimingMeta = (item) => {
     const now = Date.now();
     const start = item.startsAt || item.scheduledAt ? new Date(item.startsAt || item.scheduledAt).getTime() : 0;
-    const durationMs = (item.duration || item.durationInMinutes || 60) * 60 * 1000;
+    const durationMins = item.duration || item.durationInMinutes || 60;
+    const durationMs = durationMins * 60 * 1000;
     const end = item.endsAt ? new Date(item.endsAt).getTime() : (start > 0 ? start + durationMs : 0);
+    const allowEarlyMins = item.allowEarlyJoinMinutes ?? 15;
+    const joinOpensAt = start - (allowEarlyMins * 60 * 1000);
 
-    if (item.status === 'cancelled') return 'cancelled';
-    if (item.status === 'completed' || item.status === 'ended' || (end > 0 && now > end)) return 'ended';
-    if (start > 0 && now >= start && (end === 0 || now <= end)) return 'live';
+    const isCancelled = item.status === 'cancelled';
+    const isEnded = item.status === 'completed' || item.status === 'ended' || (end > 0 && now > end);
+    const isLiveNow = !isCancelled && !isEnded && (item.status === 'live' || (start > 0 && now >= start && now <= end));
+    const isJoinWindowOpen = !isCancelled && !isEnded && (isLiveNow || (start > 0 && now >= joinOpensAt && now <= end));
+    const isUpcoming = !isCancelled && !isEnded && !isJoinWindowOpen && start > now;
+
+    // Relative timing description
+    let relativeText = '';
+    if (isLiveNow) {
+      relativeText = 'Class is active right now';
+    } else if (isJoinWindowOpen) {
+      relativeText = `Starting in ${Math.max(1, Math.round((start - now) / 60000))} mins`;
+    } else if (isUpcoming) {
+      const diffHours = Math.floor((start - now) / (1000 * 60 * 60));
+      const diffMins = Math.floor(((start - now) % (1000 * 60 * 60)) / (1000 * 60));
+      if (diffHours >= 24) {
+        const days = Math.round(diffHours / 24);
+        relativeText = `Starts in ${days} day${days > 1 ? 's' : ''}`;
+      } else if (diffHours > 0) {
+        relativeText = `Starts in ${diffHours}h ${diffMins}m`;
+      } else {
+        relativeText = `Starts in ${diffMins} mins`;
+      }
+    } else if (isEnded) {
+      relativeText = 'Session finished';
+    }
+
+    return {
+      start,
+      end,
+      durationMins,
+      allowEarlyMins,
+      joinOpensAt,
+      isCancelled,
+      isEnded,
+      isLiveNow,
+      isJoinWindowOpen,
+      isUpcoming,
+      relativeText,
+    };
+  };
+
+  const getClassTimingStatus = (item) => {
+    const meta = getTimingMeta(item);
+    if (meta.isCancelled) return 'cancelled';
+    if (meta.isEnded) return 'ended';
+    if (meta.isLiveNow || meta.isJoinWindowOpen) return 'live';
     return 'scheduled';
   };
 
@@ -201,9 +248,26 @@ export default function StudentLiveClasses() {
             ) : filteredClasses.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
                 {filteredClasses.map((item) => {
-                  const timingStatus = getClassTimingStatus(item);
-                  const isJoinable = timingStatus === 'live' || timingStatus === 'scheduled';
+                  const meta = getTimingMeta(item);
                   const courseTitle = item.course?.title || item.courseName || 'Enrolled Course';
+                  const instructorName =
+                    item.instructor?.fullName || item.instructor?.name || 'Course Instructor';
+
+                  const startDate = new Date(meta.start || Date.now());
+                  const formattedDate = startDate.toLocaleDateString(undefined, {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  });
+                  const formattedStartTime = startDate.toLocaleTimeString(undefined, {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  });
+                  const formattedEndTime = new Date(meta.end || Date.now()).toLocaleTimeString(undefined, {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  });
 
                   return (
                     <div
@@ -212,28 +276,33 @@ export default function StudentLiveClasses() {
                     >
                       <div>
                         {/* Header Badges */}
-                        <div className="flex items-center justify-between gap-2 mb-2">
-                          <span className="inline-flex items-center gap-1.5 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-[11px] font-bold px-2.5 py-1 rounded-full truncate max-w-[65%] border border-purple-200 dark:border-purple-800/60">
+                        <div className="flex items-center justify-between gap-2 mb-3">
+                          <span className="inline-flex items-center gap-1.5 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-[11px] font-bold px-2.5 py-1 rounded-full truncate max-w-[60%] border border-purple-200 dark:border-purple-800/60">
                             <BookOpenIcon size={12} color="#6C5CE7" className="shrink-0" />{' '}
                             <span className="truncate">{courseTitle}</span>
                           </span>
 
-                          {timingStatus === 'live' && (
+                          {meta.isLiveNow && (
                             <span className="inline-flex items-center gap-1 bg-red-100 dark:bg-red-950/80 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-800 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full animate-pulse shrink-0">
                               🔴 LIVE NOW
                             </span>
                           )}
-                          {timingStatus === 'scheduled' && (
+                          {meta.isJoinWindowOpen && !meta.isLiveNow && (
+                            <span className="inline-flex items-center gap-1 bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full shrink-0 animate-pulse">
+                              ⚡ Starting Soon
+                            </span>
+                          )}
+                          {meta.isUpcoming && (
                             <span className="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full shrink-0">
                               Scheduled
                             </span>
                           )}
-                          {timingStatus === 'ended' && (
+                          {meta.isEnded && (
                             <span className="inline-flex items-center gap-1 bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-slate-700 text-[11px] font-semibold px-2.5 py-0.5 rounded-full shrink-0">
                               <CircleCheckIcon size={12} color="#9ca3af" /> Ended
                             </span>
                           )}
-                          {timingStatus === 'cancelled' && (
+                          {meta.isCancelled && (
                             <span className="inline-flex items-center gap-1 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full shrink-0">
                               <Ban className="w-3 h-3" /> Cancelled
                             </span>
@@ -244,52 +313,73 @@ export default function StudentLiveClasses() {
                         <h3 className="font-bold text-gray-900 dark:text-white text-base leading-snug mb-1">
                           {item.title}
                         </h3>
-                        {item.description && (
+                        {item.description ? (
                           <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-3 leading-relaxed">
                             {item.description}
                           </p>
+                        ) : (
+                          <p className="text-xs text-gray-400 dark:text-gray-500 italic mb-3">
+                            No description provided.
+                          </p>
                         )}
 
-                        {/* Schedule Meta */}
-                        <div className="space-y-1.5 py-3 border-y border-gray-100 dark:border-slate-800/80 my-3 text-xs text-gray-600 dark:text-gray-300">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-3.5 h-3.5 text-purple-600 shrink-0" />
-                            <span>
-                              {new Date(item.startsAt || item.scheduledAt || Date.now()).toLocaleDateString(undefined, {
-                                weekday: 'short',
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric',
-                              })}
+                        {/* Instructor line */}
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-1.5">
+                          <span className="font-semibold text-gray-700 dark:text-gray-300">Instructor:</span>
+                          <span>{instructorName}</span>
+                        </div>
+
+                        {/* Schedule Meta Details */}
+                        <div className="space-y-2 py-3 border-y border-gray-100 dark:border-slate-800/80 my-3 text-xs text-gray-600 dark:text-gray-300">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                              <span className="font-medium">{formattedDate}</span>
+                            </div>
+                            <span className="text-[11px] font-semibold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-md">
+                              {meta.relativeText}
                             </span>
                           </div>
+
                           <div className="flex items-center gap-2">
                             <ClockIcon size={14} color="#6C5CE7" className="shrink-0" />
                             <span>
-                              {new Date(item.startsAt || item.scheduledAt || Date.now()).toLocaleTimeString(undefined, {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}{' '}
-                              ({item.duration || item.durationInMinutes || 60} mins)
+                              {formattedStartTime} – {formattedEndTime} ({meta.durationMins} mins)
                             </span>
                           </div>
+
+                          {meta.isUpcoming && (
+                            <div className="text-[11px] text-gray-400 dark:text-gray-500 italic pt-0.5">
+                              Room opens {meta.allowEarlyMins} mins before start time
+                            </div>
+                          )}
                         </div>
                       </div>
 
                       {/* Action Button */}
                       <div className="pt-2">
-                        {isJoinable ? (
+                        {meta.isJoinWindowOpen ? (
                           <button
                             type="button"
                             onClick={() => handleJoin(item)}
-                            className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold inline-flex items-center justify-center gap-2 transition cursor-pointer shadow-sm ${
-                              timingStatus === 'live'
-                                ? 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-red-600/20'
-                                : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-purple-600/20'
-                            }`}
+                            className="w-full py-2.5 px-4 rounded-xl text-xs font-bold inline-flex items-center justify-center gap-2 transition cursor-pointer shadow-sm bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-red-600/20"
                           >
                             <VideoIcon size={14} color="#ffffff" />
-                            {timingStatus === 'live' ? 'Join Live Room Now' : 'Join Classroom'}
+                            <span>Join Live Room Now</span>
+                          </button>
+                        ) : meta.isUpcoming ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              toast(
+                                `This live class is scheduled for ${formattedDate} at ${formattedStartTime}. Room opens ${meta.allowEarlyMins} minutes before.`,
+                                { icon: '⏰' }
+                              );
+                            }}
+                            className="w-full py-2.5 px-4 rounded-xl text-xs font-bold inline-flex items-center justify-center gap-2 transition cursor-pointer border border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/40 text-center"
+                          >
+                            <ClockIcon size={14} color="currentColor" />
+                            <span>Opens at {new Date(meta.joinOpensAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                           </button>
                         ) : (
                           <button
@@ -297,7 +387,7 @@ export default function StudentLiveClasses() {
                             disabled
                             className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-gray-500 cursor-not-allowed text-center"
                           >
-                            {timingStatus === 'ended' ? 'Class Concluded' : 'Class Cancelled'}
+                            {meta.isEnded ? 'Class Concluded' : 'Class Cancelled'}
                           </button>
                         )}
                       </div>
