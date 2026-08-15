@@ -569,6 +569,9 @@ export default function LiveClassRoom() {
           setIsInstructor(hostMode);
         }
 
+        // Successfully joined or fetched room data
+        hasJoinedSuccessfully = true;
+
         // Initialize GetStream Video Client if stream credentials present
         if (streamInfo?.apiKey && streamInfo?.token) {
           try {
@@ -616,8 +619,12 @@ export default function LiveClassRoom() {
         }
       } catch (err) {
         if (mounted) {
-          setErrorMsg(err.message || 'Failed to connect to live class');
-          toast.error(err.message || 'Failed to connect to live class');
+          const message =
+            err?.response?.data?.message ||
+            err?.message ||
+            'Failed to connect to live class';
+          setErrorMsg(message);
+          toast.error(message);
         }
       } finally {
         if (mounted) setLoading(false);
@@ -634,7 +641,7 @@ export default function LiveClassRoom() {
       if (clientInstance) {
         clientInstance.disconnectUser().catch(() => {});
       }
-      if (!isHost) {
+      if (!isHost && hasJoinedSuccessfully) {
         leaveLiveClass(liveClassId).catch(() => {});
       }
     };
