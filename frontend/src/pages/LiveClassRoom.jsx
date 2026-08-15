@@ -173,53 +173,49 @@ function StreamConnectedStage({
   const callingState = useCallCallingState();
 
   const [layoutMode, setLayoutMode] = useState('grid'); // 'grid' | 'speaker'
-  const [audioBlocked, setAudioBlocked] = useState(false);
+  // Start as true so we always show the banner until user taps; browser will unblock then
+  const [audioBlocked, setAudioBlocked] = useState(!isHost);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Audio autoplay unblocker
+  // Audio autoplay unblocker — runs on mount and whenever a new participant joins
+  const doUnblockAudio = async (callRef) => {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        const ctx = new AudioCtx();
+        if (ctx.state === 'suspended') await ctx.resume();
+      }
+      if (callRef?.resumeAudio) await callRef.resumeAudio();
+      document.querySelectorAll('audio, video').forEach((el) => {
+        if (el.paused) el.play().catch(() => {});
+        if (el.muted) el.muted = false;
+      });
+      setAudioBlocked(false);
+    } catch (e) {
+      console.warn('Audio unblock attempt:', e?.message);
+    }
+  };
+
   useEffect(() => {
     if (!call) return;
 
-    const unblockAudio = async () => {
-      try {
-        if (typeof window !== 'undefined') {
-          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-          if (AudioContextClass) {
-            const ctx = new AudioContextClass();
-            if (ctx.state === 'suspended') {
-              await ctx.resume();
-            }
-          }
-        }
-        if (call.resumeAudio) {
-          await call.resumeAudio();
-        }
-        document.querySelectorAll('audio').forEach((el) => {
-          el.play().catch(() => {});
-        });
-        setAudioBlocked(false);
-      } catch (e) {
-        console.warn('Audio resume attempt:', e?.message);
-      }
-    };
+    // Try immediately on mount (works in desktop where autoplay allowed)
+    doUnblockAudio(call);
 
-    unblockAudio();
+    // Re-try every time a participant joins (catches instructor joining late)
+    const unsub = call.on('call.session_participant_joined', () => {
+      doUnblockAudio(call);
+    });
 
-    const onUserInteraction = () => {
-      unblockAudio();
-      window.removeEventListener('click', onUserInteraction);
-      window.removeEventListener('touchstart', onUserInteraction);
-      window.removeEventListener('keydown', onUserInteraction);
-    };
-
-    window.addEventListener('click', onUserInteraction, { once: true });
-    window.addEventListener('touchstart', onUserInteraction, { once: true });
-    window.addEventListener('keydown', onUserInteraction, { once: true });
+    // Also re-try on ANY call event once (belt-and-suspenders for mobile)
+    const unsubAll = call.on('all', () => {
+      doUnblockAudio(call);
+      if (typeof unsubAll === 'function') unsubAll();
+    });
 
     return () => {
-      window.removeEventListener('click', onUserInteraction);
-      window.removeEventListener('touchstart', onUserInteraction);
-      window.removeEventListener('keydown', onUserInteraction);
+      if (typeof unsub === 'function') unsub();
+      if (typeof unsubAll === 'function') unsubAll();
     };
   }, [call]);
 
@@ -372,9 +368,10 @@ function StreamConnectedStage({
     <div
       ref={roomContainerRef}
       className="h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col font-[Inter,sans-serif] select-none"
+      onClick={() => { if (audioBlocked) doUnblockAudio(call); }}
     >
       {/* Explicit Audio Stream Element for Remote Participants */}
-      <ParticipantsAudio participants={participants} />
+      <ParticipantsAudio />
 
       {/* Top Header Bar */}
       <header className="h-14 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/90 px-3 sm:px-5 flex items-center justify-between z-20 shrink-0">
@@ -429,19 +426,19 @@ function StreamConnectedStage({
       </header>
 
       {/* Main Workspace (Stage + Chat) */}
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="flex-1 min-h-0 flex overflow-hidden relative">
         {/* Stream Video Stage */}
-        <div className="flex-1 flex flex-col bg-slate-950 relative overflow-hidden p-2 sm:p-3">
-          <div className="flex-1 w-full h-full relative rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center">
+        <div className="flex-1 min-w-0 flex flex-col bg-slate-950 relative overflow-hidden p-2 sm:p-3">
+          <div className="flex-1 min-h-0 w-full relative rounded-2xl overflow-hidden bg-[#080c15] flex items-stretch justify-stretch">
             {isConnecting ? (
-              <div className="w-full h-full flex flex-col items-center justify-center text-center p-8 gap-3 animate-pulse bg-radial from-slate-900 to-slate-950">
+              <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-3">
                 <div className="w-16 h-16 rounded-3xl bg-slate-800/90 border border-slate-700/60 flex items-center justify-center shadow-lg">
                   <Radio className="w-8 h-8 text-purple-400 animate-pulse" />
                 </div>
                 <p className="text-sm font-semibold text-slate-300">Connecting to live classroom...</p>
               </div>
             ) : (
-              <div className="w-full h-full stream-stage-container">
+              <div className="absolute inset-0 stream-stage-container">
                 {layoutMode === 'grid' ? (
                   <PaginatedGridLayout />
                 ) : (
@@ -450,18 +447,18 @@ function StreamConnectedStage({
               </div>
             )}
 
-            {/* Audio Autoplay Unblock Helper Banner */}
+            {/* Audio Autoplay Unblock Banner — always show for students until they tap */}
             {audioBlocked && (
               <button
-                onClick={() => {
-                  if (call?.resumeAudio) call.resumeAudio().catch(() => {});
-                  document.querySelectorAll('audio').forEach((el) => el.play().catch(() => {}));
-                  setAudioBlocked(false);
-                  toast.success('Audio enabled!');
+                onClick={(e) => {
+                  e.stopPropagation();
+                  doUnblockAudio(call);
+                  toast.success('Audio enabled! 🔊');
                 }}
-                className="absolute top-4 left-1/2 -translate-x-1/2 bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-1.5 rounded-full font-bold text-xs shadow-2xl flex items-center gap-2 animate-bounce z-30 cursor-pointer"
+                className="absolute top-4 left-1/2 -translate-x-1/2 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 px-5 py-2 rounded-full font-bold text-xs shadow-2xl flex items-center gap-2 animate-bounce z-30 cursor-pointer"
               >
-                <span>🔊 Tap here to unmute class audio</span>
+                <Volume2 className="w-4 h-4" />
+                <span>Tap to enable instructor audio</span>
               </button>
             )}
 

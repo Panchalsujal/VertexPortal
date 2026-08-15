@@ -670,14 +670,15 @@ html.dark .stitch-glass {
 /*  STREAM WEBRTC CLASSROOM STAGE                              */
 /* ─────────────────────────────────────────────────────────── */
 .stream-stage-container {
-  width: 100%;
-  height: 100%;
-  position: relative;
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   background: #070a12;
+  overflow: hidden;
 }
 
+/* Make every SDK layout wrapper fill the container */
 .stream-stage-container .str-video__paginated-grid-layout,
 .stream-stage-container .str-video__paginated-grid-layout__wrapper,
 .stream-stage-container .str-video__paginated-grid-layout__group,
@@ -685,32 +686,40 @@ html.dark .stitch-glass {
 .stream-stage-container .str-video__speaker-layout {
   width: 100% !important;
   height: 100% !important;
-  flex: 1;
+  flex: 1 1 0%;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
+  align-items: stretch;
+  justify-content: stretch;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+
+/* Grid cells — fill evenly */
+.stream-stage-container .str-video__paginated-grid-layout__group > * {
+  flex: 1 1 0%;
+  min-width: 0;
+  min-height: 0;
 }
 
 .stream-stage-container .str-video__speaker-layout__spotlight {
   width: 100%;
   height: 100%;
-  flex: 1;
+  flex: 1 1 0%;
   border-radius: 1rem;
   overflow: hidden;
   background: #090d16;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .stream-stage-container .str-video__participant-view {
-  border-radius: 1rem;
+  border-radius: 0.875rem;
   overflow: hidden;
   background-color: #0b0f19;
   position: relative;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.55);
+  border: 1.5px solid rgba(255, 255, 255, 0.07);
+  /* Fill their grid cell */
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .stream-stage-container .str-video__participant-view video,
@@ -718,23 +727,31 @@ html.dark .stitch-glass {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
-  border-radius: 1rem;
+  border-radius: 0.875rem;
+}
+
+/* Force all SDK audio elements unmuted */
+.stream-stage-container audio,
+.str-video audio {
+  muted: false !important;
 }
 
 .stream-stage-container .str-video__speaker-layout__participants-bar-wrapper {
   padding-top: 0.5rem;
+  flex-shrink: 0;
 }
 
 .stream-stage-container .str-video__speaker-layout__participant-tile {
   border-radius: 0.75rem;
   overflow: hidden;
-  border: 2px solid rgba(108, 92, 231, 0.5);
+  border: 2px solid rgba(108, 92, 231, 0.45);
+  min-width: 100px;
+  height: 90px;
 }
 
 .stream-stage-container .str-video__participant-details {
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 100%) !important;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, transparent 100%) !important;
   padding: 0.5rem 0.75rem !important;
+  border-radius: 0 0 0.875rem 0.875rem;
 }
-
-
 
