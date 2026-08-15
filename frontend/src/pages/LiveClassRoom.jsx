@@ -167,8 +167,8 @@ function StreamConnectedStage({
 
   const participants = useParticipants() || [];
   const isRecording = useIsCallRecordingInProgress();
-  const { isMute: isMicMuted } = useMicrophoneState();
-  const { isMute: isCamMuted } = useCameraState();
+  const { isMute: isMicMuted, hasBrowserPermission: hasMicPermission } = useMicrophoneState({ optimisticUpdates: false }) || {};
+  const { isMute: isCamMuted, hasBrowserPermission: hasCamPermission } = useCameraState({ optimisticUpdates: false }) || {};
   const { screenShare, isEnabled: isScreenSharing } = useScreenShareState() || {};
   // Detect if ANY participant is sharing their screen (screenShareStream is set when active)
   const hasOngoingScreenShare = Array.isArray(participants) && participants.some(
@@ -290,32 +290,68 @@ function StreamConnectedStage({
   const toggleCamera = async () => {
     try {
       if (!call) return;
-      if (isCamMuted) {
-        await call.camera.enable();
-        toast.success('Camera turned on');
+      if (navigator?.mediaDevices?.getUserMedia) {
+        try {
+          const probe = await navigator.mediaDevices.getUserMedia({ video: true });
+          probe.getTracks().forEach((t) => t.stop());
+        } catch (_err) {
+          // Probe may fail if blocked, let SDK handler format toast
+        }
+      }
+      await call.camera.toggle();
+      const status = call.camera?.state?.status;
+      if (status === 'enabled') {
+        toast.success('Camera turned on 📹');
       } else {
-        await call.camera.disable();
         toast('Camera turned off');
       }
     } catch (e) {
-      console.warn('Failed to toggle camera:', e?.message);
-      toast.error(e?.message || 'Could not access camera');
+      console.warn('Failed to toggle camera:', e);
+      const msg = e?.message || '';
+      if (msg.includes('Permission') || msg.includes('NotAllowedError')) {
+        toast.error('Camera blocked! Click the lock/settings icon in your browser URL bar and allow Camera.', { duration: 6000 });
+      } else if (msg.includes('NotFound') || msg.includes('DevicesNotFoundError')) {
+        toast.error('No camera found on this device.', { duration: 5000 });
+      } else {
+        toast.error(msg || 'Could not access camera');
+      }
     }
   };
 
   const toggleMic = async () => {
     try {
       if (!call) return;
-      if (isMicMuted) {
-        await call.microphone.enable();
-        toast.success('Microphone unmuted');
+      // Proactively trigger browser permission prompt if not yet granted
+      if (navigator?.mediaDevices?.getUserMedia) {
+        try {
+          const probe = await navigator.mediaDevices.getUserMedia({ audio: true });
+          probe.getTracks().forEach((t) => t.stop());
+        } catch (_probeErr) {
+          // Will be handled below if permanently blocked
+        }
+      }
+      await call.microphone.toggle();
+      const status = call.microphone?.state?.status;
+      if (status === 'enabled') {
+        toast.success('Microphone connected & unmuted 🎙️');
       } else {
-        await call.microphone.disable();
         toast('Microphone muted');
       }
     } catch (e) {
-      console.warn('Failed to toggle mic:', e?.message);
-      toast.error(e?.message || 'Could not access microphone');
+      console.warn('Failed to toggle mic:', e);
+      const msg = e?.message || '';
+      if (msg.includes('Permission') || msg.includes('NotAllowedError')) {
+        toast.error(
+          'Microphone blocked! Click the lock/tune icon in your browser URL bar -> set Microphone to Allow, then refresh.',
+          { duration: 7000 }
+        );
+      } else if (msg.includes('NotFound') || msg.includes('DevicesNotFoundError')) {
+        toast.error('No microphone found. Please connect a microphone or headset to your PC.', { duration: 5000 });
+      } else if (msg.includes('NotReadableError') || msg.includes('TrackStartError')) {
+        toast.error('Microphone is in use by another app (Zoom, Teams, Discord). Please close it.', { duration: 5000 });
+      } else {
+        toast.error(msg || 'Could not access microphone');
+      }
     }
   };
 
@@ -900,12 +936,13 @@ export default function LiveClassRoom() {
             await callInstance.join({ create: hostMode });
 
             if (hostMode) {
-              try {
-                await callInstance.camera.enable();
-                await callInstance.microphone.enable();
-              } catch (mediaErr) {
-                console.warn('Media enable:', mediaErr?.message);
-              }
+              // Auto-enable mic and camera independently so a missing webcam doesn't kill the mic
+              callInstance.microphone.enable().catch((micErr) => {
+                console.warn('Instructor mic auto-enable info:', micErr?.message);
+              });
+              callInstance.camera.enable().catch((camErr) => {
+                console.warn('Instructor camera auto-enable info:', camErr?.message);
+              });
             } else {
               try {
                 await callInstance.microphone.disable().catch(() => {});
