@@ -243,61 +243,169 @@ export function SkeletonLiveRoom() {
   );
 }
 
-// ── Ultra-Modern SaaS PageLoader ──────────────────────────────────────────────
-export function PageLoader({ text = 'Preparing your workspace...' }) {
-  return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 relative overflow-hidden font-[Inter,sans-serif]">
-      {/* Background Soft Ambient Glow */}
-      <div className="absolute w-72 h-72 rounded-full bg-purple-500/10 dark:bg-purple-600/15 blur-3xl pointer-events-none animate-pulse" />
-      <div className="absolute w-60 h-60 rounded-full bg-sky-500/10 dark:bg-sky-600/10 blur-3xl pointer-events-none animate-pulse [animation-delay:1s]" />
+// ── #19 Canvas Loading Animation (Constellation Network) ────────────────────
+export function CanvasLoader({ width = 240, height = 240, color = '#6C5CE7' }) {
+  const canvasRef = React.useRef(null);
 
-      <div className="relative z-10 flex flex-col items-center max-w-xs text-center space-y-6">
-        {/* Glowing Brand Emblem */}
-        <div className="relative group">
-          {/* Pulsing Outer Gradient Ring */}
-          <div className="absolute -inset-1.5 bg-gradient-to-r from-purple-600 via-indigo-500 to-sky-500 rounded-3xl blur-md opacity-70 animate-pulse group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-          
-          {/* Inner Logo Badge */}
-          <div className="relative w-16 h-16 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900 border border-white/20 shadow-xl flex items-center justify-center">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-md">
-              <svg
-                className="w-5 h-5 animate-pulse"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 14l9-5-9-5-9 5 9 5z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
-                />
+  React.useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId;
+    let time = 0;
+
+    // Handle high DPI displays for sharp rendering
+    const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.scale(dpr, dpr);
+
+    const cx = width / 2;
+    const cy = height / 2;
+    const numPoints = 26;
+    const maxDist = 58;
+
+    // Palette: Purple, Indigo, Sky Blue, Violet
+    const colors = [
+      '#6C5CE7',
+      '#8B5CF6',
+      '#A78BFA',
+      '#38BDF8',
+      '#818CF8',
+      '#C084FC',
+    ];
+
+    const points = [];
+    for (let i = 0; i < numPoints; i++) {
+      const angle = (i / numPoints) * Math.PI * 2;
+      const baseRadius = 42 + (i % 3) * 16;
+      points.push({
+        angle,
+        speed: (0.015 + (i % 4) * 0.005) * (i % 2 === 0 ? 1 : -0.85),
+        baseRadius,
+        radiusSpeed: 0.02 + (i % 3) * 0.015,
+        radiusOffset: i * 0.45,
+        radiusAmp: 14 + (i % 3) * 6,
+        size: 2.2 + (i % 3) * 0.8,
+        color: colors[i % colors.length],
+        x: cx,
+        y: cy,
+      });
+    }
+
+    const render = () => {
+      time += 1;
+      ctx.clearRect(0, 0, width, height);
+
+      // 1. Update point positions
+      for (let i = 0; i < points.length; i++) {
+        const p = points[i];
+        p.angle += p.speed;
+        const currentR = p.baseRadius + Math.sin(time * p.radiusSpeed + p.radiusOffset) * p.radiusAmp;
+        p.x = cx + Math.cos(p.angle) * currentR;
+        p.y = cy + Math.sin(p.angle) * currentR;
+      }
+
+      // 2. Draw connecting dynamic constellation lines
+      for (let i = 0; i < points.length; i++) {
+        for (let j = i + 1; j < points.length; j++) {
+          const p1 = points[i];
+          const p2 = points[j];
+          const dx = p1.x - p2.x;
+          const dy = p1.y - p2.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < maxDist) {
+            const alpha = ((1 - dist / maxDist) * 0.55).toFixed(3);
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = `rgba(139, 92, 246, ${alpha})`;
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+          }
+        }
+      }
+
+      // 3. Draw soft center pulse aura
+      const pulseRadius = 18 + Math.sin(time * 0.05) * 4;
+      const gradient = ctx.createRadialGradient(cx, cy, 2, cx, cy, pulseRadius + 14);
+      gradient.addColorStop(0, 'rgba(108, 92, 231, 0.4)');
+      gradient.addColorStop(0.6, 'rgba(139, 92, 246, 0.15)');
+      gradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(cx, cy, pulseRadius + 14, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 4. Draw glowing points
+      for (let i = 0; i < points.length; i++) {
+        const p = points[i];
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 6;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [width, height]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{ width: `${width}px`, height: `${height}px` }}
+      className="block mx-auto select-none"
+    />
+  );
+}
+
+// ── Full Page Modern SaaS Loader with Canvas Animation ──────────────────────
+export function PageLoader({ text = 'Loading VertexPortal...' }) {
+  return (
+    <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 relative overflow-hidden font-[Inter,sans-serif] select-none">
+      {/* Soft Ambient Background Glow */}
+      <div className="absolute w-80 h-80 rounded-full bg-purple-500/10 dark:bg-purple-600/15 blur-3xl pointer-events-none animate-pulse" />
+      <div className="absolute w-64 h-64 rounded-full bg-sky-500/10 dark:bg-sky-600/10 blur-3xl pointer-events-none animate-pulse [animation-delay:1s]" />
+
+      <div className="relative z-10 flex flex-col items-center max-w-sm text-center">
+        {/* Canvas Constellation Animation */}
+        <div className="relative flex items-center justify-center">
+          <CanvasLoader width={220} height={220} />
+          {/* Center Brand Icon */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-10 h-10 rounded-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-purple-200/60 dark:border-purple-800/60 shadow-lg flex items-center justify-center text-purple-600 dark:text-purple-400">
+              <svg className="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
               </svg>
             </div>
           </div>
         </div>
 
-        {/* Text & Status */}
-        <div className="space-y-2">
+        {/* Dynamic Title and Status */}
+        <div className="mt-2 space-y-1.5">
           <div className="flex items-center justify-center gap-1.5">
             <span className="text-sm font-extrabold text-gray-900 dark:text-white tracking-tight">
               Vertex<span className="text-purple-600 dark:text-purple-400">Portal</span>
             </span>
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium animate-pulse">
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 tracking-wide animate-pulse">
             {text}
           </p>
-        </div>
-
-        {/* Sleek Gradient Shimmer Progress Line */}
-        <div className="w-48 sm:w-56 h-1.5 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden relative shadow-inner">
-          <div className="absolute top-0 bottom-0 left-0 right-0 bg-gradient-to-r from-transparent via-purple-600 to-transparent animate-shimmer" />
         </div>
       </div>
     </div>
