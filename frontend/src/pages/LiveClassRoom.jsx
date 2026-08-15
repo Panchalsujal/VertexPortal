@@ -147,7 +147,7 @@ function StreamConnectedStage({
     useScreenShareState,
     useMicrophoneState,
     useCameraState,
-    useCallingState,
+    useCallCallingState,
   } = useCallStateHooks();
 
   const participants = useParticipants();
@@ -156,7 +156,7 @@ function StreamConnectedStage({
   const { isMute: isCamMuted } = useCameraState();
   const { screenShare, isMute: isScreenShareMuted } = useScreenShareState();
   const isScreenSharing = !isScreenShareMuted && !!screenShare;
-  const callingState = useCallingState();
+  const callingState = useCallCallingState();
 
   const [audioBlocked, setAudioBlocked] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);

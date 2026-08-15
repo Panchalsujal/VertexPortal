@@ -81,9 +81,9 @@ export default function Register() {
               handleGoogleSuccess(response.credential);
             }
           },
-          use_fedcm_for_prompt: true,
           auto_select: false,
           cancel_on_tap_outside: true,
+          itp_support: true,
         });
 
         if (googleBtnRef.current) {
