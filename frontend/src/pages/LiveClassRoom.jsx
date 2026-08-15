@@ -196,6 +196,34 @@ function StreamConnectedStage({
     }
   };
 
+  // Continuously unblock and monitor all remote audio elements
+  useEffect(() => {
+    const playAllAudio = () => {
+      document.querySelectorAll('audio').forEach((audio) => {
+        try {
+          audio.muted = false;
+          audio.volume = 1.0;
+          if (audio.paused) {
+            audio.play().catch(() => {});
+          }
+        } catch (_e) {}
+      });
+    };
+
+    playAllAudio();
+    const interval = setInterval(playAllAudio, 1000);
+    window.addEventListener('click', playAllAudio);
+    window.addEventListener('keydown', playAllAudio);
+    window.addEventListener('touchstart', playAllAudio);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('click', playAllAudio);
+      window.removeEventListener('keydown', playAllAudio);
+      window.removeEventListener('touchstart', playAllAudio);
+    };
+  }, []);
+
   useEffect(() => {
     if (!call) return;
 
