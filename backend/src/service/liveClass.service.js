@@ -42,7 +42,13 @@ function parseLiveClassDate(value, fieldName) {
     throw new ApiError(400, `${fieldName} is required`);
   }
 
-  const date = new Date(value);
+  let dateStr = String(value).trim();
+  // If string is in local "YYYY-MM-DDTHH:mm" format without timezone offset, append +05:30 (IST default)
+  if (/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2})?$/.test(dateStr)) {
+    dateStr = dateStr.replace(" ", "T") + "+05:30";
+  }
+
+  const date = new Date(dateStr);
 
   if (Number.isNaN(date.getTime())) {
     throw new ApiError(400, `Invalid ${fieldName.toLowerCase()}`);
