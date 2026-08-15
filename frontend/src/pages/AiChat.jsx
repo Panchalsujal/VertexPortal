@@ -152,7 +152,7 @@ function FormattedMarkdown({ content = '', animate = false, onComplete }) {
       >
         {displayedText}
       </ReactMarkdown>
-      {(isTyping || isStreaming) && (
+      {isTyping && (
         <span className="inline-block w-1.5 h-4 bg-purple-600 dark:bg-purple-400 ml-1 animate-pulse align-middle rounded-xs" />
       )}
     </div>
