@@ -143,6 +143,8 @@ export function Navbar() {
 
             {user?.role === 'student' && (
               <>
+                <NavLink to="/dashboard" className={desktopLinkClass}>Dashboard</NavLink>
+                <NavLink to="/my-learning" className={desktopLinkClass}>My Learning</NavLink>
                 <NavLink to="/student/notes" className={desktopLinkClass}>Notes</NavLink>
                 <NavLink to="/student/live-classes" className={desktopLinkClass}>Live Classes</NavLink>
                 <NavLink to="/student/quizzes" className={desktopLinkClass}>Quizzes</NavLink>
@@ -274,12 +276,31 @@ export function Navbar() {
                     </Link>
 
                     {user.role === 'student' && (
+                      <>
+                        <Link
+                          to="/dashboard"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
+                        >
+                          <GraduationCapStatic className="w-4 h-4" style={{ color: '#6C5CE7' }} /> Student Dashboard
+                        </Link>
+                        <Link
+                          to="/my-learning"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
+                        >
+                          <BookOpenIcon size={14} color="#6C5CE7" /> My Learning
+                        </Link>
+                      </>
+                    )}
+
+                    {user.role === 'instructor' && (
                       <Link
-                        to="/my-learning"
+                        to="/instructor/dashboard"
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
                       >
-                        <BookOpenIcon size={14} color="#6C5CE7" /> My Learning
+                        <AwardStatic className="w-4 h-4" style={{ color: '#6C5CE7' }} /> Instructor Dashboard
                       </Link>
                     )}
 
@@ -338,6 +359,13 @@ export function Navbar() {
       {/* Mobile Drawer */}
       {mobileOpen && (
         <div className="lg:hidden bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-4 pt-2 pb-6 space-y-2 animate-in fade-in slide-in-from-top-2">
+          {user?.role === 'student' && (
+            <>
+              <NavItem to="/dashboard" onNavigate={closeMobile}>Dashboard</NavItem>
+              <NavItem to="/my-learning" onNavigate={closeMobile}>My Learning</NavItem>
+            </>
+          )}
+
           <NavItem to="/courses" onNavigate={closeMobile}>Browse Courses</NavItem>
           <NavItem to="/discussions" onNavigate={closeMobile}>Discussions</NavItem>
           <NavItem to="/ai-chat" onNavigate={closeMobile}>AI Tutor</NavItem>
@@ -349,6 +377,14 @@ export function Navbar() {
               <NavItem to="/student/quizzes" onNavigate={closeMobile}>Quizzes</NavItem>
               <NavItem to="/student/assignments" onNavigate={closeMobile}>Assignments</NavItem>
               <NavItem to="/wishlist" onNavigate={closeMobile}>Wishlist</NavItem>
+            </>
+          )}
+
+          {user?.role === 'instructor' && (
+            <>
+              <NavItem to="/instructor/dashboard" onNavigate={closeMobile}>Instructor Dashboard</NavItem>
+              <NavItem to="/instructor/live-classes" onNavigate={closeMobile}>Live Classes</NavItem>
+              <NavItem to="/instructor/quizzes" onNavigate={closeMobile}>Quizzes</NavItem>
             </>
           )}
 

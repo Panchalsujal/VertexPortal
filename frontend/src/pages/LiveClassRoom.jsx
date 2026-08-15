@@ -248,20 +248,22 @@ function StreamConnectedStage({
 
           {/* Bottom Floating Controls Bar */}
           <div className="h-16 pt-2 sm:pt-3 flex items-center justify-center gap-2 sm:gap-4 z-10 flex-wrap">
+            {/* Audio & Mic Controls (Host & Attendees) */}
+            <button
+              onClick={toggleMic}
+              className={`p-2.5 sm:p-3 rounded-2xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-lg ${
+                !isMicMuted
+                  ? 'bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700'
+                  : 'bg-red-600 hover:bg-red-700 text-white'
+              }`}
+              title={!isMicMuted ? 'Mute Microphone' : 'Unmute Microphone'}
+            >
+              {!isMicMuted ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
+              <span className="hidden sm:inline">{!isMicMuted ? 'Mic On' : 'Mic Muted'}</span>
+            </button>
+
             {isHost && (
               <>
-                <button
-                  onClick={toggleMic}
-                  className={`p-2.5 sm:p-3 rounded-2xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-lg ${
-                    !isMicMuted
-                      ? 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
-                      : 'bg-red-600 hover:bg-red-700 text-white'
-                  }`}
-                  title={!isMicMuted ? 'Mute Microphone' : 'Unmute Microphone'}
-                >
-                  {!isMicMuted ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
-                </button>
-
                 <button
                   onClick={toggleCamera}
                   className={`p-2.5 sm:p-3 rounded-2xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-lg ${

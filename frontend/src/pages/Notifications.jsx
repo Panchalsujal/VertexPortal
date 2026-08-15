@@ -36,6 +36,48 @@ const NOTIFICATION_CATEGORIES = [
   { key: 'system', label: 'System & Security', desc: 'Important account, billing, and platform notices', icon: Shield, color: '#64748b', bg: '#f8fafc' },
 ];
 
+// Intelligent URL resolver for notification redirection
+function getNotificationUrl(item) {
+  if (item.actionUrl && item.actionUrl.trim() && item.actionUrl !== '#') {
+    let url = item.actionUrl.trim();
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      try {
+        const parsed = new URL(url);
+        url = parsed.pathname + parsed.search;
+      } catch {}
+    }
+    return url;
+  }
+
+  const type = (item.type || '').toLowerCase();
+  const title = (item.title || '').toLowerCase();
+  const msg = (item.message || '').toLowerCase();
+
+  if (type === 'certificate' || title.includes('certificate') || msg.includes('certificate')) {
+    return '/certificates';
+  }
+  if (type === 'live_class' || title.includes('live class') || title.includes('live session') || msg.includes('live class')) {
+    if (item.resourceId) return `/live-class/${item.resourceId}`;
+    return '/student/live-classes';
+  }
+  if (type === 'quiz' || type === 'quiz_result' || title.includes('quiz') || title.includes('test') || msg.includes('quiz')) {
+    return '/student/quizzes';
+  }
+  if (type === 'assignment' || type === 'assignment_graded' || type === 'assignment_returned' || title.includes('assignment') || msg.includes('assignment')) {
+    return '/student/assignments';
+  }
+  if (type === 'announcement' || title.includes('announcement') || msg.includes('announcement')) {
+    return '/student/announcements';
+  }
+  if (type === 'discussion' || type === 'discussion_reply' || type === 'answer_accepted' || title.includes('discussion') || title.includes('replied') || msg.includes('replied')) {
+    return '/discussions';
+  }
+  if (item.courseId) {
+    return `/learn/${item.courseId}`;
+  }
+  return '/dashboard';
+}
+
 export default function Notifications() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -149,44 +191,42 @@ export default function Notifications() {
     } catch (err) {
       toast.error(err.message || 'Failed to update preference');
     } finally {
-      setTimeout(() => setSavingPrefs(false), 500);
+      setSavingPrefs(false);
     }
   };
 
-  const getCategoryInfo = (type) => {
-    const matched = NOTIFICATION_CATEGORIES.find(c => c.key === type);
-    return matched || {
+  const getCategoryInfo = (typeKey) => {
+    return NOTIFICATION_CATEGORIES.find(c => c.key === typeKey) || {
+      key: typeKey || 'system',
       label: 'Notification',
+      desc: 'Platform notification',
       icon: Bell,
-      color: '#8b5cf6',
-      bg: '#f5f3ff',
+      color: '#6366f1',
+      bg: '#eef2ff',
     };
   };
 
-  const formatRelativeTime = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
+  const formatRelativeTime = (dateStr) => {
+    if (!dateStr) return '';
     const now = new Date();
-    const diffInSeconds = Math.floor((now - date) / 1000);
-
-    if (diffInSeconds < 60) return 'Just now';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
-    });
+    const d = new Date(dateStr);
+    const diffSec = Math.floor((now - d) / 1000);
+    if (diffSec < 60) return 'Just now';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return d.toLocaleDateString();
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Top Header Card */}
-        <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-6 sm:p-8 shadow-sm mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+    <div className="min-h-[calc(100vh-4rem)] bg-gray-50 dark:bg-[#0b0f17] font-[Inter,sans-serif] py-6 sm:py-10 px-3 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-gray-900 p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
+          <div className="flex items-center gap-3.5">
             <button
               onClick={() => {
                 if (window.history.length > 1 && window.history.state?.idx > 0) {
@@ -195,53 +235,46 @@ export default function Notifications() {
                   navigate('/dashboard');
                 }
               }}
-              className="p-2.5 rounded-2xl bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 transition shrink-0 cursor-pointer"
-              title="Go Back"
+              className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition cursor-pointer"
+              title="Go back"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <div className="flex items-center gap-2.5">
-                <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-                  Notifications
-                </h1>
-                {unreadCount > 0 && (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-600 text-white shadow-sm">
-                    {unreadCount} new
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
+                Notifications <Sparkles className="w-5 h-5 text-purple-600" />
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                 Stay updated on course announcements, quizzes, grades, assignments, and platform events
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-end sm:self-center">
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <button
+              onClick={loadCurrentNotifications}
+              className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-gray-800 rounded-xl transition cursor-pointer"
+              title="Refresh notifications"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
             {unreadCount > 0 && activeTab !== 'preferences' && (
               <button
                 onClick={handleMarkAllRead}
-                className="px-4 py-2.5 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 text-purple-700 dark:text-purple-300 text-xs font-bold rounded-xl transition flex items-center gap-1.5 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-300 text-xs font-bold hover:bg-purple-100 transition cursor-pointer"
               >
-                <CheckCheck className="w-4 h-4" />
-                Mark all as read
+                <CheckCheck className="w-3.5 h-3.5" />
+                <span>Mark all as read</span>
               </button>
             )}
-            <button
-              onClick={loadCurrentNotifications}
-              className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition cursor-pointer"
-              title="Refresh notifications"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-1.5 mb-6 shadow-sm flex flex-wrap gap-1">
+        <div className="flex items-center gap-2 bg-white dark:bg-gray-900 p-1.5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-x-auto scrollbar-none">
           <button
             onClick={() => setActiveTab('all')}
-            className={`flex-1 min-w-[100px] py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 min-w-[90px] py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
               activeTab === 'all'
                 ? 'bg-purple-600 text-white shadow-sm'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -253,7 +286,7 @@ export default function Notifications() {
 
           <button
             onClick={() => setActiveTab('unread')}
-            className={`flex-1 min-w-[100px] py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 min-w-[90px] py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
               activeTab === 'unread'
                 ? 'bg-purple-600 text-white shadow-sm'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -272,7 +305,7 @@ export default function Notifications() {
 
           <button
             onClick={() => setActiveTab('archived')}
-            className={`flex-1 min-w-[100px] py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 min-w-[90px] py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
               activeTab === 'archived'
                 ? 'bg-purple-600 text-white shadow-sm'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -284,7 +317,7 @@ export default function Notifications() {
 
           <button
             onClick={() => setActiveTab('preferences')}
-            className={`flex-1 min-w-[120px] py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 min-w-[90px] py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
               activeTab === 'preferences'
                 ? 'bg-purple-600 text-white shadow-sm'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -295,9 +328,9 @@ export default function Notifications() {
           </button>
         </div>
 
-        {/* Category Filters (when on All or Unread tabs) */}
+        {/* Category Filters */}
         {activeTab !== 'preferences' && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-4 scrollbar-none text-xs">
+          <div className="flex items-center gap-2 overflow-x-auto pb-3 scrollbar-none text-xs">
             <button
               onClick={() => setSelectedTypeFilter('all')}
               className={`px-3.5 py-1.5 rounded-full font-bold transition shrink-0 cursor-pointer ${
@@ -342,53 +375,46 @@ export default function Notifications() {
                 </div>
                 {savingPrefs && (
                   <span className="text-xs font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-1.5 animate-pulse">
-                    <Check className="w-3.5 h-3.5" /> Saving preferences...
+                    <Check className="w-3.5 h-3.5" /> Saving...
                   </span>
                 )}
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-gray-100 dark:border-gray-800 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                      <th className="pb-3">Notification Category</th>
-                      <th className="pb-3 text-center w-28">
-                        <div className="inline-flex items-center gap-1.5 justify-center">
-                          <Mail className="w-4 h-4 text-purple-600" />
-                          <span>Email</span>
-                        </div>
+                    <tr className="border-b border-gray-100 dark:border-gray-800 text-gray-400 font-bold uppercase tracking-wider">
+                      <th className="pb-3">Notification Type</th>
+                      <th className="pb-3 text-center">
+                        <span className="inline-flex items-center gap-1">
+                          <Mail className="w-3.5 h-3.5" /> Email
+                        </span>
                       </th>
-                      <th className="pb-3 text-center w-28">
-                        <div className="inline-flex items-center gap-1.5 justify-center">
-                          <Smartphone className="w-4 h-4 text-purple-600" />
-                          <span>In-App</span>
-                        </div>
+                      <th className="pb-3 text-center">
+                        <span className="inline-flex items-center gap-1">
+                          <Smartphone className="w-3.5 h-3.5" /> In-App
+                        </span>
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50 dark:divide-gray-800/80">
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60 font-medium">
                     {NOTIFICATION_CATEGORIES.map(item => {
                       const emailVal = preferences.email?.[item.key] ?? true;
                       const inAppVal = preferences.inApp?.[item.key] ?? true;
-                      const Icon = item.icon;
 
                       return (
-                        <tr key={item.key} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition">
-                          <td className="py-4 pr-4">
-                            <div className="flex items-start gap-3">
+                        <tr key={item.key} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/40">
+                          <td className="py-4">
+                            <div className="flex items-center gap-3">
                               <div
-                                className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
+                                className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
                                 style={{ backgroundColor: item.bg, color: item.color }}
                               >
-                                <Icon className="w-4 h-4" />
+                                <item.icon className="w-4 h-4" />
                               </div>
                               <div>
-                                <p className="text-sm font-bold text-gray-900 dark:text-white">
-                                  {item.label}
-                                </p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                  {item.desc}
-                                </p>
+                                <p className="font-bold text-gray-900 dark:text-white">{item.label}</p>
+                                <p className="text-[11px] text-gray-500 dark:text-gray-400">{item.desc}</p>
                               </div>
                             </div>
                           </td>
@@ -402,7 +428,7 @@ export default function Notifications() {
                                 onChange={e => handleTogglePref('email', item.key, e.target.checked)}
                                 className="sr-only peer"
                               />
-                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                              <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
                             </label>
                           </td>
 
@@ -415,7 +441,7 @@ export default function Notifications() {
                                 onChange={e => handleTogglePref('inApp', item.key, e.target.checked)}
                                 className="sr-only peer"
                               />
-                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                              <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
                             </label>
                           </td>
                         </tr>
@@ -434,13 +460,14 @@ export default function Notifications() {
               const cat = getCategoryInfo(item.type);
               const Icon = cat.icon;
               const isUnread = !item.isRead;
+              const targetUrl = getNotificationUrl(item);
 
               return (
                 <div
                   key={item._id}
                   onClick={() => {
                     if (isUnread) handleMarkRead(item._id);
-                    if (item.actionUrl) navigate(item.actionUrl);
+                    navigate(targetUrl);
                   }}
                   className={`bg-white dark:bg-gray-900 rounded-2xl border p-5 shadow-sm transition flex items-start justify-between gap-4 cursor-pointer group ${
                     isUnread
@@ -480,19 +507,24 @@ export default function Notifications() {
                         </p>
                       )}
 
-                      {item.actionUrl && (
-                        <div className="mt-2.5">
-                          <span className="inline-flex items-center gap-1 text-xs font-bold text-purple-600 dark:text-purple-400 group-hover:underline">
-                            View details
-                            <ExternalLink className="w-3 h-3" />
-                          </span>
-                        </div>
-                      )}
+                      <div className="mt-2.5">
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (isUnread) handleMarkRead(item._id);
+                            navigate(targetUrl);
+                          }}
+                          className="inline-flex items-center gap-1 text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 underline cursor-pointer"
+                        >
+                          View details
+                          <ExternalLink className="w-3 h-3" />
+                        </span>
+                      </div>
                     </div>
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-1 shrink-0 self-center">
+                  <div className="flex items-center gap-1 shrink-0 self-center" onClick={(e) => e.stopPropagation()}>
                     {isUnread && (
                       <button
                         type="button"
@@ -518,7 +550,7 @@ export default function Notifications() {
                         type="button"
                         onClick={(e) => handleArchive(item._id, e)}
                         className="p-2 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition cursor-pointer"
-                        title="Archive"
+                        title="Archive notification"
                       >
                         <Archive className="w-4 h-4" />
                       </button>

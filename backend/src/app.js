@@ -70,10 +70,14 @@ const staticAllowedOrigins = [
 ];
 
 const envOrigins = process.env.FRONTEND_URL
-  ? process.env.FRONTEND_URL.split(",").map((url) => url.trim().replace(/\/$/, ""))
+  ? process.env.FRONTEND_URL.split(",").map((url) =>
+      url.trim().replace(/\/$/, ""),
+    )
   : [];
 
-const allowedOrigins = Array.from(new Set([...staticAllowedOrigins, ...envOrigins]));
+const allowedOrigins = Array.from(
+  new Set([...staticAllowedOrigins, ...envOrigins]),
+);
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -120,8 +124,9 @@ app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
 // Ignore /favicon.ico requests to avoid 404 logs
 app.get("/favicon.ico", (req, res) => res.status(204).end());
 
-// Health check endpoint
+// Health check endpoints
 app.get("/health", (req, res) => res.status(200).json({ status: "ok" }));
+app.get("/api/health", (req, res) => res.status(200).json({ status: "ok" }));
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome to the Vertex LMS API" });
