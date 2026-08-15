@@ -126,7 +126,24 @@ export default function CourseForm() {
     }
   };
 
-  if (loading) return <div className="page-loader"><Spinner /></div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] py-8 text-gray-900 dark:text-gray-100">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 animate-pulse">
+          <div className="h-8 bg-gray-200 dark:bg-gray-800 rounded-xl w-1/3" />
+          <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-8 space-y-6">
+            <div className="h-10 bg-gray-200 dark:bg-gray-800 rounded-2xl w-full" />
+            <div className="h-24 bg-gray-200 dark:bg-gray-800 rounded-2xl w-full" />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="h-10 bg-gray-200 dark:bg-gray-800 rounded-2xl" />
+              <div className="h-10 bg-gray-200 dark:bg-gray-800 rounded-2xl" />
+            </div>
+            <div className="h-12 bg-gray-200 dark:bg-gray-800 rounded-2xl w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-wrapper">

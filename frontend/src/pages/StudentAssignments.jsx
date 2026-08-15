@@ -6,7 +6,7 @@ import {
   selectStudentAssignmentsLoading,
 } from '../store/slices/student/studentAssignmentsSlice';
 import { submitAssignment } from '../api/student.api';
-import { Spinner } from '../components/ui/Spinner';
+import { Spinner, SkeletonFeed } from '../components/ui/Spinner';
 import { Modal } from '../components/ui/Modal';
 import { FileText, Upload, Calendar, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -84,7 +84,7 @@ export default function StudentAssignments() {
 
       <div className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
         {loading ? (
-          <div style={{ padding: '4rem', textAlign: 'center' }}><Spinner /></div>
+          <SkeletonFeed count={4} />
         ) : assignments.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {assignments.map(asg => {

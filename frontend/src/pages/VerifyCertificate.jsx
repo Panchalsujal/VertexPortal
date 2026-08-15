@@ -68,7 +68,11 @@ export default function VerifyCertificate() {
         )}
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem' }}><Spinner /></div>
+          <div className="glass-card animate-pulse" style={{ padding: '3rem', maxWidth: 640, margin: '0 auto' }}>
+            <div style={{ height: 28, background: 'var(--color-surface-hover)', borderRadius: 'var(--radius-sm)', width: '60%', margin: '0 auto 1.5rem' }} />
+            <div style={{ height: 20, background: 'var(--color-surface-hover)', borderRadius: 'var(--radius-sm)', width: '80%', margin: '0 auto 1rem' }} />
+            <div style={{ height: 20, background: 'var(--color-surface-hover)', borderRadius: 'var(--radius-sm)', width: '50%', margin: '0 auto' }} />
+          </div>
         ) : error ? (
           <div className="glass-card" style={{ padding: '3rem', textAlign: 'center' }}>
             <XCircle size={56} color="var(--color-error)" style={{ margin: '0 auto 1rem' }} />

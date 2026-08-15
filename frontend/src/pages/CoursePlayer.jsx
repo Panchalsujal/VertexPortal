@@ -133,8 +133,32 @@ export default function CoursePlayer() {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-[#0b0f19] text-white">
-        <Spinner />
+      <div className="flex flex-col h-screen bg-[#0b0f19] text-white font-[Inter,sans-serif] overflow-hidden animate-pulse">
+        {/* Header Skeleton */}
+        <header className="h-14 bg-[#111827] border-b border-slate-800 px-6 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-16 h-8 rounded-xl bg-slate-800" />
+            <div className="w-48 h-5 rounded-md bg-slate-800" />
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-24 h-7 rounded-xl bg-slate-800" />
+            <div className="w-8 h-8 rounded-xl bg-slate-800" />
+          </div>
+        </header>
+
+        {/* Workspace Body */}
+        <div className="flex-1 flex overflow-hidden">
+          <div className="flex-1 p-6 flex flex-col justify-between">
+            <div className="w-full max-w-5xl aspect-video mx-auto rounded-2xl bg-slate-900 border border-slate-800/80" />
+            <div className="h-12 w-full rounded-2xl bg-slate-900 border border-slate-800" />
+          </div>
+          <div className="w-80 border-l border-slate-800 bg-[#0f172a] p-4 space-y-3 hidden md:block">
+            <div className="w-32 h-5 rounded-md bg-slate-800 mb-4" />
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-16 rounded-2xl bg-slate-900 border border-slate-800/80" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

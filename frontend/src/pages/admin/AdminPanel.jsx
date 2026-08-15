@@ -21,7 +21,7 @@ import { getAdminReviews } from '../../api/admin.api';
 import { deleteReview, getCourseReviews } from '../../api/review.api';
 import { StarRating } from '../../components/ui/StarRating';
 import { Modal } from '../../components/ui/Modal';
-import { Spinner } from '../../components/ui/Spinner';
+import { Spinner, SkeletonTable, SkeletonFeed } from '../../components/ui/Spinner';
 import {
   FolderPlus, Tag, Edit3, Trash2, ToggleLeft, ToggleRight, Plus, Shield,
   Award, Download, RefreshCw, XCircle, RotateCcw, Send, Star
@@ -364,7 +364,7 @@ export default function AdminPanel() {
         {activeTab === 'categories' && (
           <div>
             {catLoading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}><Spinner /></div>
+              <SkeletonFeed count={3} />
             ) : categories.length > 0 ? (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.25rem' }}>
                 {categories.map(cat => (
@@ -397,7 +397,7 @@ export default function AdminPanel() {
         {activeTab === 'coupons' && (
           <div>
             {couponLoading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}><Spinner /></div>
+              <SkeletonFeed count={3} />
             ) : coupons.length > 0 ? (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.25rem' }}>
                 {coupons.map(cop => (
@@ -447,7 +447,7 @@ export default function AdminPanel() {
         {activeTab === 'certificates' && (
           <div>
             {certLoading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}><Spinner /></div>
+              <SkeletonFeed count={4} />
             ) : certificates.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {certificates.map(cert => (
@@ -500,7 +500,7 @@ export default function AdminPanel() {
         {activeTab === 'reviews' && (
           <div>
             {reviewLoading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}><Spinner /></div>
+              <SkeletonTable rows={5} cols={5} />
             ) : adminReviews.length > 0 ? (
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-xs">
                 <table className="w-full text-left border-collapse">

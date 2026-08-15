@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getAllCourses, publishCourse, archiveCourse } from '../../api/course.api';
 import { useAuth } from '../../context/AuthContext';
-import { Spinner } from '../../components/ui/Spinner';
+import { Spinner, SkeletonFeed } from '../../components/ui/Spinner';
 import { Plus, Edit, BookOpen, Eye, Globe, Archive, Users, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -66,9 +66,7 @@ export default function InstructorDashboard() {
 
       <div className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
         {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}>
-            <Spinner />
-          </div>
+          <SkeletonFeed count={4} />
         ) : courses.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {courses.map(course => (

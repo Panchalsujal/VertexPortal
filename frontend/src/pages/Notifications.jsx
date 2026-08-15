@@ -16,7 +16,7 @@ import {
   updateNotificationPreferences,
   restoreNotification,
 } from '../api/notification.api';
-import { Spinner } from '../components/ui/Spinner';
+import { Spinner, SkeletonFeed, SkeletonTable } from '../components/ui/Spinner';
 import {
   Bell, Check, CheckCheck, Trash2, Settings, AlertCircle,
   Info, CheckCircle, ArrowLeft, Archive, Mail, Smartphone,
@@ -328,9 +328,7 @@ export default function Notifications() {
         {/* Tab 1: Preferences View */}
         {activeTab === 'preferences' ? (
           prefLoading ? (
-            <div className="flex justify-center py-20">
-              <Spinner size="lg" />
-            </div>
+            <SkeletonTable rows={5} cols={3} />
           ) : (
             <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-6 sm:p-8 shadow-sm">
               <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-6 mb-6">
@@ -429,9 +427,7 @@ export default function Notifications() {
             </div>
           )
         ) : loading ? (
-          <div className="flex justify-center py-20">
-            <Spinner size="lg" />
-          </div>
+          <SkeletonFeed count={5} />
         ) : notifications.length > 0 ? (
           <div className="space-y-3">
             {notifications.map(item => {

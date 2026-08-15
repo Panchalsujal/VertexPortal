@@ -180,7 +180,31 @@ export default function CourseDetail() {
     } catch (err) { toast.error(err.message); }
   };
 
-  if (loading) return <div className="page-loader"><Spinner /></div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] py-8 text-gray-900 dark:text-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 animate-pulse">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-4">
+              <div className="w-24 h-6 rounded-md bg-gray-200 dark:bg-gray-800" />
+              <div className="w-3/4 h-10 rounded-xl bg-gray-200 dark:bg-gray-800" />
+              <div className="w-full h-5 rounded-md bg-gray-200 dark:bg-gray-800" />
+              <div className="w-1/2 h-5 rounded-md bg-gray-200 dark:bg-gray-800" />
+              <div className="flex gap-4 pt-2">
+                <div className="w-32 h-6 rounded-full bg-gray-200 dark:bg-gray-800" />
+                <div className="w-32 h-6 rounded-full bg-gray-200 dark:bg-gray-800" />
+              </div>
+            </div>
+            <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-6 space-y-4">
+              <div className="aspect-video w-full rounded-2xl bg-gray-200 dark:bg-gray-800" />
+              <div className="w-1/3 h-8 rounded-lg bg-gray-200 dark:bg-gray-800" />
+              <div className="w-full h-12 rounded-2xl bg-gray-200 dark:bg-gray-800" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   if (!course) return null;
 
   const effectivePrice = course.discountPrice ?? course.price;

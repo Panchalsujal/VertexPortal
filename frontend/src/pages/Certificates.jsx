@@ -7,7 +7,7 @@ import {
   selectCertificatesLoading,
 } from '../store/slices/certificatesSlice';
 import { downloadMyCertificate } from '../api/certificate.api';
-import { Spinner } from '../components/ui/Spinner';
+import { Spinner, SkeletonFeed } from '../components/ui/Spinner';
 import { Award, Download, ExternalLink, ShieldCheck, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -65,7 +65,7 @@ export default function Certificates() {
 
       <div className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
         {loading ? (
-          <div style={{ padding: '4rem', textAlign: 'center' }}><Spinner /></div>
+          <SkeletonFeed count={3} />
         ) : certificates.length > 0 ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
             {certificates.map(cert => (

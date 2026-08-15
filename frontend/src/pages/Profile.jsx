@@ -86,7 +86,22 @@ export default function Profile() {
     }
   };
 
-  if (!user) return <div className="min-h-screen flex items-center justify-center"><Spinner /></div>;
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-[Inter,sans-serif] pb-16 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 animate-pulse">
+          <div className="flex items-center gap-4">
+            <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-800" />
+            <div className="space-y-2">
+              <div className="w-48 h-6 rounded-lg bg-gray-200 dark:bg-gray-800" />
+              <div className="w-32 h-4 rounded-md bg-gray-200 dark:bg-gray-800" />
+            </div>
+          </div>
+          <div className="h-64 bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-8 space-y-4" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-[Inter,sans-serif] pb-16">

@@ -6,7 +6,7 @@ import {
   selectStudentAnnouncements,
   selectStudentAnnouncementsLoading,
 } from '../store/slices/student/studentAnnouncementsSlice';
-import { Spinner } from '../components/ui/Spinner';
+import { Spinner, SkeletonFeed } from '../components/ui/Spinner';
 import { Megaphone } from 'lucide-react';
 
 export default function StudentAnnouncements() {
@@ -35,7 +35,7 @@ export default function StudentAnnouncements() {
 
       <div className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
         {loading ? (
-          <div style={{ padding: '4rem', textAlign: 'center' }}><Spinner /></div>
+          <SkeletonFeed count={4} />
         ) : announcements.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {announcements.map(ann => (

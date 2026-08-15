@@ -7,7 +7,7 @@ import {
 } from '../../api/lecture.api';
 import { indexCourseForRag } from '../../api/rag.api';
 import { Modal } from '../../components/ui/Modal';
-import { Spinner } from '../../components/ui/Spinner';
+import { Spinner, SkeletonCurriculum } from '../../components/ui/Spinner';
 import {
   Plus, Edit3, Trash2, Globe, Video, FileText, Upload, ArrowLeft,
   Eye, Download, X, Sparkles, Layers, BookOpen, ExternalLink, Check, Clock
@@ -208,8 +208,10 @@ export default function Curriculum() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-        <Spinner />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] py-8 text-gray-900 dark:text-gray-100">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <SkeletonCurriculum count={3} />
+        </div>
       </div>
     );
   }

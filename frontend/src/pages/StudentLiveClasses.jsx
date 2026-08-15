@@ -113,7 +113,19 @@ export default function StudentLiveClasses() {
         </div>
 
         {loading ? (
-          <div className="py-20 text-center"><Spinner /></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="bg-white dark:bg-slate-900 border border-gray-200/90 dark:border-slate-800 rounded-3xl p-6 shadow-sm animate-pulse space-y-4">
+                <div className="flex justify-between items-center">
+                  <div className="h-5 bg-gray-200 dark:bg-gray-800 rounded-full w-28" />
+                  <div className="h-5 bg-gray-200 dark:bg-gray-800 rounded-full w-16" />
+                </div>
+                <div className="h-5 bg-gray-200 dark:bg-gray-800 rounded-lg w-4/5" />
+                <div className="h-3.5 bg-gray-200 dark:bg-gray-800 rounded w-3/5" />
+                <div className="h-10 bg-gray-200 dark:bg-gray-800 rounded-2xl w-full pt-4" />
+              </div>
+            ))}
+          </div>
         ) : filteredClasses.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredClasses.map(item => {

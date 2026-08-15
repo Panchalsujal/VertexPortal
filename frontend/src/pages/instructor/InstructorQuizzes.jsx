@@ -17,7 +17,7 @@ import {
   evaluateAnswer,
   submitAttemptByInstructor,
 } from '../../api/instructor.api';
-import { Spinner } from '../../components/ui/Spinner';
+import { Spinner, SkeletonFeed } from '../../components/ui/Spinner';
 import { Modal } from '../../components/ui/Modal';
 import {
   HelpCircle, Plus, Trash2, Edit3, Globe, EyeOff,
@@ -226,7 +226,7 @@ export default function InstructorQuizzes() {
 
         <div className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
           {attemptsLoading ? (
-            <div style={{ textAlign: 'center', padding: '4rem' }}><Spinner /></div>
+            <SkeletonFeed count={4} />
           ) : attempts.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {attempts.map(att => (
@@ -444,7 +444,7 @@ export default function InstructorQuizzes() {
 
       <div className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
         {loading ? (
-          <div style={{ padding: '4rem', textAlign: 'center' }}><Spinner /></div>
+          <SkeletonFeed count={4} />
         ) : quizzes.length > 0 ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
             {quizzes.map(quiz => (

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { Users, Video, Clock, TrendingUp, Search, RefreshCw, CheckCircle2, XCircle, Calendar, BookOpen } from 'lucide-react';
-import { Spinner } from '../../components/ui/Spinner';
+import { Spinner, SkeletonTable, SkeletonFeed } from '../../components/ui/Spinner';
 import api from '../../api/axios';
 
 export default function AdminLiveAttendance() {
@@ -142,7 +142,7 @@ export default function AdminLiveAttendance() {
           </div>
 
           {loading ? (
-            <div className="flex justify-center py-10"><Spinner /></div>
+            <SkeletonFeed count={4} />
           ) : filtered.length > 0 ? (
             <div className="space-y-2 overflow-y-auto max-h-[60vh] pr-1">
               {filtered.map(lc => {
@@ -236,7 +236,7 @@ export default function AdminLiveAttendance() {
                 </div>
 
                 {attendanceLoading ? (
-                  <div className="flex justify-center py-10"><Spinner /></div>
+                  <SkeletonTable rows={4} cols={4} />
                 ) : attendance.length > 0 ? (
                   <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-gray-800">
                     <table className="w-full text-left border-collapse text-sm">

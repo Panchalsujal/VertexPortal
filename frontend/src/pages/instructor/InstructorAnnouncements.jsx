@@ -14,7 +14,7 @@ import {
   selectCourses,
 } from '../../store/slices/coursesSlice';
 import { selectUser } from '../../store/slices/authSlice';
-import { Spinner } from '../../components/ui/Spinner';
+import { Spinner, SkeletonFeed } from '../../components/ui/Spinner';
 import { Modal } from '../../components/ui/Modal';
 import {
   Megaphone, Plus, Edit3, CheckCircle, Clock, Trash2,
@@ -253,9 +253,7 @@ export default function InstructorAnnouncements() {
 
         {/* Announcements List */}
         {loading ? (
-          <div className="flex justify-center py-20">
-            <Spinner size="lg" />
-          </div>
+          <SkeletonFeed count={4} />
         ) : filteredAnnouncements.length > 0 ? (
           <div className="space-y-4">
             {filteredAnnouncements.map(ann => {
