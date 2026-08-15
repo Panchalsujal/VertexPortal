@@ -1,18 +1,25 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Eye, EyeOff, GraduationCap } from 'lucide-react';
 import {
-  Eye, EyeOff, Mail, Lock, ArrowRight, BookOpen, BarChart2,
-  Award, Users, ShieldCheck, GraduationCap
-} from 'lucide-react';
+  MailIcon,
+  LockIcon,
+  ArrowRightIcon,
+  BookOpenIcon,
+  StarIcon,
+  UsersIcon,
+  CircleCheckIcon,
+  ShieldCheckIcon,
+} from '@animateicons/react/lucide';
 import { login as loginApi } from '../api/auth.api';
 import { useAuth } from '../store/slices/authSlice';
 import toast from 'react-hot-toast';
 
-const features = [
-  { icon: BookOpen,   label: 'Learn Anytime',  sub: 'Access courses anytime, anywhere.' },
-  { icon: BarChart2,  label: 'Track Progress', sub: 'Track achievements in real-time.' },
-  { icon: Award,      label: 'Get Certified',  sub: 'Earn certificates for your career.' },
-  { icon: Users,      label: 'Join Community', sub: 'Learn with thousands of students.' },
+const PERKS = [
+  { icon: BookOpenIcon,    title: '200+ Courses',         desc: 'Expert-curated paths across tech & design' },
+  { icon: StarIcon,        title: '4.8★ Rated Platform',  desc: 'Loved by 50,000+ learners worldwide' },
+  { icon: UsersIcon,       title: 'Live Classes',          desc: 'Real-time WebRTC sessions with instructors' },
+  { icon: CircleCheckIcon, title: 'Verified Certificates', desc: 'Industry-recognised on completion' },
 ];
 
 export default function Login() {
@@ -23,8 +30,6 @@ export default function Login() {
   const [showPw, setShowPw]     = useState(false);
   const [remember, setRemember] = useState(false);
   const [loading, setLoading]   = useState(false);
-
-  const from = location.state?.from?.pathname || '/';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,333 +49,236 @@ export default function Login() {
     }
   };
 
+  const focusStyle  = (e) => { e.target.style.borderColor = '#6C5CE7'; e.target.style.boxShadow = '0 0 0 3px rgba(108,92,231,0.12)'; };
+  const blurStyle   = (e) => { e.target.style.borderColor = '#e8eaf0'; e.target.style.boxShadow = 'none'; };
+  const inputCls = 'w-full py-2.5 text-sm rounded-xl border bg-[#f7f8fc] dark:bg-slate-800 text-[#1a1d2e] dark:text-white placeholder-[#a0a8c0] outline-none transition-all';
+
   return (
-    <div className="vp-auth-root">
-      <style>{`
-        * { box-sizing: border-box; }
-        @keyframes vp-spin { to { transform: rotate(360deg); } }
-
-        .vp-auth-root {
-          min-height: 100vh;
-          display: flex;
-          flex-direction: column;
-          background: #fff;
-          font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
-        }
-        .vp-auth-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 1rem 2rem;
-          border-bottom: 1px solid #f0f0f5;
-          background: #fff;
-          position: sticky;
-          top: 0;
-          z-index: 10;
-        }
-        .vp-auth-logo { display: flex; align-items: center; gap: 0.625rem; text-decoration: none; }
-        .vp-auth-logo-icon {
-          width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
-          background: linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%);
-          display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 4px 12px rgba(108,92,231,0.35);
-        }
-        .vp-auth-logo-text { font-size: 0.9rem; font-weight: 800; color: #1a1d2e; line-height: 1.2; }
-        .vp-auth-logo-sub  { font-size: 0.6rem; font-weight: 600; color: #6C5CE7; margin-top: 1px; }
-        .vp-auth-header-link { font-size: 0.8125rem; color: #636e8a; margin: 0; }
-        .vp-auth-header-link a { color: #6C5CE7; font-weight: 700; text-decoration: none; }
-
-        .vp-auth-body { flex: 1; display: flex; overflow: hidden; }
-
-        /* Left form panel */
-        .vp-auth-form-panel {
-          flex: 0 0 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 3rem 3.5rem;
-          background: #fff;
-          overflow-y: auto;
-        }
-        .vp-auth-form-inner { width: 100%; max-width: 380px; }
-
-        /* Right illustration panel */
-        .vp-auth-illus-panel {
-          flex: 0 0 50%;
-          background: radial-gradient(ellipse at 60% 50%, #ddd6fe 0%, #ede9fe 40%, #f3f1ff 70%, #faf9ff 100%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-          overflow: hidden;
-          padding: 2rem;
-        }
-        .vp-illus-blob1 {
-          position: absolute; top: 10%; right: 10%;
-          width: 180px; height: 180px; border-radius: 50%;
-          background: radial-gradient(circle, rgba(108,92,231,0.2) 0%, transparent 70%);
-        }
-        .vp-illus-blob2 {
-          position: absolute; bottom: 15%; left: 8%;
-          width: 120px; height: 120px; border-radius: 50%;
-          background: radial-gradient(circle, rgba(162,155,254,0.25) 0%, transparent 70%);
-        }
-        .vp-illus-img-wrap {
-          position: relative; z-index: 2; border-radius: 24px;
-          overflow: hidden; max-width: 380px;
-          box-shadow: 0 30px 80px rgba(108,92,231,0.2), 0 10px 30px rgba(0,0,0,0.08);
-        }
-        .vp-illus-img-wrap img { width: 100%; height: auto; display: block; }
-        .vp-illus-badge {
-          position: absolute; background: #fff; border-radius: 12px;
-          padding: 0.625rem 0.875rem; z-index: 3;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-          display: flex; align-items: center; gap: 0.5rem;
-        }
-        .vp-illus-badge-title { font-size: 0.75rem; font-weight: 700; color: #6C5CE7; }
-        .vp-illus-badge-sub   { font-size: 0.6875rem; color: #636e8a; }
-        .vp-badge-top    { top: 22%; left: 12%; }
-        .vp-badge-bottom { bottom: 22%; right: 10%; }
-
-        /* Form elements */
-        .vp-form-title { font-size: 1.875rem; font-weight: 800; color: #1a1d2e; margin: 0 0 0.375rem; letter-spacing: -0.03em; }
-        .vp-form-sub   { font-size: 0.875rem; color: #636e8a; margin: 0 0 2rem; }
-        .vp-field      { margin-bottom: 1.25rem; }
-        .vp-label      { display: flex; align-items: center; justify-content: space-between; font-size: 0.8125rem; font-weight: 600; color: #1a1d2e; margin-bottom: 0.5rem; }
-        .vp-label a    { font-size: 0.75rem; font-weight: 600; color: #6C5CE7; text-decoration: none; }
-        .vp-input-wrap { position: relative; }
-        .vp-input-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #a0a8c0; pointer-events: none; }
-        .vp-input {
-          width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem;
-          font-size: 0.875rem; color: #1a1d2e;
-          border: 1.5px solid #e8eaf0; border-radius: 10px;
-          outline: none; background: #fff;
-          transition: border-color 0.2s, box-shadow 0.2s;
-          font-family: inherit;
-        }
-        .vp-input::placeholder { color: #a0a8c0; }
-        .vp-input:focus { border-color: #6C5CE7; box-shadow: 0 0 0 3px rgba(108,92,231,0.12); }
-        .vp-input-pr { padding-right: 2.75rem; }
-        .vp-eye-btn {
-          position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-          background: none; border: none; cursor: pointer; color: #a0a8c0;
-          display: flex; align-items: center; padding: 0;
-        }
-        .vp-check-row   { display: flex; align-items: center; gap: 0.625rem; margin-bottom: 1.5rem; cursor: pointer; }
-        .vp-check-box {
-          width: 18px; height: 18px; border-radius: 5px; flex-shrink: 0;
-          display: flex; align-items: center; justify-content: center;
-          transition: all 0.15s; cursor: pointer;
-        }
-        .vp-check-label { font-size: 0.875rem; color: #636e8a; user-select: none; }
-        .vp-btn-primary {
-          width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-          padding: 0.875rem 1.5rem; border-radius: 12px;
-          background: linear-gradient(135deg, #6C5CE7 0%, #5046d4 100%);
-          color: #fff; font-size: 0.9375rem; font-weight: 700;
-          border: none; cursor: pointer;
-          box-shadow: 0 6px 20px rgba(108,92,231,0.4);
-          transition: opacity 0.2s, transform 0.2s;
-          font-family: inherit;
-        }
-        .vp-btn-primary:hover:not(:disabled) { opacity: 0.92; transform: translateY(-1px); }
-        .vp-btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
-        .vp-spin { width: 16px; height: 16px; border: 2.5px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: vp-spin 0.7s linear infinite; display: inline-block; }
-        .vp-divider { display: flex; align-items: center; gap: 0.75rem; margin: 1.5rem 0; }
-        .vp-divider-line { flex: 1; height: 1px; background: #f0f0f5; }
-        .vp-divider-text { font-size: 0.75rem; color: #a0a8c0; font-weight: 500; white-space: nowrap; }
-        .vp-social-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-        .vp-social-btn {
-          display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-          padding: 0.6875rem 0.75rem;
-          border: 1.5px solid #e8eaf0; border-radius: 10px;
-          background: #fff; font-size: 0.8125rem; font-weight: 600;
-          color: #1a1d2e; cursor: pointer; transition: background 0.15s;
-          font-family: inherit;
-        }
-        .vp-social-btn:hover { background: #f7f8fc; }
-        .vp-trust-box {
-          display: flex; align-items: flex-start; gap: 0.75rem;
-          margin-top: 1.5rem; padding: 0.875rem 1rem;
-          background: #f7f8fc; border-radius: 10px; border: 1px solid #f0f0f5;
-        }
-        .vp-trust-title { font-size: 0.8125rem; font-weight: 700; color: #1a1d2e; margin: 0 0 0.125rem; }
-        .vp-trust-sub   { font-size: 0.75rem; color: #636e8a; margin: 0; line-height: 1.5; }
-
-        /* Footer feature strip */
-        .vp-auth-footer { border-top: 1px solid #f0f0f5; background: #fff; padding: 1.5rem 2.5rem; }
-        .vp-feature-grid { max-width: 800px; margin: 0 auto; display: grid; grid-template-columns: repeat(4,1fr); gap: 1.5rem; }
-        .vp-feature-item { display: flex; align-items: flex-start; gap: 0.75rem; }
-        .vp-feature-icon {
-          width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0; margin-top: 2px;
-          background: rgba(108,92,231,0.08);
-          display: flex; align-items: center; justify-content: center;
-        }
-        .vp-feature-title { font-size: 0.75rem; font-weight: 700; color: #1a1d2e; margin: 0 0 0.125rem; }
-        .vp-feature-sub   { font-size: 0.6875rem; color: #636e8a; margin: 0; line-height: 1.5; }
-        .vp-footer-copy   { text-align: center; font-size: 0.6875rem; color: #a0a8c0; margin-top: 1.25rem; margin-bottom: 0; }
-
-        /* ── RESPONSIVE ───────────────────────────────── */
-        @media (max-width: 1023px) {
-          .vp-auth-illus-panel { display: none; }
-          .vp-auth-form-panel  { flex: 0 0 100%; padding: 2rem 1.5rem; }
-          .vp-feature-grid     { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 639px) {
-          .vp-auth-header       { padding: 0.875rem 1rem; }
-          .vp-auth-header-link  { display: none; }
-          .vp-auth-form-panel   { padding: 1.5rem 1rem; align-items: flex-start; padding-top: 2rem; }
-          .vp-form-title        { font-size: 1.5rem; }
-          .vp-social-grid       { grid-template-columns: 1fr; }
-          .vp-feature-grid      { grid-template-columns: 1fr 1fr; gap: 1rem; }
-          .vp-auth-footer       { padding: 1.25rem 1rem; }
-          .vp-social-btn        { font-size: 0.75rem; }
-        }
-        @media (max-width: 400px) {
-          .vp-feature-grid { grid-template-columns: 1fr; }
-        }
-      `}</style>
-
-      {/* Header */}
-      <header className="vp-auth-header">
-        <Link to="/" className="vp-auth-logo">
-          <div className="vp-auth-logo-icon">
-            <GraduationCap size={18} color="#fff" />
+    /* 
+      h-screen + overflow-hidden = page never scrolls.
+      The left form column overflows internally via overflow-y-auto.
+    */
+    <div
+      className="h-screen overflow-hidden flex flex-col bg-[#f7f8fc] dark:bg-slate-950"
+      style={{ fontFamily: "'Inter','Plus Jakarta Sans',sans-serif" }}
+    >
+      {/* ── Header ── */}
+      <header className="shrink-0 bg-white dark:bg-slate-900 border-b border-[#e8eaf0] dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 py-3">
+        <Link to="/" className="flex items-center gap-2 no-underline shrink-0">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center shadow"
+            style={{ background: 'linear-gradient(135deg,#6C5CE7,#a29bfe)' }}>
+            <GraduationCap className="w-4 h-4 text-white" />
           </div>
           <div>
-            <div className="vp-auth-logo-text">VertexPortal</div>
-            <div className="vp-auth-logo-sub">LMS</div>
+            <p className="text-sm font-extrabold text-[#1a1d2e] dark:text-white leading-none"
+              style={{ fontFamily: "'Plus Jakarta Sans',sans-serif" }}>VertexPortal</p>
+            <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: '#6C5CE7' }}>LMS</p>
           </div>
         </Link>
-        <p className="vp-auth-header-link">
-          New here? <Link to="/register">Create an account</Link>
-        </p>
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 shrink-0">
+          <span className="hidden sm:inline">New to VertexPortal?</span>
+          <Link
+            to="/register"
+            className="px-3 sm:px-4 py-1.5 rounded-xl font-bold text-xs bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-all shadow-xs whitespace-nowrap"
+          >
+            Create Account
+          </Link>
+        </div>
       </header>
 
-      {/* Body */}
-      <div className="vp-auth-body">
-        {/* Left — Form */}
-        <div className="vp-auth-form-panel">
-          <div className="vp-auth-form-inner">
-            <h1 className="vp-form-title">Welcome Back! 👋</h1>
-            <p className="vp-form-sub">Login to continue your learning journey.</p>
+      {/* ── Body: fills remaining height ── */}
+      <div className="flex flex-1 overflow-hidden min-h-0">
 
-            <form onSubmit={handleSubmit}>
-              {/* Email */}
-              <div className="vp-field">
-                <div className="vp-label"><span>Email Address</span></div>
-                <div className="vp-input-wrap">
-                  <Mail size={15} className="vp-input-icon" />
-                  <input
-                    className="vp-input" type="email" required autoComplete="email"
-                    placeholder="Enter your email"
-                    value={form.email}
-                    onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                  />
-                </div>
+        {/* ══ LEFT — Form ══ */}
+        <div className="w-full lg:w-[440px] xl:w-[480px] shrink-0 flex flex-col bg-white dark:bg-slate-900 border-r border-[#e8eaf0] dark:border-slate-800 overflow-y-auto">
+          <div className="flex flex-col justify-center flex-1 px-8 sm:px-12 py-8">
+            <div className="max-w-[340px] w-full mx-auto space-y-5">
+
+              {/* Greeting */}
+              <div>
+                <h1 className="text-2xl font-extrabold text-[#1a1d2e] dark:text-white mb-1"
+                  style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", letterSpacing: '-0.025em' }}>
+                  Welcome Back! 👋
+                </h1>
+                <p className="text-sm text-[#636e8a] dark:text-slate-400">
+                  Log in to continue your learning journey.
+                </p>
               </div>
 
-              {/* Password */}
-              <div className="vp-field">
-                <div className="vp-label">
-                  <span>Password</span>
-                  <Link to="/forgot-password">Forgot Password?</Link>
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Email */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-[#1a1d2e] dark:text-slate-300 uppercase tracking-wider">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <MailIcon size={14} color="#a0a8c0" />
+                    </span>
+                    <input type="email" required placeholder="Enter your email"
+                      value={form.email}
+                      onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                      className={`${inputCls} pl-9 pr-3`}
+                      style={{ borderColor: '#e8eaf0' }}
+                      onFocus={focusStyle} onBlur={blurStyle}
+                    />
+                  </div>
                 </div>
-                <div className="vp-input-wrap">
-                  <Lock size={15} className="vp-input-icon" />
-                  <input
-                    className={`vp-input vp-input-pr`}
-                    type={showPw ? 'text' : 'password'} required autoComplete="current-password"
-                    placeholder="Enter your password"
-                    value={form.password}
-                    onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                  />
-                  <button type="button" className="vp-eye-btn" onClick={() => setShowPw(!showPw)}>
-                    {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+
+                {/* Password */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-[#1a1d2e] dark:text-slate-300 uppercase tracking-wider">
+                      Password
+                    </label>
+                    <Link to="/forgot-password" className="text-xs font-semibold" style={{ color: '#6C5CE7' }}>
+                      Forgot Password?
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <LockIcon size={14} color="#a0a8c0" />
+                    </span>
+                    <input type={showPw ? 'text' : 'password'} required placeholder="Enter your password"
+                      value={form.password}
+                      onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                      className={`${inputCls} pl-9 pr-10`}
+                      style={{ borderColor: '#e8eaf0' }}
+                      onFocus={focusStyle} onBlur={blurStyle}
+                    />
+                    <button type="button" onClick={() => setShowPw(p => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a0a8c0] hover:text-[#6C5CE7] transition-colors">
+                      {showPw ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Remember */}
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input type="checkbox" className="sr-only" checked={remember} onChange={e => setRemember(e.target.checked)} />
+                  <div className="w-4 h-4 rounded border-2 shrink-0 flex items-center justify-center transition-all"
+                    style={{ background: remember ? '#6C5CE7' : 'transparent', borderColor: remember ? '#6C5CE7' : '#d1d5db' }}>
+                    {remember && (
+                      <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                  <span className="text-sm text-[#636e8a] dark:text-slate-400">Remember me</span>
+                </label>
+
+                {/* Submit */}
+                <button type="submit" disabled={loading}
+                  className="w-full flex items-center justify-center gap-2 text-sm font-bold py-3 rounded-xl text-white transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
+                  style={{ background: 'linear-gradient(135deg,#6C5CE7,#5046d4)', boxShadow: '0 6px 20px -4px rgba(108,92,231,0.4)' }}>
+                  {loading
+                    ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    : <><span>Login</span> <ArrowRightIcon size={14} color="white" /></>
+                  }
+                </button>
+              </form>
+
+              {/* Divider */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-[#e8eaf0] dark:bg-slate-800" />
+                <span className="text-xs text-[#a0a8c0]">or continue with</span>
+                <div className="flex-1 h-px bg-[#e8eaf0] dark:bg-slate-800" />
+              </div>
+
+              {/* OAuth */}
+              <div className="grid grid-cols-2 gap-2.5">
+                {[
+                  { label: 'Google', svg: <svg className="w-4 h-4" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> },
+                  { label: 'GitHub',  svg: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg> },
+                ].map(({ label, svg }) => (
+                  <button key={label} type="button"
+                    className="flex items-center justify-center gap-2 text-xs font-semibold py-2.5 rounded-xl border border-[#e8eaf0] dark:border-slate-700 bg-white dark:bg-slate-800 text-[#1a1d2e] dark:text-white hover:border-[#6C5CE7] hover:bg-[#f3f1ff] transition-all">
+                    {svg} {label}
                   </button>
-                </div>
+                ))}
               </div>
 
-              {/* Remember me */}
-              <div className="vp-check-row" onClick={() => setRemember(!remember)}>
-                <div className="vp-check-box" style={{
-                  border: `2px solid ${remember ? '#6C5CE7' : '#d1d5db'}`,
-                  backgroundColor: remember ? '#6C5CE7' : '#fff',
-                }}>
-                  {remember && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                </div>
-                <span className="vp-check-label">Remember me</span>
+              {/* Security note */}
+              <div className="flex items-center gap-3 rounded-2xl p-3.5"
+                style={{ background: '#f3f1ff', border: '1px solid #ddd6fe' }}>
+                <ShieldCheckIcon size={15} color="#6C5CE7" className="shrink-0" />
+                <p className="text-xs text-[#636e8a] leading-relaxed">
+                  <span className="font-bold text-[#1a1d2e]">Your data is safe.</span>{' '}
+                  Industry-standard encryption keeps your info secure.
+                </p>
               </div>
 
-              {/* Submit */}
-              <button type="submit" disabled={loading} className="vp-btn-primary">
-                {loading ? <><span className="vp-spin" /> Signing in...</> : <>Login <ArrowRight size={16} /></>}
-              </button>
-            </form>
+            </div>
+          </div>
+        </div>
 
-            <div className="vp-divider">
-              <div className="vp-divider-line" />
-              <span className="vp-divider-text">or continue with</span>
-              <div className="vp-divider-line" />
+        {/* ══ RIGHT — Brand panel ══ */}
+        <div className="hidden lg:flex flex-1 relative overflow-hidden items-center justify-center"
+          style={{ background: 'linear-gradient(150deg,#6C5CE7 0%,#5046d4 50%,#4338ca 100%)' }}>
+          <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full opacity-20 blur-3xl" style={{ background: '#a29bfe' }} />
+          <div className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full opacity-20 blur-3xl" style={{ background: '#4338ca' }} />
+
+          <div className="relative z-10 w-full max-w-sm px-10 space-y-7">
+            {/* Headline */}
+            <div className="space-y-3 text-center">
+              <div className="w-14 h-14 rounded-3xl mx-auto flex items-center justify-center"
+                style={{ background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.22)', backdropFilter: 'blur(8px)' }}>
+                <GraduationCap className="w-7 h-7 text-white" />
+              </div>
+              <h2 className="text-2xl font-extrabold text-white"
+                style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", letterSpacing: '-0.025em' }}>
+                Unlock Your Potential
+              </h2>
+              <p className="text-[#c4b5fd] text-sm leading-relaxed">
+                50,000+ learners building real-world skills with AI-powered courses and live expert sessions.
+              </p>
             </div>
 
-            <div className="vp-social-grid">
-              <button type="button" className="vp-social-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                Continue with Google
-              </button>
-              <button type="button" className="vp-social-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="#24292e"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
-                Continue with GitHub
-              </button>
+            {/* Perks */}
+            <div className="space-y-2.5">
+              {PERKS.map(({ icon: Icon, title, desc }) => (
+                <div key={title} className="flex items-center gap-3 rounded-2xl px-4 py-3"
+                  style={{ background: 'rgba(255,255,255,0.08)', border: '1.5px solid rgba(255,255,255,0.14)', backdropFilter: 'blur(6px)' }}>
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: 'rgba(255,255,255,0.15)' }}>
+                    <Icon size={16} color="white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-white leading-none mb-0.5"
+                      style={{ fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{title}</p>
+                    <p className="text-[11px] text-[#c4b5fd]">{desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
 
-            <div className="vp-trust-box">
-              <ShieldCheck size={18} color="#6C5CE7" style={{ flexShrink: 0, marginTop: 1 }} />
-              <div>
-                <p className="vp-trust-title">Your data is safe with us</p>
-                <p className="vp-trust-sub">We use industry standard security to keep your information safe.</p>
+            {/* Testimonial */}
+            <div className="rounded-2xl px-4 py-4 space-y-2.5"
+              style={{ background: 'rgba(255,255,255,0.08)', border: '1.5px solid rgba(255,255,255,0.14)' }}>
+              <div className="flex gap-0.5">
+                {[1,2,3,4,5].map(i => (
+                  <svg key={i} className="w-3 h-3" fill="#fbbf24" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                  </svg>
+                ))}
+              </div>
+              <p className="text-xs text-[#e0d9ff] leading-relaxed italic">
+                "VertexPortal's AI tutor is a game-changer. I landed my first developer job in 5 months."
+              </p>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold"
+                  style={{ background: '#00b894' }}>PS</div>
+                <div>
+                  <p className="text-[11px] font-bold text-white leading-none">Priya Sharma</p>
+                  <p className="text-[10px] text-[#c4b5fd]">Full-Stack Developer</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right — Illustration (hidden on mobile/tablet) */}
-        <div className="vp-auth-illus-panel">
-          <div className="vp-illus-blob1" />
-          <div className="vp-illus-blob2" />
-          <div className="vp-illus-img-wrap">
-            <img
-              src="https://lh3.googleusercontent.com/aida/AP1WRLuipHTX_HPFvDbGqriIYgvJTY2FyvjSSFrZJftQ-Hj6YQha6vSCXsF_K5SpnkPZF5weoZbEcnT9mGFoxe11XapuQ4j1Ww40bzj_iGlOv4tJStVtP_j_xLp2oYOXd5B-oq_0sh47s7m2XKCye4ESldSVE50dczZkRIJJ8pj4Ct72YBvajWOc-2TRiARJfNe35hxNV1TKbOj0oehr4X-fyCfUOrFfeAfQAzmaobHCY2mrkZmjrnI4HaPxbJVW"
-              alt="Student learning online"
-            />
-          </div>
-          <div className="vp-illus-badge vp-badge-top">
-            <span style={{ fontSize: '1.1rem' }}>⭐</span>
-            <div><div className="vp-illus-badge-title">4.9 Rating</div><div className="vp-illus-badge-sub">50K+ students</div></div>
-          </div>
-          <div className="vp-illus-badge vp-badge-bottom">
-            <span style={{ fontSize: '1.1rem' }}>🎓</span>
-            <div><div className="vp-illus-badge-title">Certified</div><div className="vp-illus-badge-sub">1000+ courses</div></div>
-          </div>
-        </div>
       </div>
-
-      {/* Footer */}
-      <footer className="vp-auth-footer">
-        <div className="vp-feature-grid">
-          {features.map(({ icon: Icon, label, sub }) => (
-            <div key={label} className="vp-feature-item">
-              <div className="vp-feature-icon"><Icon size={15} color="#6C5CE7" /></div>
-              <div>
-                <p className="vp-feature-title">{label}</p>
-                <p className="vp-feature-sub">{sub}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        <p className="vp-footer-copy">© 2025 VertexPortal LMS. All rights reserved.</p>
-      </footer>
     </div>
   );
 }

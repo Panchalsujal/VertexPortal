@@ -1,8 +1,24 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
-  BookOpen, ShoppingCart, Heart, User, LogOut,
-  ChevronDown, GraduationCap, Bell, Award, MessageSquare, FileText, Bot, Sun, Moon, Menu, X
+  BookOpenIcon,
+  ShoppingCartIcon,
+  HeartIcon,
+  UserIcon,
+  LogOutIcon,
+  ChevronDownIcon,
+  BellIcon,
+  MessageSquareIcon,
+  BrainIcon,
+  SunIcon,
+  MoonIcon,
+  MenuIcon,
+  XIcon,
+} from '@animateicons/react/lucide';
+// Icons not available in animateicons package
+import {
+  GraduationCap as GraduationCapStatic,
+  Award as AwardStatic,
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logoutUser, selectUser } from '../../store/slices/authSlice';
@@ -105,24 +121,24 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-gray-200/80 dark:border-slate-800 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 gap-2">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 font-extrabold text-xl text-gray-900 dark:text-white shrink-0 no-underline">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-purple-950/30">
-              <GraduationCap className="w-5 h-5" />
+          <Link to="/" className="flex items-center gap-2 font-extrabold text-lg sm:text-xl text-gray-900 dark:text-white shrink-0 no-underline">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-purple-950/30 shrink-0">
+              <GraduationCapStatic className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
-            <span>Vertex<span className="text-purple-600 dark:text-purple-400">Portal</span></span>
+            <span className="truncate">Vertex<span className="text-purple-600 dark:text-purple-400">Portal</span></span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-gray-700 dark:text-gray-300">
             <NavLink to="/courses" className={desktopLinkClass}>Browse Courses</NavLink>
             <NavLink to="/discussions" className={desktopLinkClass}>
-              <span className="inline-flex items-center gap-1.5"><MessageSquare className="w-4 h-4 text-purple-500" /> Discussions</span>
+              <span className="inline-flex items-center gap-1.5"><MessageSquareIcon size={15} color="#6C5CE7" /> Discussions</span>
             </NavLink>
             <NavLink to="/ai-chat" className={desktopLinkClass}>
-              <span className="inline-flex items-center gap-1.5"><Bot className="w-4 h-4 text-purple-600" /> AI Tutor</span>
+              <span className="inline-flex items-center gap-1.5"><BrainIcon size={15} color="#6C5CE7" /> AI Tutor</span>
             </NavLink>
 
             {user?.role === 'student' && (
@@ -149,7 +165,7 @@ export function Navbar() {
                   onClick={() => setAdminDropdownOpen(!adminDropdownOpen)}
                   className="cursor-pointer flex items-center gap-1 hover:text-purple-600 dark:hover:text-purple-400 focus:outline-none"
                 >
-                  Admin <ChevronDown className="w-3.5 h-3.5" />
+                  Admin <ChevronDownIcon size={13} color="currentColor" />
                 </button>
 
                 <div
@@ -173,62 +189,73 @@ export function Navbar() {
           </nav>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            {/* Theme Toggle */}
             <button
               type="button"
               onClick={() => setDarkMode(prev => !prev)}
-              className="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+              className="p-1.5 sm:p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer shrink-0"
               title={darkMode ? 'Switch to light theme' : 'Switch to dark theme'}
             >
-              {darkMode ? <Sun className="w-4.5 h-4.5 text-amber-400" /> : <Moon className="w-4.5 h-4.5" />}
+              {darkMode ? <SunIcon size={17} color="#f59e0b" /> : <MoonIcon size={17} color="currentColor" />}
             </button>
 
-            <Link
-              to="/notifications"
-              className="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition-colors relative"
-              title="Notifications"
-            >
-              <Bell className="w-4.5 h-4.5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-purple-600 rounded-full" />
-            </Link>
+            {/* Notifications (only shown when logged in or on larger screens) */}
+            {user && (
+              <Link
+                to="/notifications"
+                className="p-1.5 sm:p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition-colors relative shrink-0"
+                title="Notifications"
+              >
+                <BellIcon size={17} color="currentColor" />
+                <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-2 h-2 bg-purple-600 rounded-full" />
+              </Link>
+            )}
 
             {user?.role === 'student' && (
               <>
                 <Link
                   to="/cart"
-                  className="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition-colors relative"
+                  className="p-1.5 sm:p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition-colors relative shrink-0"
                   title="Cart"
                 >
-                  <ShoppingCart className="w-4.5 h-4.5" />
+                  <ShoppingCartIcon size={17} color="currentColor" />
                 </Link>
                 <Link
                   to="/wishlist"
-                  className="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                  className="hidden sm:inline-flex p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition-colors shrink-0"
                   title="Wishlist"
                 >
-                  <Heart className="w-4.5 h-4.5" />
+                  <HeartIcon size={17} color="currentColor" />
                 </Link>
               </>
             )}
 
             {user ? (
-              <div className="relative" ref={dropdownRef}>
+              <div className="relative shrink-0" ref={dropdownRef}>
                 <button
                   type="button"
                   onClick={() => setDropdownOpen(prev => !prev)}
-                  className="flex items-center gap-2 p-1 rounded-xl hover:bg-purple-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 sm:gap-2 p-1 rounded-xl hover:bg-purple-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 text-white font-bold flex items-center justify-center text-xs shadow-xs">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 text-white font-bold flex items-center justify-center text-xs shadow-xs shrink-0 overflow-hidden">
                     {user.avatarUrl ? (
-                      <img src={user.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                      <img
+                        src={user.avatarUrl}
+                        alt={user.fullName || 'User'}
+                        className="w-full h-full rounded-full object-cover"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
                     ) : (
                       user.fullName?.[0]?.toUpperCase() || 'U'
                     )}
                   </div>
-                  <span className="hidden sm:inline-block text-xs font-semibold text-gray-800 dark:text-gray-200">
+                  <span className="hidden md:inline-block text-xs font-semibold text-gray-800 dark:text-gray-200">
                     {user.fullName?.split(' ')[0]}
                   </span>
-                  <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                  <ChevronDownIcon size={13} color="#9ca3af" />
                 </button>
 
                 {dropdownOpen && (
@@ -243,7 +270,7 @@ export function Navbar() {
                       onClick={() => setDropdownOpen(false)}
                       className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
                     >
-                      <User className="w-4 h-4 text-purple-600" /> Profile & Settings
+                      <UserIcon size={14} color="#6C5CE7" /> Profile & Settings
                     </Link>
 
                     {user.role === 'student' && (
@@ -252,7 +279,7 @@ export function Navbar() {
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
                       >
-                        <BookOpen className="w-4 h-4 text-purple-600" /> My Learning
+                        <BookOpenIcon size={14} color="#6C5CE7" /> My Learning
                       </Link>
                     )}
 
@@ -262,7 +289,7 @@ export function Navbar() {
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
                       >
-                        <Award className="w-4 h-4 text-purple-600" /> Admin Dashboard
+                        <AwardStatic className="w-4 h-4" style={{ color: '#6C5CE7' }} /> Admin Dashboard
                       </Link>
                     )}
 
@@ -273,22 +300,22 @@ export function Navbar() {
                       onClick={handleLogout}
                       className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors text-left cursor-pointer"
                     >
-                      <LogOut className="w-4 h-4" /> Logout
+                      <LogOutIcon size={14} color="#ef4444" /> Logout
                     </button>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <Link
                   to="/login"
-                  className="px-3.5 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-purple-600 transition"
+                  className="px-2.5 sm:px-3.5 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-purple-600 transition whitespace-nowrap shrink-0"
                 >
                   Log in
                 </Link>
                 <Link
                   to="/register"
-                  className="px-4 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl shadow-md shadow-purple-950/20 transition"
+                  className="px-3 sm:px-4 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl shadow-md shadow-purple-950/20 transition whitespace-nowrap shrink-0"
                 >
                   Sign up
                 </Link>
@@ -299,9 +326,10 @@ export function Navbar() {
             <button
               type="button"
               onClick={() => setMobileOpen(prev => !prev)}
-              className="lg:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 rounded-xl transition"
+              className="lg:hidden p-1.5 text-gray-600 dark:text-gray-400 hover:text-purple-600 rounded-xl transition shrink-0"
+              aria-label="Toggle Navigation Menu"
             >
-              {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileOpen ? <XIcon size={20} color="currentColor" /> : <MenuIcon size={20} color="currentColor" />}
             </button>
           </div>
         </div>
@@ -309,7 +337,7 @@ export function Navbar() {
 
       {/* Mobile Drawer */}
       {mobileOpen && (
-        <div className="lg:hidden bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-4 pt-2 pb-6 space-y-2">
+        <div className="lg:hidden bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-4 pt-2 pb-6 space-y-2 animate-in fade-in slide-in-from-top-2">
           <NavItem to="/courses" onNavigate={closeMobile}>Browse Courses</NavItem>
           <NavItem to="/discussions" onNavigate={closeMobile}>Discussions</NavItem>
           <NavItem to="/ai-chat" onNavigate={closeMobile}>AI Tutor</NavItem>
@@ -320,12 +348,32 @@ export function Navbar() {
               <NavItem to="/student/live-classes" onNavigate={closeMobile}>Live Classes</NavItem>
               <NavItem to="/student/quizzes" onNavigate={closeMobile}>Quizzes</NavItem>
               <NavItem to="/student/assignments" onNavigate={closeMobile}>Assignments</NavItem>
+              <NavItem to="/wishlist" onNavigate={closeMobile}>Wishlist</NavItem>
             </>
           )}
 
           {user?.role === 'admin' && adminLinks.map(({ to, label }) => (
             <NavItem key={to} to={to} onNavigate={closeMobile}>{label}</NavItem>
           ))}
+
+          {!user && (
+            <div className="pt-3 mt-2 border-t border-gray-100 dark:border-slate-800 grid grid-cols-2 gap-2">
+              <Link
+                to="/login"
+                onClick={closeMobile}
+                className="w-full text-center py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition"
+              >
+                Log in
+              </Link>
+              <Link
+                to="/register"
+                onClick={closeMobile}
+                className="w-full text-center py-2 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl shadow-xs transition"
+              >
+                Sign up
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </header>

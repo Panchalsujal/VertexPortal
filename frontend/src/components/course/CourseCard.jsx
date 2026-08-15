@@ -1,5 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Star, Clock, BookOpen, Heart, ShoppingCart } from 'lucide-react';
+import {
+  StarIcon,
+  ClockIcon,
+  BookOpenIcon,
+  HeartIcon,
+  ShoppingCartIcon,
+} from '@animateicons/react/lucide';
 import { useAppSelector } from '../../store/hooks';
 import { selectUser } from '../../store/slices/authSlice';
 import { addToCart } from '../../api/cart.api';
@@ -80,7 +86,7 @@ export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
             />
           ) : (
             <div className="w-full h-full min-h-[160px] bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
-              <BookOpen className="w-10 h-10 text-purple-400" />
+              <BookOpenIcon size={40} color="#a29bfe" />
             </div>
           )}
 
@@ -94,51 +100,53 @@ export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
           {/* Wishlist Button */}
           {user?.role === 'student' && (
             <button
+              type="button"
               onClick={handleWishlist}
               disabled={wishLoading}
-              className="absolute top-3 right-3 p-2 bg-black/40 backdrop-blur-sm hover:bg-black/60 rounded-full text-white transition shadow-xs cursor-pointer"
+              className="absolute top-3 right-3 p-2 bg-black/40 backdrop-blur-sm hover:bg-black/60 rounded-full text-white transition shadow-xs cursor-pointer flex items-center justify-center"
               title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
             >
-              <Heart
-                className={`w-4 h-4 ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-white'}`}
+              <HeartIcon
+                size={16}
+                color={isWishlisted ? '#ef4444' : '#ffffff'}
               />
             </button>
           )}
         </div>
 
         {/* Body */}
-        <div className="p-5 flex flex-col flex-1 justify-between">
+        <div className="p-4 sm:p-5 flex flex-col flex-1 justify-between gap-3">
           <div>
             <div className="text-[11px] font-extrabold text-purple-600 dark:text-purple-400 mb-1.5 uppercase tracking-wider">
               {course.category?.name || 'Development'}
             </div>
-            <h3 className="font-bold text-gray-900 dark:text-white text-base leading-snug line-clamp-2 mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+            <h3 className="font-bold text-gray-900 dark:text-white text-base leading-snug line-clamp-2 mb-1.5 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
               {course.title}
             </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               by <span className="font-semibold text-gray-700 dark:text-gray-300">{course.instructor?.fullName || course.instructor?.name || 'Instructor'}</span>
             </p>
           </div>
 
           <div>
             {/* Meta info */}
-            <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 pt-3 border-t border-gray-100 dark:border-slate-800/80 mb-4">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400 pt-3 border-t border-gray-100 dark:border-slate-800/80 mb-3">
               {course.averageRating > 0 && (
                 <div className="flex items-center gap-1 font-bold text-gray-900 dark:text-white">
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <StarIcon size={14} color="#f59e0b" />
                   <span>{course.averageRating.toFixed(1)}</span>
                   <span className="text-gray-400 font-normal">({course.totalReviews})</span>
                 </div>
               )}
               {course.totalDurationInSeconds > 0 && (
                 <div className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-gray-400" />
+                  <ClockIcon size={14} color="#9ca3af" />
                   <span>{formatDuration(course.totalDurationInSeconds)}</span>
                 </div>
               )}
               {course.totalLectures > 0 && (
                 <div className="flex items-center gap-1">
-                  <BookOpen className="w-3.5 h-3.5 text-gray-400" />
+                  <BookOpenIcon size={14} color="#9ca3af" />
                   <span>{course.totalLectures} lectures</span>
                 </div>
               )}
@@ -161,12 +169,13 @@ export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
 
               {user?.role === 'student' && (
                 <button
+                  type="button"
                   onClick={handleAddToCart}
                   disabled={cartLoading}
-                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl inline-flex items-center gap-1.5 shadow-sm shadow-purple-950/20 transition cursor-pointer"
+                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl inline-flex items-center gap-1.5 shadow-sm shadow-purple-950/20 transition cursor-pointer"
                 >
-                  <ShoppingCart className="w-3.5 h-3.5" />
-                  {cartLoading ? '...' : 'Add'}
+                  <ShoppingCartIcon size={14} color="#ffffff" />
+                  <span>{cartLoading ? '...' : 'Add'}</span>
                 </button>
               )}
             </div>

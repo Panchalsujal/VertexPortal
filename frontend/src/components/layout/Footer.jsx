@@ -1,19 +1,19 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  GraduationCap,
-  Globe,
-  Share2,
-  MessageSquare,
-  Mail,
-  ArrowRight,
-  ShieldCheck,
-  Zap,
-  BookOpen,
-  Video,
-  Award,
-  FileText,
-  Sparkles,
+  MailIcon,
+  ArrowRightIcon,
+  ShieldCheckIcon,
+  ZapIcon,
+  MessageSquareIcon,
+  BookOpenIcon,
+  VideoIcon,
+  SparklesIcon,
+} from '@animateicons/react/lucide';
+import {
+  GraduationCap as GraduationCapStatic,
+  Globe as GlobeStatic,
+  Share2 as Share2Static,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -34,13 +34,13 @@ export function Footer() {
       {/* Decorative Top Gradient Highlight */}
       <div className="h-1 w-full bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-500" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Brand & Description */}
-          <div className="lg:col-span-2 space-y-5">
-            <Link to="/" className="inline-flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-purple-600/20 group-hover:scale-105 transition-transform duration-200">
-                <GraduationCap className="w-5 h-5" />
+          <div className="sm:col-span-2 md:col-span-3 lg:col-span-2 space-y-5">
+            <Link to="/" className="inline-flex items-center gap-3 group no-underline">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-purple-600/20 group-hover:scale-105 transition-transform duration-200 shrink-0">
+                <GraduationCapStatic className="w-5 h-5 text-white" />
               </div>
               <div>
                 <span className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">
@@ -59,10 +59,12 @@ export function Footer() {
             {/* Platform Badges */}
             <div className="flex flex-wrap items-center gap-4 text-xs font-semibold pt-1">
               <div className="flex items-center gap-1.5 text-purple-600 dark:text-purple-400">
-                <ShieldCheck className="w-4 h-4 text-purple-600 dark:text-purple-400" /> Verified Certificates
+                <ShieldCheckIcon size={16} color="#6C5CE7" />
+                <span>Verified Certificates</span>
               </div>
               <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
-                <Zap className="w-4 h-4 text-indigo-600 dark:text-indigo-400" /> AI-Powered Learning
+                <ZapIcon size={16} color="#4f46e5" />
+                <span>AI-Powered Learning</span>
               </div>
             </div>
 
@@ -73,21 +75,21 @@ export function Footer() {
                 className="w-9 h-9 rounded-xl bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600/40 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-gray-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-300 flex items-center justify-center transition-all duration-200"
                 title="Global Site"
               >
-                <Globe className="w-4 h-4" />
+                <GlobeStatic className="w-4 h-4" />
               </a>
               <a
                 href="#"
                 className="w-9 h-9 rounded-xl bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600/40 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-gray-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-300 flex items-center justify-center transition-all duration-200"
                 title="Share Portal"
               >
-                <Share2 className="w-4 h-4" />
+                <Share2Static className="w-4 h-4" />
               </a>
               <a
                 href="#"
                 className="w-9 h-9 rounded-xl bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600/40 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-gray-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-300 flex items-center justify-center transition-all duration-200"
                 title="Community Chat"
               >
-                <MessageSquare className="w-4 h-4" />
+                <MessageSquareIcon size={16} color="currentColor" />
               </a>
             </div>
           </div>
@@ -95,15 +97,16 @@ export function Footer() {
           {/* Learn Column */}
           <div>
             <h4 className="text-xs font-extrabold text-gray-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-purple-600" /> Learn
+              <span className="w-2 h-2 rounded-full bg-purple-600 shrink-0" /> Learn
             </h4>
             <ul className="space-y-3 text-sm">
               <li>
                 <Link
                   to="/courses"
-                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-block transition-all duration-200"
+                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-flex items-center gap-1.5 transition-all duration-200"
                 >
-                  Browse Courses
+                  <BookOpenIcon size={14} color="#6C5CE7" />
+                  <span>Browse Courses</span>
                 </Link>
               </li>
               <li>
@@ -125,9 +128,10 @@ export function Footer() {
               <li>
                 <Link
                   to="/ai-chat"
-                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-block transition-all duration-200"
+                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-flex items-center gap-1.5 transition-all duration-200"
                 >
-                  AI Tutor Assistant
+                  <SparklesIcon size={14} color="#6C5CE7" />
+                  <span>AI Tutor Assistant</span>
                 </Link>
               </li>
             </ul>
@@ -136,15 +140,16 @@ export function Footer() {
           {/* Platform Column */}
           <div>
             <h4 className="text-xs font-extrabold text-gray-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-indigo-500" /> Platform
+              <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" /> Platform
             </h4>
             <ul className="space-y-3 text-sm">
               <li>
                 <Link
                   to="/student/live-classes"
-                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-block transition-all duration-200"
+                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-flex items-center gap-1.5 transition-all duration-200"
                 >
-                  Live Interactive Classes
+                  <VideoIcon size={14} color="#4f46e5" />
+                  <span>Live Classes</span>
                 </Link>
               </li>
               <li>
@@ -183,16 +188,18 @@ export function Footer() {
           </div>
 
           {/* Newsletter Column */}
-          <div className="space-y-4">
+          <div className="space-y-4 sm:col-span-2 md:col-span-1 lg:col-span-1">
             <h4 className="text-xs font-extrabold text-gray-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-500" /> Stay Updated
+              <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" /> Stay Updated
             </h4>
             <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">
               Subscribe for new course releases, workshops, and platform updates.
             </p>
             <form onSubmit={handleSubscribe} className="space-y-2.5">
               <div className="relative">
-                <Mail className="w-4 h-4 text-gray-400 dark:text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <MailIcon size={15} color="#9ca3af" />
+                </span>
                 <input
                   type="email"
                   value={email}
@@ -205,19 +212,20 @@ export function Footer() {
                 type="submit"
                 className="w-full inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl transition shadow-sm cursor-pointer"
               >
-                Subscribe Now <ArrowRight className="w-3.5 h-3.5" />
+                <span>Subscribe Now</span>
+                <ArrowRightIcon size={14} color="#ffffff" />
               </button>
             </form>
           </div>
         </div>
 
         {/* Bottom Sub-footer Bar */}
-        <div className="border-t border-gray-200/90 dark:border-slate-800/90 mt-12 pt-6 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-500 dark:text-slate-400 gap-4">
-          <div className="flex items-center gap-2">
+        <div className="border-t border-gray-200/90 dark:border-slate-800/90 mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-500 dark:text-slate-400 gap-4 text-center sm:text-left">
+          <div>
             <p>© {new Date().getFullYear()} VertexPortal LMS. All rights reserved.</p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6 font-medium">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4 sm:gap-6 font-medium">
             <a href="#" className="hover:text-purple-600 dark:hover:text-purple-300 transition-colors">
               Privacy Policy
             </a>

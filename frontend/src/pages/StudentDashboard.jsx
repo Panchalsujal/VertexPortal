@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, BookOpen, Video, FileText, Bot, Heart, ShoppingBag,
@@ -90,8 +90,23 @@ export default function StudentDashboard() {
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
 
   const firstName = user?.fullName?.split(' ')[0] || 'Student';
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setUserMenuOpen(false);
+      }
+    }
+    if (userMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [userMenuOpen]);
 
   useEffect(() => {
     let isMounted = true;
@@ -142,8 +157,21 @@ export default function StudentDashboard() {
   };
 
   const enrolledCount  = myCourses.length;
-  const completedCount = myCourses.filter(c => c.progress === 100 || c.isCompleted || c.status === 'completed').length;
+  const completedCount = myCourses.filter(c => (c.progress === 100 || c.progressPercentage === 100 || c.isCompleted || c.status === 'completed')).length;
   const certCount      = certificates.length;
+
+  // Calculate real progress across all enrolled courses
+  const averageProgress = enrolledCount > 0
+    ? Math.round(myCourses.reduce((sum, c) => sum + (c.progressPercentage ?? c.progress ?? 0), 0) / enrolledCount)
+    : 0;
+
+  const progressMessage = enrolledCount === 0
+    ? 'Enroll in a course to start tracking your learning progress.'
+    : averageProgress >= 100
+    ? 'Outstanding! You have completed your enrolled courses!'
+    : averageProgress >= 50
+    ? "Great momentum! You're more than halfway to your goals."
+    : 'Every lesson counts! Keep up your study streak today.';
 
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif]">
@@ -227,13 +255,13 @@ export default function StudentDashboard() {
           ))}
         </nav>
 
-        {/* Weekly Goal */}
+        {/* Real Progress Card */}
         <div className="sd-weekly-goal mx-3 mb-4 p-4 rounded-2xl" style={{ background: 'linear-gradient(135deg, #6C5CE7 0%, #5046d4 100%)' }}>
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs font-bold text-white">Keep Learning 🔥</p>
             <Zap className="w-4 h-4 text-yellow-300" />
           </div>
-          <p className="text-xs text-purple-200 mb-3">You're doing great! Keep going and achieve your goals.</p>
+          <p className="text-xs text-purple-200 mb-3">{progressMessage}</p>
           <div className="flex flex-col items-center gap-2">
             <div className="relative w-16 h-16">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 80 80">
@@ -242,15 +270,18 @@ export default function StudentDashboard() {
                   cx="40" cy="40" r="32" fill="none"
                   stroke="white" strokeWidth="6"
                   strokeDasharray={`${2 * Math.PI * 32}`}
-                  strokeDashoffset={`${2 * Math.PI * 32 * (1 - 0.75)}`}
+                  strokeDashoffset={`${2 * Math.PI * 32 * (1 - (averageProgress || 0) / 100)}`}
                   strokeLinecap="round"
+                  className="transition-all duration-700 ease-out"
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-white font-extrabold text-sm">75%</span>
+                <span className="text-white font-extrabold text-sm">{averageProgress}%</span>
               </div>
             </div>
-            <p className="text-xs text-purple-200 font-semibold">Weekly Goal</p>
+            <p className="text-xs text-purple-200 font-semibold">
+              {enrolledCount > 0 ? `${completedCount} of ${enrolledCount} Completed` : 'Course Progress'}
+            </p>
           </div>
         </div>
 
@@ -262,15 +293,10 @@ export default function StudentDashboard() {
         </button>
       </aside>
 
-      {/* Dropdown Backdrop */}
-      {userMenuOpen && (
-        <div className="fixed inset-0 z-30" onClick={() => setUserMenuOpen(false)} />
-      )}
-
       {/* Main Content */}
       <main className="flex-1 lg:ml-60 min-h-screen">
         {/* Top Bar */}
-        <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-20">
+        <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-30">
           <div className="flex items-center gap-3 px-6 py-4">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -313,16 +339,28 @@ export default function StudentDashboard() {
               </Link>
 
               {/* User Dropdown */}
-              <div className="relative">
+              <div className="relative" ref={userMenuRef}>
                 <button
+                  type="button"
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center gap-2.5 ml-2 pl-3 border-l border-gray-200 dark:border-gray-700 hover:opacity-80 transition cursor-pointer text-left"
                 >
                   <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0"
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0 overflow-hidden border border-purple-200 dark:border-purple-800"
                     style={{ background: 'linear-gradient(135deg, #6C5CE7, #a29bfe)' }}
                   >
-                    {user?.fullName?.[0]?.toUpperCase() || 'S'}
+                    {user?.avatarUrl ? (
+                      <img
+                        src={user.avatarUrl}
+                        alt={user.fullName || 'Student'}
+                        className="w-full h-full object-cover rounded-full"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      user?.fullName?.[0]?.toUpperCase() || 'S'
+                    )}
                   </div>
                   <div className="sd-topbar-user-name hidden sm:block">
                     <p className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">Hi, {firstName}</p>
@@ -333,7 +371,7 @@ export default function StudentDashboard() {
 
                 {/* Popover Menu */}
                 {userMenuOpen && (
-                  <div className="absolute right-0 top-12 w-52 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 py-2 z-40 animate-in fade-in slide-in-from-top-2">
+                  <div className="absolute right-0 top-12 w-52 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 py-2 z-50 animate-in fade-in slide-in-from-top-2">
                     <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-800">
                       <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{user?.fullName || 'Student'}</p>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>

@@ -8,11 +8,19 @@ import {
 } from '../store/slices/aiSlice';
 import { getAllCourses } from '../api/course.api';
 import {
-  Bot, Send, Plus, MessageSquare, User, Sparkles, Trash2,
-  Edit2, Check, X, Copy, CheckCheck, BookOpen,
-  Search, RefreshCw,
-  Lightbulb, GraduationCap,
-  PanelLeftClose, PanelLeftOpen
+  BookOpenIcon,
+  MessageSquareIcon,
+  SparklesIcon,
+  BrainIcon,
+  CircleCheckIcon,
+  ArrowRightIcon,
+  UsersIcon,
+  VideoIcon,
+} from '@animateicons/react/lucide';
+import {
+  Send, Plus, Trash2, Edit2, Check, X, Copy, CheckCheck,
+  Search, RefreshCw, Lightbulb, GraduationCap,
+  PanelLeftClose, PanelLeftOpen, Menu, Bot, User
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
@@ -38,6 +46,7 @@ function CodeBlock({ children, className }) {
           {language || 'code'}
         </span>
         <button
+          type="button"
           onClick={handleCopy}
           className="flex items-center gap-1 text-[11px] font-semibold text-gray-400 hover:text-white transition-colors cursor-pointer"
         >
@@ -70,10 +79,10 @@ function FormattedMarkdown({ content, isTyping = false }) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          h1: (props) => <h1 className="text-lg font-bold text-gray-900 dark:text-white mt-4 mb-2 pb-1 border-b border-gray-100 dark:border-gray-800" {...props} />,
-          h2: (props) => <h2 className="text-base font-bold text-gray-900 dark:text-white mt-3 mb-1.5" {...props} />,
-          h3: (props) => <h3 className="text-sm font-bold text-purple-700 dark:text-purple-300 mt-2.5 mb-1" {...props} />,
-          p: (props) => <p className="mb-2.5 last:mb-0 leading-relaxed text-gray-800 dark:text-gray-200" {...props} />,
+          h1: (props) => <h1 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mt-4 mb-2 pb-1 border-b border-gray-100 dark:border-gray-800" {...props} />,
+          h2: (props) => <h2 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white mt-3 mb-1.5" {...props} />,
+          h3: (props) => <h3 className="text-xs sm:text-sm font-bold text-purple-700 dark:text-purple-300 mt-2.5 mb-1" {...props} />,
+          p: ({ node, children, ...props }) => <div className="mb-2.5 last:mb-0 leading-relaxed text-gray-800 dark:text-gray-200" {...props}>{children}</div>,
           strong: (props) => <strong className="font-bold text-gray-900 dark:text-white" {...props} />,
           em: (props) => <em className="italic text-purple-600 dark:text-purple-400" {...props} />,
           ul: (props) => <ul className="list-disc pl-5 mb-3 space-y-1 text-gray-800 dark:text-gray-200" {...props} />,
@@ -112,8 +121,8 @@ function FormattedMarkdown({ content, isTyping = false }) {
 }
 
 const INSPIRATION_PROMPTS = [
-  { label: 'Summarize Key Topics', prompt: 'Please provide a clear, comprehensive summary of the main topics in this course.', icon: BookOpen },
-  { label: 'Generate Practice Quiz', prompt: 'Generate 5 multiple-choice practice quiz questions with detailed explanations for each answer.', icon: Sparkles },
+  { label: 'Summarize Key Topics', prompt: 'Please provide a clear, comprehensive summary of the main topics in this course.', icon: BookOpenIcon },
+  { label: 'Generate Practice Quiz', prompt: 'Generate 5 multiple-choice practice quiz questions with detailed explanations for each answer.', icon: SparklesIcon },
   { label: 'Explain with Analogies', prompt: 'Explain the most complex and difficult concepts of this subject using simple everyday analogies.', icon: Lightbulb },
   { label: 'Exam Study Guide', prompt: 'Create a structured 7-day study plan and revision checklist to prepare for my upcoming exam.', icon: GraduationCap },
 ];
@@ -133,7 +142,11 @@ export default function AiChat() {
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const [copiedMsgId, setCopiedMsgId] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Responsive sidebar: closed by default on mobile screens
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    return typeof window !== 'undefined' ? window.innerWidth >= 1024 : true;
+  });
 
   const messagesContainerRef = useRef(null);
   const textareaRef = useRef(null);
@@ -163,9 +176,15 @@ export default function AiChat() {
       ).unwrap();
       toast.success('New AI Chat session ready');
       dispatch(fetchConversation({ id: conv._id }));
+      if (window.innerWidth < 1024) setSidebarOpen(false);
     } catch (err) {
       toast.error(err || 'Failed to start conversation');
     }
+  };
+
+  const handleSelectConversation = (id) => {
+    dispatch(fetchConversation({ id }));
+    if (window.innerWidth < 1024) setSidebarOpen(false);
   };
 
   const handleSend = async (messageText) => {
@@ -253,30 +272,40 @@ export default function AiChat() {
   const activeCourse = coursesList.find(c => c._id === current?.course);
 
   return (
-    <div className="h-[calc(100vh-4.5rem)] bg-gray-50 dark:bg-[#0b0f17] font-[Inter,sans-serif] flex overflow-hidden">
-      {/* Sidebar — Conversations & Scope */}
+    <div className="h-[calc(100vh-4rem)] bg-gray-50 dark:bg-[#0b0f17] font-[Inter,sans-serif] flex relative overflow-hidden">
+      {/* Mobile Backdrop */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-30 lg:hidden"
+        />
+      )}
+
+      {/* Sidebar — Drawer on Mobile, Column on Desktop */}
       <aside
-        className={`${
-          sidebarOpen ? 'w-80' : 'w-0 -translate-x-full'
-        } transition-all duration-300 ease-in-out bg-white dark:bg-[#111827] border-r border-gray-200 dark:border-gray-800 flex flex-col justify-between h-full z-20 shrink-0 overflow-hidden shadow-sm`}
+        className={`fixed inset-y-0 left-0 z-40 lg:static lg:z-auto transition-transform duration-300 ease-in-out bg-white dark:bg-[#111827] border-r border-gray-200 dark:border-gray-800 flex flex-col justify-between h-full shrink-0 overflow-hidden shadow-xl lg:shadow-none ${
+          sidebarOpen ? 'translate-x-0 w-72 sm:w-80' : '-translate-x-full w-0 lg:w-0'
+        }`}
       >
         <div className="flex flex-col h-full p-4 overflow-hidden">
           {/* Header Brand */}
           <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800/80 mb-3 shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-md">
-                <Bot className="w-5 h-5" />
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-md">
+                <BrainIcon size={18} color="white" />
               </div>
               <div>
-                <h1 className="text-sm font-extrabold text-gray-900 dark:text-white flex items-center gap-1.5">
-                  Vertex AI Tutor <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                <h1 className="text-sm font-extrabold text-gray-900 dark:text-white flex items-center gap-1.5 leading-none">
+                  Vertex AI Tutor <SparklesIcon size={13} color="#f59e0b" />
                 </h1>
-                <p className="text-[11px] text-gray-400">RAG Semantic Assistant</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">RAG Semantic Assistant</p>
               </div>
             </div>
             <button
+              type="button"
               onClick={() => setSidebarOpen(false)}
               className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg lg:hidden"
+              aria-label="Close sidebar"
             >
               <PanelLeftClose className="w-4 h-4" />
             </button>
@@ -285,7 +314,9 @@ export default function AiChat() {
           {/* New Chat & Scope */}
           <div className="space-y-2 mb-3 shrink-0">
             <div className="relative">
-              <BookOpen className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <BookOpenIcon size={14} color="#9ca3af" />
+              </span>
               <select
                 value={courseId}
                 onChange={(e) => setCourseId(e.target.value)}
@@ -299,16 +330,17 @@ export default function AiChat() {
             </div>
 
             <button
+              type="button"
               onClick={() => handleStartChat(courseId)}
               className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-sm cursor-pointer"
             >
-              <Plus className="w-4 h-4" /> New Conversation
+              <Plus className="w-4 h-4" /> <span>New Conversation</span>
             </button>
           </div>
 
           {/* Search Input */}
           <div className="relative mb-2.5 shrink-0">
-            <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Search conversations..."
@@ -324,6 +356,7 @@ export default function AiChat() {
               Recent Chats
             </span>
             <button
+              type="button"
               onClick={() => dispatch(fetchConversations())}
               className="text-gray-400 hover:text-purple-600 transition p-1"
               title="Refresh chats"
@@ -341,7 +374,7 @@ export default function AiChat() {
             )}
             {!loading && filteredConversations.length === 0 && (
               <div className="text-center py-8 px-4 text-gray-400">
-                <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-40 text-purple-400" />
+                <MessageSquareIcon size={32} color="#c4b5fd" className="mx-auto mb-2 opacity-40" />
                 <p className="text-xs font-medium">No previous chats</p>
                 <p className="text-[11px] text-gray-500 mt-0.5">Click New Conversation to start</p>
               </div>
@@ -353,7 +386,7 @@ export default function AiChat() {
               return (
                 <div
                   key={c._id}
-                  onClick={() => !isEditing && dispatch(fetchConversation({ id: c._id }))}
+                  onClick={() => !isEditing && handleSelectConversation(c._id)}
                   className={`group px-3 py-2.5 rounded-xl text-xs font-medium cursor-pointer flex items-center justify-between gap-2 transition-all ${
                     isSelected
                       ? 'bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 font-bold border border-purple-200 dark:border-purple-800 shadow-xs'
@@ -361,7 +394,7 @@ export default function AiChat() {
                   }`}
                 >
                   <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400'}`} />
+                    <MessageSquareIcon size={14} color={isSelected ? '#6C5CE7' : '#9ca3af'} className="shrink-0" />
                     {isEditing ? (
                       <input
                         type="text"
@@ -380,6 +413,7 @@ export default function AiChat() {
                     {isEditing ? (
                       <>
                         <button
+                          type="button"
                           onClick={(e) => handleSaveRename(c._id, e)}
                           className="p-1 text-emerald-600 hover:bg-emerald-50 rounded"
                           title="Save title"
@@ -387,6 +421,7 @@ export default function AiChat() {
                           <Check className="w-3.5 h-3.5" />
                         </button>
                         <button
+                          type="button"
                           onClick={() => setEditingId(null)}
                           className="p-1 text-gray-400 hover:bg-gray-100 rounded"
                           title="Cancel"
@@ -397,6 +432,7 @@ export default function AiChat() {
                     ) : (
                       <>
                         <button
+                          type="button"
                           onClick={(e) => handleStartRename(c, e)}
                           className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded transition"
                           title="Rename chat"
@@ -404,6 +440,7 @@ export default function AiChat() {
                           <Edit2 className="w-3 h-3" />
                         </button>
                         <button
+                          type="button"
                           onClick={(e) => handleDeleteConversation(c._id, e)}
                           className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded transition"
                           title="Delete conversation"
@@ -423,40 +460,43 @@ export default function AiChat() {
       {/* Main Chat Workspace */}
       <main className="flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-[#0b0f17] relative">
         {/* Top Chat Header */}
-        <header className="h-14 border-b border-gray-200 dark:border-gray-800/80 px-4 sm:px-6 flex items-center justify-between shrink-0 bg-white/80 dark:bg-[#111827]/80 backdrop-blur-md z-10">
-          <div className="flex items-center gap-3 min-w-0">
-            {!sidebarOpen && (
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition cursor-pointer"
-                title="Open Sidebar"
-              >
-                <PanelLeftOpen className="w-5 h-5" />
-              </button>
-            )}
+        <header className="h-14 border-b border-gray-200 dark:border-gray-800/80 px-3 sm:px-6 flex items-center justify-between shrink-0 bg-white/80 dark:bg-[#111827]/80 backdrop-blur-md z-10 gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition cursor-pointer shrink-0"
+              title="Toggle Conversations Drawer"
+              aria-label="Toggle Sidebar"
+            >
+              {sidebarOpen ? <PanelLeftClose className="w-5 h-5 hidden lg:block" /> : <PanelLeftOpen className="w-5 h-5 hidden lg:block" />}
+              <Menu className="w-5 h-5 lg:hidden" />
+            </button>
+
             <div className="min-w-0">
-              <h2 className="text-sm font-bold text-gray-900 dark:text-white truncate">
+              <h2 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white truncate">
                 {current?.title || 'Vertex AI Tutor'}
               </h2>
-              <div className="flex items-center gap-2 text-[11px] text-gray-400">
+              <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] text-gray-400 truncate">
                 <span>Mistral Large Engine</span>
                 {activeCourse && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded-md font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-200 dark:border-purple-800 truncate max-w-[200px]">
-                    <BookOpen className="w-2.5 h-2.5" />
-                    {activeCourse.title}
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-200 dark:border-purple-800 truncate max-w-[120px] sm:max-w-[200px]">
+                    <BookOpenIcon size={11} color="#6C5CE7" />
+                    <span className="truncate">{activeCourse.title}</span>
                   </span>
                 )}
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               RAG Active
             </span>
             {current && (
               <button
+                type="button"
                 onClick={(e) => handleDeleteConversation(current._id, e)}
                 className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition cursor-pointer"
                 title="Delete Conversation"
@@ -470,33 +510,34 @@ export default function AiChat() {
         {/* Message Stream */}
         <div
           ref={messagesContainerRef}
-          className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-6 scrollbar-thin"
+          className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6 scrollbar-thin"
         >
-          <div className="max-w-3xl mx-auto space-y-6">
+          <div className="max-w-3xl mx-auto space-y-5 sm:space-y-6">
             {!current || messages.length === 0 ? (
-              <div className="py-12 px-4 text-center space-y-6 animate-in fade-in">
-                <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center mx-auto shadow-lg">
-                  <Sparkles className="w-8 h-8" />
+              <div className="py-8 sm:py-12 px-2 sm:px-4 text-center space-y-4 sm:space-y-6 animate-in fade-in">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-3xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center mx-auto shadow-lg">
+                  <SparklesIcon size={28} color="white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
                     What would you like to explore today?
                   </h3>
-                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1.5 max-w-md mx-auto">
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-md mx-auto">
                     Ask questions about your lectures, request practice test questions, or get clear step-by-step concept breakdowns.
                   </p>
                 </div>
 
                 {/* Prompt Starter Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 text-left pt-2">
                   {INSPIRATION_PROMPTS.map((item, i) => (
                     <button
                       key={i}
+                      type="button"
                       onClick={() => handleSend(item.prompt)}
-                      className="p-4 rounded-2xl bg-white dark:bg-[#161f30] hover:bg-purple-50/80 dark:hover:bg-purple-950/40 border border-gray-200 dark:border-gray-800 hover:border-purple-300 dark:hover:border-purple-700 transition-all text-left shadow-xs hover:shadow-md group cursor-pointer"
+                      className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-[#161f30] hover:bg-purple-50/80 dark:hover:bg-purple-950/40 border border-gray-200 dark:border-gray-800 hover:border-purple-300 dark:hover:border-purple-700 transition-all text-left shadow-xs hover:shadow-md group cursor-pointer"
                     >
-                      <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 font-bold text-xs mb-1.5">
-                        <item.icon className="w-4 h-4" />
+                      <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 font-bold text-xs mb-1">
+                        <item.icon size={15} color="#6C5CE7" />
                         <span>{item.label}</span>
                       </div>
                       <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
@@ -516,20 +557,20 @@ export default function AiChat() {
               return (
                 <div
                   key={idx}
-                  className={`flex items-start gap-3.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex items-start gap-2.5 sm:gap-3.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   {isAssistant && (
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-1">
-                      <Bot className="w-4 h-4" />
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-1">
+                      <BrainIcon size={16} color="white" />
                     </div>
                   )}
 
-                  <div className={`max-w-[88%] space-y-2 ${m.role === 'user' ? 'items-end' : ''}`}>
+                  <div className={`max-w-[92%] sm:max-w-[85%] space-y-1.5 ${m.role === 'user' ? 'items-end' : ''}`}>
                     <div
-                      className={`p-4.5 text-sm leading-relaxed ${
+                      className={`p-3.5 sm:p-4 text-xs sm:text-sm leading-relaxed ${
                         m.role === 'user'
-                          ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-3xl rounded-tr-none shadow-sm font-medium'
-                          : 'bg-white dark:bg-[#131b2a] border border-gray-200/80 dark:border-gray-800 rounded-3xl rounded-tl-none shadow-xs text-gray-800 dark:text-gray-100'
+                          ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl sm:rounded-3xl rounded-tr-none shadow-sm font-medium'
+                          : 'bg-white dark:bg-[#131b2a] border border-gray-200/80 dark:border-gray-800 rounded-2xl sm:rounded-3xl rounded-tl-none shadow-xs text-gray-800 dark:text-gray-100'
                       }`}
                     >
                       {m.role === 'user' ? (
@@ -541,17 +582,17 @@ export default function AiChat() {
 
                     {/* Citations / Sources */}
                     {isAssistant && sources.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-1.5 pl-2">
+                      <div className="flex flex-wrap items-center gap-1.5 pl-1">
                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                           Sources:
                         </span>
                         {sources.map((s, sIdx) => (
                           <span
                             key={sIdx}
-                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800"
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800"
                           >
-                            <BookOpen className="w-3 h-3" />
-                            {s.title || `Lecture Resource #${s.sourceIndex || sIdx + 1}`}
+                            <BookOpenIcon size={11} color="#6C5CE7" />
+                            <span>{s.title || `Lecture Resource #${s.sourceIndex || sIdx + 1}`}</span>
                           </span>
                         ))}
                       </div>
@@ -559,21 +600,22 @@ export default function AiChat() {
 
                     {/* Copy Action */}
                     {isAssistant && (
-                      <div className="flex items-center gap-2 pl-2">
+                      <div className="flex items-center gap-2 pl-1">
                         <button
+                          type="button"
                           onClick={() => handleCopyMessage(m.content, idx)}
-                          className="text-xs text-gray-400 hover:text-purple-600 flex items-center gap-1 transition p-1 cursor-pointer"
+                          className="text-[11px] text-gray-400 hover:text-purple-600 flex items-center gap-1 transition p-0.5 cursor-pointer"
                           title="Copy message"
                         >
                           {copiedMsgId === idx ? (
                             <>
-                              <Check className="w-3.5 h-3.5 text-emerald-500" />
+                              <Check className="w-3 h-3 text-emerald-500" />
                               <span className="text-emerald-500 font-semibold">Copied</span>
                             </>
                           ) : (
                             <>
-                              <Copy className="w-3.5 h-3.5" />
-                              <span>Copy response</span>
+                              <Copy className="w-3 h-3" />
+                              <span>Copy</span>
                             </>
                           )}
                         </button>
@@ -582,7 +624,7 @@ export default function AiChat() {
                   </div>
 
                   {m.role === 'user' && (
-                    <div className="w-8 h-8 rounded-xl bg-gray-900 dark:bg-gray-700 text-white flex items-center justify-center shrink-0 shadow-sm mt-1">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gray-900 dark:bg-gray-700 text-white flex items-center justify-center shrink-0 shadow-sm mt-1">
                       <User className="w-4 h-4" />
                     </div>
                   )}
@@ -591,11 +633,11 @@ export default function AiChat() {
             })}
 
             {sending && (
-              <div className="flex items-start gap-3.5 animate-in fade-in">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-1">
-                  <Bot className="w-4 h-4" />
+              <div className="flex items-start gap-2.5 sm:gap-3.5 animate-in fade-in">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-1">
+                  <BrainIcon size={16} color="white" />
                 </div>
-                <div className="bg-white dark:bg-[#131b2a] border border-gray-200/80 dark:border-gray-800 p-4.5 rounded-3xl rounded-tl-none shadow-xs flex items-center gap-3">
+                <div className="bg-white dark:bg-[#131b2a] border border-gray-200/80 dark:border-gray-800 p-3.5 sm:p-4 rounded-2xl rounded-tl-none shadow-xs flex items-center gap-3">
                   <div className="flex gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-purple-600 animate-bounce [animation-delay:-0.3s]" />
                     <span className="w-2 h-2 rounded-full bg-purple-600 animate-bounce [animation-delay:-0.15s]" />
@@ -611,7 +653,7 @@ export default function AiChat() {
         </div>
 
         {/* Floating Input Area */}
-        <footer className="p-4 sm:p-6 bg-gradient-to-t from-white via-white to-transparent dark:from-[#0b0f17] dark:via-[#0b0f17] dark:to-transparent shrink-0">
+        <footer className="p-3 sm:p-5 bg-gradient-to-t from-white via-white to-transparent dark:from-[#0b0f17] dark:via-[#0b0f17] dark:to-transparent shrink-0">
           <div className="max-w-3xl mx-auto">
             <form
               onSubmit={(e) => {
@@ -623,28 +665,28 @@ export default function AiChat() {
               <textarea
                 ref={textareaRef}
                 rows={1}
-                placeholder="Ask anything about your courses, lectures, or study materials..."
+                placeholder="Ask anything about courses, lectures, or study materials..."
                 value={inputMsg}
                 onChange={(e) => {
                   setInputMsg(e.target.value);
                   e.target.style.height = 'auto';
-                  e.target.style.height = `${Math.min(e.target.scrollHeight, 140)}px`;
+                  e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
                 }}
                 onKeyDown={handleKeyDown}
-                className="w-full bg-transparent px-4 py-3.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none resize-none max-h-36"
+                className="w-full bg-transparent px-3.5 sm:px-4 py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none resize-none max-h-32"
               />
               <button
                 type="submit"
                 disabled={sending || !inputMsg.trim()}
-                className="mr-3 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:opacity-40 text-white rounded-xl font-bold text-xs inline-flex items-center gap-1.5 shadow-md transition cursor-pointer shrink-0"
+                className="mr-2 sm:mr-3 px-3 sm:px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:opacity-40 text-white rounded-xl font-bold text-xs inline-flex items-center gap-1.5 shadow-md transition cursor-pointer shrink-0"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Send</span>
               </button>
             </form>
-            <div className="flex items-center justify-between px-2 pt-2 text-[11px] text-gray-400">
-              <span>Press <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded font-mono text-[10px]">Enter</kbd> to send, <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded font-mono text-[10px]">Shift+Enter</kbd> for newline</span>
-              <span>Vertex AI Tutor • Mistral Large</span>
+            <div className="flex items-center justify-between px-2 pt-1.5 text-[10px] sm:text-[11px] text-gray-400">
+              <span className="hidden sm:inline">Press <kbd className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded font-mono text-[9px]">Enter</kbd> to send</span>
+              <span className="ml-auto">Vertex AI Tutor • Mistral Large</span>
             </div>
           </div>
         </footer>

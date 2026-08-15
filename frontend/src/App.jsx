@@ -70,19 +70,24 @@ function ProtectedRoute({ children, allowedRoles }) {
 // ─── Layout ───────────────────────────────────────────────────────────────────
 function Layout({ children }) {
   const location = useLocation();
-  // Pages that use their own full-page layout (no shared navbar/footer)
-  const hideHeaderFooter = (
+  
+  // Pages that use their own standalone layout (no shared navbar)
+  const hideNavbar = (
     location.pathname.startsWith('/learn/') ||
     location.pathname === '/dashboard' ||
     location.pathname.startsWith('/admin') ||
     location.pathname === '/login' ||
     location.pathname === '/register'
   );
+
+  // Footer is ONLY visible on the Landing Page ('/')
+  const isLandingPage = location.pathname === '/';
+
   return (
     <>
-      {!hideHeaderFooter && <Navbar />}
-      <main className={hideHeaderFooter ? '' : 'min-h-[80vh]'}>{children}</main>
-      {!hideHeaderFooter && <Footer />}
+      {!hideNavbar && <Navbar />}
+      <main className={hideNavbar ? '' : 'min-h-[80vh]'}>{children}</main>
+      {isLandingPage && <Footer />}
     </>
   );
 }

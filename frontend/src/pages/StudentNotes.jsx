@@ -8,12 +8,17 @@ import {
 import { getMyEnrollments } from '../api/enrollment.api';
 import { getPublishedModules } from '../api/module.api';
 import { getPublishedLectures } from '../api/lecture.api';
-import { FileText, Plus, Pin, Trash2, Edit3, Search, BookOpen, Video, ArrowLeft } from 'lucide-react';
-import { SkeletonTable } from '../components/ui/Spinner';
+import {
+  BookOpenIcon,
+  VideoIcon,
+  SparklesIcon,
+} from '@animateicons/react/lucide';
+import { FileText, Plus, Pin, Trash2, Edit3, Search, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function StudentNotes() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const notes = useAppSelector(selectNotes);
   const loading = useAppSelector(selectNotesLoading);
 
@@ -59,7 +64,6 @@ export default function StudentNotes() {
 
     dispatch(fetchCourseNotes({ courseId: selectedCourseId, params: { search } }));
 
-    // Fetch modules & lectures for the selected course
     setLoadingLectures(true);
     getPublishedModules(selectedCourseId)
       .then(async (mRes) => {
@@ -98,249 +102,284 @@ export default function StudentNotes() {
     try {
       if (editingNote) {
         await dispatch(editNote({ noteId: editingNote._id, data: { title, content, isPinned } })).unwrap();
-        toast.success('Note updated');
+        toast.success('Note updated!');
       } else {
-        await dispatch(addNote({ courseId: selectedCourseId, lectureId, title, content, isPinned })).unwrap();
-        toast.success('Note created');
+        await dispatch(
+          addNote({
+            courseId: selectedCourseId,
+            lectureId,
+            data: { title, content, isPinned },
+          })
+        ).unwrap();
+        toast.success('Note added!');
       }
       setShowModal(false);
       resetForm();
-      if (selectedCourseId) {
-        dispatch(fetchCourseNotes({ courseId: selectedCourseId, params: { search } }));
-      }
     } catch (err) {
-      toast.error(typeof err === 'string' ? err : err?.message || err?.response?.data?.message || 'Failed to save note');
+      toast.error(err.message || 'Failed to save note');
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this note?')) return;
+  const handleDelete = async (noteId) => {
+    if (!window.confirm('Are you sure you want to delete this note?')) return;
     try {
-      await dispatch(removeNote(id)).unwrap();
+      await dispatch(removeNote(noteId)).unwrap();
       toast.success('Note deleted');
     } catch (err) {
-      toast.error(err || 'Failed to delete');
+      toast.error(err.message || 'Failed to delete note');
     }
   };
 
   const resetForm = () => {
-    setEditingNote(null);
     setTitle('');
     setContent('');
-    setLectureId(lecturesList.length > 0 ? lecturesList[0]._id : '');
     setIsPinned(false);
+    setEditingNote(null);
   };
 
-  const navigate = useNavigate();
-
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => {
-              if (window.history.length > 1 && window.history.state?.idx > 0) {
-                navigate(-1);
-              } else {
-                navigate('/dashboard');
-              }
-            }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 transition cursor-pointer"
-            title="Go back to previous page"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> Back
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Study Notes</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Keep track of key concepts, summaries, and lecture takeaways</p>
-          </div>
-        </div>
-        <button
-          onClick={() => {
-            resetForm();
-            setShowModal(true);
-          }}
-          className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition shadow-sm"
-        >
-          <Plus className="w-4 h-4" /> Add Note
-        </button>
-      </div>
-
-      {/* Course Selector & Search Header */}
-      <div className="bg-white p-4 rounded-xl border border-gray-200 mb-6 flex flex-col sm:flex-row gap-3">
-        <div className="flex-1">
-          <label className="block text-[11px] font-semibold text-gray-500 mb-1 uppercase tracking-wider">Select Enrolled Course</label>
-          <select
-            value={selectedCourseId}
-            onChange={(e) => setSelectedCourseId(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium text-gray-800"
-          >
-            {enrollments.length === 0 ? (
-              <option value="">No Enrolled Courses Found</option>
-            ) : (
-              enrollments.map((enr) => {
-                const c = typeof enr.course === 'object' && enr.course !== null ? enr.course : { _id: enr.course, title: 'Enrolled Course' };
-                const courseId = c._id || enr.course || enr._id;
-                return (
-                  <option key={enr._id} value={courseId}>
-                    {c.title || 'Enrolled Course'}
-                  </option>
-                );
-              })
-            )}
-          </select>
-        </div>
-
-        <div className="flex-1">
-          <label className="block text-[11px] font-semibold text-gray-500 mb-1 uppercase tracking-wider">Search Notes</label>
-          <div className="relative">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
-            <input
-              type="text"
-              placeholder="Search within notes..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Notes Grid */}
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-44 bg-gray-200 rounded-xl animate-pulse" />
-          ))}
-        </div>
-      ) : notes.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-400">
-          <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-          <p className="text-sm font-semibold text-gray-700">No notes found for this course</p>
-          <p className="text-xs text-gray-400 mt-1">Select a course from the dropdown above or click "Add Note" to write one!</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {notes.map((n) => (
-            <div
-              key={n._id}
-              className={`bg-white rounded-xl border p-4 flex flex-col justify-between transition hover:shadow-md ${
-                n.isPinned ? 'border-blue-400 bg-blue-50/20' : 'border-gray-200'
-              }`}
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 font-[Inter,sans-serif] pb-16">
+      {/* Top Header */}
+      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 py-6 sm:py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                if (window.history.length > 1 && window.history.state?.idx > 0) {
+                  navigate(-1);
+                } else {
+                  navigate('/dashboard');
+                }
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 transition cursor-pointer"
             >
-              <div>
-                <div className="flex justify-between items-start gap-2 mb-2">
-                  <h3 className="font-semibold text-gray-900 text-base">{n.title || 'Untitled Note'}</h3>
-                  {n.isPinned && <Pin className="w-4 h-4 text-blue-600 fill-blue-600 shrink-0" />}
-                </div>
-                <p className="text-xs text-gray-600 whitespace-pre-wrap line-clamp-6 mb-4">{n.content}</p>
-              </div>
-
-              <div className="flex justify-between items-center text-xs text-gray-400 border-t border-gray-100 pt-3">
-                <span className="truncate max-w-45" title={n.lecture?.title || 'Lecture Note'}>
-                  {n.lecture?.title || 'Lecture Note'}
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      setEditingNote(n);
-                      setTitle(n.title || '');
-                      setContent(n.content || '');
-                      setIsPinned(n.isPinned || false);
-                      setShowModal(true);
-                    }}
-                    className="text-gray-500 hover:text-blue-600"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                  </button>
-                  <button onClick={() => handleDelete(n._id)} className="text-gray-500 hover:text-red-600">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
+              <ArrowLeft className="w-3.5 h-3.5" /> Back
+            </button>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
+                <FileText className="w-6 h-6 text-purple-600" /> My Study Notes
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                Keep track of key concepts, summaries, and lecture takeaways
+              </p>
             </div>
-          ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              resetForm();
+              setShowModal(true);
+            }}
+            className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl transition shadow-md shadow-purple-950/20 cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4" /> <span>Add New Note</span>
+          </button>
         </div>
-      )}
+      </div>
 
-      {/* Create / Edit Note Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">{editingNote ? 'Edit Note' : 'Create Note'}</h2>
-            <form onSubmit={handleSaveNote} className="space-y-4">
-              {!editingNote && (
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Select Lecture *</label>
-                  <select
-                    required
-                    value={lectureId}
-                    onChange={(e) => setLectureId(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  >
-                    <option value="">-- Choose Lecture --</option>
-                    {lecturesList.map((l) => (
-                      <option key={l._id} value={l._id}>
-                        {l.moduleTitle ? `${l.moduleTitle}: ` : ''}{l.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        {/* Course Selector & Search Header */}
+        <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-slate-800 mb-6 flex flex-col sm:flex-row gap-3 shadow-xs">
+          <div className="flex-1">
+            <label className="block text-[11px] font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">
+              Select Enrolled Course
+            </label>
+            <select
+              value={selectedCourseId}
+              onChange={(e) => setSelectedCourseId(e.target.value)}
+              className="w-full border border-gray-300 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-800 font-medium text-gray-800 dark:text-gray-200"
+            >
+              {enrollments.length === 0 ? (
+                <option value="">No Enrolled Courses Found</option>
+              ) : (
+                enrollments.map((enr) => {
+                  const c = typeof enr.course === 'object' && enr.course !== null ? enr.course : { _id: enr.course, title: 'Enrolled Course' };
+                  const courseId = c._id || enr.course || enr._id;
+                  return (
+                    <option key={enr._id} value={courseId}>
+                      {c.title || 'Enrolled Course'}
+                    </option>
+                  );
+                })
               )}
+            </select>
+          </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Title (Optional)</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Key Takeaways from Section 1"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Note Content *</label>
-                <textarea
-                  required
-                  rows={4}
-                  placeholder="Write your note content..."
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="pin"
-                  checked={isPinned}
-                  onChange={(e) => setIsPinned(e.target.checked)}
-                  className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4"
-                />
-                <label htmlFor="pin" className="text-xs text-gray-700 font-medium">Pin this note to top</label>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm"
-                >
-                  Save Note
-                </button>
-              </div>
-            </form>
+          <div className="flex-1">
+            <label className="block text-[11px] font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">
+              Search Within Notes
+            </label>
+            <div className="relative">
+              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search notes content or title..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full border border-gray-300 dark:border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200"
+              />
+            </div>
           </div>
         </div>
-      )}
+
+        {/* Notes Grid */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-44 bg-gray-200 dark:bg-slate-800 rounded-2xl animate-pulse" />
+            ))}
+          </div>
+        ) : notes.length === 0 ? (
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 p-12 text-center text-gray-400">
+            <FileText className="w-12 h-12 mx-auto mb-3 text-purple-400 opacity-40" />
+            <p className="text-base font-bold text-gray-700 dark:text-gray-300">No notes found for this course</p>
+            <p className="text-xs text-gray-400 mt-1">Select an enrolled course above or click "Add New Note" to write one!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {notes.map((n) => (
+              <div
+                key={n._id}
+                className={`bg-white dark:bg-slate-900 rounded-2xl border p-5 flex flex-col justify-between transition hover:shadow-md ${
+                  n.isPinned
+                    ? 'border-purple-400 bg-purple-50/20 dark:bg-purple-950/20 shadow-xs'
+                    : 'border-gray-200 dark:border-slate-800'
+                }`}
+              >
+                <div>
+                  <div className="flex justify-between items-start gap-2 mb-2">
+                    <h3 className="font-bold text-gray-900 dark:text-white text-base leading-snug">{n.title || 'Untitled Note'}</h3>
+                    {n.isPinned && <Pin className="w-4 h-4 text-purple-600 fill-purple-600 shrink-0" />}
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap line-clamp-6 mb-4 leading-relaxed">{n.content}</p>
+                </div>
+
+                <div className="flex justify-between items-center text-xs text-gray-400 border-t border-gray-100 dark:border-slate-800 pt-3">
+                  <span className="truncate max-w-[180px]" title={n.lecture?.title || 'Lecture Note'}>
+                    {n.lecture?.title || 'Lecture Note'}
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingNote(n);
+                        setTitle(n.title || '');
+                        setContent(n.content || '');
+                        setIsPinned(n.isPinned || false);
+                        setShowModal(true);
+                      }}
+                      className="p-1 text-gray-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded transition"
+                      title="Edit Note"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(n._id)}
+                      className="p-1 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded transition"
+                      title="Delete Note"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Create / Edit Note Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-200 dark:border-slate-800 animate-in fade-in">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+                {editingNote ? 'Edit Study Note' : 'Create Study Note'}
+              </h2>
+              <form onSubmit={handleSaveNote} className="space-y-4">
+                {!editingNote && (
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Select Lecture *</label>
+                    <select
+                      required
+                      value={lectureId}
+                      onChange={(e) => setLectureId(e.target.value)}
+                      className="w-full border border-gray-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200"
+                    >
+                      {loadingLectures ? (
+                        <option value="">Loading Lectures...</option>
+                      ) : lecturesList.length === 0 ? (
+                        <option value="">No Lectures Available</option>
+                      ) : (
+                        lecturesList.map((lec) => (
+                          <option key={lec._id} value={lec._id}>
+                            {lec.moduleTitle ? `${lec.moduleTitle} — ` : ''}{lec.title}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Note Title</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Key take-aways from module 1"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="w-full border border-gray-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Content *</label>
+                  <textarea
+                    required
+                    rows={5}
+                    placeholder="Write your study notes, formulas, or key reminders here..."
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    className="w-full border border-gray-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="pinNote"
+                    checked={isPinned}
+                    onChange={(e) => setIsPinned(e.target.checked)}
+                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                  />
+                  <label htmlFor="pinNote" className="text-xs text-gray-700 dark:text-gray-300 font-semibold cursor-pointer">
+                    Pin this note to the top
+                  </label>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowModal(false);
+                      resetForm();
+                    }}
+                    className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition shadow-md shadow-purple-950/20 cursor-pointer"
+                  >
+                    {editingNote ? 'Update Note' : 'Save Note'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
