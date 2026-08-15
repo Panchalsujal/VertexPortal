@@ -137,6 +137,21 @@ export default function StudentDashboard() {
     };
   }, [userMenuOpen]);
 
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [sidebarOpen]);
+
   useEffect(() => {
     let isMounted = true;
     async function loadStudentData() {
@@ -227,17 +242,17 @@ export default function StudentDashboard() {
       {/* Sidebar Mobile Overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 lg:hidden"
+          className="fixed inset-0 h-screen h-[100dvh] w-screen bg-black/60 backdrop-blur-xs z-40 lg:hidden transition-opacity duration-300"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full w-60 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex flex-col z-50 transition-transform duration-300
-          ${sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}`}
+        className={`fixed inset-y-0 left-0 h-screen h-[100dvh] w-64 max-w-[85vw] bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex flex-col z-50 transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
-        <div className="flex items-center justify-between px-5 py-4 sm:py-5 border-b border-gray-100 dark:border-gray-800">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
           <div className="flex items-center gap-2.5">
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center shadow-md shrink-0"
@@ -252,13 +267,14 @@ export default function StudentDashboard() {
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+            className="lg:hidden p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition cursor-pointer"
+            aria-label="Close sidebar"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <nav className="flex-1 py-4 overflow-y-auto px-1 space-y-0.5">
+        <div className="flex-1 overflow-y-auto px-2 py-3 space-y-1 min-h-0">
           {navItems.map(({ to, icon: Icon, label, badge }) => (
             <NavLink
               key={to}
@@ -266,7 +282,7 @@ export default function StudentDashboard() {
               end={to === '/dashboard'}
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
-                `relative flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                `relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
                   isActive
                     ? 'text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 font-semibold'
                     : 'text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-gray-50 dark:hover:bg-gray-800/60'
@@ -290,48 +306,50 @@ export default function StudentDashboard() {
               )}
             </NavLink>
           ))}
-        </nav>
 
-        {/* Real Progress Card */}
-        <div className="mx-3 mb-3 p-4 rounded-2xl shrink-0" style={{ background: 'linear-gradient(135deg, #6C5CE7 0%, #5046d4 100%)' }}>
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-bold text-white">Keep Learning 🔥</p>
-            <Zap className="w-4 h-4 text-yellow-300" />
-          </div>
-          <p className="text-xs text-purple-200 mb-3">{progressMessage}</p>
-          <div className="flex flex-col items-center gap-2">
-            <div className="relative w-16 h-16">
-              <svg className="w-full h-full -rotate-90" viewBox="0 0 80 80">
-                <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="6" />
-                <circle
-                  cx="40" cy="40" r="32" fill="none"
-                  stroke="white" strokeWidth="6"
-                  strokeDasharray={`${2 * Math.PI * 32}`}
-                  strokeDashoffset={`${2 * Math.PI * 32 * (1 - (averageProgress || 0) / 100)}`}
-                  strokeLinecap="round"
-                  className="transition-all duration-700 ease-out"
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-white font-extrabold text-sm">{averageProgress}%</span>
-              </div>
+          {/* Real Progress Card inside scrollable sidebar */}
+          <div className="mt-3 p-3.5 rounded-2xl shrink-0" style={{ background: 'linear-gradient(135deg, #6C5CE7 0%, #5046d4 100%)' }}>
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-xs font-bold text-white">Keep Learning 🔥</p>
+              <Zap className="w-4 h-4 text-yellow-300" />
             </div>
-            <p className="text-xs text-purple-200 font-semibold text-center truncate w-full">
-              {enrolledCount > 0 ? `${completedCount} of ${enrolledCount} Completed` : 'Course Progress'}
-            </p>
+            <p className="text-[11px] text-purple-200 mb-2.5 leading-relaxed">{progressMessage}</p>
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="relative w-14 h-14">
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="6" />
+                  <circle
+                    cx="40" cy="40" r="32" fill="none"
+                    stroke="white" strokeWidth="6"
+                    strokeDasharray={`${2 * Math.PI * 32}`}
+                    strokeDashoffset={`${2 * Math.PI * 32 * (1 - (averageProgress || 0) / 100)}`}
+                    strokeLinecap="round"
+                    className="transition-all duration-700 ease-out"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-white font-extrabold text-xs">{averageProgress}%</span>
+                </div>
+              </div>
+              <p className="text-[11px] text-purple-200 font-semibold text-center truncate w-full">
+                {enrolledCount > 0 ? `${completedCount} of ${enrolledCount} Completed` : 'Course Progress'}
+              </p>
+            </div>
           </div>
         </div>
 
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2.5 px-5 py-3.5 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors border-t border-gray-100 dark:border-gray-800 cursor-pointer"
-        >
-          <LogOut className="w-4 h-4" /> Logout
-        </button>
+        <div className="p-3 border-t border-gray-100 dark:border-gray-800 shrink-0 bg-white dark:bg-gray-900">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-colors cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" /> Logout
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-60 min-h-screen min-w-0 w-full max-w-full overflow-x-hidden">
+      <main className="flex-1 lg:ml-64 min-h-screen min-w-0 w-full max-w-full overflow-x-hidden">
         {/* Top Bar */}
         <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-30 w-full">
           <div className="flex items-center justify-between gap-2 sm:gap-3 px-3 sm:px-6 py-3 sm:py-3.5 max-w-full">
