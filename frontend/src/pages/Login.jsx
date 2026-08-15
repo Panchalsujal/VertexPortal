@@ -37,6 +37,9 @@ export default function Login() {
     try {
       const res      = await loginApi(form);
       const userData = res.data.data.user;
+      if (res.data.data?.token) {
+        localStorage.setItem('token', res.data.data.token);
+      }
       login(userData);
       toast.success(`Welcome back, ${userData.fullName.split(' ')[0]}! 👋`);
       if (userData.role === 'admin')           navigate('/admin');

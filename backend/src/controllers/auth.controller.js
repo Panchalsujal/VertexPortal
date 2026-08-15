@@ -150,10 +150,16 @@ export const loginController = asyncHandler(async (req, res) => {
       id: user._id,
     });
 
+    const isSecureCookie =
+      process.env.NODE_ENV === "production" ||
+      req.secure ||
+      req.headers["x-forwarded-proto"] === "https" ||
+      (req.headers.origin && req.headers.origin.startsWith("https://"));
+
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: isSecureCookie,
+      sameSite: isSecureCookie ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24,
     });
 
@@ -161,6 +167,7 @@ export const loginController = asyncHandler(async (req, res) => {
       success: true,
       message: "Login successful",
       data: {
+        token,
         user: {
           id: user._id,
           fullName: user.fullName,
@@ -209,10 +216,16 @@ export const getMeController = asyncHandler(async (req, res) => {
 });
 
 export const logoutController = asyncHandler(async (req, res) => {
+  const isSecureCookie =
+    process.env.NODE_ENV === "production" ||
+    req.secure ||
+    req.headers["x-forwarded-proto"] === "https" ||
+    (req.headers.origin && req.headers.origin.startsWith("https://"));
+
   res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: isSecureCookie,
+    sameSite: isSecureCookie ? "none" : "lax",
   });
 
   return res.status(200).json({

@@ -14,7 +14,12 @@ export const fetchMe = createAsyncThunk('auth/fetchMe', async (_, { rejectWithVa
 });
 
 export const logoutUser = createAsyncThunk('auth/logout', async () => {
-  try { await logoutApi(); } catch { /* ignore */ }
+  try {
+    localStorage.removeItem('token');
+    await logoutApi();
+  } catch {
+    /* ignore */
+  }
   return null;
 });
 

@@ -1,11 +1,25 @@
 import axios from 'axios';
 
+const rawApiUrl = import.meta.env.VITE_API_URL;
+const baseURL = rawApiUrl
+  ? (rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl.replace(/\/$/, '')}/api`)
+  : '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+// Request interceptor to attach bearer token if present
+api.interceptors.request.use((reqConfig) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    reqConfig.headers.Authorization = `Bearer ${token}`;
+  }
+  return reqConfig;
 });
 
 // Response interceptor for consistent error handling and automatic block on suspended/inactive status

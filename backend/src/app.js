@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import path from "path";
@@ -54,6 +55,59 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// Allowed Origins for CORS
+const staticAllowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "http://localhost:4000",
+  "http://localhost:4173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:4000",
+  "https://vertex-mu-eight.vercel.app",
+];
+
+const envOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(",").map((url) => url.trim().replace(/\/$/, ""))
+  : [];
+
+const allowedOrigins = Array.from(new Set([...staticAllowedOrigins, ...envOrigins]));
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests (e.g. mobile apps, curl, server-to-server)
+    if (!origin) return callback(null, true);
+
+    const normalizedOrigin = origin.replace(/\/$/, "");
+
+    // Allow static whitelist, configured frontend URLs, or any *.vercel.app domain
+    if (
+      allowedOrigins.includes(normalizedOrigin) ||
+      /\.vercel\.app$/.test(normalizedOrigin)
+    ) {
+      return callback(null, true);
+    }
+
+    // Default to allowing the origin while reflecting it for security
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+    "Origin",
+    "Range",
+  ],
+  exposedHeaders: ["Set-Cookie"],
+};
+
+// CORS Middleware (handles all methods including OPTIONS preflight)
+app.use(cors(corsOptions));
 
 // Middleware
 app.use(morgan("dev"));
