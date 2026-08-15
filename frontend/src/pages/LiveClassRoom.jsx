@@ -11,6 +11,7 @@ import {
   StreamCall,
   StreamTheme,
   SpeakerLayout,
+  ParticipantsAudio,
   useCallStateHooks,
   useCall,
   CallingState,
@@ -21,6 +22,8 @@ import {
   VideoOff,
   Mic,
   MicOff,
+  Volume2,
+  VolumeX,
   Monitor,
   MonitorOff,
   PhoneOff,
@@ -123,15 +126,16 @@ function StreamConnectedStage({
   handRaised,
   setHandRaised,
   messages,
+  setMessages,
   inputText,
   setInputText,
-  handleSendMessage,
   chatBottomRef,
   roomContainerRef,
   isFullscreen,
   toggleFullscreen,
 }) {
   const call = useCall();
+  const navigate = useNavigate();
   const {
     useCallCallingState,
     useParticipants,
@@ -150,13 +154,16 @@ function StreamConnectedStage({
   const [audioBlocked, setAudioBlocked] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Listen for real-time chat messages broadcast via GetStream WebRTC
+  // Listen for real-time chat, hand-raise, and class-end events broadcast via GetStream WebRTC
   useEffect(() => {
     if (!call) return;
 
-    const unsubscribe = call.on('custom', (event) => {
+    const handleCustomEvent = (event) => {
       const payload = event?.custom;
-      if (payload?.type === 'chat_message' && payload?.text) {
+      if (!payload) return;
+
+      // Real-time Chat
+      if (payload.type === 'chat_message' && payload.text) {
         setMessages((prev) => {
           if (prev.some((m) => m.id === payload.id)) return prev;
           return [...prev, payload];
@@ -170,12 +177,36 @@ function StreamConnectedStage({
           chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
         }, 100);
       }
+
+      // Hand Raise Notifications
+      if (payload.type === 'hand_raise') {
+        if (payload.raised) {
+          toast(`✋ ${payload.userName || 'Student'} raised their hand!`, {
+            duration: 5000,
+            icon: '✋',
+          });
+        }
+      }
+
+      // Class Ended Notification
+      if (payload.type === 'class_ended' && !isHost) {
+        toast('The instructor has ended this live session.', { icon: '🛑' });
+        navigate('/student/live-classes');
+      }
+    };
+
+    const unsubCustom = call.on('custom', handleCustomEvent);
+    const unsubAll = call.on('all', (event) => {
+      if (event?.type === 'custom') {
+        handleCustomEvent(event);
+      }
     });
 
     return () => {
-      unsubscribe?.();
+      unsubCustom?.();
+      unsubAll?.();
     };
-  }, [call, setMessages, chatBottomRef, activeSidebar]);
+  }, [call, setMessages, chatBottomRef, activeSidebar, isHost, navigate]);
 
   // Reset unread count when chat sidebar is opened
   useEffect(() => {
@@ -187,7 +218,12 @@ function StreamConnectedStage({
   // Unblock and resume audio playback across mobile and desktop browsers
   useEffect(() => {
     const unblockAudio = () => {
-      // 1. Resume AudioContext if suspended
+      // 1. Resume Stream call audio manager
+      if (call?.resumeAudio) {
+        call.resumeAudio().catch(() => {});
+      }
+
+      // 2. Resume AudioContext if suspended
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
       if (AudioContextClass) {
         try {
@@ -198,7 +234,7 @@ function StreamConnectedStage({
         } catch (_e) {}
       }
 
-      // 2. Unpause and play any HTML5 audio elements bound by Stream SDK
+      // 3. Unpause and play any HTML5 audio elements bound by Stream SDK
       let blockedFound = false;
       const audioElements = document.querySelectorAll('audio');
       audioElements.forEach((el) => {
@@ -234,29 +270,37 @@ function StreamConnectedStage({
       window.removeEventListener('touchstart', handleInteraction);
       window.removeEventListener('keydown', handleInteraction);
     };
-  }, []);
+  }, [call]);
 
   const toggleCamera = async () => {
     try {
-      if (call) {
-        await call.camera.toggle();
-        toast.success(!isCamMuted ? 'Camera turned off' : 'Camera turned on');
+      if (!call) return;
+      if (isCamMuted) {
+        await call.camera.enable();
+        toast.success('Camera turned on');
+      } else {
+        await call.camera.disable();
+        toast.success('Camera turned off');
       }
     } catch (e) {
       console.warn('Failed to toggle camera:', e?.message);
-      toast.error('Could not access camera');
+      toast.error(e?.message || 'Could not access camera');
     }
   };
 
   const toggleMic = async () => {
     try {
-      if (call) {
-        await call.microphone.toggle();
-        toast.success(!isMicMuted ? 'Microphone muted' : 'Microphone unmuted');
+      if (!call) return;
+      if (isMicMuted) {
+        await call.microphone.enable();
+        toast.success('Microphone unmuted');
+      } else {
+        await call.microphone.disable();
+        toast.success('Microphone muted');
       }
     } catch (e) {
       console.warn('Failed to toggle mic:', e?.message);
-      toast.error('Could not access microphone');
+      toast.error(e?.message || 'Could not access microphone');
     }
   };
 
@@ -269,6 +313,54 @@ function StreamConnectedStage({
     }
   };
 
+  const toggleRaiseHand = async () => {
+    const nextState = !handRaised;
+    setHandRaised(nextState);
+    toast(nextState ? 'Hand raised! Instructor notified. ✋' : 'Hand lowered.');
+
+    if (call) {
+      try {
+        await call.sendCustomEvent({
+          type: 'hand_raise',
+          id: `${Date.now()}`,
+          userId: currentUser?._id || currentUser?.id,
+          userName: currentUser?.fullName || 'Student',
+          raised: nextState,
+        });
+      } catch (e) {
+        console.warn('Failed to send hand raise event:', e?.message);
+      }
+    }
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!inputText.trim()) return;
+
+    const msgObj = {
+      type: 'chat_message',
+      id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      senderName: currentUser?.fullName || (isHost ? 'Instructor' : 'Student'),
+      senderRole: isHost ? 'instructor' : 'student',
+      text: inputText.trim(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    setMessages((prev) => [...prev, msgObj]);
+    setInputText('');
+    setTimeout(() => {
+      chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+
+    if (call) {
+      try {
+        await call.sendCustomEvent(msgObj);
+      } catch (err) {
+        console.warn('Failed to broadcast message via Stream:', err?.message);
+      }
+    }
+  };
+
   const isConnecting =
     callingState === CallingState.JOINING || callingState === CallingState.RECONNECTING;
 
@@ -277,6 +369,9 @@ function StreamConnectedStage({
       ref={roomContainerRef}
       className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-[Inter,sans-serif] select-none"
     >
+      {/* Explicit Audio Stream Element for Remote Participants */}
+      <ParticipantsAudio participants={participants} />
+
       {/* Top Header Bar */}
       <header className="h-14 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 px-3 sm:px-4 flex items-center justify-between z-20">
         <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
@@ -336,6 +431,7 @@ function StreamConnectedStage({
             {audioBlocked && (
               <button
                 onClick={() => {
+                  if (call?.resumeAudio) call.resumeAudio().catch(() => {});
                   document.querySelectorAll('audio').forEach((el) => el.play().catch(() => {}));
                   setAudioBlocked(false);
                   toast.success('Audio enabled!');
@@ -405,10 +501,7 @@ function StreamConnectedStage({
             {/* Raise Hand (Students Only) */}
             {!isHost && (
               <button
-                onClick={() => {
-                  setHandRaised(!handRaised);
-                  toast(handRaised ? 'Hand lowered' : 'Hand raised! Instructor notified. ✋');
-                }}
+                onClick={toggleRaiseHand}
                 className={`p-2.5 sm:p-3 rounded-2xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-lg ${
                   handRaised
                     ? 'bg-amber-500 text-slate-950 font-bold'
@@ -728,8 +821,7 @@ export default function LiveClassRoom() {
               }
             } else {
               try {
-                await callInstance.camera.disable();
-                await callInstance.microphone.disable();
+                await callInstance.microphone.disable().catch(() => {});
               } catch (disableErr) {
                 // Ignore initial mute error on mobile
               }
@@ -780,34 +872,6 @@ export default function LiveClassRoom() {
     } else {
       document.exitFullscreen?.();
       setIsFullscreen(false);
-    }
-  };
-
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!inputText.trim()) return;
-
-    const msgObj = {
-      type: 'chat_message',
-      id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      senderName: currentUser?.fullName || (isInstructor ? 'Instructor' : 'Student'),
-      senderRole: isInstructor ? 'instructor' : 'student',
-      text: inputText.trim(),
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setMessages((prev) => [...prev, msgObj]);
-    setInputText('');
-    setTimeout(() => {
-      chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-
-    if (streamCall) {
-      try {
-        await streamCall.sendCustomEvent(msgObj);
-      } catch (err) {
-        console.warn('Failed to broadcast message via Stream:', err?.message);
-      }
     }
   };
 
@@ -882,9 +946,9 @@ export default function LiveClassRoom() {
               handRaised={handRaised}
               setHandRaised={setHandRaised}
               messages={messages}
+              setMessages={setMessages}
               inputText={inputText}
               setInputText={setInputText}
-              handleSendMessage={handleSendMessage}
               chatBottomRef={chatBottomRef}
               roomContainerRef={roomContainerRef}
               isFullscreen={isFullscreen}
