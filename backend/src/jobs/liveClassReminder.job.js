@@ -41,24 +41,19 @@ async function runReminderJob() {
 export function startLiveClassReminderJob() {
   if (reminderJob) {
     console.log("Live class reminder job is already running");
-
     return;
   }
 
-  console.log("Live class reminder job started");
+  console.log("Live class reminder job started (running every 60s)");
 
   /*
    * Server start hote hi first check.
    */
-  runReminderJob();
+  runReminderJob().catch((err) => {
+    console.error("Initial reminder job error:", err);
+  });
 
   reminderJob = setInterval(runReminderJob, ONE_MINUTE);
-
-  /*
-   * Node process ko sirf interval ki wajah
-   * se alive rehne ke liye force nahi karega.
-   */
-  reminderJob.unref?.();
 }
 
 export function stopLiveClassReminderJob() {
