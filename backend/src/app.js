@@ -117,6 +117,12 @@ app.use(cookieParser());
 // Serve static uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
 
+// Ignore /favicon.ico requests to avoid 404 logs
+app.get("/favicon.ico", (req, res) => res.status(204).end());
+
+// Health check endpoint
+app.get("/health", (req, res) => res.status(200).json({ status: "ok" }));
+
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome to the Vertex LMS API" });
 });
