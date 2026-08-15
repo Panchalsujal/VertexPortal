@@ -168,11 +168,15 @@ function StreamConnectedStage({
   const isRecording = useIsCallRecordingInProgress();
   const { isMute: isMicMuted } = useMicrophoneState();
   const { isMute: isCamMuted } = useCameraState();
-  const { screenShare, isMute: isScreenShareMuted } = useScreenShareState();
-  const isScreenSharing = !isScreenShareMuted && !!screenShare;
+  const { screenShare, isEnabled: isScreenSharing } = useScreenShareState();
+  // Detect if ANY participant is sharing their screen
+  const hasOngoingScreenShare = participants.some(
+    (p) => p.screenShareTrack || p.publishedTracks?.includes('screen-share')
+  );
   const callingState = useCallCallingState();
 
   const [layoutMode, setLayoutMode] = useState('grid'); // 'grid' | 'speaker'
+  const [manualLayout, setManualLayout] = useState(false); // true = user manually picked layout
   // Start as true so we always show the banner until user taps; browser will unblock then
   const [audioBlocked, setAudioBlocked] = useState(!isHost);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -218,6 +222,16 @@ function StreamConnectedStage({
       if (typeof unsubAll === 'function') unsubAll();
     };
   }, [call]);
+
+  // Auto-switch layout when screen share starts/stops (unless user manually picked)
+  useEffect(() => {
+    if (manualLayout) return;
+    if (hasOngoingScreenShare) {
+      setLayoutMode('speaker');
+    } else {
+      setLayoutMode('grid');
+    }
+  }, [hasOngoingScreenShare, manualLayout]);
 
   // Real-time custom event listener
   useEffect(() => {
@@ -305,11 +319,25 @@ function StreamConnectedStage({
   };
 
   const toggleScreenShare = async () => {
+    if (!call) return;
     try {
-      if (call) await call.screenShare.toggle();
+      if (isScreenSharing) {
+        await call.screenShare.disable();
+        toast('Screen sharing stopped.');
+      } else {
+        await call.screenShare.enable();
+        toast.success('You are now sharing your screen.');
+      }
     } catch (e) {
-      console.warn('Failed to toggle screen share:', e?.message);
-      toast.error('Could not toggle screen share');
+      const msg = e?.message || '';
+      if (msg.includes('Permission denied') || msg.includes('NotAllowedError')) {
+        toast.error('Browser blocked screen share — please allow it in your browser settings.');
+      } else if (msg.includes('NotSupportedError')) {
+        toast.error('Screen sharing is not supported on this browser/device.');
+      } else {
+        console.warn('Screen share toggle error:', msg);
+        toast.error('Could not start screen share. Try again.');
+      }
     }
   };
 
@@ -396,9 +424,21 @@ function StreamConnectedStage({
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Screen Share Active Indicator */}
+          {hasOngoingScreenShare && !isHost && (
+            <div className="flex items-center gap-1.5 text-xs text-emerald-300 bg-emerald-900/40 border border-emerald-700/50 px-3 py-1 rounded-full animate-pulse">
+              <Monitor className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline font-semibold">Screen shared</span>
+            </div>
+          )}
+
           {/* Layout Grid / Speaker Switcher */}
           <button
-            onClick={() => setLayoutMode((prev) => (prev === 'grid' ? 'speaker' : 'grid'))}
+            onClick={() => {
+              const next = layoutMode === 'grid' ? 'speaker' : 'grid';
+              setLayoutMode(next);
+              setManualLayout(true);
+            }}
             className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition cursor-pointer shadow-xs"
             title={layoutMode === 'grid' ? 'Switch to Spotlight view' : 'Switch to Gallery grid'}
           >
