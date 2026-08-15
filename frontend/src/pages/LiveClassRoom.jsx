@@ -4,7 +4,7 @@ import { useAppSelector } from '../store/hooks';
 import { selectUser } from '../store/slices/authSlice';
 import { getInstructorLiveClass, updateLiveClassStatus } from '../api/instructor.api';
 import { getStudentLiveClass, joinLiveClass, leaveLiveClass } from '../api/student.api';
-import { Spinner } from '../components/ui/Spinner';
+import { SkeletonLiveRoom } from '../components/ui/Spinner';
 import {
   StreamVideoClient,
   StreamVideo,
@@ -157,9 +157,12 @@ function LiveStreamStage({
         <div className="flex-1 flex flex-col bg-slate-950 relative overflow-hidden p-3 sm:p-4">
           <div className="flex-1 w-full h-full bg-slate-900/80 border border-slate-800 rounded-2xl sm:rounded-3xl relative flex items-center justify-center overflow-hidden shadow-2xl">
             {isConnecting ? (
-              <div className="flex flex-col items-center justify-center text-center p-6 gap-3">
-                <Spinner size="lg" />
-                <p className="text-xs text-slate-400">Connecting to real-time WebRTC media stream...</p>
+              <div className="w-full h-full flex flex-col items-center justify-center text-center p-8 gap-3 animate-pulse bg-radial from-slate-900 to-slate-950">
+                <div className="w-16 h-16 rounded-3xl bg-slate-800/90 border border-slate-700/60 flex items-center justify-center shadow-lg">
+                  <Radio className="w-8 h-8 text-purple-400 animate-pulse" />
+                </div>
+                <div className="h-4 bg-slate-800 rounded-md w-52" />
+                <div className="h-3 bg-slate-800/60 rounded-md w-36" />
               </div>
             ) : (
               <div className="w-full h-full stream-stage-container">
@@ -530,12 +533,7 @@ export default function LiveClassRoom() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white gap-4">
-        <Spinner size="lg" />
-        <p className="text-sm font-medium text-slate-400">Connecting to real-time GetStream video room...</p>
-      </div>
-    );
+    return <SkeletonLiveRoom />;
   }
 
   if (streamClient && streamCall) {
