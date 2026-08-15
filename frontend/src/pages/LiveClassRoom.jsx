@@ -54,13 +54,14 @@ import toast from 'react-hot-toast';
 // 1. Live Chat Drawer Component
 // ─────────────────────────────────────────────────────────────────────────────
 function ChatDrawer({
-  messages,
+  messages = [],
   inputText,
   setInputText,
   handleSendMessage,
   chatBottomRef,
   onClose,
 }) {
+  const safeMessages = Array.isArray(messages) ? messages : [];
   return (
     <div className="w-full lg:w-84 sm:w-96 bg-slate-900/95 backdrop-blur-xl border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col h-72 lg:h-full z-30 transition-all shadow-2xl">
       <div className="p-3.5 border-b border-slate-800 flex items-center justify-between">
@@ -72,7 +73,7 @@ function ChatDrawer({
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[10px] bg-slate-800 text-slate-400 font-semibold px-2 py-0.5 rounded-full border border-slate-700/60">
-            {messages.length} msgs
+            {safeMessages.length} msgs
           </span>
           {onClose && (
             <button
@@ -86,7 +87,7 @@ function ChatDrawer({
       </div>
 
       <div className="flex-1 overflow-y-auto p-3.5 space-y-3 bg-slate-950/60">
-        {messages.map((msg) => (
+        {safeMessages.map((msg) => (
           <div key={msg.id} className="text-xs">
             <div className="flex items-center justify-between gap-1 mb-1">
               <span className="font-bold text-slate-200 flex items-center gap-1.5">
@@ -164,14 +165,14 @@ function StreamConnectedStage({
     useCallCallingState,
   } = useCallStateHooks();
 
-  const participants = useParticipants();
+  const participants = useParticipants() || [];
   const isRecording = useIsCallRecordingInProgress();
   const { isMute: isMicMuted } = useMicrophoneState();
   const { isMute: isCamMuted } = useCameraState();
   const { screenShare, isEnabled: isScreenSharing } = useScreenShareState();
   // Detect if ANY participant is sharing their screen (screenShareStream is set when active)
-  const hasOngoingScreenShare = participants.some(
-    (p) => !!p.screenShareStream || (p.publishedTracks && p.publishedTracks.includes(3))
+  const hasOngoingScreenShare = Array.isArray(participants) && participants.some(
+    (p) => !!p.screenShareStream || (Array.isArray(p.publishedTracks) && p.publishedTracks.includes(3))
   );
   const callingState = useCallCallingState();
 
@@ -460,7 +461,7 @@ function StreamConnectedStage({
           {/* Participants Counter */}
           <div className="flex items-center gap-1.5 text-xs text-slate-300 bg-slate-800/80 border border-slate-700/60 px-3 py-1 rounded-full shadow-xs">
             <Users className="w-3.5 h-3.5 text-purple-400" />
-            <span>{participants?.length || 1}</span>
+            <span>{participants?.length ?? 1}</span>
           </div>
         </div>
       </header>
