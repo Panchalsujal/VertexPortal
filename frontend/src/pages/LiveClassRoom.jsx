@@ -169,9 +169,9 @@ function StreamConnectedStage({
   const { isMute: isMicMuted } = useMicrophoneState();
   const { isMute: isCamMuted } = useCameraState();
   const { screenShare, isEnabled: isScreenSharing } = useScreenShareState();
-  // Detect if ANY participant is sharing their screen
+  // Detect if ANY participant is sharing their screen (screenShareStream is set when active)
   const hasOngoingScreenShare = participants.some(
-    (p) => p.screenShareTrack || p.publishedTracks?.includes('screen-share')
+    (p) => !!p.screenShareStream || (p.publishedTracks && p.publishedTracks.includes(3))
   );
   const callingState = useCallCallingState();
 
