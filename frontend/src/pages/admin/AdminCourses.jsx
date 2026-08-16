@@ -139,8 +139,9 @@ export default function AdminCourses() {
       {loading ? (
         <SkeletonTable rows={6} cols={5} />
       ) : (
-        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden overflow-x-auto">
-          <table className="w-full min-w-[640px] text-left border-collapse">
+        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden w-full max-w-full min-w-0">
+          <div className="overflow-x-auto w-full max-w-full">
+            <table className="w-full min-w-[640px] text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 <th className="px-4 sm:px-5 py-3 sm:py-3.5">Course Title</th>
@@ -214,6 +215,7 @@ export default function AdminCourses() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </AdminLayout>

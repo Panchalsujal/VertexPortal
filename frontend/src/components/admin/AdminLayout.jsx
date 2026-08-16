@@ -79,7 +79,7 @@ export default function AdminLayout({ children, title, subtitle, actions, showBa
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif]">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] w-full max-w-full overflow-x-hidden">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/40 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />
@@ -151,14 +151,14 @@ export default function AdminLayout({ children, title, subtitle, actions, showBa
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-56 min-h-screen flex flex-col">
+      <main className="flex-1 min-w-0 w-full max-w-full lg:ml-56 min-h-screen flex flex-col overflow-x-hidden">
         {/* Top Header */}
-        <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-30">
-          <div className="flex items-center gap-2 sm:gap-3 px-3.5 sm:px-6 py-3 sm:py-3.5">
+        <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-30 w-full max-w-full">
+          <div className="flex items-center gap-2 sm:gap-3 px-3.5 sm:px-6 py-3 sm:py-3.5 max-w-full">
             <button
               type="button"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 shrink-0"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -191,7 +191,7 @@ export default function AdminLayout({ children, title, subtitle, actions, showBa
               />
             </div>
 
-            <div className="flex items-center gap-1 sm:gap-2 ml-auto">
+            <div className="flex items-center gap-1 sm:gap-2 ml-auto shrink-0">
               <Link to="/discussions" className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition" title="Discussions">
                 <MessageSquare className="w-4 h-4" />
               </Link>
@@ -205,7 +205,7 @@ export default function AdminLayout({ children, title, subtitle, actions, showBa
                 <button
                   type="button"
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-2 sm:gap-2.5 ml-1 sm:ml-2 pl-2 sm:pl-3 border-l border-gray-200 dark:border-gray-700 hover:opacity-80 transition cursor-pointer text-left"
+                  className="flex items-center gap-2 sm:gap-2.5 ml-1 sm:ml-2 pl-2 sm:pl-3 border-l border-gray-200 dark:border-gray-700 hover:opacity-80 transition cursor-pointer text-left shrink-0"
                 >
                   <div
                     className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm shrink-0 overflow-hidden border border-purple-200 dark:border-purple-800"
@@ -281,17 +281,17 @@ export default function AdminLayout({ children, title, subtitle, actions, showBa
 
         {/* Page Title Row (if provided) */}
         {(title || actions) && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-3.5 sm:px-6 pt-4 sm:pt-5 pb-2">
-            <div>
-              {title && <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white leading-snug">{title}</h1>}
-              {subtitle && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">{subtitle}</p>}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-3.5 sm:px-6 pt-4 sm:pt-5 pb-2 w-full max-w-full">
+            <div className="min-w-0 flex-1">
+              {title && <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white leading-snug break-words">{title}</h1>}
+              {subtitle && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed break-words">{subtitle}</p>}
             </div>
             {actions && <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">{actions}</div>}
           </div>
         )}
 
         {/* Page Content */}
-        <div className="flex-1 p-3.5 sm:p-6">
+        <div className="flex-1 p-3.5 sm:p-6 w-full max-w-full min-w-0 overflow-hidden">
           {children}
         </div>
       </main>

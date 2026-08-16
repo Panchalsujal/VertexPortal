@@ -186,26 +186,27 @@ export default function AdminUsers() {
       {loading ? (
         <SkeletonTable rows={6} cols={5} />
       ) : (
-        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden overflow-x-auto">
-          <table className="w-full min-w-[620px] text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
-                <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
-                <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
-                <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joined</th>
-                <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-sm">
-              {users.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="text-center py-12 text-gray-400">
-                    <Users className="w-10 h-10 mx-auto mb-2 opacity-50 text-purple-400" />
-                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">No users found</p>
-                  </td>
+        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden w-full max-w-full min-w-0">
+          <div className="overflow-x-auto w-full max-w-full">
+            <table className="w-full min-w-[620px] text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+                  <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
+                  <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
+                  <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                  <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joined</th>
+                  <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">Actions</th>
                 </tr>
-              ) : (
+              </thead>
+              <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-sm">
+                {users.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-12 text-gray-400">
+                      <Users className="w-10 h-10 mx-auto mb-2 opacity-50 text-purple-400" />
+                      <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">No users found</p>
+                    </td>
+                  </tr>
+                ) : (
                 users.map((u) => {
                   const roleStyle   = ROLE_COLORS[u.role]   || ROLE_COLORS.student;
                   const statusStyle = STATUS_COLORS[u.status || 'active'] || STATUS_COLORS.active;
@@ -283,6 +284,7 @@ export default function AdminUsers() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
