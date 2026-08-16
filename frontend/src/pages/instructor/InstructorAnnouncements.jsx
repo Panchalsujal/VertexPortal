@@ -201,23 +201,23 @@ export default function InstructorAnnouncements() {
         </div>
 
         {/* Search & Filter */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 mb-6 shadow-sm flex flex-col sm:flex-row gap-3 items-center">
-          <div className="relative flex-1 w-full">
+        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 p-3 sm:p-4 mb-5 shadow-sm flex flex-col sm:flex-row gap-2.5 sm:gap-3 items-stretch sm:items-center">
+          <div className="relative flex-1 w-full min-w-0">
             <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search announcements by title, content, or course..."
+              placeholder="Search announcements..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+              className="w-full pl-10 pr-4 py-2 sm:py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto min-w-0">
             <select
               value={selectedCourseFilter}
               onChange={e => setSelectedCourseFilter(e.target.value)}
-              className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition flex-1 sm:flex-none max-w-[200px]"
+              className="w-full sm:w-auto min-w-0 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-2.5 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition truncate cursor-pointer"
             >
               <option value="">All Courses</option>
               {courses.map(c => (
@@ -225,29 +225,31 @@ export default function InstructorAnnouncements() {
               ))}
             </select>
 
-            <select
-              value={selectedStatusFilter}
-              onChange={e => setSelectedStatusFilter(e.target.value)}
-              className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
-            >
-              <option value="">All Statuses</option>
-              <option value="published">Published</option>
-              <option value="draft">Draft</option>
-              <option value="archived">Archived</option>
-            </select>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <select
+                value={selectedStatusFilter}
+                onChange={e => setSelectedStatusFilter(e.target.value)}
+                className="w-full sm:w-auto min-w-0 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-2.5 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition cursor-pointer"
+              >
+                <option value="">All Statuses</option>
+                <option value="published">Published</option>
+                <option value="draft">Draft</option>
+                <option value="archived">Archived</option>
+              </select>
 
-            <button
-              onClick={() => {
-                setSearch('');
-                setSelectedCourseFilter('');
-                setSelectedStatusFilter('');
-                dispatch(fetchInstructorAnnouncements());
-              }}
-              className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition"
-              title="Refresh"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
+              <button
+                onClick={() => {
+                  setSearch('');
+                  setSelectedCourseFilter('');
+                  setSelectedStatusFilter('');
+                  dispatch(fetchInstructorAnnouncements());
+                }}
+                className="p-2 sm:p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition shrink-0 cursor-pointer"
+                title="Refresh"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -345,21 +347,21 @@ export default function InstructorAnnouncements() {
             })}
           </div>
         ) : (
-          <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-12 text-center shadow-sm">
-            <div className="w-16 h-16 rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 flex items-center justify-center mx-auto mb-4">
-              <Megaphone className="w-8 h-8 opacity-80" />
+          <div className="bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-gray-800 p-6 sm:p-12 text-center shadow-sm">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <Megaphone className="w-6 h-6 sm:w-8 sm:h-8 opacity-80" />
             </div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
               {search || selectedCourseFilter || selectedStatusFilter ? 'No matching announcements' : 'No announcements created yet'}
             </h3>
-            <p className="text-sm text-gray-400 mt-1 max-w-md mx-auto">
+            <p className="text-xs sm:text-sm text-gray-400 mt-1 max-w-md mx-auto">
               {search || selectedCourseFilter || selectedStatusFilter
                 ? 'Try adjusting or clearing your search and filter parameters.'
                 : 'Publish course updates, schedule announcements, and broadcast news directly to your enrolled students.'}
             </p>
             <button
               onClick={openCreate}
-              className="mt-5 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition shadow-sm inline-flex items-center gap-2 cursor-pointer"
+              className="mt-4 sm:mt-5 px-4 sm:px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition shadow-sm inline-flex items-center gap-2 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               Create Announcement
@@ -373,20 +375,22 @@ export default function InstructorAnnouncements() {
           onClose={() => !saving && setModalOpen(false)}
           title={activeAnn ? 'Edit Announcement' : 'New Announcement'}
         >
-          <form onSubmit={handleSave} className="space-y-4">
+          <form onSubmit={handleSave} className="space-y-3.5 sm:space-y-4 w-full min-w-0">
             <div>
               <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
                 Target Course *
               </label>
               <select
-                className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full max-w-full min-w-0 truncate bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
                 value={form.courseId}
                 onChange={e => setForm(f => ({ ...f, courseId: e.target.value }))}
                 required
               >
                 <option value="">Select a Course</option>
                 {courses.map(c => (
-                  <option key={c._id} value={c._id}>{c.title}</option>
+                  <option key={c._id} value={c._id} className="truncate">
+                    {c.title}
+                  </option>
                 ))}
               </select>
             </div>
@@ -397,7 +401,7 @@ export default function InstructorAnnouncements() {
                   Announcement Type
                 </label>
                 <select
-                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full max-w-full min-w-0 truncate bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
                   value={form.type}
                   onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
                 >
@@ -412,7 +416,7 @@ export default function InstructorAnnouncements() {
                   Publish Status
                 </label>
                 <select
-                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full max-w-full min-w-0 truncate bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
                   value={form.status}
                   onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
                 >
@@ -428,7 +432,7 @@ export default function InstructorAnnouncements() {
               </label>
               <input
                 type="text"
-                className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-800 dark:text-gray-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full max-w-full min-w-0 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-800 dark:text-gray-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 value={form.title}
                 onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                 placeholder="e.g. Schedule Change for Module 3"
@@ -443,8 +447,8 @@ export default function InstructorAnnouncements() {
                 Announcement Content *
               </label>
               <textarea
-                className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-800 dark:text-gray-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                rows={5}
+                className="w-full max-w-full min-w-0 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-800 dark:text-gray-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                rows={4}
                 placeholder="Write the details of your announcement here..."
                 value={form.content}
                 onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
@@ -453,7 +457,7 @@ export default function InstructorAnnouncements() {
               />
             </div>
 
-            <div className="flex items-center gap-2 pt-1">
+            <div className="flex items-center gap-2 pt-0.5">
               <input
                 type="checkbox"
                 id="isPinned"
@@ -466,18 +470,18 @@ export default function InstructorAnnouncements() {
               </label>
             </div>
 
-            <div className="pt-3 border-t border-gray-100 dark:border-gray-800 flex justify-end gap-2">
+            <div className="pt-3 border-t border-gray-100 dark:border-gray-800 flex flex-row items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 text-xs font-semibold transition"
+                className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-semibold transition cursor-pointer"
                 disabled={saving}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2"
+                className="px-4 sm:px-5 py-2 sm:py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-2 cursor-pointer"
                 disabled={saving}
               >
                 {saving ? (

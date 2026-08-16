@@ -639,14 +639,14 @@ export default function AdminPanel() {
           <div className="input-group">
             <label className="input-label">Select Course *</label>
             <select
-              className="input-field"
+              className="input-field w-full max-w-full min-w-0 truncate cursor-pointer"
               value={issueForm.courseId}
               onChange={e => setIssueForm(f => ({ ...f, courseId: e.target.value }))}
               required
             >
               <option value="">-- Select Course --</option>
               {allCourses.map(c => (
-                <option key={c._id} value={c._id}>
+                <option key={c._id} value={c._id} className="truncate">
                   {c.title}
                 </option>
               ))}

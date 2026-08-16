@@ -117,6 +117,23 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--vp-border); border-radius: var(--vp-radius-full); }
   ::-webkit-scrollbar-thumb:hover { background: var(--vp-text-muted); }
+
+  select {
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  select option {
+    background-color: #ffffff;
+    color: #111827;
+    padding: 6px 10px;
+  }
+
+  .dark select option,
+  html.dark select option {
+    background-color: #111827;
+    color: #f9fafb;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────── */

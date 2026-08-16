@@ -158,11 +158,11 @@ export default function AdminUsers() {
             className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
           />
         </div>
-        <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 sm:gap-3">
+        <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 sm:gap-3 min-w-0 max-w-full">
           <select
             value={roleFilter}
             onChange={(e) => handleRoleFilterChange(e.target.value)}
-            className="w-full sm:w-auto bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition cursor-pointer"
+            className="w-full sm:w-auto min-w-0 max-w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition cursor-pointer truncate"
           >
             <option value="">All Roles</option>
             <option value="student">Student</option>
@@ -172,7 +172,7 @@ export default function AdminUsers() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full sm:w-auto bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition cursor-pointer"
+            className="w-full sm:w-auto min-w-0 max-w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition cursor-pointer truncate"
           >
             <option value="">All Statuses</option>
             <option value="active">Active</option>
