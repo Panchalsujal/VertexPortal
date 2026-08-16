@@ -174,26 +174,26 @@ export default function InstructorAnnouncements() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] py-4 sm:py-8 w-full max-w-full overflow-x-hidden">
+      <div className="max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-8 w-full max-w-full min-w-0">
         {/* Header */}
-        <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-6 sm:p-8 shadow-sm mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 flex items-center justify-center shadow-inner shrink-0">
-              <Megaphone className="w-7 h-7" />
+        <div className="bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-gray-800 p-4 sm:p-6 shadow-sm mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 flex items-center justify-center shadow-inner shrink-0">
+              <Megaphone className="w-5 h-5 sm:w-7 sm:h-7" />
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+              <h1 className="text-base sm:text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">
                 Manage Announcements
               </h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5 sm:mt-1">
                 Broadcast course news, exam updates, and direct notifications to enrolled students
               </p>
             </div>
           </div>
           <button
             onClick={openCreate}
-            className="px-5 py-3 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold rounded-2xl transition shadow-sm flex items-center gap-2 shrink-0 cursor-pointer"
+            className="w-full sm:w-auto px-4 sm:px-5 py-2.5 sm:py-3 bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm font-bold rounded-xl sm:rounded-2xl transition shadow-sm flex items-center justify-center gap-2 shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             New Announcement

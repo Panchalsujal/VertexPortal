@@ -25,20 +25,26 @@ const sidebarSections = [
     ],
   },
   {
-    label: 'ACADEMICS',
+    label: 'CONTENT',
     items: [
-      { to: '/instructor/quizzes',     icon: FileText,        label: 'Quizzes'   },
-      { to: '/instructor/assignments', icon: ClipboardList,   label: 'Assignments' },
-      { to: '/admin/notes',            icon: FileText,        label: 'Study Notes' },
-      { to: '/admin/live-attendance',  icon: Video,           label: 'Live Attendance' },
-      { to: '/admin/discussions',      icon: MessageSquare,   label: 'Discussions & Reports' },
+      { to: '/admin/courses',          icon: FileText,        label: 'Lectures & Course Content' },
+      { to: '/discussions',            icon: MessageSquare,   label: 'Discussions & Q&A' },
+      { to: '/admin/notes',            icon: Bell,            label: 'Notes & Documents' },
+      { to: '/instructor/announcements', icon: Zap,           label: 'Announcements' },
     ],
   },
   {
-    label: 'SYSTEM & LOGS',
+    label: 'FINANCE',
+    items: [
+      { to: '/admin/orders',           icon: ShoppingBag,     label: 'Orders'    },
+      { to: '/admin/panel?tab=coupons', icon: CouponTag,      label: 'Coupons'   },
+    ],
+  },
+  {
+    label: 'REPORTS & AUDIT',
     items: [
       { to: '/admin/audit',            icon: BarChart2,       label: 'Audit Logs' },
-      { to: '/instructor/announcements', icon: Bell,          label: 'Announcements' },
+      { to: '/admin/live-attendance',  icon: Video,           label: 'Live Attendance' },
     ],
   },
   {

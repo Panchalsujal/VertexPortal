@@ -113,50 +113,50 @@ export default function AdminOrders() {
       subtitle="Track platform sales, view user enrollments, and manage order statuses"
     >
       {/* Analytics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 flex items-center justify-center shrink-0">
-            <ShoppingBag className="w-6 h-6" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-5">
+        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4.5 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-2.5 sm:gap-4">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 flex items-center justify-center shrink-0">
+            <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Total Orders</p>
-            <p className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate">Total Orders</p>
+            <p className="text-lg sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
               {overview.totalOrders ?? analytics?.totalOrders ?? orders.length}
             </p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center shrink-0">
-            <DollarSign className="w-6 h-6" />
+        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4.5 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-2.5 sm:gap-4">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center shrink-0">
+            <DollarSign className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Total Revenue</p>
-            <p className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate">Total Revenue</p>
+            <p className="text-lg sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
               ₹{(revenue.totalRevenue ?? analytics?.totalRevenue ?? 0).toLocaleString()}
             </p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center shrink-0">
-            <Clock className="w-6 h-6" />
+        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4.5 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-2.5 sm:gap-4">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center shrink-0">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Pending Orders</p>
-            <p className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate">Pending Orders</p>
+            <p className="text-lg sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
               {overview.pendingOrders ?? analytics?.pendingOrders ?? 0}
             </p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center shrink-0">
-            <CheckCircle className="w-6 h-6" />
+        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4.5 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-2.5 sm:gap-4">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center shrink-0">
+            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Paid Orders</p>
-            <p className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate">Paid Orders</p>
+            <p className="text-lg sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
               {overview.paidOrders ?? analytics?.paidOrders ?? 0}
             </p>
           </div>
@@ -164,21 +164,21 @@ export default function AdminOrders() {
       </div>
 
       {/* Search & Filter */}
-      <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm mb-6 flex flex-col sm:flex-row gap-3">
+      <div className="bg-white dark:bg-gray-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm mb-5 flex flex-col sm:flex-row gap-2.5 sm:gap-3">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search by Order ID, User Name, Email, Course, or Razorpay ID..."
+            placeholder="Search by Order ID, User, Email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+            className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+          className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition cursor-pointer"
         >
           <option value="">All Statuses</option>
           <option value="paid">Paid</option>
@@ -193,20 +193,21 @@ export default function AdminOrders() {
       {loading ? (
         <SkeletonTable rows={6} cols={7} />
       ) : (
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                <th className="px-5 py-3.5">Order ID</th>
-                <th className="px-5 py-3.5">User</th>
-                <th className="px-5 py-3.5">Courses</th>
-                <th className="px-5 py-3.5">Amount</th>
-                <th className="px-5 py-3.5">Status</th>
-                <th className="px-5 py-3.5">Date</th>
-                <th className="px-5 py-3.5 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-sm">
+        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden w-full max-w-full min-w-0">
+          <div className="overflow-x-auto w-full max-w-full">
+            <table className="w-full min-w-[700px] text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-4 sm:px-5 py-3 sm:py-3.5">Order ID</th>
+                  <th className="px-4 sm:px-5 py-3 sm:py-3.5">User</th>
+                  <th className="px-4 sm:px-5 py-3 sm:py-3.5">Courses</th>
+                  <th className="px-4 sm:px-5 py-3 sm:py-3.5">Amount</th>
+                  <th className="px-4 sm:px-5 py-3 sm:py-3.5">Status</th>
+                  <th className="px-4 sm:px-5 py-3 sm:py-3.5">Date</th>
+                  <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-sm">
               {orders.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-12 text-gray-400">
@@ -348,6 +349,7 @@ export default function AdminOrders() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

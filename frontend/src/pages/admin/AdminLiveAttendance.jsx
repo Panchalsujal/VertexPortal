@@ -98,28 +98,28 @@ export default function AdminLiveAttendance() {
       subtitle="Monitor live class sessions and student attendance in real-time"
     >
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-5">
         {[
           { label: 'Total Sessions', value: liveClasses.length, icon: Video, color: '#6C5CE7', bg: '#ede9fe' },
           { label: 'Live Now', value: liveCount, icon: TrendingUp, color: '#ef4444', bg: '#fee2e2' },
           { label: 'Scheduled', value: scheduledCount, icon: Calendar, color: '#10b981', bg: '#d1fae5' },
           { label: 'Total Attendees', value: totalAttended, icon: Users, color: '#f59e0b', bg: '#fef3c7' },
         ].map(({ label, value, icon: Icon, color, bg }) => (
-          <div key={label} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 flex items-center gap-4 shadow-sm">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: bg }}>
-              <Icon className="w-5 h-5" style={{ color }} />
+          <div key={label} className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 p-3 sm:p-4.5 flex items-center gap-2.5 sm:gap-4 shadow-sm">
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: bg }}>
+              <Icon className="w-4 h-4 sm:w-5 sm:h-5" style={{ color }} />
             </div>
-            <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{label}</p>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">{value}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate">{label}</p>
+              <p className="text-lg sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">{value}</p>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
         {/* Left: Sessions list */}
-        <div className="lg:col-span-2 flex flex-col gap-4">
+        <div className="lg:col-span-2 flex flex-col gap-3 sm:gap-4">
           {/* Search */}
           <div className="relative">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
@@ -128,7 +128,7 @@ export default function AdminLiveAttendance() {
               placeholder="Search sessions..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full border border-gray-200 dark:border-gray-700 rounded-xl pl-9 pr-3 py-2 text-sm bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-xl pl-9 pr-3 py-2 text-xs sm:text-sm bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
@@ -136,7 +136,7 @@ export default function AdminLiveAttendance() {
             <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               {filtered.length} Session{filtered.length !== 1 ? 's' : ''}
             </p>
-            <button onClick={fetchLiveClasses} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition" title="Refresh">
+            <button onClick={fetchLiveClasses} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition cursor-pointer" title="Refresh">
               <RefreshCw className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -152,21 +152,21 @@ export default function AdminLiveAttendance() {
                   <button
                     key={lc._id}
                     onClick={() => handleClassClick(lc)}
-                    className={`w-full text-left p-4 rounded-2xl border transition-all ${
+                    className={`w-full text-left p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer ${
                       isSelected
                         ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-300 dark:border-purple-700'
                         : 'bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 hover:border-purple-200 hover:bg-purple-50/30'
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-1">
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                      <p className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white line-clamp-1">
                         {lc.title}
                       </p>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${statusColors[ts]}`}>
                         {statusLabels[ts]}
                       </span>
                     </div>
-                    <p className="text-xs text-blue-500 dark:text-blue-400 font-medium mb-1 flex items-center gap-1">
+                    <p className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-1 flex items-center gap-1">
                       <BookOpen className="w-3 h-3" /> {lc.course?.title || 'Course'}
                     </p>
                     <div className="flex items-center gap-3 text-[11px] text-gray-400">
@@ -194,13 +194,13 @@ export default function AdminLiveAttendance() {
         {/* Right: Attendance detail */}
         <div className="lg:col-span-3">
           {selectedClass ? (
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden w-full max-w-full min-w-0">
               {/* Session header */}
-              <div className="p-5 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/20">
+              <div className="p-4 sm:p-5 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/20">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="text-base font-bold text-gray-900 dark:text-white">{selectedClass.title}</h3>
-                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mt-0.5">
+                    <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">{selectedClass.title}</h3>
+                    <p className="text-xs text-purple-600 dark:text-purple-400 font-medium mt-0.5">
                       {selectedClass.course?.title || 'Course'}
                     </p>
                   </div>
@@ -221,14 +221,14 @@ export default function AdminLiveAttendance() {
               </div>
 
               {/* Attendance list */}
-              <div className="p-5">
+              <div className="p-3.5 sm:p-5">
                 <div className="flex items-center justify-between mb-4">
-                  <p className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
                     <Users className="w-4 h-4 text-purple-500" /> Attendance Records
                   </p>
                   <button
                     onClick={() => fetchAttendance(selectedClass._id)}
-                    className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 transition"
+                    className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 transition cursor-pointer"
                     title="Refresh attendance"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
@@ -238,8 +238,8 @@ export default function AdminLiveAttendance() {
                 {attendanceLoading ? (
                   <SkeletonTable rows={4} cols={4} />
                 ) : attendance.length > 0 ? (
-                  <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-gray-800">
-                    <table className="w-full text-left border-collapse text-sm">
+                  <div className="overflow-x-auto w-full max-w-full rounded-xl border border-gray-100 dark:border-gray-800">
+                    <table className="w-full min-w-[480px] text-left border-collapse text-sm">
                       <thead>
                         <tr className="bg-gray-50 dark:bg-gray-800/60 text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                           <th className="px-4 py-2.5">Student</th>

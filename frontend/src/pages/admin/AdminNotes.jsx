@@ -83,50 +83,50 @@ export default function AdminNotes() {
       subtitle="Overview and moderation of student study notes across all platform courses"
     >
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 flex items-center justify-center shrink-0">
-            <FileText className="w-6 h-6" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-5">
+        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4.5 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-2.5 sm:gap-4">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 flex items-center justify-center shrink-0">
+            <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Total Notes</p>
-            <p className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate">Total Notes</p>
+            <p className="text-lg sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
               {stats.total.toLocaleString()}
             </p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center shrink-0">
-            <Pin className="w-6 h-6" />
+        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4.5 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-2.5 sm:gap-4">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center shrink-0">
+            <Pin className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Pinned Notes</p>
-            <p className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate">Pinned Notes</p>
+            <p className="text-lg sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
               {stats.pinned.toLocaleString()}
             </p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center shrink-0">
-            <BookOpen className="w-6 h-6" />
+        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4.5 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-2.5 sm:gap-4">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center shrink-0">
+            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Courses with Notes</p>
-            <p className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate">Courses Active</p>
+            <p className="text-lg sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
               {stats.courses.toLocaleString()}
             </p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center shrink-0">
-            <Users className="w-6 h-6" />
+        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4.5 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-2.5 sm:gap-4">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center shrink-0">
+            <Users className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Active Students</p>
-            <p className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate">Active Students</p>
+            <p className="text-lg sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
               {stats.students.toLocaleString()}
             </p>
           </div>
@@ -134,21 +134,21 @@ export default function AdminNotes() {
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 mb-6 shadow-sm flex flex-col sm:flex-row gap-3">
+      <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 p-3 sm:p-4 mb-5 shadow-sm flex flex-col sm:flex-row gap-2.5 sm:gap-3">
         <form onSubmit={handleSearch} className="flex-1 flex gap-2">
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search notes by note title, content, student, or course..."
+              placeholder="Search notes by title, content, student..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+              className="w-full pl-10 pr-4 py-2 sm:py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
             />
           </div>
           <button
             type="submit"
-            className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition shadow-sm shrink-0"
+            className="px-4 sm:px-5 py-2 sm:py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition shadow-sm shrink-0"
           >
             Search
           </button>
@@ -158,7 +158,7 @@ export default function AdminNotes() {
           <select
             value={pinnedFilter}
             onChange={e => setPinnedFilter(e.target.value)}
-            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition cursor-pointer flex-1 sm:flex-initial"
           >
             <option value="">All Notes</option>
             <option value="true">Pinned Only</option>
@@ -171,7 +171,7 @@ export default function AdminNotes() {
               setPinnedFilter('');
               fetchNotes();
             }}
-            className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition"
+            className="p-2 sm:p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition shrink-0"
             title="Reset and Refresh"
           >
             <RefreshCw className="w-4 h-4" />
@@ -183,116 +183,112 @@ export default function AdminNotes() {
       {loading ? (
         <SkeletonTable rows={6} cols={6} />
       ) : notes.length > 0 ? (
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                <th className="px-5 py-3.5">Student</th>
-                <th className="px-5 py-3.5">Course & Lecture</th>
-                <th className="px-5 py-3.5">Note Title & Content</th>
-                <th className="px-5 py-3.5">Pinned</th>
-                <th className="px-5 py-3.5">Updated</th>
-                <th className="px-5 py-3.5 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-sm text-gray-900 dark:text-white">
-              {notes.map(note => {
-                const studentName = note.student?.fullName || 'Student';
-                const studentEmail = note.student?.email || '';
-                const studentAvatar = note.student?.avatarUrl;
-                const initials = studentName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'S';
+        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden w-full max-w-full min-w-0">
+          <div className="overflow-x-auto w-full max-w-full">
+            <table className="w-full min-w-[650px] text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-4 sm:px-5 py-3 sm:py-3.5">Student</th>
+                  <th className="px-4 sm:px-5 py-3 sm:py-3.5">Course &amp; Lecture</th>
+                  <th className="px-4 sm:px-5 py-3 sm:py-3.5">Note Title &amp; Content</th>
+                  <th className="px-4 sm:px-5 py-3 sm:py-3.5">Pinned</th>
+                  <th className="px-4 sm:px-5 py-3 sm:py-3.5">Updated</th>
+                  <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-sm text-gray-900 dark:text-white">
+                {notes.map(note => {
+                  const studentName = note.student?.fullName || 'Student';
+                  const studentEmail = note.student?.email || '';
+                  const studentAvatar = note.student?.avatarUrl;
+                  const initials = studentName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'S';
 
-                return (
-                  <tr
-                    key={note._id}
-                    className="hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition-colors cursor-pointer group"
-                    onClick={() => setSelectedNote(note)}
-                  >
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        {studentAvatar && studentAvatar !== 'https://ik.imagekit.io/Sujalpanchal/default.avif' ? (
-                          <img
-                            src={studentAvatar}
-                            alt={studentName}
-                            className="w-9 h-9 rounded-full object-cover border border-gray-200 dark:border-gray-700 shrink-0"
-                          />
-                        ) : (
-                          <div
-                            className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm"
-                            style={{ background: 'linear-gradient(135deg, #6C5CE7, #a29bfe)' }}
-                          >
-                            {initials}
+                  return (
+                    <tr
+                      key={note._id}
+                      className="hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition-colors cursor-pointer group"
+                      onClick={() => setSelectedNote(note)}
+                    >
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          {studentAvatar && studentAvatar !== 'https://ik.imagekit.io/Sujalpanchal/default.avif' ? (
+                            <img
+                              src={studentAvatar}
+                              alt={studentName}
+                              className="w-9 h-9 rounded-full object-cover border border-gray-200 dark:border-gray-700 shrink-0"
+                            />
+                          ) : (
+                            <div
+                              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm"
+                              style={{ background: 'linear-gradient(135deg, #6C5CE7, #a29bfe)' }}
+                            >
+                              {initials}
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="font-semibold text-gray-900 dark:text-white truncate">{studentName}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{studentEmail}</p>
                           </div>
-                        )}
-                        <div className="min-w-0">
-                          <p className="font-semibold text-gray-900 dark:text-white text-xs truncate">{studentName}</p>
-                          <p className="text-[11px] text-gray-400 truncate">{studentEmail}</p>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-4 max-w-[220px]">
-                      <div className="flex items-center gap-1.5 text-purple-600 dark:text-purple-400 font-semibold text-xs truncate">
-                        <BookOpen className="w-3.5 h-3.5 shrink-0" />
-                        <span className="truncate" title={note.course?.title || 'Course'}>
-                          {note.course?.title || 'Course'}
-                        </span>
-                      </div>
-                      {note.lecture?.title && (
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate mt-0.5" title={note.lecture?.title}>
-                          Lecture: {note.lecture.title}
+                      </td>
+
+                      <td className="px-5 py-4 max-w-[200px]">
+                        <p className="font-medium text-purple-600 dark:text-purple-400 text-xs truncate">
+                          {note.course?.title || 'General Course'}
                         </p>
-                      )}
-                    </td>
-                    <td className="px-5 py-4 max-w-sm">
-                      <p className="font-bold text-xs text-gray-900 dark:text-white truncate">
-                        {note.title || 'Untitled Note'}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mt-0.5">
-                        {note.content}
-                      </p>
-                    </td>
-                    <td className="px-5 py-4">
-                      {note.isPinned ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                          <Pin className="w-3 h-3 fill-amber-500 text-amber-500" />
-                          Pinned
-                        </span>
-                      ) : (
-                        <span className="text-gray-400 text-xs">-</span>
-                      )}
-                    </td>
-                    <td className="px-5 py-4 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                      {new Date(note.updatedAt || note.createdAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                      })}
-                    </td>
-                    <td className="px-5 py-4 text-right space-x-1.5 whitespace-nowrap" onClick={e => e.stopPropagation()}>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedNote(note)}
-                        className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 dark:hover:text-purple-300 font-semibold px-2.5 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1"
-                        title="View Note Details"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        View
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(note._id)}
-                        disabled={deletingId === note._id}
-                        className="text-xs bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-300 hover:bg-red-100 font-semibold px-2.5 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1 disabled:opacity-50"
-                        title="Delete Note"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                        {note.lectureTitle && (
+                          <p className="text-[11px] text-gray-400 truncate mt-0.5">
+                            {note.lectureTitle}
+                          </p>
+                        )}
+                      </td>
+
+                      <td className="px-5 py-4 max-w-[240px]">
+                        <p className="font-semibold text-gray-900 dark:text-white truncate">{note.title || 'Untitled Note'}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5">
+                          {note.content?.replace(/<[^>]*>?/gm, '') || 'No text content'}
+                        </p>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        {note.isPinned ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
+                            <Pin className="w-3 h-3 fill-amber-500" /> Pinned
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400">—</span>
+                        )}
+                      </td>
+
+                      <td className="px-5 py-4 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                        {note.updatedAt ? new Date(note.updatedAt).toLocaleDateString() : 'N/A'}
+                      </td>
+                      <td className="px-5 py-4 text-right space-x-1.5 whitespace-nowrap" onClick={e => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedNote(note)}
+                          className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 dark:hover:text-purple-300 font-semibold px-2.5 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1"
+                          title="View Note Details"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          View
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(note._id)}
+                          disabled={deletingId === note._id}
+                          className="text-xs bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-300 hover:bg-red-100 font-semibold px-2.5 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1 disabled:opacity-50"
+                          title="Delete Note"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-12 text-center shadow-sm max-w-xl mx-auto">
