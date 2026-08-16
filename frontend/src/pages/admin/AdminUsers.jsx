@@ -16,6 +16,7 @@ import {
 import { register as registerApi } from '../../api/auth.api';
 import { SkeletonTable } from '../../components/ui/Spinner';
 import AdminLayout from '../../components/admin/AdminLayout';
+import CustomSelect from '../../components/ui/CustomSelect';
 import toast from 'react-hot-toast';
 
 const ROLE_COLORS = {
@@ -159,26 +160,32 @@ export default function AdminUsers() {
           />
         </div>
         <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 sm:gap-3 min-w-0 max-w-full">
-          <select
-            value={roleFilter}
-            onChange={(e) => handleRoleFilterChange(e.target.value)}
-            className="w-full sm:w-auto min-w-0 max-w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition cursor-pointer truncate"
-          >
-            <option value="">All Roles</option>
-            <option value="student">Student</option>
-            <option value="instructor">Instructor</option>
-            <option value="admin">Admin</option>
-          </select>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full sm:w-auto min-w-0 max-w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition cursor-pointer truncate"
-          >
-            <option value="">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="suspended">Suspended</option>
-          </select>
+          <div className="w-full sm:w-36 min-w-0">
+            <CustomSelect
+              value={roleFilter}
+              onChange={(val) => handleRoleFilterChange(val)}
+              options={[
+                { value: '', label: 'All Roles' },
+                { value: 'student', label: 'Student' },
+                { value: 'instructor', label: 'Instructor' },
+                { value: 'admin', label: 'Admin' },
+              ]}
+              placeholder="All Roles"
+            />
+          </div>
+          <div className="w-full sm:w-36 min-w-0">
+            <CustomSelect
+              value={statusFilter}
+              onChange={(val) => setStatusFilter(val)}
+              options={[
+                { value: '', label: 'All Statuses' },
+                { value: 'active', label: 'Active' },
+                { value: 'inactive', label: 'Inactive' },
+                { value: 'suspended', label: 'Suspended' },
+              ]}
+              placeholder="All Statuses"
+            />
+          </div>
         </div>
       </div>
 
@@ -338,15 +345,16 @@ export default function AdminUsers() {
 
               <div>
                 <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Initial Role</label>
-                <select
+                <CustomSelect
                   value={createForm.role}
-                  onChange={(e) => setCreateForm((f) => ({ ...f, role: e.target.value }))}
-                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm font-semibold"
-                >
-                  <option value="student">Student</option>
-                  <option value="instructor">Instructor</option>
-                  <option value="admin">Admin</option>
-                </select>
+                  onChange={(val) => setCreateForm((f) => ({ ...f, role: val }))}
+                  options={[
+                    { value: 'student', label: 'Student' },
+                    { value: 'instructor', label: 'Instructor' },
+                    { value: 'admin', label: 'Admin' },
+                  ]}
+                  placeholder="Select Role"
+                />
               </div>
 
               <div className="flex gap-3 pt-2">

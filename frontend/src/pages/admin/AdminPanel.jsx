@@ -22,6 +22,7 @@ import { deleteReview, getCourseReviews } from '../../api/review.api';
 import { StarRating } from '../../components/ui/StarRating';
 import { Modal } from '../../components/ui/Modal';
 import { Spinner, SkeletonTable, SkeletonFeed } from '../../components/ui/Spinner';
+import CustomSelect from '../../components/ui/CustomSelect';
 import {
   FolderPlus, Tag, Edit3, Trash2, ToggleLeft, ToggleRight, Plus, Shield,
   Award, Download, RefreshCw, XCircle, RotateCcw, Send, Star
@@ -605,10 +606,15 @@ export default function AdminPanel() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div className="input-group">
               <label className="input-label">Discount Type</label>
-              <select className="input-field" value={couponForm.discountType} onChange={e => setCouponForm(f => ({ ...f, discountType: e.target.value }))}>
-                <option value="percentage">Percentage (%)</option>
-                <option value="fixed">Fixed Amount (₹)</option>
-              </select>
+              <CustomSelect
+                value={couponForm.discountType}
+                onChange={(val) => setCouponForm((f) => ({ ...f, discountType: val }))}
+                options={[
+                  { value: 'percentage', label: 'Percentage (%)' },
+                  { value: 'fixed', label: 'Fixed Amount (₹)' },
+                ]}
+                placeholder="Discount Type"
+              />
             </div>
             <div className="input-group">
               <label className="input-label">Discount Value *</label>
@@ -638,19 +644,12 @@ export default function AdminPanel() {
         <form onSubmit={handleIssueCertificate} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div className="input-group">
             <label className="input-label">Select Course *</label>
-            <select
-              className="input-field w-full max-w-full min-w-0 truncate cursor-pointer"
+            <CustomSelect
               value={issueForm.courseId}
-              onChange={e => setIssueForm(f => ({ ...f, courseId: e.target.value }))}
-              required
-            >
-              <option value="">-- Select Course --</option>
-              {allCourses.map(c => (
-                <option key={c._id} value={c._id} className="truncate">
-                  {c.title}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setIssueForm((f) => ({ ...f, courseId: val }))}
+              options={allCourses.map((c) => ({ value: c._id, label: c.title }))}
+              placeholder="-- Select Course --"
+            />
           </div>
           <div className="input-group">
             <label className="input-label">User Email *</label>

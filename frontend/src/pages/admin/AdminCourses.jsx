@@ -8,6 +8,7 @@ import { indexCourseForRag } from '../../api/rag.api';
 import { BookOpen, CheckCircle, Clock, Archive, Search, Sparkles } from 'lucide-react';
 import { SkeletonTable } from '../../components/ui/Spinner';
 import AdminLayout from '../../components/admin/AdminLayout';
+import CustomSelect from '../../components/ui/CustomSelect';
 import toast from 'react-hot-toast';
 
 export default function AdminCourses() {
@@ -123,16 +124,19 @@ export default function AdminCourses() {
             className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
           />
         </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition cursor-pointer truncate min-w-0 max-w-full"
-        >
-          <option value="">All Statuses</option>
-          <option value="published">Published</option>
-          <option value="draft">Draft</option>
-          <option value="archived">Archived</option>
-        </select>
+        <div className="w-full sm:w-44 min-w-0">
+          <CustomSelect
+            value={statusFilter}
+            onChange={(val) => setStatusFilter(val)}
+            options={[
+              { value: '', label: 'All Statuses' },
+              { value: 'published', label: 'Published' },
+              { value: 'draft', label: 'Draft' },
+              { value: 'archived', label: 'Archived' },
+            ]}
+            placeholder="All Statuses"
+          />
+        </div>
       </div>
 
       {/* Table */}

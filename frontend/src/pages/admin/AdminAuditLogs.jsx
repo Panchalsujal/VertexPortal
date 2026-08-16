@@ -3,6 +3,7 @@ import { getAuditLogs } from '../../api/admin.api';
 import { ShieldAlert, Search, Activity, User, Clock, FileText, Eye } from 'lucide-react';
 import { SkeletonTable } from '../../components/ui/Spinner';
 import AdminLayout from '../../components/admin/AdminLayout';
+import CustomSelect from '../../components/ui/CustomSelect';
 import toast from 'react-hot-toast';
 
 export default function AdminAuditLogs() {
@@ -94,17 +95,20 @@ export default function AdminAuditLogs() {
             className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
           />
         </div>
-        <select
-          value={actionFilter}
-          onChange={(e) => setActionFilter(e.target.value)}
-          className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition cursor-pointer"
-        >
-          <option value="">All Actions &amp; Resources</option>
-          <option value="user">User Management</option>
-          <option value="course">Course Actions</option>
-          <option value="coupon">Coupons &amp; Promos</option>
-          <option value="certificate">Certificates</option>
-        </select>
+        <div className="w-full sm:w-56 min-w-0">
+          <CustomSelect
+            value={actionFilter}
+            onChange={(val) => setActionFilter(val)}
+            options={[
+              { value: '', label: 'All Actions & Resources' },
+              { value: 'user', label: 'User Management' },
+              { value: 'course', label: 'Course Actions' },
+              { value: 'coupon', label: 'Coupons & Promos' },
+              { value: 'certificate', label: 'Certificates' },
+            ]}
+            placeholder="All Actions & Resources"
+          />
+        </div>
       </div>
 
       {/* Audit Log Table */}

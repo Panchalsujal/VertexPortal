@@ -6,6 +6,7 @@ import { Star, Search, Trash2, MessageSquare, Award, ThumbsUp, Shield } from 'lu
 import { StarRating } from '../../components/ui/StarRating';
 import { SkeletonTable } from '../../components/ui/Spinner';
 import AdminLayout from '../../components/admin/AdminLayout';
+import CustomSelect from '../../components/ui/CustomSelect';
 import toast from 'react-hot-toast';
 
 export default function AdminReviews() {
@@ -133,18 +134,21 @@ export default function AdminReviews() {
             className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
           />
         </div>
-        <select
-          value={ratingFilter}
-          onChange={(e) => setRatingFilter(e.target.value)}
-          className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition cursor-pointer"
-        >
-          <option value="">All Ratings</option>
-          <option value="5">5 Stars (Excellent)</option>
-          <option value="4">4 Stars (Very Good)</option>
-          <option value="3">3 Stars (Average)</option>
-          <option value="2">2 Stars (Poor)</option>
-          <option value="1">1 Star (Very Poor)</option>
-        </select>
+        <div className="w-full sm:w-48 min-w-0">
+          <CustomSelect
+            value={ratingFilter}
+            onChange={(val) => setRatingFilter(val)}
+            options={[
+              { value: '', label: 'All Ratings' },
+              { value: '5', label: '5 Stars (Excellent)' },
+              { value: '4', label: '4 Stars (Very Good)' },
+              { value: '3', label: '3 Stars (Average)' },
+              { value: '2', label: '2 Stars (Poor)' },
+              { value: '1', label: '1 Star (Very Poor)' },
+            ]}
+            placeholder="All Ratings"
+          />
+        </div>
       </div>
 
       {/* Reviews Table */}

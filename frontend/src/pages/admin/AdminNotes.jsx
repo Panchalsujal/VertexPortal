@@ -5,6 +5,7 @@ import {
   Eye, Trash2, X, AlertCircle, Sparkles, Users, CheckCircle2
 } from 'lucide-react';
 import { SkeletonTable, Spinner } from '../../components/ui/Spinner';
+import CustomSelect from '../../components/ui/CustomSelect';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 
@@ -154,16 +155,19 @@ export default function AdminNotes() {
           </button>
         </form>
 
-        <div className="flex items-center gap-2">
-          <select
-            value={pinnedFilter}
-            onChange={e => setPinnedFilter(e.target.value)}
-            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition cursor-pointer flex-1 sm:flex-initial"
-          >
-            <option value="">All Notes</option>
-            <option value="true">Pinned Only</option>
-            <option value="false">Unpinned Only</option>
-          </select>
+        <div className="flex items-center gap-2 w-full sm:w-auto min-w-0">
+          <div className="w-full sm:w-40 min-w-0">
+            <CustomSelect
+              value={pinnedFilter}
+              onChange={(val) => setPinnedFilter(val)}
+              options={[
+                { value: '', label: 'All Notes' },
+                { value: 'true', label: 'Pinned Only' },
+                { value: 'false', label: 'Unpinned Only' },
+              ]}
+              placeholder="All Notes"
+            />
+          </div>
 
           <button
             onClick={() => {

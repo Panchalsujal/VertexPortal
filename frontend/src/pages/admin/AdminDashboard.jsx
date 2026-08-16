@@ -10,6 +10,7 @@ import {
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { selectUser, logoutUser } from '../../store/slices/authSlice';
 import { getAdminDashboardStats } from '../../api/adminDashboard.api';
+import CustomSelect from '../../components/ui/CustomSelect';
 import toast from 'react-hot-toast';
 
 // ── Sidebar Navigation Sections ──────────────────────────────
@@ -323,19 +324,23 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Period Selector */}
-            <select
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-              className="px-3 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
-            >
-              <option value="7d">Last 7 Days</option>
-              <option value="30d">Last 30 Days</option>
-              <option value="90d">Last 90 Days</option>
-              <option value="1y">Last 1 Year</option>
-              <option value="all">All Time</option>
-            </select>
+            <div className="w-32 sm:w-36 min-w-0">
+              <CustomSelect
+                size="sm"
+                value={period}
+                onChange={(val) => setPeriod(val)}
+                options={[
+                  { value: '7d', label: 'Last 7 Days' },
+                  { value: '30d', label: 'Last 30 Days' },
+                  { value: '90d', label: 'Last 90 Days' },
+                  { value: '1y', label: 'Last 1 Year' },
+                  { value: 'all', label: 'All Time' },
+                ]}
+                placeholder="Period"
+              />
+            </div>
 
             {/* Profile Dropdown */}
             <div className="relative">

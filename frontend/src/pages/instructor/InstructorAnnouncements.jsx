@@ -16,6 +16,7 @@ import {
 import { selectUser } from '../../store/slices/authSlice';
 import { Spinner, SkeletonFeed } from '../../components/ui/Spinner';
 import { Modal } from '../../components/ui/Modal';
+import CustomSelect from '../../components/ui/CustomSelect';
 import {
   Megaphone, Plus, Edit3, CheckCircle, Clock, Trash2,
   Search, Filter, Pin, BookOpen, AlertCircle, Eye, EyeOff,
@@ -214,28 +215,32 @@ export default function InstructorAnnouncements() {
           </div>
 
           <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto min-w-0">
-            <select
-              value={selectedCourseFilter}
-              onChange={e => setSelectedCourseFilter(e.target.value)}
-              className="w-full sm:w-auto min-w-0 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-2.5 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition truncate cursor-pointer"
-            >
-              <option value="">All Courses</option>
-              {courses.map(c => (
-                <option key={c._id} value={c._id}>{c.title}</option>
-              ))}
-            </select>
+            <div className="w-full sm:w-44 min-w-0">
+              <CustomSelect
+                value={selectedCourseFilter}
+                onChange={(val) => setSelectedCourseFilter(val)}
+                options={[
+                  { value: '', label: 'All Courses' },
+                  ...courses.map((c) => ({ value: c._id, label: c.title })),
+                ]}
+                placeholder="All Courses"
+              />
+            </div>
 
-            <div className="flex items-center gap-1.5 min-w-0">
-              <select
-                value={selectedStatusFilter}
-                onChange={e => setSelectedStatusFilter(e.target.value)}
-                className="w-full sm:w-auto min-w-0 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-2.5 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition cursor-pointer"
-              >
-                <option value="">All Statuses</option>
-                <option value="published">Published</option>
-                <option value="draft">Draft</option>
-                <option value="archived">Archived</option>
-              </select>
+            <div className="flex items-center gap-1.5 min-w-0 w-full sm:w-auto">
+              <div className="w-full sm:w-36 min-w-0">
+                <CustomSelect
+                  value={selectedStatusFilter}
+                  onChange={(val) => setSelectedStatusFilter(val)}
+                  options={[
+                    { value: '', label: 'All Statuses' },
+                    { value: 'published', label: 'Published' },
+                    { value: 'draft', label: 'Draft' },
+                    { value: 'archived', label: 'Archived' },
+                  ]}
+                  placeholder="All Statuses"
+                />
+              </div>
 
               <button
                 onClick={() => {
@@ -380,19 +385,12 @@ export default function InstructorAnnouncements() {
               <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
                 Target Course *
               </label>
-              <select
-                className="w-full max-w-full min-w-0 truncate bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+              <CustomSelect
                 value={form.courseId}
-                onChange={e => setForm(f => ({ ...f, courseId: e.target.value }))}
-                required
-              >
-                <option value="">Select a Course</option>
-                {courses.map(c => (
-                  <option key={c._id} value={c._id} className="truncate">
-                    {c.title}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setForm((f) => ({ ...f, courseId: val }))}
+                options={courses.map((c) => ({ value: c._id, label: c.title }))}
+                placeholder="Select a Course"
+              />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -400,29 +398,27 @@ export default function InstructorAnnouncements() {
                 <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
                   Announcement Type
                 </label>
-                <select
-                  className="w-full max-w-full min-w-0 truncate bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                <CustomSelect
                   value={form.type}
-                  onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-                >
-                  {ANNOUNCEMENT_TYPES.map(t => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setForm((f) => ({ ...f, type: val }))}
+                  options={ANNOUNCEMENT_TYPES}
+                  placeholder="Select Type"
+                />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
                   Publish Status
                 </label>
-                <select
-                  className="w-full max-w-full min-w-0 truncate bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                <CustomSelect
                   value={form.status}
-                  onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
-                >
-                  <option value="published">Publish Immediately</option>
-                  <option value="draft">Save as Draft</option>
-                </select>
+                  onChange={(val) => setForm((f) => ({ ...f, status: val }))}
+                  options={[
+                    { value: 'published', label: 'Publish Immediately' },
+                    { value: 'draft', label: 'Save as Draft' },
+                  ]}
+                  placeholder="Select Status"
+                />
               </div>
             </div>
 
