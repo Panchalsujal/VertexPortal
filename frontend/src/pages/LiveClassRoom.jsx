@@ -344,16 +344,23 @@ function StreamConnectedStage({
       }
     } catch (e) {
       console.warn('Failed to toggle mic:', e);
+      const isBrave = (navigator?.brave && typeof navigator?.brave?.isBrave === 'function') || !!window?.chrome?.brave;
       const msg = e?.message || '';
-      if (msg.includes('Permission') || msg.includes('NotAllowedError')) {
+
+      if (isBrave) {
         toast.error(
-          'Microphone blocked by browser! Click the lock/settings icon in URL bar and allow Microphone.',
+          'Brave Shields is blocking your mic! Click the Lion Icon in your URL bar and turn Shields OFF for this site.',
+          { duration: 9000, icon: '🦁' }
+        );
+      } else if (msg.includes('Permission') || msg.includes('NotAllowedError')) {
+        toast.error(
+          'Microphone blocked! Click the lock/tune icon in your browser URL bar and set Microphone to Allow.',
           { duration: 7000 }
         );
       } else if (msg.includes('NotFound') || msg.includes('DevicesNotFoundError')) {
-        toast.error('No microphone found. Please check your PC audio device.', { duration: 5000 });
+        toast.error('No microphone found. Please connect a microphone or headset to your PC.', { duration: 5000 });
       } else if (msg.includes('NotReadableError') || msg.includes('TrackStartError')) {
-        toast.error('Microphone is in use by another app. Please close other meeting apps.', { duration: 5000 });
+        toast.error('Microphone is in use by another app (Zoom/Teams/Discord). Please close other meeting apps.', { duration: 5000 });
       } else {
         toast.error(msg || 'Could not access microphone');
       }
