@@ -1,9 +1,39 @@
+import { Resend } from "resend";
 import nodemailer from "nodemailer";
 import { config } from "../config/config.js";
+
+// Initialize Resend client if API key is provided
+const resend = config.RESEND_API_KEY ? new Resend(config.RESEND_API_KEY) : null;
 
 // Cached Google OAuth2 Access Token for HTTPS requests
 let cachedAccessToken = null;
 let tokenExpiresAt = 0;
+
+/**
+ * Send email via Resend REST API over HTTPS (Port 443)
+ * Best for Vercel, Render, AWS, and serverless environments.
+ */
+async function sendViaResend({ to, subject, text = "", html = "", replyTo = null }) {
+  if (!resend) {
+    throw new Error("Resend is not initialized (RESEND_API_KEY missing)");
+  }
+
+  const { data, error } = await resend.emails.send({
+    from: config.EMAIL_FROM || "Vertex LMS <onboarding@resend.dev>",
+    to: Array.isArray(to) ? to : [to],
+    subject,
+    text: text || undefined,
+    html: html || undefined,
+    ...(replyTo ? { reply_to: replyTo } : {}),
+  });
+
+  if (error) {
+    throw new Error(error.message || "Failed to send email via Resend");
+  }
+
+  console.log(`[EMAIL-RESEND] Email delivered successfully to ${to} (ID: ${data?.id})`);
+  return { messageId: data?.id };
+}
 
 /**
  * Fetch / refresh Google OAuth2 Access Token over HTTPS (Port 443)
@@ -43,7 +73,7 @@ async function sendViaGmailRestApi({ to, subject, text = "", html = "", replyTo 
 
   const utf8Subject = `=?utf-8?B?${Buffer.from(subject, "utf-8").toString("base64")}?=`;
   const messageParts = [
-    `From: "Vertex LMS" <${config.EMAIL_USER}>`,
+    `From: ${config.EMAIL_FROM || `"Vertex LMS" <${config.EMAIL_USER}>`}`,
     `To: ${to}`,
     `Subject: ${utf8Subject}`,
     `MIME-Version: 1.0`,
@@ -150,7 +180,16 @@ export async function sendEmail({
     throw new Error("Email text or HTML content is required");
   }
 
-  // 1. Primary: Send via Google Gmail REST API over HTTPS (Port 443)
+  // 1. Primary: Send via Resend REST API over HTTPS (Port 443)
+  if (resend) {
+    try {
+      return await sendViaResend({ to, subject, text, html, replyTo });
+    } catch (resendError) {
+      console.warn(`[EMAIL-RESEND] Resend delivery warning: ${resendError.message}. Attempting fallback...`);
+    }
+  }
+
+  // 2. Secondary: Send via Google Gmail REST API over HTTPS (Port 443)
   if (config.GOOGLE_CLIENT_ID && config.GOOGLE_CLIENT_SECRET && config.GOOGLE_REFRESH_TOKEN) {
     try {
       return await sendViaGmailRestApi({ to, subject, text, html, replyTo });
@@ -159,11 +198,11 @@ export async function sendEmail({
     }
   }
 
-  // 2. Secondary: Fallback SMTP if configured
+  // 3. Tertiary: Fallback SMTP if configured
   if (fallbackTransporter) {
     try {
       const info = await fallbackTransporter.sendMail({
-        from: `"Vertex LMS" <${config.EMAIL_USER}>`,
+        from: config.EMAIL_FROM || `"Vertex LMS" <${config.EMAIL_USER}>`,
         to,
         subject,
         text: text || undefined,

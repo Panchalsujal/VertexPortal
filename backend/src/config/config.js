@@ -13,25 +13,9 @@ if (!process.env.JWT_EXPIRES_IN) {
   throw new Error("JWT_EXPIRES_IN is not defined in the environment variables");
 }
 
-if (!process.env.EMAIL_USER) {
-  throw new Error("EMAIL_USER is not defined in the environment variables");
-}
-if (!process.env.GOOGLE_CLIENT_ID) {
-  throw new Error(
-    " GOOGLE_CLIENT_IDis not defined in the environment variables",
-  );
-}
-
-if (!process.env.GOOGLE_REFRESH_TOKEN) {
-  throw new Error(
-    "GOOGLE_cREFRESH_TOKEN is not defined in the environment variables",
-  );
-}
-
-if (!process.env.GOOGLE_CLIENT_SECRET) {
-  throw new Error(
-    "GOOGLE_CLIENT_SECRETis not defined in the environment variables",
-  );
+// Email configuration: At least RESEND_API_KEY, GOOGLE OAuth, or SMTP is recommended.
+if (!process.env.RESEND_API_KEY && !process.env.GOOGLE_CLIENT_ID && !process.env.EMAIL_USER && !process.env.SMTP_HOST) {
+  console.warn("[CONFIG-WARNING] No email provider configured (RESEND_API_KEY, GOOGLE OAuth, or SMTP). Email sending will fallback to mock/logging.");
 }
 if (!process.env.API_URL) {
   throw new Error("API_URL is not defined in the environment variables");
@@ -107,6 +91,8 @@ export const config = {
   JWT_SECRET: process.env.JWT_SECRET,
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN,
   EMAIL_USER: process.env.EMAIL_USER,
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  EMAIL_FROM: process.env.EMAIL_FROM || (process.env.EMAIL_USER ? `"Vertex LMS" <${process.env.EMAIL_USER}>` : "Vertex LMS <onboarding@resend.dev>"),
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
   GOOGLE_REFRESH_TOKEN: process.env.GOOGLE_REFRESH_TOKEN,
