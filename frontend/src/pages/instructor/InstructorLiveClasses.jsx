@@ -135,52 +135,55 @@ export default function InstructorLiveClasses() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-[Inter,sans-serif] pb-16">
       {/* Header Banner */}
-      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 py-6 px-4 sm:px-6 lg:px-8 shadow-xs">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
+      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 py-4 sm:py-6 px-3.5 sm:px-6 lg:px-8 shadow-xs">
+        <div className="max-w-7xl mx-auto flex flex-col gap-3 sm:gap-4">
+          {/* Navigation & Actions Top Row */}
+          <div className="flex items-center justify-between gap-2">
+            <button
+              onClick={() => {
+                if (window.history.length > 1 && window.history.state?.idx > 0) {
+                  navigate(-1);
+                } else {
+                  navigate('/dashboard');
+                }
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 transition cursor-pointer shrink-0"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Back
+            </button>
+
+            <div className="flex items-center gap-2 shrink-0">
               <button
-                onClick={() => {
-                  if (window.history.length > 1 && window.history.state?.idx > 0) {
-                    navigate(-1);
-                  } else {
-                    navigate('/dashboard');
-                  }
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 transition cursor-pointer"
+                onClick={() => dispatch(fetchLiveClasses())}
+                className="p-2 sm:p-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 transition cursor-pointer"
+                title="Refresh List"
               >
-                <ArrowLeft className="w-3.5 h-3.5" /> Back
+                <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
-              <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2 tracking-tight">
-                <Video className="w-7 h-7 text-purple-600" /> Manage Live Classes
-              </h1>
+              <button
+                onClick={openCreate}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl inline-flex items-center gap-1.5 sm:gap-2 shadow-md shadow-purple-950/20 transition cursor-pointer shrink-0"
+              >
+                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Schedule Live Class
+              </button>
             </div>
-            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-              Schedule interactive sessions & send automated email notifications to enrolled students.
-            </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
-            <button
-              onClick={() => dispatch(fetchLiveClasses())}
-              className="p-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 transition cursor-pointer"
-              title="Refresh List"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
-            <button
-              onClick={openCreate}
-              className="bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl inline-flex items-center gap-2 shadow-md shadow-purple-950/20 transition cursor-pointer"
-            >
-              <Plus className="w-4 h-4" /> Schedule Live Class
-            </button>
+          {/* Title & Description */}
+          <div>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2 tracking-tight">
+              <Video className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 shrink-0" /> Manage Live Classes
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+              Schedule interactive sessions &amp; send automated email notifications to enrolled students.
+            </p>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-4 sm:pt-6">
         {/* Status Filter Tabs */}
-        <div className="flex flex-wrap items-center gap-2 mb-6 border-b border-gray-200 dark:border-slate-800 pb-3">
+        <div className="flex items-center gap-2 mb-5 border-b border-gray-200 dark:border-slate-800 pb-3 overflow-x-auto no-scrollbar whitespace-nowrap">
           {[
             { id: 'all', label: 'All Sessions' },
             { id: 'scheduled', label: 'Scheduled' },
@@ -191,7 +194,7 @@ export default function InstructorLiveClasses() {
             <button
               key={tab.id}
               onClick={() => setStatusFilter(tab.id)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 ${
                 statusFilter === tab.id
                   ? 'bg-purple-600 text-white shadow-xs'
                   : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600'
@@ -203,9 +206,9 @@ export default function InstructorLiveClasses() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-white dark:bg-slate-900 border border-gray-200/90 dark:border-slate-800 rounded-3xl p-6 shadow-sm animate-pulse space-y-4">
+              <div key={i} className="bg-white dark:bg-slate-900 border border-gray-200/90 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm animate-pulse space-y-4">
                 <div className="flex justify-between items-center">
                   <div className="h-5 bg-gray-200 dark:bg-gray-800 rounded-full w-28" />
                   <div className="h-5 bg-gray-200 dark:bg-gray-800 rounded-full w-16" />
@@ -217,7 +220,7 @@ export default function InstructorLiveClasses() {
             ))}
           </div>
         ) : filteredClasses.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredClasses.map(item => {
               const timingStatus = getClassTimingStatus(item);
               const courseTitle = item.course?.title || courses.find(c => c._id === item.course)?.title || 'Course';
@@ -360,13 +363,13 @@ export default function InstructorLiveClasses() {
             })}
           </div>
         ) : (
-          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-12 text-center">
-            <Video className="w-12 h-12 text-gray-300 dark:text-slate-700 mx-auto mb-3" />
-            <h3 className="text-base font-bold text-gray-900 dark:text-white">No live classes found</h3>
-            <p className="text-xs text-gray-400 mt-1">Schedule a live class to connect with enrolled learners in real-time.</p>
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-6 sm:p-12 text-center">
+            <Video className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 dark:text-slate-700 mx-auto mb-3" />
+            <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">No live classes found</h3>
+            <p className="text-xs text-gray-400 mt-1 max-w-sm mx-auto">Schedule a live class to connect with enrolled learners in real-time.</p>
             <button
               onClick={openCreate}
-              className="bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl inline-flex items-center gap-1.5 mt-4 transition cursor-pointer"
+              className="bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl inline-flex items-center gap-1.5 mt-4 transition cursor-pointer shadow-md shadow-purple-950/20"
             >
               <Plus className="w-4 h-4" /> Schedule First Live Class
             </button>

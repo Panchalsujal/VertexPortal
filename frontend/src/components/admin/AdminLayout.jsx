@@ -154,7 +154,7 @@ export default function AdminLayout({ children, title, subtitle, actions, showBa
       <main className="flex-1 lg:ml-56 min-h-screen flex flex-col">
         {/* Top Header */}
         <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-30">
-          <div className="flex items-center gap-3 px-6 py-3.5">
+          <div className="flex items-center gap-2 sm:gap-3 px-3.5 sm:px-6 py-3 sm:py-3.5">
             <button
               type="button"
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -173,7 +173,7 @@ export default function AdminLayout({ children, title, subtitle, actions, showBa
                   navigate('/admin');
                 }
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200 transition cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200 transition cursor-pointer shrink-0"
               title="Go back to previous page"
             >
               <ArrowLeft className="w-3.5 h-3.5" /> Back
@@ -191,7 +191,7 @@ export default function AdminLayout({ children, title, subtitle, actions, showBa
               />
             </div>
 
-            <div className="flex items-center gap-2 ml-auto">
+            <div className="flex items-center gap-1 sm:gap-2 ml-auto">
               <Link to="/discussions" className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition" title="Discussions">
                 <MessageSquare className="w-4 h-4" />
               </Link>
@@ -205,7 +205,7 @@ export default function AdminLayout({ children, title, subtitle, actions, showBa
                 <button
                   type="button"
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-2.5 ml-2 pl-3 border-l border-gray-200 dark:border-gray-700 hover:opacity-80 transition cursor-pointer text-left"
+                  className="flex items-center gap-2 sm:gap-2.5 ml-1 sm:ml-2 pl-2 sm:pl-3 border-l border-gray-200 dark:border-gray-700 hover:opacity-80 transition cursor-pointer text-left"
                 >
                   <div
                     className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm shrink-0 overflow-hidden border border-purple-200 dark:border-purple-800"
@@ -281,17 +281,17 @@ export default function AdminLayout({ children, title, subtitle, actions, showBa
 
         {/* Page Title Row (if provided) */}
         {(title || actions) && (
-          <div className="flex flex-wrap items-center justify-between gap-3 px-6 pt-5 pb-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-3.5 sm:px-6 pt-4 sm:pt-5 pb-2">
             <div>
-              {title && <h1 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h1>}
-              {subtitle && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{subtitle}</p>}
+              {title && <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white leading-snug">{title}</h1>}
+              {subtitle && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">{subtitle}</p>}
             </div>
-            {actions && <div className="flex items-center gap-2">{actions}</div>}
+            {actions && <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">{actions}</div>}
           </div>
         )}
 
         {/* Page Content */}
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-3.5 sm:p-6">
           {children}
         </div>
       </main>

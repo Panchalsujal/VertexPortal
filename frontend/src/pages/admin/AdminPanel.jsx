@@ -319,24 +319,40 @@ export default function AdminPanel() {
       title="System Categories, Coupons & Certificates"
       subtitle="Manage global platform configurations, categories, promotional coupons, and student certificates"
       actions={
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div className="flex items-center gap-2 flex-wrap">
           {activeTab === 'categories' && (
-            <button className="btn btn-primary" onClick={() => { setActiveCat(null); setCatForm({ name: '', description: '' }); setCatModalOpen(true); }}>
-              <FolderPlus size={16} /> Add Category
+            <button
+              className="flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs text-white shadow-md transition-all hover:opacity-90 cursor-pointer shrink-0"
+              style={{ background: 'linear-gradient(135deg, #6C5CE7 0%, #5046d4 100%)' }}
+              onClick={() => { setActiveCat(null); setCatForm({ name: '', description: '' }); setCatModalOpen(true); }}
+            >
+              <FolderPlus size={15} /> Add Category
             </button>
           )}
           {activeTab === 'coupons' && (
-            <button className="btn btn-primary" onClick={() => { setActiveCoupon(null); setCouponForm({ code: '', discountType: 'percentage', discountValue: 10, maxDiscountAmount: '', minOrderAmount: 0, usageLimit: 100, expiresAt: '' }); setCouponModalOpen(true); }}>
-              <Plus size={16} /> Create Coupon
+            <button
+              className="flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs text-white shadow-md transition-all hover:opacity-90 cursor-pointer shrink-0"
+              style={{ background: 'linear-gradient(135deg, #6C5CE7 0%, #5046d4 100%)' }}
+              onClick={() => { setActiveCoupon(null); setCouponForm({ code: '', discountType: 'percentage', discountValue: 10, maxDiscountAmount: '', minOrderAmount: 0, usageLimit: 100, expiresAt: '' }); setCouponModalOpen(true); }}
+            >
+              <Plus size={15} /> Create Coupon
             </button>
           )}
           {activeTab === 'certificates' && (
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button className="btn btn-secondary" onClick={handleRetryBulk} title="Retry Failed Issuances">
-                <RotateCcw size={16} /> Bulk Retry
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 transition cursor-pointer"
+                onClick={handleRetryBulk}
+                title="Retry Failed Issuances"
+              >
+                <RotateCcw size={14} /> Bulk Retry
               </button>
-              <button className="btn btn-primary" onClick={() => { setIssueForm({ courseId: '', userEmail: '', enrollmentId: '' }); setIssueModalOpen(true); }}>
-                <Award size={16} /> Issue Certificate
+              <button
+                className="flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs text-white shadow-md transition-all hover:opacity-90 cursor-pointer shrink-0"
+                style={{ background: 'linear-gradient(135deg, #6C5CE7 0%, #5046d4 100%)' }}
+                onClick={() => { setIssueForm({ courseId: '', userEmail: '', enrollmentId: '' }); setIssueModalOpen(true); }}
+              >
+                <Award size={15} /> Issue Certificate
               </button>
             </div>
           )}
@@ -345,18 +361,18 @@ export default function AdminPanel() {
     >
       <div>
         {/* Tabs */}
-        <div className="tabs">
-          <button className={`tab-btn ${activeTab === 'categories' ? 'active' : ''}`} onClick={() => handleTabChange('categories')}>
+        <div className="tabs no-scrollbar overflow-x-auto whitespace-nowrap flex-nowrap pb-1">
+          <button className={`tab-btn shrink-0 ${activeTab === 'categories' ? 'active' : ''}`} onClick={() => handleTabChange('categories')}>
             Categories ({categories.length})
           </button>
-          <button className={`tab-btn ${activeTab === 'coupons' ? 'active' : ''}`} onClick={() => handleTabChange('coupons')}>
+          <button className={`tab-btn shrink-0 ${activeTab === 'coupons' ? 'active' : ''}`} onClick={() => handleTabChange('coupons')}>
             Coupons ({coupons.length})
           </button>
-          <button className={`tab-btn ${activeTab === 'certificates' ? 'active' : ''}`} onClick={() => handleTabChange('certificates')}>
+          <button className={`tab-btn shrink-0 ${activeTab === 'certificates' ? 'active' : ''}`} onClick={() => handleTabChange('certificates')}>
             <Award size={15} /> Certificates ({certificates.length})
           </button>
-          <button className={`tab-btn ${activeTab === 'reviews' ? 'active' : ''}`} onClick={() => handleTabChange('reviews')}>
-            <Star size={15} className="fill-amber-400 text-amber-400 inline" /> Course Reviews & Ratings ({adminReviews.length})
+          <button className={`tab-btn shrink-0 ${activeTab === 'reviews' ? 'active' : ''}`} onClick={() => handleTabChange('reviews')}>
+            <Star size={15} className="fill-amber-400 text-amber-400 inline" /> Reviews & Ratings ({adminReviews.length})
           </button>
         </div>
 
@@ -366,14 +382,14 @@ export default function AdminPanel() {
             {catLoading ? (
               <SkeletonFeed count={3} />
             ) : categories.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.25rem' }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
                 {categories.map(cat => (
-                  <div key={cat._id} className="glass-card" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div key={cat._id} className="glass-card p-4 sm:p-5 flex flex-col justify-between rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800">
                     <div>
-                      <h3 style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>{cat.name}</h3>
-                      <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{cat.description || 'No description'}</p>
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-1.5">{cat.name}</h3>
+                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-clamp-3">{cat.description || 'No description'}</p>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
+                    <div className="flex justify-end items-center gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
                       <button className="btn btn-ghost btn-sm" onClick={() => { setActiveCat(cat); setCatForm({ name: cat.name, description: cat.description || '' }); setCatModalOpen(true); }}>
                         <Edit3 size={14} /> Edit
                       </button>
@@ -385,7 +401,7 @@ export default function AdminPanel() {
                 ))}
               </div>
             ) : (
-              <div className="empty-state">
+              <div className="empty-state p-8 sm:p-12">
                 <div className="empty-state-icon"><FolderPlus size={48} /></div>
                 <h3>No categories yet</h3>
               </div>
@@ -399,28 +415,28 @@ export default function AdminPanel() {
             {couponLoading ? (
               <SkeletonFeed count={3} />
             ) : coupons.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.25rem' }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
                 {coupons.map(cop => (
-                  <div key={cop._id} className="glass-card" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div key={cop._id} className="glass-card p-4 sm:p-5 flex flex-col justify-between rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800">
                     <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                        <span style={{ fontWeight: 800, fontSize: '1.125rem', letterSpacing: '0.05em', color: 'var(--color-primary-light)' }}>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-extrabold text-base tracking-wider text-purple-600 dark:text-purple-400">
                           {cop.code}
                         </span>
                         <span className={`badge ${cop.isActive ? 'badge-success' : 'badge-warning'}`}>
                           {cop.isActive ? 'Active' : 'Disabled'}
                         </span>
                       </div>
-                      <p style={{ fontSize: '0.9375rem', fontWeight: 600 }}>
+                      <p className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">
                         {cop.discountType === 'percentage' ? `${cop.discountValue}% OFF` : `₹${cop.discountValue} OFF`}
                       </p>
-                      <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 space-y-0.5">
                         <div>Min Order: ₹{cop.minOrderAmount || 0}</div>
                         {cop.usageLimit && <div>Limit: {cop.timesUsed || 0} / {cop.usageLimit}</div>}
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
+                    <div className="flex justify-end items-center gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
                       <button className="btn btn-ghost btn-sm" onClick={() => handleToggleCoupon(cop._id, cop.isActive)}>
                         {cop.isActive ? <ToggleRight size={18} color="var(--color-success)" /> : <ToggleLeft size={18} />}
                       </button>
@@ -435,7 +451,7 @@ export default function AdminPanel() {
                 ))}
               </div>
             ) : (
-              <div className="empty-state">
+              <div className="empty-state p-8 sm:p-12">
                 <div className="empty-state-icon"><Tag size={48} /></div>
                 <h3>No coupons created</h3>
               </div>
@@ -449,24 +465,24 @@ export default function AdminPanel() {
             {certLoading ? (
               <SkeletonFeed count={4} />
             ) : certificates.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="flex flex-col gap-3 sm:gap-4">
                 {certificates.map(cert => (
-                  <div key={cert._id} className="glass-card" style={{ padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div key={cert._id} className="glass-card p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3 sm:gap-4 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800">
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
+                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                         <span className="badge badge-primary">{cert.course?.title || cert.courseTitle || 'Course'}</span>
                         <span className={`badge ${cert.isRevoked ? 'badge-danger' : 'badge-success'}`}>
                           {cert.isRevoked ? 'Revoked' : 'Active'}
                         </span>
                       </div>
-                      <h4 style={{ fontSize: '1rem', fontWeight: 600 }}>{cert.user?.fullName || cert.userEmail || cert.userName || 'Student'}</h4>
-                      <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
-                        Code: <code style={{ color: 'var(--color-primary-light)' }}>{cert.verificationCode || cert._id}</code>
+                      <h4 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">{cert.user?.fullName || cert.userEmail || cert.userName || 'Student'}</h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        Code: <code className="text-purple-600 dark:text-purple-400 font-semibold">{cert.verificationCode || cert._id}</code>
                         {' · '} Issued: {new Date(cert.issuedAt || cert.createdAt).toLocaleDateString()}
                       </p>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <div className="flex items-center gap-2 flex-wrap">
                       <button className="btn btn-secondary btn-sm" onClick={() => handleDownloadAdminPdf(cert._id, cert.course?.title)} title="Download PDF">
                         <Download size={14} /> PDF
                       </button>
@@ -487,7 +503,7 @@ export default function AdminPanel() {
                 ))}
               </div>
             ) : (
-              <div className="empty-state">
+              <div className="empty-state p-8 sm:p-12">
                 <div className="empty-state-icon"><Award size={48} /></div>
                 <h3>No certificates found</h3>
                 <p>Certificates earned by students will appear here.</p>
@@ -502,34 +518,34 @@ export default function AdminPanel() {
             {reviewLoading ? (
               <SkeletonTable rows={5} cols={5} />
             ) : adminReviews.length > 0 ? (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-xs">
-                <table className="w-full text-left border-collapse">
+              <div className="bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-xs overflow-x-auto">
+                <table className="w-full min-w-[620px] text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50 dark:bg-slate-800/60 border-b border-gray-200 dark:border-slate-800 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      <th className="p-4">Student</th>
-                      <th className="p-4">Course</th>
-                      <th className="p-4">Rating</th>
-                      <th className="p-4">Comment</th>
-                      <th className="p-4 text-right">Actions</th>
+                      <th className="p-3.5 sm:p-4">Student</th>
+                      <th className="p-3.5 sm:p-4">Course</th>
+                      <th className="p-3.5 sm:p-4">Rating</th>
+                      <th className="p-3.5 sm:p-4">Comment</th>
+                      <th className="p-3.5 sm:p-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-slate-800/60 text-sm text-gray-900 dark:text-white">
                     {adminReviews.map((rev) => (
                       <tr key={rev._id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/40 transition">
-                        <td className="p-4">
+                        <td className="p-3.5 sm:p-4">
                           <div className="font-semibold text-gray-900 dark:text-white">{rev.student?.fullName || rev.user?.fullName || 'Student'}</div>
                           <div className="text-xs text-gray-500 dark:text-gray-400">{rev.student?.email || rev.user?.email || 'N/A'}</div>
                         </td>
-                        <td className="p-4 text-xs font-medium text-blue-600 dark:text-blue-400">
+                        <td className="p-3.5 sm:p-4 text-xs font-medium text-purple-600 dark:text-purple-400">
                           {rev.course?.title || rev.courseTitle || 'Course'}
                         </td>
-                        <td className="p-4">
+                        <td className="p-3.5 sm:p-4">
                           <StarRating rating={rev.rating || 5} size={14} />
                         </td>
-                        <td className="p-4 text-xs text-gray-700 dark:text-gray-300 max-w-sm">
+                        <td className="p-3.5 sm:p-4 text-xs text-gray-700 dark:text-gray-300 max-w-xs sm:max-w-sm truncate">
                           {rev.comment || rev.content || 'No review comment text'}
                         </td>
-                        <td className="p-4 text-right">
+                        <td className="p-3.5 sm:p-4 text-right">
                           <button
                             onClick={async () => {
                               if (window.confirm('Delete this student review?')) {
@@ -542,7 +558,7 @@ export default function AdminPanel() {
                                 }
                               }
                             }}
-                            className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition"
+                            className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition cursor-pointer"
                             title="Delete Review"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -554,9 +570,9 @@ export default function AdminPanel() {
                 </table>
               </div>
             ) : (
-              <div className="glass-card text-center py-12 text-gray-500 dark:text-gray-400">
-                <Star className="w-12 h-12 mx-auto mb-3 text-amber-400" />
-                <p className="font-semibold text-sm">No Course Ratings & Reviews Found</p>
+              <div className="glass-card text-center py-10 sm:py-12 p-4 text-gray-500 dark:text-gray-400 rounded-xl sm:rounded-2xl">
+                <Star className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 text-amber-400" />
+                <p className="font-semibold text-sm">No Course Ratings &amp; Reviews Found</p>
                 <p className="text-xs mt-1">Student reviews will appear here once submitted on course pages.</p>
               </div>
             )}
