@@ -360,9 +360,9 @@ export default function AdminPanel() {
         </div>
       }
     >
-      <div>
+      <div className="w-full max-w-full min-w-0 overflow-hidden">
         {/* Tabs */}
-        <div className="tabs no-scrollbar overflow-x-auto whitespace-nowrap flex-nowrap pb-1">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar whitespace-nowrap pb-2 mb-5 border-b border-gray-100 dark:border-gray-800 w-full max-w-full">
           <button className={`tab-btn shrink-0 ${activeTab === 'categories' ? 'active' : ''}`} onClick={() => handleTabChange('categories')}>
             Categories ({categories.length})
           </button>
@@ -373,22 +373,22 @@ export default function AdminPanel() {
             <Award size={15} /> Certificates ({certificates.length})
           </button>
           <button className={`tab-btn shrink-0 ${activeTab === 'reviews' ? 'active' : ''}`} onClick={() => handleTabChange('reviews')}>
-            <Star size={15} className="fill-amber-400 text-amber-400 inline" /> Reviews & Ratings ({adminReviews.length})
+            <Star size={15} className="fill-amber-400 text-amber-400 inline" /> Reviews &amp; Ratings ({adminReviews.length})
           </button>
         </div>
 
         {/* Categories Tab */}
         {activeTab === 'categories' && (
-          <div>
+          <div className="w-full min-w-0 max-w-full">
             {catLoading ? (
               <SkeletonFeed count={3} />
             ) : categories.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5 min-w-0 max-w-full">
                 {categories.map(cat => (
-                  <div key={cat._id} className="glass-card p-4 sm:p-5 flex flex-col justify-between rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800">
-                    <div>
-                      <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-1.5">{cat.name}</h3>
-                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-clamp-3">{cat.description || 'No description'}</p>
+                  <div key={cat._id} className="bg-white dark:bg-gray-900 p-4 sm:p-5 flex flex-col justify-between rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm min-w-0 max-w-full">
+                    <div className="min-w-0">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-1.5 truncate">{cat.name}</h3>
+                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-clamp-3 break-words">{cat.description || 'No description'}</p>
                     </div>
                     <div className="flex justify-end items-center gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
                       <button className="btn btn-ghost btn-sm" onClick={() => { setActiveCat(cat); setCatForm({ name: cat.name, description: cat.description || '' }); setCatModalOpen(true); }}>
@@ -412,19 +412,19 @@ export default function AdminPanel() {
 
         {/* Coupons Tab */}
         {activeTab === 'coupons' && (
-          <div>
+          <div className="w-full min-w-0 max-w-full">
             {couponLoading ? (
               <SkeletonFeed count={3} />
             ) : coupons.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5 min-w-0 max-w-full">
                 {coupons.map(cop => (
-                  <div key={cop._id} className="glass-card p-4 sm:p-5 flex flex-col justify-between rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800">
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-extrabold text-base tracking-wider text-purple-600 dark:text-purple-400">
+                  <div key={cop._id} className="bg-white dark:bg-gray-900 p-4 sm:p-5 flex flex-col justify-between rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm min-w-0 max-w-full">
+                    <div className="min-w-0">
+                      <div className="flex justify-between items-center mb-2 gap-2">
+                        <span className="font-extrabold text-base tracking-wider text-purple-600 dark:text-purple-400 truncate">
                           {cop.code}
                         </span>
-                        <span className={`badge ${cop.isActive ? 'badge-success' : 'badge-warning'}`}>
+                        <span className={`badge shrink-0 ${cop.isActive ? 'badge-success' : 'badge-warning'}`}>
                           {cop.isActive ? 'Active' : 'Disabled'}
                         </span>
                       </div>
@@ -462,40 +462,54 @@ export default function AdminPanel() {
 
         {/* Certificates Tab */}
         {activeTab === 'certificates' && (
-          <div>
+          <div className="w-full min-w-0 max-w-full">
             {certLoading ? (
               <SkeletonFeed count={4} />
             ) : certificates.length > 0 ? (
-              <div className="flex flex-col gap-3 sm:gap-4">
+              <div className="flex flex-col gap-3 sm:gap-4 min-w-0 max-w-full">
                 {certificates.map(cert => (
-                  <div key={cert._id} className="glass-card p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3 sm:gap-4 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                        <span className="badge badge-primary">{cert.course?.title || cert.courseTitle || 'Course'}</span>
-                        <span className={`badge ${cert.isRevoked ? 'badge-danger' : 'badge-success'}`}>
+                  <div key={cert._id} className="bg-white dark:bg-gray-900 p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3 sm:gap-4 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm min-w-0 max-w-full overflow-hidden">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap min-w-0">
+                        <span className="inline-block px-2.5 py-1 rounded-xl text-xs font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-100 dark:border-purple-900/40 break-words max-w-full">
+                          {cert.course?.title || cert.courseTitle || 'Course'}
+                        </span>
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold shrink-0 ${
+                          cert.isRevoked ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200' : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${cert.isRevoked ? 'bg-rose-500' : 'bg-emerald-500'}`} />
                           {cert.isRevoked ? 'Revoked' : 'Active'}
                         </span>
                       </div>
-                      <h4 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">{cert.user?.fullName || cert.userEmail || cert.userName || 'Student'}</h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                        Code: <code className="text-purple-600 dark:text-purple-400 font-semibold">{cert.verificationCode || cert._id}</code>
-                        {' · '} Issued: {new Date(cert.issuedAt || cert.createdAt).toLocaleDateString()}
-                      </p>
+                      <h4 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white truncate">
+                        {cert.user?.fullName || cert.userEmail || cert.userName || 'Student'}
+                      </h4>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 space-y-1 min-w-0">
+                        <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+                          <span className="shrink-0 text-gray-400">Code:</span>
+                          <code className="text-purple-600 dark:text-purple-400 font-semibold font-mono text-[11px] break-all bg-purple-50/60 dark:bg-purple-950/40 px-1.5 py-0.5 rounded max-w-full">
+                            {cert.verificationCode || cert._id}
+                          </code>
+                        </div>
+                        <p className="text-[11px] text-gray-400">
+                          Issued: {new Date(cert.issuedAt || cert.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <button className="btn btn-secondary btn-sm" onClick={() => handleDownloadAdminPdf(cert._id, cert.course?.title)} title="Download PDF">
+                    <div className="flex items-center gap-2 flex-wrap shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100 dark:border-gray-800">
+                      <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 transition cursor-pointer" onClick={() => handleDownloadAdminPdf(cert._id, cert.course?.title)} title="Download PDF">
                         <Download size={14} /> PDF
                       </button>
-                      <button className="btn btn-ghost btn-sm" onClick={() => handleRegeneratePdf(cert._id)} title="Regenerate PDF">
+                      <button className="p-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition cursor-pointer" onClick={() => handleRegeneratePdf(cert._id)} title="Regenerate PDF">
                         <RefreshCw size={14} />
                       </button>
                       {cert.isRevoked ? (
-                        <button className="btn btn-secondary btn-sm" onClick={() => handleRestore(cert._id)}>
+                        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-emerald-200 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 transition cursor-pointer" onClick={() => handleRestore(cert._id)}>
                           <RotateCcw size={14} /> Restore
                         </button>
                       ) : (
-                        <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-error)' }} onClick={() => { setSelectedCert(cert); setRevokeReason(''); setRevokeModalOpen(true); }}>
+                        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-rose-200 bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 hover:bg-rose-100 transition cursor-pointer" onClick={() => { setSelectedCert(cert); setRevokeReason(''); setRevokeModalOpen(true); }}>
                           <XCircle size={14} /> Revoke
                         </button>
                       )}
