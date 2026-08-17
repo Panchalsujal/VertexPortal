@@ -59,10 +59,22 @@ jobs:
           path: ./frontend/dist
           retention-days: 7
 
-  # ── 2. BACKEND CI: Syntax Check, Environment & Automated Tests ───
+  # ── 2. BACKEND CI: Syntax Check, Redis Tier & Automated Tests ────
   backend-ci:
-    name: Backend Syntax & Test Suite
+    name: Backend Syntax & Test Suite (with Redis Tier)
     runs-on: ubuntu-latest
+
+    # Ephemeral Redis service container for live L2 caching & test validation
+    services:
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
 
     defaults:
       run:
@@ -87,11 +99,17 @@ jobs:
           node -c server.js
           node -c src/app.js
 
+      - name: Test Redis Connection & Cache Operations
+        run: npm run test:redis
+        env:
+          REDIS_URL: redis://127.0.0.1:6379
+
       - name: Run Backend Automated Test Suites (Circuit Breaker & SSR Cache)
         run: npm test
         env:
           NODE_ENV: test
           PORT: 4000
+          REDIS_URL: redis://127.0.0.1:6379
           JWT_SECRET: ci_pipeline_jwt_secret_token_123456789_abcdef
           JWT_EXPIRES_IN: 7d
           AUTO_VERIFY_EMAIL: "true"
