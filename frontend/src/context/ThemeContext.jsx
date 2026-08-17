@@ -1,11 +1,8 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import gsap from 'gsap';
+import React, { useEffect, useState, useCallback } from 'react';
+import { flushSync } from 'react-dom';
+import { ThemeContext, useTheme } from './useTheme';
 
-const ThemeContext = createContext({
-  isDark: false,
-  toggleTheme: () => {},
-  setTheme: () => {},
-});
+export { useTheme };
 
 export function ThemeProvider({ children }) {
   const [isDark, setIsDark] = useState(() => {
@@ -51,14 +48,30 @@ export function ThemeProvider({ children }) {
   }, []);
 
   /**
-   * GSAP Powered Circular Expanding Ripple Dark Mode Reveal (Celikk.me reference)
-   * Guaranteed 100% 60FPS fluid circular wave without any dropped frames or software raster lag
+   * Buttery-Smooth Real-Time Circular Theme Reveal
+   * Uses hardware View Transitions + Quintic Ease-Out clipPath
    */
   const toggleTheme = useCallback((event) => {
     const willBeDark = !isDark;
     const root = document.documentElement;
 
-    // Get origin coordinates from click or button center
+    // Fallback for browsers without View Transitions API or reduced motion
+    if (
+      !document.startViewTransition ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      setIsDark(willBeDark);
+      if (willBeDark) {
+        root.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        root.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      }
+      return;
+    }
+
+    // Get origin coordinates from click event or button center
     let x = event?.clientX;
     let y = event?.clientY;
 
@@ -73,46 +86,15 @@ export function ThemeProvider({ children }) {
       }
     }
 
-    // Calculate maximum radius to completely engulf viewport corners
+    // Calculate maximum radius to completely cover all viewport corners
     const endRadius = Math.hypot(
       Math.max(x, window.innerWidth - x),
       Math.max(y, window.innerHeight - y)
     );
 
-    // Target fill color
-    const targetBg = willBeDark ? '#0d0f1a' : '#f8fafc';
-
-    // Clean up any lingering ripple if clicked rapidly
-    document.querySelectorAll('.theme-ripple-overlay').forEach((el) => el.remove());
-
-    // Create ripple circle overlay element
-    const ripple = document.createElement('div');
-    ripple.className = 'theme-ripple-overlay fixed rounded-full pointer-events-none';
-    const diameter = endRadius * 2.2;
-
-    Object.assign(ripple.style, {
-      position: 'fixed',
-      left: `${x}px`,
-      top: `${y}px`,
-      width: `${diameter}px`,
-      height: `${diameter}px`,
-      backgroundColor: targetBg,
-      borderRadius: '50%',
-      transform: 'translate(-50%, -50%) scale(0)',
-      zIndex: '999999',
-      pointerEvents: 'none',
-      willChange: 'transform, opacity',
-    });
-
-    document.body.appendChild(ripple);
-
-    // Animate the expanding circular wave using GSAP
-    gsap.to(ripple, {
-      scale: 1,
-      duration: 0.52,
-      ease: 'power2.inOut',
-      onComplete: () => {
-        // Apply target theme
+    // Run View Transition with synchronous DOM update
+    const transition = document.startViewTransition(() => {
+      flushSync(() => {
         setIsDark(willBeDark);
         if (willBeDark) {
           root.classList.add('dark');
@@ -121,17 +103,23 @@ export function ThemeProvider({ children }) {
           root.classList.remove('dark');
           localStorage.setItem('theme', 'light');
         }
+      });
+    });
 
-        // Fade out overlay cleanly
-        gsap.to(ripple, {
-          opacity: 0,
-          duration: 0.22,
-          ease: 'power1.out',
-          onComplete: () => {
-            ripple.remove();
-          },
-        });
-      },
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 520,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+          pseudoElement: '::view-transition-new(root)',
+        }
+      );
     });
   }, [isDark]);
 
@@ -155,10 +143,4 @@ export function ThemeProvider({ children }) {
   );
 }
 
-export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
-}
+export default ThemeProvider;
