@@ -48,6 +48,7 @@ const sidebarSections = [
     label: 'REPORTS & AUDIT',
     items: [
       { to: '/admin/audit',            icon: BarChart2,       label: 'Audit Logs' },
+      { to: '/admin/live-attendance',  icon: Video,           label: 'Live Attendance' },
     ],
   },
   {
@@ -585,22 +586,23 @@ export default function AdminDashboard() {
           </div>
 
           {/* Quick Actions Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4">
             {[
-              { label: 'Manage Users',    icon: Users,       to: '/admin/users',    color: '#8B5CF6' },
-              { label: 'Manage Courses',  icon: BookOpen,    to: '/admin/courses',  color: '#10B981' },
-              { label: 'View Orders',     icon: ShoppingBag, to: '/admin/orders',   color: '#3B82F6' },
-              { label: 'Audit Logs',      icon: BarChart2,   to: '/admin/audit',    color: '#EF4444' },
+              { label: 'Manage Users',    icon: Users,       to: '/admin/users',            color: '#8B5CF6' },
+              { label: 'Manage Courses',  icon: BookOpen,    to: '/admin/courses',          color: '#10B981' },
+              { label: 'View Orders',     icon: ShoppingBag, to: '/admin/orders',           color: '#3B82F6' },
+              { label: 'Live Attendance', icon: Video,       to: '/admin/live-attendance',  color: '#EC4899' },
+              { label: 'Audit Logs',      icon: BarChart2,   to: '/admin/audit',            color: '#EF4444' },
             ].map(({ label, icon: Icon, to, color }) => (
               <Link
                 key={to}
                 to={to}
-                className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl p-4 flex items-center gap-3 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all group"
+                className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl p-3.5 sm:p-4 flex items-center gap-3 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all group"
               >
-                <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform" style={{ backgroundColor: `${color}15` }}>
-                  <Icon className="w-5 h-5" style={{ color }} />
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform" style={{ backgroundColor: `${color}15` }}>
+                  <Icon className="w-4 h-4 sm:w-5 sm:h-5" style={{ color }} />
                 </div>
-                <span className="text-xs sm:text-sm font-bold text-gray-800 dark:text-gray-200">{label}</span>
+                <span className="text-xs sm:text-sm font-bold text-gray-800 dark:text-gray-200 truncate">{label}</span>
               </Link>
             ))}
           </div>

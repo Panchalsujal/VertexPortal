@@ -190,11 +190,24 @@ const liveClassSchema = new mongoose.Schema(
       default: null,
     },
 
+    cancelledBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+      index: true,
+    },
+
     cancellationReason: {
       type: String,
       trim: true,
       default: "",
       maxlength: 1000,
+    },
+
+    attendanceCount: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
 
     startedAtActual: {

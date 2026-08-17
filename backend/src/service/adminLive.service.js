@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 import LiveClass from "../models/liveClass.model.js";
 import Enrollment from "../models/enrollment.model.js";
+import {parseBooleanQuery, parseDateRange, parseSortQuery} from "../utils/queryParser.js";
 
 import { ApiError } from "../utils/ApiError.js";
 import { validateObjectId, validateRequired } from "../utils/validator.js";
@@ -56,6 +57,7 @@ export async function getLiveClassById(liveClassId) {
         avatarUrl
         role
       `,
+      strictPopulate: false,
     })
     .lean();
 
@@ -241,12 +243,17 @@ export async function getLiveClasses(query = {}) {
         instructor
         title
         description
+        startsAt
+        endsAt
         scheduledStartAt
         scheduledEndAt
         actualStartAt
         actualEndAt
+        durationInMinutes
         status
+        provider
         meetingProvider
+        meetingUrl
         roomName
         externalMeetingUrl
         recordingUrl
@@ -277,6 +284,7 @@ export async function getLiveClasses(query = {}) {
       .populate({
         path: "cancelledBy",
         select: "fullName email avatarUrl role",
+        strictPopulate: false,
       })
       .sort({
         [selectedSortField]: sortOrder,
@@ -289,8 +297,16 @@ export async function getLiveClasses(query = {}) {
     LiveClass.countDocuments(filter),
   ]);
 
+  const formattedClasses = liveClasses.map((lc) => ({
+    ...lc,
+    startsAt: lc.startsAt || lc.scheduledStartAt || lc.createdAt,
+    endsAt: lc.endsAt || lc.scheduledEndAt || lc.createdAt,
+    scheduledStartAt: lc.scheduledStartAt || lc.startsAt || lc.createdAt,
+    scheduledEndAt: lc.scheduledEndAt || lc.endsAt || lc.createdAt,
+  }));
+
   return {
-    liveClasses,
+    liveClasses: formattedClasses,
 
     pagination: buildPaginationMeta({
       page,

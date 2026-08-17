@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   fetchConversations, fetchConversation, startConversation, sendMessage,
-  renameConversation, removeConversation,
+  renameConversation, removeConversation, markMessageAnimated,
   selectAiConversations, selectCurrentConversation, selectAiMessages,
   selectAiSending, selectAiLoading,
 } from '../store/slices/aiSlice';
@@ -20,7 +21,7 @@ import {
 import {
   Send, Plus, Trash2, Edit2, Check, X, Copy, CheckCheck,
   Search, RefreshCw, Lightbulb, GraduationCap,
-  PanelLeftClose, PanelLeftOpen, Menu, Bot, User
+  PanelLeftClose, PanelLeftOpen, Menu, Bot, User, FastForward
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
@@ -77,11 +78,11 @@ const MD_COMPONENTS = {
   h1: (props) => <h1 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mt-4 mb-2 pb-1 border-b border-gray-100 dark:border-gray-800" {...props} />,
   h2: (props) => <h2 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white mt-3 mb-1.5" {...props} />,
   h3: (props) => <h3 className="text-xs sm:text-sm font-bold text-purple-700 dark:text-purple-300 mt-2.5 mb-1" {...props} />,
-  p: ({ node, children, ...props }) => <div className="mb-2.5 last:mb-0 leading-relaxed text-gray-800 dark:text-gray-200" {...props}>{children}</div>,
+  p: ({ node, children, ...props }) => <div className="mb-2.5 last:mb-0 leading-relaxed text-gray-800 dark:text-gray-200 inline" {...props}>{children}</div>,
   strong: (props) => <strong className="font-bold text-purple-950 dark:text-purple-200 bg-purple-50/70 dark:bg-purple-950/40 px-1 py-0.5 rounded" {...props} />,
   em: (props) => <em className="italic text-purple-600 dark:text-purple-400" {...props} />,
-  ul: (props) => <ul className="list-disc pl-5 mb-3 space-y-1.5 text-gray-800 dark:text-gray-200" {...props} />,
-  ol: (props) => <ol className="list-decimal pl-5 mb-3 space-y-1.5 text-gray-800 dark:text-gray-200" {...props} />,
+  ul: (props) => <ul className="list-disc pl-5 mb-3 space-y-1.5 text-gray-800 dark:text-gray-200 block" {...props} />,
+  ol: (props) => <ol className="list-decimal pl-5 mb-3 space-y-1.5 text-gray-800 dark:text-gray-200 block" {...props} />,
   li: (props) => <li className="leading-relaxed" {...props} />,
   code: ({ inline, className, children, ...props }) =>
     inline ? (
@@ -92,10 +93,10 @@ const MD_COMPONENTS = {
       <CodeBlock className={className}>{children}</CodeBlock>
     ),
   blockquote: (props) => (
-    <blockquote className="border-l-4 border-purple-500 pl-3.5 italic my-3 text-gray-600 dark:text-gray-300 bg-purple-50/40 dark:bg-purple-950/20 py-2 rounded-r-xl" {...props} />
+    <blockquote className="border-l-4 border-purple-500 pl-3.5 italic my-3 text-gray-600 dark:text-gray-300 bg-purple-50/40 dark:bg-purple-950/20 py-2 rounded-r-xl block" {...props} />
   ),
   table: (props) => (
-    <div className="overflow-x-auto my-4 rounded-2xl border border-gray-200 dark:border-gray-700/80 shadow-sm bg-white dark:bg-gray-900">
+    <div className="overflow-x-auto my-4 rounded-2xl border border-gray-200 dark:border-gray-700/80 shadow-sm bg-white dark:bg-gray-900 block">
       <table className="w-full text-left border-collapse text-xs sm:text-sm" {...props} />
     </div>
   ),
@@ -103,33 +104,37 @@ const MD_COMPONENTS = {
   th: (props) => <th className="px-4 py-3 font-bold text-xs uppercase tracking-wider text-gray-700 dark:text-gray-300 border-r border-gray-200/60 dark:border-gray-700/60 last:border-r-0" {...props} />,
   td: (props) => <td className="px-4 py-2.5 border-t border-r border-gray-100 dark:border-gray-800/60 last:border-r-0 text-gray-700 dark:text-gray-200" {...props} />,
   tr: (props) => <tr className="hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors" {...props} />,
-  hr: (props) => <hr className="my-4 border-gray-200 dark:border-gray-800" {...props} />,
+  hr: (props) => <hr className="my-4 border-gray-200 dark:border-gray-800 block" {...props} />,
 };
 
 /**
- * FormattedMarkdown — renders markdown with an append-only typewriter effect.
- *
- * KEY FIX: we track `typedRef.current` (how many chars we've typed so far)
- * and only schedule new intervals when fresh content arrives beyond what we
- * already typed.  This prevents the re-start-from-zero bug when `content`
- * grows incrementally during streaming, and stops the input from blurring.
+ * FormattedMarkdown — authentic ChatGPT-like streaming typewriter effect
+ * with dynamic token pacing, live blinking cursor, skip capability, and auto-scroll trigger.
  */
-function FormattedMarkdown({ content = '', animate = false, onComplete }) {
+function FormattedMarkdown({ content = '', animate = false, onComplete, onTypingTick }) {
   const [displayedText, setDisplayedText] = useState(() => (animate ? '' : content));
-  const [isTyping, setIsTyping]           = useState(() => animate && Boolean(content));
+  const [isTyping, setIsTyping] = useState(() => Boolean(animate && content));
 
-  // How many characters we've already typed — persists across content updates
-  const typedRef     = useRef(animate ? 0 : content.length);
-  const intervalRef  = useRef(null);
+  const typedRef = useRef(animate ? 0 : content.length);
+  const intervalRef = useRef(null);
   const onCompleteRef = useRef(onComplete);
-  useEffect(() => { onCompleteRef.current = onComplete; });
+  const onTypingTickRef = useRef(onTypingTick);
 
   useEffect(() => {
-    // Non-animated: just display immediately
+    onCompleteRef.current = onComplete;
+    onTypingTickRef.current = onTypingTick;
+  });
+
+  useEffect(() => {
+    // If not set to animate, render full content immediately
     if (!animate) {
       setDisplayedText(content);
       setIsTyping(false);
       typedRef.current = content.length;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
       return;
     }
 
@@ -137,32 +142,34 @@ function FormattedMarkdown({ content = '', animate = false, onComplete }) {
 
     const totalLength = content.length;
 
-    // Nothing new to type (already fully displayed)
+    // Reset if content changed or if we need to start fresh for this message
     if (typedRef.current >= totalLength) {
-      setDisplayedText(content);
-      setIsTyping(false);
-      return;
+      typedRef.current = 0;
+      setDisplayedText('');
     }
 
-    // Start / continue the typewriter from where we left off
     setIsTyping(true);
-    const step = 4; // chars per tick
 
-    // Clear any previous interval before starting a new one
+    // Natural token streaming speed:
+    // Paced at ~16ms (60fps) with dynamic chunking so short answers feel snappy & long answers don't take ages
+    const step = Math.max(2, Math.min(10, Math.ceil(totalLength / 120)));
+
     if (intervalRef.current) clearInterval(intervalRef.current);
 
     intervalRef.current = setInterval(() => {
       typedRef.current += step;
+
       if (typedRef.current >= totalLength) {
         typedRef.current = totalLength;
         setDisplayedText(content);
         setIsTyping(false);
         onCompleteRef.current?.();
+        onTypingTickRef.current?.();
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       } else {
-        // Only slice from content — never restart from 0
         setDisplayedText(content.slice(0, typedRef.current));
+        onTypingTickRef.current?.();
       }
     }, 16);
 
@@ -172,33 +179,61 @@ function FormattedMarkdown({ content = '', animate = false, onComplete }) {
         intervalRef.current = null;
       }
     };
-  // We deliberately exclude onComplete from deps — we use a ref for it
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content, animate]);
 
-  const handleSkipTypewriter = () => {
+  const handleSkipTypewriter = (e) => {
+    e?.stopPropagation();
     if (isTyping) {
-      if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
       typedRef.current = content.length;
       setDisplayedText(content);
       setIsTyping(false);
       onCompleteRef.current?.();
+      onTypingTickRef.current?.();
     }
   };
 
   return (
-    // Clicking the typing response skips to full text instantly
-    <div
-      className="prose dark:prose-invert max-w-none text-xs sm:text-sm leading-relaxed"
-      onClick={handleSkipTypewriter}
-      style={isTyping ? { cursor: 'pointer' } : undefined}
-      title={isTyping ? 'Click to skip animation' : undefined}
-    >
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={MD_COMPONENTS}>
-        {displayedText}
-      </ReactMarkdown>
+    <div className="relative group/typing">
+      <div
+        className="prose dark:prose-invert max-w-none text-xs sm:text-sm leading-relaxed"
+        onClick={handleSkipTypewriter}
+        style={isTyping ? { cursor: 'pointer' } : undefined}
+        title={isTyping ? 'Click to skip typing animation' : undefined}
+      >
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={MD_COMPONENTS}>
+          {displayedText}
+        </ReactMarkdown>
+
+        {/* ChatGPT Style Blinking Block Cursor */}
+        {isTyping && (
+          <span
+            className="inline-block w-2 h-4 sm:w-2.5 sm:h-4.5 bg-gradient-to-t from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400 ml-1 rounded-[2px] animate-pulse align-middle shadow-xs"
+            aria-hidden="true"
+          />
+        )}
+      </div>
+
+      {/* Floating Skip Control while actively typing */}
       {isTyping && (
-        <span className="inline-block w-1.5 h-4 bg-purple-600 dark:bg-purple-400 ml-1 animate-pulse align-middle rounded-xs" />
+        <div className="mt-2 pt-1.5 border-t border-gray-100 dark:border-gray-800/80 flex items-center justify-between text-[11px] text-gray-400 select-none">
+          <span className="flex items-center gap-1.5 text-purple-600 dark:text-purple-400 font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-ping" />
+            Generating response...
+          </span>
+          <button
+            type="button"
+            onClick={handleSkipTypewriter}
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-purple-100 dark:hover:bg-purple-950 text-gray-600 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 font-semibold transition cursor-pointer"
+            title="Reveal complete response"
+          >
+            <FastForward className="w-3 h-3" />
+            <span>Skip</span>
+          </button>
+        </div>
       )}
     </div>
   );
@@ -206,10 +241,18 @@ function FormattedMarkdown({ content = '', animate = false, onComplete }) {
 
 /**
  * ChatMessage — memoized so that previously-sent messages do NOT re-render
- * while the latest AI message is streaming.  This prevents input focus loss.
+ * while the latest AI message is streaming. This keeps performance butter-smooth.
  */
 const ChatMessage = React.memo(function ChatMessage({
-  message: m, isAssistant, isAnimating, sources, copiedMsgId, msgIdx, onCopy, onAnimationComplete,
+  message: m,
+  isAssistant,
+  isAnimating,
+  sources,
+  copiedMsgId,
+  msgIdx,
+  onCopy,
+  onAnimationComplete,
+  onTypingTick,
 }) {
   return (
     <div className={`flex items-start gap-2 sm:gap-3.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -234,6 +277,7 @@ const ChatMessage = React.memo(function ChatMessage({
               content={m.content}
               animate={isAnimating}
               onComplete={onAnimationComplete}
+              onTypingTick={onTypingTick}
             />
           )}
         </div>
@@ -292,6 +336,7 @@ const INSPIRATION_PROMPTS = [
 
 export default function AiChat() {
   const dispatch = useAppDispatch();
+  const [searchParams, setSearchParams] = useSearchParams();
   const conversations = useAppSelector(selectAiConversations);
   const current = useAppSelector(selectCurrentConversation);
   const messages = useAppSelector(selectAiMessages);
@@ -312,8 +357,9 @@ export default function AiChat() {
     return typeof window !== 'undefined' ? window.innerWidth >= 1024 : true;
   });
 
-  const messagesContainerRef = useRef(null);
+  const scrollerRef = useRef(null);
   const textareaRef = useRef(null);
+  const queryParamHandled = useRef(false);
 
   useEffect(() => {
     dispatch(fetchConversations());
@@ -322,14 +368,18 @@ export default function AiChat() {
       .catch(() => {});
   }, [dispatch]);
 
+  // Handle incoming query param (?q=... and optional &courseId=...)
   useEffect(() => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTo({
-        top: messagesContainerRef.current.scrollHeight,
-        behavior: 'smooth',
-      });
+    const q = searchParams.get('q');
+    const cId = searchParams.get('courseId');
+    if (cId) setCourseId(cId);
+
+    if (q && !queryParamHandled.current) {
+      queryParamHandled.current = true;
+      setInputMsg(q);
+      setSearchParams({}, { replace: true });
     }
-  }, [messages, sending]);
+  }, [searchParams, setSearchParams]);
 
   const handleStartChat = async (presetCourseId = courseId) => {
     try {
@@ -375,6 +425,11 @@ export default function AiChat() {
       textareaRef.current.style.height = 'auto';
     }
 
+    // Scroll to bottom immediately as user message is placed
+    setTimeout(() => {
+      scrollerRef.current?.scrollToBottom('smooth');
+    }, 50);
+
     try {
       const res = await dispatch(
         sendMessage({
@@ -389,6 +444,9 @@ export default function AiChat() {
 
       const newBotId = res?.assistantMessage?._id || res?.aiMessage?._id || 'latest-response';
       setAnimatingMsgId(newBotId);
+      setTimeout(() => {
+        scrollerRef.current?.scrollToBottom('smooth');
+      }, 50);
     } catch (err) {
       toast.error(err || 'Failed to generate AI response');
     }
@@ -648,6 +706,7 @@ export default function AiChat() {
 
         {/* Message Stream with Shadcn MessageScroller */}
         <MessageScroller
+          ref={scrollerRef}
           className="px-3 sm:px-6 py-3 sm:py-6 space-y-3 sm:space-y-6"
         >
           <div className="max-w-3xl mx-auto space-y-3 sm:space-y-6">
@@ -692,10 +751,11 @@ export default function AiChat() {
               const isLatest = isAssistant && idx === messages.length - 1;
               const sources = m.sources || m.metadata?.sources || [];
               const isAnimating = Boolean(
-                animatingMsgId &&
+                m.shouldAnimate ||
+                (animatingMsgId &&
                   (animatingMsgId === m._id ||
                     animatingMsgId === m.id ||
-                    (animatingMsgId === 'latest-response' && isLatest))
+                    (animatingMsgId === 'latest-response' && isLatest)))
               );
 
               return (
@@ -708,7 +768,15 @@ export default function AiChat() {
                   copiedMsgId={copiedMsgId}
                   msgIdx={idx}
                   onCopy={handleCopyMessage}
-                  onAnimationComplete={() => setAnimatingMsgId(null)}
+                  onAnimationComplete={() => {
+                    setAnimatingMsgId(null);
+                    if (m._id) {
+                      dispatch(markMessageAnimated(m._id));
+                    }
+                  }}
+                  onTypingTick={() => {
+                    scrollerRef.current?.scrollToBottom('auto');
+                  }}
                 />
               );
             })}

@@ -45,7 +45,13 @@ const aiSlice = createSlice({
     conversations: [], current: null, messages: [],
     pagination: null, sending: false, loading: false, error: null,
   },
-  reducers: { clearAiChat: (s) => { s.current = null; s.messages = []; } },
+  reducers: {
+    clearAiChat: (s) => { s.current = null; s.messages = []; },
+    markMessageAnimated: (s, a) => {
+      const msg = s.messages.find(m => m._id === a.payload || m.id === a.payload);
+      if (msg) msg.shouldAnimate = false;
+    },
+  },
   extraReducers: (b) => {
     b
       .addCase(fetchConversations.pending, (s) => { s.loading = true; })
@@ -53,17 +59,38 @@ const aiSlice = createSlice({
       .addCase(fetchConversations.rejected, (s, a) => { s.loading = false; s.error = a.payload; })
       .addCase(fetchConversation.fulfilled, (s, a) => { s.current = a.payload.conversation; s.messages = a.payload.messages || []; })
       .addCase(startConversation.fulfilled, (s, a) => { s.conversations.unshift(a.payload); s.current = a.payload; s.messages = []; })
-      .addCase(sendMessage.pending, (s) => { s.sending = true; })
+      .addCase(sendMessage.pending, (s, a) => {
+        s.sending = true;
+        s.error = null;
+        const userContent = a.meta?.arg?.data?.content || a.meta?.arg?.data?.message;
+        if (userContent) {
+          s.messages.push({
+            _id: `temp-user-${Date.now()}`,
+            role: 'user',
+            content: userContent,
+            createdAt: new Date().toISOString(),
+          });
+        }
+      })
       .addCase(sendMessage.fulfilled, (s, a) => {
         s.sending = false;
-        if (a.payload.userMessage) s.messages.push(a.payload.userMessage);
+        // Replace temporary optimistic message
+        s.messages = s.messages.filter(m => !m._id?.startsWith('temp-user-'));
+        if (a.payload.userMessage) {
+          s.messages.push(a.payload.userMessage);
+        }
         const botMsg = a.payload.assistantMessage || a.payload.aiMessage;
         if (botMsg) {
           if (a.payload.sources) botMsg.sources = a.payload.sources;
+          botMsg.shouldAnimate = true;
           s.messages.push(botMsg);
         }
       })
-      .addCase(sendMessage.rejected, (s, a) => { s.sending = false; s.error = a.payload; })
+      .addCase(sendMessage.rejected, (s, a) => {
+        s.sending = false;
+        s.messages = s.messages.filter(m => !m._id?.startsWith('temp-user-'));
+        s.error = a.payload;
+      })
       .addCase(renameConversation.fulfilled, (s, a) => {
         const i = s.conversations.findIndex(c => c._id === a.payload._id);
         if (i !== -1) s.conversations[i] = a.payload;
@@ -80,7 +107,7 @@ const aiSlice = createSlice({
   },
 });
 
-export const { clearAiChat } = aiSlice.actions;
+export const { clearAiChat, markMessageAnimated } = aiSlice.actions;
 export const selectAiConversations = (s) => s.ai.conversations;
 export const selectCurrentConversation = (s) => s.ai.current;
 export const selectAiMessages = (s) => s.ai.messages;

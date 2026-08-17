@@ -11,6 +11,11 @@ import {
   restoreLiveClassController,
 } from "../controllers/admin.controller.js";
 
+import {
+  getInstructorLiveClassAttendanceController,
+  getInstructorLiveClassAttendanceAnalyticsController,
+} from "../controllers/liveClass.controller.js";
+
 const router = Router();
 
 router.get(
@@ -25,6 +30,20 @@ router.get(
   authMiddleware,
   authorizeRoles("admin"),
   getLiveClassByIdController,
+);
+
+router.get(
+  "/:liveClassId/attendance",
+  authMiddleware,
+  authorizeRoles("admin"),
+  getInstructorLiveClassAttendanceController,
+);
+
+router.get(
+  "/:liveClassId/attendance/analytics",
+  authMiddleware,
+  authorizeRoles("admin"),
+  getInstructorLiveClassAttendanceAnalyticsController,
 );
 
 router.patch(

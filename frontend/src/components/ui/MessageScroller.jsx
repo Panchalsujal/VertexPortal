@@ -5,23 +5,28 @@ import { ArrowDown } from 'lucide-react';
  * Shadcn-style MessageScroller component with auto-scroll & scroll to bottom trigger
  * https://ui.shadcn.com/docs/components/base/message-scroller
  */
-export function MessageScroller({
+export const MessageScroller = React.forwardRef(function MessageScroller({
   children,
   className = '',
   autoScroll = true,
   ...props
-}) {
+}, ref) {
   const containerRef = useRef(null);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = (behavior = 'smooth') => {
     if (containerRef.current) {
       containerRef.current.scrollTo({
         top: containerRef.current.scrollHeight,
-        behavior: 'smooth',
+        behavior,
       });
     }
   };
+
+  React.useImperativeHandle(ref, () => ({
+    scrollToBottom,
+    getContainer: () => containerRef.current,
+  }));
 
   const handleScroll = () => {
     if (containerRef.current) {
@@ -51,7 +56,7 @@ export function MessageScroller({
       {showScrollBottom && (
         <button
           type="button"
-          onClick={scrollToBottom}
+          onClick={() => scrollToBottom('smooth')}
           className="absolute bottom-4 right-4 z-20 p-2.5 rounded-full bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-600/30 transition-all hover:scale-105 active:scale-95 cursor-pointer animate-in fade-in"
           title="Scroll to bottom"
         >
@@ -60,6 +65,6 @@ export function MessageScroller({
       )}
     </div>
   );
-}
+});
 
 export default MessageScroller;
