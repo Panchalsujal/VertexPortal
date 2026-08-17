@@ -1,11 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PanelLeftClose, PanelLeftOpen, Menu } from 'lucide-react';
-
-const SidebarContext = createContext({
-  open: false,
-  setOpen: () => {},
-  toggleSidebar: () => {},
-});
+import { SidebarContext, useSidebar } from './useSidebar';
 
 /**
  * Shadcn-style Sidebar component
@@ -41,14 +36,6 @@ export function SidebarProvider({
       <div className={`flex min-h-screen w-full ${className}`}>{children}</div>
     </SidebarContext.Provider>
   );
-}
-
-export function useSidebar() {
-  const context = useContext(SidebarContext);
-  if (!context) {
-    throw new Error('useSidebar must be used within a SidebarProvider');
-  }
-  return context;
 }
 
 export function Sidebar({ children, className = '' }) {

@@ -15,8 +15,8 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarTrigger,
-  useSidebar,
 } from '../ui/Sidebar';
+import { useSidebar } from '../ui/useSidebar';
 import toast from 'react-hot-toast';
 
 const sidebarSections = [

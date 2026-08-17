@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Toaster as HotToaster } from 'react-hot-toast';
 import { X, CheckCircle2, AlertCircle, Info, AlertTriangle } from 'lucide-react';
-
-const ToastContext = createContext(null);
+import { ToastContext } from './useToast';
 
 /**
  * Shadcn-style Toaster configuration wrapper
@@ -43,7 +42,7 @@ export function Toaster(props) {
 }
 
 /**
- * Custom Shadcn-style Toast Provider & useToast Hook
+ * Custom Shadcn-style Toast Provider
  */
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
@@ -81,14 +80,6 @@ export function ToastProvider({ children }) {
       </div>
     </ToastContext.Provider>
   );
-}
-
-export function useToast() {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
-  }
-  return context;
 }
 
 function ToastItem({ toast, onDismiss }) {
