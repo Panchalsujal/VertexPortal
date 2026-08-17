@@ -1,70 +1,70 @@
 import { Link } from 'react-router-dom';
-import { ShieldCheck, ArrowLeft, Lock, Eye, Database, Globe, Clock } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, Lock, Eye, Database, Globe, Clock, Sparkles } from 'lucide-react';
 
 export default function LegalPrivacy() {
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0d0f1a] text-gray-900 dark:text-gray-100 font-[Inter,sans-serif] py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0d0f1a] text-gray-900 dark:text-gray-100 font-[Inter,sans-serif] py-6 sm:py-10 md:py-12 px-3.5 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
         
         {/* Top Navigation */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-[#161928] text-xs font-bold text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 shadow-2xs transition"
+            className="inline-flex items-center self-start gap-2 px-3.5 py-2 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-[#161928] text-xs font-bold text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 shadow-xs hover:shadow-sm transition active:scale-95"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 shrink-0" />
             <span>Back to Home</span>
           </Link>
           <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 font-medium">
-            <Clock className="w-3.5 h-3.5 text-purple-500" />
+            <Clock className="w-3.5 h-3.5 text-purple-500 shrink-0" />
             <span>Last Updated: August 2026</span>
           </div>
         </div>
 
         {/* Hero Header */}
-        <div className="rounded-3xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 dark:from-[#151230] dark:via-[#1a1540] dark:to-[#0f0d22] border border-purple-400/40 dark:border-purple-600/30 p-8 sm:p-10 text-white shadow-xl relative overflow-hidden">
-          <div className="relative z-10 space-y-3">
+        <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 dark:from-[#151230] dark:via-[#1a1540] dark:to-[#0f0d22] border border-purple-400/40 dark:border-purple-600/30 p-5 sm:p-8 md:p-10 text-white shadow-xl relative overflow-hidden">
+          <div className="relative z-10 space-y-3 sm:space-y-4">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 dark:bg-purple-900/60 text-white dark:text-purple-200 text-xs font-bold backdrop-blur-md">
-              <ShieldCheck className="w-4 h-4 text-emerald-300" />
+              <ShieldCheck className="w-4 h-4 text-emerald-300 shrink-0" />
               <span>Data Protection &amp; Privacy</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white break-words">
               VertexPortal Privacy Policy
             </h1>
-            <p className="text-sm sm:text-base text-purple-100 dark:text-purple-200/90 leading-relaxed max-w-2xl">
+            <p className="text-xs sm:text-sm md:text-base text-purple-100 dark:text-purple-200/90 leading-relaxed max-w-2xl">
               We value your trust and are dedicated to safeguarding your personal data, code snippets, and learning credentials with enterprise-grade encryption.
             </p>
           </div>
         </div>
 
         {/* Policy Content Sections */}
-        <div className="bg-white dark:bg-[#161928] border border-gray-200/90 dark:border-[#2a2f4e] rounded-3xl p-6 sm:p-10 shadow-sm space-y-8 text-sm sm:text-base text-gray-700 dark:text-slate-300 leading-relaxed">
+        <div className="bg-white dark:bg-[#161928] border border-gray-200/90 dark:border-[#2a2f4e] rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10 shadow-sm space-y-6 sm:space-y-8 text-xs sm:text-sm md:text-base text-gray-700 dark:text-slate-300 leading-relaxed">
           
-          <section className="space-y-3">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <section className="space-y-2.5 sm:space-y-3">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <Database className="w-5 h-5 text-purple-600 dark:text-purple-400 shrink-0" />
-              1. Information We Collect
+              <span>1. Information We Collect</span>
             </h2>
-            <p>
+            <p className="text-gray-700 dark:text-slate-300">
               When you use VertexPortal, we collect information you provide directly to us:
             </p>
-            <ul className="list-disc pl-5 space-y-1.5 text-xs sm:text-sm text-gray-600 dark:text-slate-400">
-              <li><strong>Account Profile:</strong> Full name, email address, avatar, role (Student, Instructor), and authentication credentials.</li>
-              <li><strong>Learning Activity:</strong> Course progress, lecture completions, quiz submissions, assignment files, and certificates earned.</li>
-              <li><strong>Interactive Inputs:</strong> Prompts submitted to the AI Tutor, playground code snippets, and discussion forum replies.</li>
-              <li><strong>Payment Records:</strong> Transaction IDs, order timestamps, and coupon usage records (we do not store raw credit card numbers).</li>
+            <ul className="list-disc pl-4 sm:pl-5 space-y-1.5 text-xs sm:text-sm text-gray-600 dark:text-slate-400">
+              <li><strong className="text-gray-900 dark:text-slate-200">Account Profile:</strong> Full name, email address, avatar, role (Student, Instructor), and authentication credentials.</li>
+              <li><strong className="text-gray-900 dark:text-slate-200">Learning Activity:</strong> Course progress, lecture completions, quiz submissions, assignment files, and certificates earned.</li>
+              <li><strong className="text-gray-900 dark:text-slate-200">Interactive Inputs:</strong> Prompts submitted to the AI Tutor, playground code snippets, and discussion forum replies.</li>
+              <li><strong className="text-gray-900 dark:text-slate-200">Payment Records:</strong> Transaction IDs, order timestamps, and coupon usage records (we do not store raw credit card numbers).</li>
             </ul>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <section className="space-y-2.5 sm:space-y-3">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <Lock className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-              2. How We Use and Protect Your Data
+              <span>2. How We Use and Protect Your Data</span>
             </h2>
-            <p>
+            <p className="text-gray-700 dark:text-slate-300">
               Your data is utilized strictly to provide, personalize, and enhance the LMS platform:
             </p>
-            <ul className="list-disc pl-5 space-y-1.5 text-xs sm:text-sm text-gray-600 dark:text-slate-400">
+            <ul className="list-disc pl-4 sm:pl-5 space-y-1.5 text-xs sm:text-sm text-gray-600 dark:text-slate-400">
               <li>Delivering contextual AI tutor answers using Retrieval-Augmented Generation (RAG).</li>
               <li>Issuing tamper-evident, cryptographically signed digital certificates of completion.</li>
               <li>Providing real-time live streaming classrooms and synchronized interactive code execution.</li>
@@ -72,34 +72,40 @@ export default function LegalPrivacy() {
             </ul>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <section className="space-y-2.5 sm:space-y-3">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <Eye className="w-5 h-5 text-purple-600 dark:text-purple-400 shrink-0" />
-              3. AI &amp; Code Sandbox Data Isolation
+              <span>3. AI &amp; Code Sandbox Data Isolation</span>
             </h2>
-            <p>
+            <p className="text-gray-700 dark:text-slate-300">
               Your browser-based code executions and private AI conversation threads are sandboxed. We do not use your private code or academic submissions to train public AI foundation models.
             </p>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <section className="space-y-2.5 sm:space-y-3">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <Globe className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              4. Your Rights and Data Deletion
+              <span>4. Your Rights and Data Deletion</span>
             </h2>
-            <p>
+            <p className="text-gray-700 dark:text-slate-300">
               You have the right to access, export, or permanently delete your account and associated learning history at any time from your Profile Settings or by contacting our data protection desk.
             </p>
           </section>
 
-          <div className="p-4 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-xs sm:text-sm text-purple-900 dark:text-purple-200 flex items-center justify-between">
-            <div>
-              <p className="font-bold">Have privacy questions or need data export?</p>
-              <p className="text-xs text-purple-700 dark:text-purple-300">Contact our Data Protection Officer at privacy@vertexportal.dev</p>
+          {/* Contact Support Banner */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <p className="font-bold text-xs sm:text-sm text-purple-950 dark:text-purple-100 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                Have privacy questions or need data export?
+              </p>
+              <p className="text-xs text-purple-700 dark:text-purple-300 break-all">
+                Contact our Data Protection Officer at <span className="font-medium underline">privacy@vertexportal.dev</span>
+              </p>
             </div>
             <Link
               to="/help"
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-xs transition shrink-0 ml-3"
+              className="w-full sm:w-auto text-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-xs transition active:scale-95 shrink-0"
             >
               Contact Support
             </Link>
