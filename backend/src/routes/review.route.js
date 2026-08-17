@@ -6,9 +6,17 @@ import {
   deleteReviewController,
   getCourseReviewsController,
   getMyReviewController,
+  getFeaturedReviewsController,
+  getPlatformStatsController,
 } from "../controllers/review.controller.js";
 
 const router = express.Router();
+
+/**
+ * Public featured reviews & platform stats for landing page
+ */
+router.get("/reviews/featured", getFeaturedReviewsController);
+router.get("/reviews/stats", getPlatformStatsController);
 
 /**
  * Create a new review for a course

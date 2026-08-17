@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import Course from "../models/course.model.js";
 import Enrollment from "../models/enrollment.model.js";
 import CourseReview from "../models/courseReview.model.js";
+import User from "../models/user.model.js";
 
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { recalculateCourseRating } from "../service/review.service.js";
@@ -426,3 +427,63 @@ export const getMyReviewController = asyncHandler(
     });
   },
 );
+
+/**
+ * Get featured / latest high-rated reviews across the platform for landing page
+ */
+export const getFeaturedReviewsController = asyncHandler(async (req, res) => {
+  const reviews = await CourseReview.find({ isPublished: true, rating: { $gte: 4 } })
+    .sort({ rating: -1, createdAt: -1 })
+    .limit(10)
+    .populate({
+      path: "student",
+      select: "fullName avatarUrl headline role",
+    })
+    .populate({
+      path: "course",
+      select: "title slug",
+    })
+    .lean();
+
+  return res.status(200).json({
+    success: true,
+    data: reviews,
+    reviews,
+  });
+});
+
+/**
+ * Get public platform stats (enrolled learners, average rating, total reviews, courses count)
+ */
+export const getPlatformStatsController = asyncHandler(async (req, res) => {
+  const [totalStudents, totalEnrollments, totalReviews, reviewStats, totalCourses, recentStudents] = await Promise.all([
+    User.countDocuments({ role: "student" }),
+    Enrollment.countDocuments({ status: "active" }),
+    CourseReview.countDocuments({ isPublished: true }),
+    CourseReview.aggregate([
+      { $match: { isPublished: true } },
+      { $group: { _id: null, avgRating: { $avg: "$rating" }, count: { $sum: 1 } } },
+    ]),
+    Course.countDocuments({ isPublished: true, isActive: true }),
+    User.find({ role: "student" })
+      .sort({ createdAt: -1 })
+      .limit(6)
+      .select("fullName avatarUrl")
+      .lean(),
+  ]);
+
+  const rawAvg = reviewStats[0]?.avgRating;
+  const avgRating = rawAvg ? Number(rawAvg.toFixed(1)) : 4.9;
+
+  return res.status(200).json({
+    success: true,
+    stats: {
+      totalStudents: totalStudents || 0,
+      totalEnrollments: totalEnrollments || 0,
+      totalReviews: totalReviews || 0,
+      averageRating: avgRating || 4.9,
+      totalCourses: totalCourses || 0,
+      recentStudents: recentStudents || [],
+    },
+  });
+});

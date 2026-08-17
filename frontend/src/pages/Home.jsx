@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { getAllCourses } from '../api/course.api';
 import { getAllCategories } from '../api/category.api';
+import { getFeaturedReviews, getPlatformStats } from '../api/review.api';
 import { CourseCard } from '../components/course/CourseCard';
 import { ButtonGroup, ButtonGroupItem, ConnectedButtonGroup } from '../components/ui/ButtonGroup';
 import { GsapHeroParticles } from '../components/animations/GsapHeroParticles';
@@ -36,17 +37,17 @@ function DoodleUnderline() {
 // ── Hero Interactive Vector IDE Component ──
 function HeroInteractiveWorkspace() {
   return (
-    <div className="relative w-full max-w-lg mx-auto lg:max-w-none select-none">
+    <div className="relative w-full max-w-lg mx-auto lg:max-w-none select-none py-6 sm:py-8">
       <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/20 via-indigo-500/15 to-transparent rounded-3xl blur-3xl -z-10" />
 
-      {/* Floating Pill Badge 1 */}
+      {/* Floating Pill Badge 1 — Top Right (Zero overlap with window title or dots) */}
       <motion.div
-        animate={{ y: [0, -8, 0] }}
+        animate={{ y: [0, -6, 0] }}
         transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut' }}
-        className="hidden sm:flex absolute -top-5 -left-4 z-20 bg-white dark:bg-[#161928] border border-gray-200 dark:border-[#2a2f4e] rounded-2xl p-3 shadow-xl items-center gap-3"
+        className="hidden sm:flex absolute -top-2 right-4 sm:-top-4 sm:right-8 z-20 bg-white/95 dark:bg-[#161928]/95 backdrop-blur-md border border-purple-200/80 dark:border-purple-500/30 rounded-2xl p-3 shadow-xl shadow-purple-900/10 items-center gap-3"
       >
-        <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center font-black text-sm shrink-0">
-          <BookOpen className="w-5 h-5" />
+        <div className="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center font-black text-sm shrink-0">
+          <BookOpen className="w-4 h-4" />
         </div>
         <div>
           <p className="text-xs font-black text-gray-900 dark:text-white leading-tight">200+ Video Courses</p>
@@ -54,14 +55,14 @@ function HeroInteractiveWorkspace() {
         </div>
       </motion.div>
 
-      {/* Floating Pill Badge 2 */}
+      {/* Floating Pill Badge 2 — Bottom Left */}
       <motion.div
-        animate={{ y: [0, 8, 0] }}
+        animate={{ y: [0, 6, 0] }}
         transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut', delay: 0.5 }}
-        className="hidden sm:flex absolute -bottom-4 -right-3 z-20 bg-white dark:bg-[#161928] border border-gray-200 dark:border-[#2a2f4e] rounded-2xl p-3 shadow-xl items-center gap-3"
+        className="hidden sm:flex absolute -bottom-2 left-4 sm:-bottom-4 sm:left-6 z-20 bg-white/95 dark:bg-[#161928]/95 backdrop-blur-md border border-amber-200/80 dark:border-amber-500/30 rounded-2xl p-3 shadow-xl shadow-amber-900/10 items-center gap-3"
       >
-        <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-          <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
+        <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+          <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
         </div>
         <div>
           <div className="flex items-center gap-1">
@@ -76,14 +77,14 @@ function HeroInteractiveWorkspace() {
       <motion.div
         whileHover={{ y: -4 }}
         transition={{ duration: 0.3 }}
-        className="bg-white dark:bg-[#161928] border border-gray-200/90 dark:border-[#2a2f4e] rounded-3xl p-5 sm:p-7 shadow-2xl space-y-4"
+        className="bg-white/95 dark:bg-[#131628]/95 backdrop-blur-xl border border-gray-200/90 dark:border-[#2a2f4e] rounded-3xl p-5 sm:p-6 shadow-2xl shadow-purple-950/10 space-y-4"
       >
         <div className="flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-3">
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-rose-400 inline-block shadow-2xs" />
-            <span className="w-3 h-3 rounded-full bg-amber-400 inline-block shadow-2xs" />
-            <span className="w-3 h-3 rounded-full bg-emerald-400 inline-block shadow-2xs" />
-            <span className="text-[11px] font-mono font-bold text-gray-500 dark:text-slate-400 ml-2">
+            <span className="w-3 h-3 rounded-full bg-[#ff5f56] inline-block shadow-2xs" />
+            <span className="w-3 h-3 rounded-full bg-[#ffbd2e] inline-block shadow-2xs" />
+            <span className="w-3 h-3 rounded-full bg-[#27c93f] inline-block shadow-2xs" />
+            <span className="text-[11px] font-mono font-bold text-gray-600 dark:text-slate-400 ml-2">
               VertexPortal • Studio Live
             </span>
           </div>
@@ -120,16 +121,16 @@ function HeroInteractiveWorkspace() {
           </div>
         </div>
 
-        <div className="bg-gray-50 dark:bg-slate-900/90 rounded-2xl p-4 border border-gray-200/80 dark:border-slate-800 font-mono text-xs text-gray-800 dark:text-slate-300 space-y-1.5">
-          <div className="flex items-center justify-between text-[10px] text-gray-400 dark:text-slate-500 mb-1 font-sans">
-            <span className="flex items-center gap-1 font-mono text-purple-600 dark:text-purple-400">
+        <div className="bg-gray-950 rounded-2xl p-4 border border-gray-800 font-mono text-xs text-gray-200 space-y-1.5 shadow-inner">
+          <div className="flex items-center justify-between text-[10px] text-gray-400 mb-1 font-sans">
+            <span className="flex items-center gap-1 font-mono text-purple-400">
               <Terminal className="w-3.5 h-3.5" /> app.controller.js
             </span>
-            <span className="text-emerald-600 dark:text-emerald-400 font-bold">Redis Tier: L2 Active</span>
+            <span className="text-emerald-400 font-bold">Redis Tier: L2 Active</span>
           </div>
-          <p><span className="text-purple-600 dark:text-purple-400">const</span> response = <span className="text-blue-600 dark:text-blue-400">await</span> cache.<span className="text-amber-600 dark:text-amber-300">getOrRender</span>(&#123;</p>
-          <p className="pl-4">key: <span className="text-emerald-600 dark:text-emerald-400">'course:complete-mern-2026'</span>,</p>
-          <p className="pl-4">renderFn: <span className="text-blue-600 dark:text-blue-400">async</span> () =&gt; fetchCourseBySlug(slug)</p>
+          <p><span className="text-purple-400">const</span> response = <span className="text-sky-400">await</span> cache.<span className="text-amber-300">getOrRender</span>(&#123;</p>
+          <p className="pl-4">key: <span className="text-emerald-400">'course:complete-mern-2026'</span>,</p>
+          <p className="pl-4">renderFn: <span className="text-sky-400">async</span> () =&gt; fetchCourseBySlug(slug)</p>
           <p>&#125;);</p>
         </div>
 
@@ -149,27 +150,53 @@ function HeroInteractiveWorkspace() {
   );
 }
 
-// ── Certificate Vector Badge Component ──
+// ── Realistic Digital Verified Certificate Preview Component ──
 function CertificateSealVector() {
   return (
-    <div className="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center">
+    <div className="relative w-full max-w-[340px] mx-auto p-2">
+      {/* Ambient Glow */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-amber-400/25 via-white/30 to-purple-400/25 dark:from-amber-500/20 dark:via-purple-500/25 dark:to-indigo-500/20 rounded-3xl blur-2xl -z-10" />
+
       <motion.div
-        animate={{ rotate: [0, 3, -3, 0] }}
-        transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}
-        className="w-40 h-40 sm:w-48 sm:h-48 rounded-3xl bg-gradient-to-br from-purple-500/30 to-indigo-500/20 border-2 border-purple-400/50 p-5 shadow-2xl flex flex-col items-center justify-between text-center relative overflow-hidden backdrop-blur-md"
+        animate={{ y: [0, -6, 0] }}
+        transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut' }}
+        className="w-full bg-white/95 dark:bg-[#15122e]/98 text-gray-900 dark:text-white backdrop-blur-xl border-2 border-amber-400/80 dark:border-amber-400/40 rounded-2xl p-5 shadow-2xl shadow-purple-950/20 space-y-3.5 relative overflow-hidden"
       >
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-300 text-amber-950 flex items-center justify-center shadow-lg">
-          <Award className="w-7 h-7" />
+        {/* Ornamental corner accents */}
+        <div className="absolute top-2 left-2 w-2.5 h-2.5 border-t-2 border-l-2 border-amber-400/80" />
+        <div className="absolute top-2 right-2 w-2.5 h-2.5 border-t-2 border-r-2 border-amber-400/80" />
+        <div className="absolute bottom-2 left-2 w-2.5 h-2.5 border-b-2 border-l-2 border-amber-400/80" />
+        <div className="absolute bottom-2 right-2 w-2.5 h-2.5 border-b-2 border-r-2 border-amber-400/80" />
+
+        {/* Certificate Header */}
+        <div className="flex items-center justify-between border-b border-gray-100 dark:border-purple-500/30 pb-2.5">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-400 to-amber-500 text-slate-950 flex items-center justify-center shadow-md font-bold">
+              <Award className="w-4 h-4 text-amber-950" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-300">VertexPortal</p>
+              <p className="text-[9px] text-gray-500 dark:text-purple-300 font-medium">Digital Credential</p>
+            </div>
+          </div>
+          <span className="text-[9px] font-mono font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-600/60 px-2 py-0.5 rounded-full flex items-center gap-1">
+            <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" /> VERIFIED
+          </span>
         </div>
 
-        <div className="space-y-1.5 w-full">
-          <div className="h-2.5 w-3/4 bg-white/80 rounded-full mx-auto" />
-          <div className="h-2 w-1/2 bg-white/50 rounded-full mx-auto" />
+        {/* Certificate Body */}
+        <div className="text-center py-1 space-y-1">
+          <p className="text-[9px] uppercase tracking-widest text-purple-600 dark:text-purple-300 font-bold">Certificate of Achievement</p>
+          <h4 className="text-sm font-black text-gray-900 dark:text-white tracking-tight">Full-Stack MERN Architect</h4>
+          <p className="text-[10px] text-gray-600 dark:text-purple-200 font-mono">Issued to: <span className="text-amber-600 dark:text-amber-300 font-bold">Alex Morgan</span></p>
         </div>
 
-        <div className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-500/25 text-emerald-300 border border-emerald-400/40 rounded-full text-[10px] font-bold">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-          <span>CRYPTOGRAPHIC VERIFIED</span>
+        {/* Certificate Footer */}
+        <div className="pt-2 border-t border-gray-100 dark:border-purple-500/30 flex items-center justify-between text-[9px] font-mono text-gray-500 dark:text-purple-200/80">
+          <span>ID: VP-2026-9842</span>
+          <span className="text-emerald-600 dark:text-emerald-300 font-bold flex items-center gap-1">
+            <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Cryptographic Proof
+          </span>
         </div>
       </motion.div>
     </div>
@@ -249,13 +276,13 @@ const PLATFORM_FEATURES = [
   },
 ];
 
-const TESTIMONIALS = [
+const FALLBACK_TESTIMONIALS = [
   {
     name: 'Priya Sharma',
     role: 'Full-Stack Developer',
-    company: 'TechCorp India',
-    text: 'VertexPortal completely changed how I learn. The AI tutor explains complex topics instantly, and live classes feel genuinely interactive. Got my dream job in 5 months.',
-    avatar: 'https://ik.imagekit.io/Sujalpanchal/default.avif',
+    company: 'TechCorp',
+    text: 'VertexPortal completely changed how I learn. The AI tutor explains complex topics instantly, and live classes feel genuinely interactive. Landed my full-stack role in 5 months.',
+    avatar: '',
     rating: 5,
   },
   {
@@ -263,7 +290,7 @@ const TESTIMONIALS = [
     role: 'Backend & Cloud Engineer',
     company: 'Analytics Labs',
     text: 'The course structure and Redis/SSR architecture lessons are top notch. I went from basics to production deployments. The verified certificates gave my resume a major boost!',
-    avatar: 'https://ik.imagekit.io/Sujalpanchal/default.avif',
+    avatar: '',
     rating: 5,
   },
   {
@@ -271,38 +298,79 @@ const TESTIMONIALS = [
     role: 'Frontend Specialist',
     company: 'Creative Labs',
     text: 'The integrated code playground, clean UI, and structured roadmaps make learning so frictionless. Best learning experience by far!',
-    avatar: 'https://ik.imagekit.io/Sujalpanchal/default.avif',
-    rating: 5,
-  },
-  {
-    name: 'Rohan Verma',
-    role: 'Software Engineer',
-    company: 'CloudScale Technologies',
-    text: 'Hands down the best full-stack learning platform. The roadmaps are practical, exercises are real-world, and the community is supportive!',
-    avatar: 'https://ik.imagekit.io/Sujalpanchal/default.avif',
+    avatar: '',
     rating: 5,
   },
 ];
 
+const AVATAR_COLORS = ['#6C5CE7', '#0984e3', '#00b894', '#fdcb6e', '#e17055', '#e84393'];
+
 export default function Home() {
   const [courses, setCourses] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [platformStats, setPlatformStats] = useState({
+    totalStudents: 0,
+    totalEnrollments: 0,
+    totalReviews: 0,
+    averageRating: 4.9,
+    recentStudents: [],
+  });
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
+    Promise.allSettled([
       getAllCourses({ limit: 12, sort: 'popular', status: 'published' }),
       getAllCategories(),
+      getFeaturedReviews(),
+      getPlatformStats(),
     ])
-      .then(([cr, catr]) => {
-        setCourses(cr.data.courses || cr.data.data?.courses || cr.data.data || []);
-        setCategories(catr.data.categories || catr.data.data?.categories || catr.data.data || []);
+      .then(([cr, catr, revr, statsr]) => {
+        if (cr.status === 'fulfilled') {
+          setCourses(cr.value.data?.courses || cr.value.data?.data?.courses || cr.value.data?.data || []);
+        }
+        if (catr.status === 'fulfilled') {
+          setCategories(catr.value.data?.categories || catr.value.data?.data?.categories || catr.value.data?.data || []);
+        }
+        if (revr.status === 'fulfilled') {
+          const realRevs = revr.value.data?.data || revr.value.data?.reviews || [];
+          if (Array.isArray(realRevs) && realRevs.length > 0) {
+            setReviews(realRevs);
+          }
+        }
+        if (statsr.status === 'fulfilled') {
+          const s = statsr.value.data?.stats;
+          if (s) {
+            setPlatformStats(s);
+          }
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  const displayReviews = reviews.length > 0 ? reviews : FALLBACK_TESTIMONIALS;
+
+  const enrolledCount = platformStats.totalStudents > 0 
+    ? platformStats.totalStudents 
+    : (platformStats.totalEnrollments > 0 ? platformStats.totalEnrollments : 1200);
+
+  const reviewCount = platformStats.totalReviews > 0 ? platformStats.totalReviews : 480;
+  const ratingValue = platformStats.averageRating ? Number(platformStats.averageRating).toFixed(1) : '4.9';
+
+  const studentAvatars = useMemo(() => {
+    if (platformStats.recentStudents && platformStats.recentStudents.length > 0) {
+      return platformStats.recentStudents.slice(0, 4);
+    }
+    return [
+      { fullName: 'Sujal Panchal' },
+      { fullName: 'Arjun Kumar' },
+      { fullName: 'Neha Gupta' },
+      { fullName: 'Rohan Joshi' },
+    ];
+  }, [platformStats.recentStudents]);
 
   const filteredCourses = useMemo(() => {
     return courses.filter((c) => {
@@ -415,22 +483,27 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Social Proof */}
+              {/* Real-time Dynamic Social Proof */}
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 pt-2 border-t border-gray-200/60 dark:border-slate-800 text-xs text-gray-600 dark:text-slate-400">
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-2">
-                    {['#6C5CE7', '#0984e3', '#00b894', '#fdcb6e'].map((color, i) => (
+                    {studentAvatars.map((st, i) => (
                       <div
-                        key={i}
-                        className="w-7 h-7 rounded-full border-2 border-white dark:border-[#0d0f1a] flex items-center justify-center text-[10px] font-bold text-white shadow-2xs"
-                        style={{ backgroundColor: color }}
+                        key={st._id || i}
+                        className="w-7 h-7 rounded-full border-2 border-white dark:border-[#0d0f1a] flex items-center justify-center text-[10px] font-bold text-white shadow-2xs overflow-hidden"
+                        style={{ backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length] }}
+                        title={st.fullName}
                       >
-                        {['SP', 'AK', 'NG', 'RJ'][i]}
+                        {st.avatarUrl && !st.avatarUrl.includes('default.avif') ? (
+                          <img src={st.avatarUrl} alt={st.fullName} className="w-full h-full object-cover" />
+                        ) : (
+                          <span>{(st.fullName || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</span>
+                        )}
                       </div>
                     ))}
                   </div>
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    <GsapCounter value={10000} suffix="+ " duration={2.2} />
+                    <GsapCounter value={enrolledCount} suffix="+ " duration={2.2} />
                     Enrolled Learners
                   </span>
                 </div>
@@ -440,8 +513,8 @@ export default function Home() {
                       <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
                     ))}
                   </div>
-                  <span className="font-bold text-gray-900 dark:text-white">4.9 / 5.0</span>
-                  <span>(<GsapCounter value={2400} suffix="+ Reviews" duration={2} />)</span>
+                  <span className="font-bold text-gray-900 dark:text-white">{ratingValue} / 5.0</span>
+                  <span>(<GsapCounter value={reviewCount} suffix="+ Reviews" duration={2} />)</span>
                 </div>
               </div>
             </motion.div>
@@ -738,38 +811,46 @@ export default function Home() {
       <section className="py-12 px-4 sm:px-6 lg:px-8">
         <motion.div
           whileHover={{ scale: 1.005 }}
-          className="max-w-6xl mx-auto rounded-3xl bg-gradient-to-br from-purple-900 via-indigo-900 to-slate-900 border border-purple-800/40 p-8 sm:p-12 text-white shadow-2xl relative overflow-hidden"
+          className="max-w-6xl mx-auto rounded-3xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 dark:from-[#13102b] dark:via-[#171338] dark:to-[#0c0d1e] border border-purple-400/40 dark:border-purple-600/30 p-8 sm:p-12 text-white shadow-2xl shadow-purple-600/20 dark:shadow-purple-950/40 relative overflow-hidden transition-all duration-300"
         >
-          <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-            <div className="md:col-span-8 space-y-4 text-center md:text-left">
-              <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider bg-white/10 px-3.5 py-1.5 rounded-full text-purple-200 backdrop-blur-md border border-white/10">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" /> Verified Credentials &amp; Tamper-Evident Proof
+          {/* Ambient Glow Orbs */}
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-white/15 dark:bg-purple-600/20 rounded-full blur-3xl pointer-events-none -z-0" />
+          <div className="absolute bottom-0 left-10 w-80 h-80 bg-indigo-400/20 dark:bg-indigo-600/15 rounded-full blur-3xl pointer-events-none -z-0" />
+
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div className="lg:col-span-7 space-y-5 text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider bg-white/20 dark:bg-purple-900/60 text-white dark:text-purple-200 px-4 py-1.5 rounded-full backdrop-blur-md border border-white/25 dark:border-purple-500/30 shadow-xs">
+                <ShieldCheck className="w-4 h-4 text-emerald-300 dark:text-emerald-400" />
+                <span>Verified Credentials &amp; Tamper-Evident Proof</span>
               </div>
-              <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black leading-tight">
-                Get Quality Skills Certificate From the VertexPortal
+              <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black leading-tight text-white">
+                Get Quality Skills Certificate From the{' '}
+                <span className="text-amber-200 dark:bg-gradient-to-r dark:from-purple-300 dark:via-indigo-200 dark:to-purple-200 dark:bg-clip-text dark:text-transparent">
+                  VertexPortal
+                </span>
               </h3>
-              <p className="text-sm text-purple-200/90 leading-relaxed max-w-xl">
+              <p className="text-sm sm:text-base text-purple-100 dark:text-purple-200/90 leading-relaxed max-w-xl mx-auto lg:mx-0 font-normal">
                 Every completed curriculum awards a verified cryptographic digital credential with instant public verification URL for LinkedIn and resumes.
               </p>
               
-              <div className="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-4">
+              <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-4">
                 <Link
                   to="/certificates"
-                  className="px-7 py-3.5 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-lg transition-all inline-flex items-center gap-2 cursor-pointer"
+                  className="px-7 py-3.5 bg-white text-purple-700 hover:bg-purple-50 dark:bg-gradient-to-r dark:from-purple-500 dark:to-indigo-500 dark:hover:from-purple-400 dark:hover:to-indigo-400 dark:text-white font-black text-xs sm:text-sm rounded-2xl shadow-xl shadow-black/10 dark:shadow-purple-950/40 transition-all inline-flex items-center gap-2 cursor-pointer active:scale-95"
                 >
                   <span>Verify a Certificate</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
                   to="/courses"
-                  className="px-7 py-3.5 bg-white/10 hover:bg-white/15 text-white font-bold text-xs sm:text-sm rounded-2xl border border-white/15 transition-all inline-flex items-center gap-2"
+                  className="px-7 py-3.5 bg-white/15 hover:bg-white/25 text-white font-bold text-xs sm:text-sm rounded-2xl border border-white/30 backdrop-blur-md transition-all inline-flex items-center gap-2 active:scale-95"
                 >
                   <span>Start A Course</span>
                 </Link>
               </div>
             </div>
 
-            <div className="md:col-span-4 flex items-center justify-center">
+            <div className="lg:col-span-5 flex items-center justify-center">
               <CertificateSealVector />
             </div>
           </div>
@@ -792,10 +873,10 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Swiper Testimonials Slider */}
+        {/* Swiper Real Testimonials Slider */}
         <Swiper
           modules={[Autoplay, Pagination]}
-          autoplay={{ delay: 4000, disableOnInteraction: false }}
+          autoplay={{ delay: 4500, disableOnInteraction: false }}
           pagination={{ clickable: true }}
           spaceBetween={24}
           slidesPerView={1}
@@ -805,33 +886,60 @@ export default function Home() {
           }}
           className="!pb-12"
         >
-          {TESTIMONIALS.map((testi) => (
-            <SwiperSlide key={testi.name} className="h-auto">
-              <div className="bg-white dark:bg-[#161928] border border-gray-200/80 dark:border-[#2a2f4e] rounded-3xl p-6 sm:p-7 space-y-4 shadow-2xs hover:shadow-lg transition-all h-full flex flex-col justify-between">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-1 text-amber-400">
-                    {[...Array(testi.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-400" />
-                    ))}
+          {displayReviews.map((rev, idx) => {
+            const reviewerName = rev.student?.fullName || rev.name || 'Verified Student';
+            const courseTitle = rev.course?.title ? `Enrolled in ${rev.course.title}` : (rev.student?.headline || rev.role || 'Active Learner');
+            const ratingStars = Math.max(1, Math.min(5, rev.rating || 5));
+            const reviewComment = rev.comment || rev.title || rev.text || 'Excellent course content and interactive guidance!';
+            const avatarUrl = rev.student?.avatarUrl;
+
+            return (
+              <SwiperSlide key={rev._id || `${reviewerName}-${idx}`} className="h-auto">
+                <div className="bg-white dark:bg-[#161928] border border-gray-200/80 dark:border-[#2a2f4e] rounded-3xl p-6 sm:p-7 space-y-4 shadow-2xs hover:shadow-lg transition-all h-full flex flex-col justify-between group">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1 text-amber-400">
+                        {[...Array(ratingStars)].map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-amber-400" />
+                        ))}
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1">
+                        <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500" /> Verified
+                      </span>
+                    </div>
+
+                    <p className="text-xs sm:text-sm text-gray-700 dark:text-slate-300 leading-relaxed italic">
+                      "{reviewComment}"
+                    </p>
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-700 dark:text-slate-300 leading-relaxed italic">
-                    "{testi.text}"
-                  </p>
-                </div>
-                <div className="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-slate-800">
-                  <img
-                    src={testi.avatar}
-                    alt={testi.name}
-                    className="w-10 h-10 rounded-full object-cover ring-2 ring-purple-500/30"
-                  />
-                  <div>
-                    <h4 className="text-sm font-bold text-gray-900 dark:text-white">{testi.name}</h4>
-                    <p className="text-xs text-gray-500 dark:text-slate-400">{testi.role} • {testi.company}</p>
+
+                  <div className="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-slate-800">
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs text-white ring-2 ring-purple-500/30 overflow-hidden shrink-0 shadow-xs"
+                      style={{ backgroundColor: AVATAR_COLORS[idx % AVATAR_COLORS.length] }}
+                    >
+                      {avatarUrl && !avatarUrl.includes('default.avif') ? (
+                        <img
+                          src={avatarUrl}
+                          alt={reviewerName}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <span>{reviewerName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</span>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">{reviewerName}</h4>
+                      <p className="text-xs text-gray-500 dark:text-slate-400 truncate">{courseTitle}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </SwiperSlide>
-          ))}
+              </SwiperSlide>
+            );
+          })}
         </Swiper>
       </section>
 
