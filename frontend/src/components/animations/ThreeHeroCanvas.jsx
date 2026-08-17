@@ -75,17 +75,17 @@ export function ThreeHeroCanvas({ className = '' }) {
       vertexColors: true,
       wireframe: true,
       transparent: true,
-      opacity: 0.28,
+      opacity: 0.14,
     });
 
     const mesh = new THREE.Mesh(planeGeo, wireMaterial);
     scene.add(mesh);
 
     const pointsMaterial = new THREE.PointsMaterial({
-      size: 1.6,
+      size: 1.2,
       vertexColors: true,
       transparent: true,
-      opacity: 0.75,
+      opacity: 0.45,
       blending: THREE.AdditiveBlending,
     });
 

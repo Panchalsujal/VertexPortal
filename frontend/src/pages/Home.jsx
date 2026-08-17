@@ -21,7 +21,7 @@ import { getAllCourses } from '../api/course.api';
 import { getAllCategories } from '../api/category.api';
 import { CourseCard } from '../components/course/CourseCard';
 import { ButtonGroup, ButtonGroupItem, ConnectedButtonGroup } from '../components/ui/ButtonGroup';
-import { ThreeHeroCanvas } from '../components/animations/ThreeHeroCanvas';
+import { GsapHeroParticles } from '../components/animations/GsapHeroParticles';
 import { GsapStagger, GsapCounter } from '../components/animations/GsapScrollReveal';
 
 // ── Organic Doodles & SVGs (EduLe Inspired) ──
@@ -177,14 +177,18 @@ function CertificateSealVector() {
 }
 
 const TECH_STACK = [
-  { name: 'React 19', color: 'from-cyan-500/20 to-blue-500/10', border: 'border-cyan-500/30', text: 'text-cyan-600 dark:text-cyan-400' },
-  { name: 'Next.js 15', color: 'from-slate-500/20 to-slate-800/10', border: 'border-slate-500/30', text: 'text-slate-700 dark:text-slate-300' },
-  { name: 'Node.js', color: 'from-emerald-500/20 to-green-500/10', border: 'border-emerald-500/30', text: 'text-emerald-600 dark:text-emerald-400' },
-  { name: 'TypeScript', color: 'from-blue-500/20 to-indigo-500/10', border: 'border-blue-500/30', text: 'text-blue-600 dark:text-blue-400' },
-  { name: 'Python & AI', color: 'from-amber-500/20 to-yellow-500/10', border: 'border-amber-500/30', text: 'text-amber-600 dark:text-amber-400' },
-  { name: 'Docker & DevOps', color: 'from-sky-500/20 to-cyan-500/10', border: 'border-sky-500/30', text: 'text-sky-600 dark:text-sky-400' },
-  { name: 'Redis & Caching', color: 'from-rose-500/20 to-red-500/10', border: 'border-rose-500/30', text: 'text-rose-600 dark:text-rose-400' },
-  { name: 'MongoDB', color: 'from-green-500/20 to-emerald-500/10', border: 'border-green-500/30', text: 'text-green-600 dark:text-green-400' },
+  { name: 'React 19', bg: 'bg-cyan-50 dark:bg-cyan-950/40', border: 'border-cyan-200/80 dark:border-cyan-800/60', text: 'text-cyan-700 dark:text-cyan-300' },
+  { name: 'Next.js 15', bg: 'bg-slate-100 dark:bg-slate-900/60', border: 'border-slate-300/80 dark:border-slate-700/60', text: 'text-slate-800 dark:text-slate-200' },
+  { name: 'Node.js & Express', bg: 'bg-emerald-50 dark:bg-emerald-950/40', border: 'border-emerald-200/80 dark:border-emerald-800/60', text: 'text-emerald-700 dark:text-emerald-300' },
+  { name: 'TypeScript', bg: 'bg-blue-50 dark:bg-blue-950/40', border: 'border-blue-200/80 dark:border-blue-800/60', text: 'text-blue-700 dark:text-blue-300' },
+  { name: 'Python & LLMs', bg: 'bg-amber-50 dark:bg-amber-950/40', border: 'border-amber-200/80 dark:border-amber-800/60', text: 'text-amber-700 dark:text-amber-300' },
+  { name: 'Docker & DevOps', bg: 'bg-sky-50 dark:bg-sky-950/40', border: 'border-sky-200/80 dark:border-sky-800/60', text: 'text-sky-700 dark:text-sky-300' },
+  { name: 'Redis & Caching', bg: 'bg-rose-50 dark:bg-rose-950/40', border: 'border-rose-200/80 dark:border-rose-800/60', text: 'text-rose-700 dark:text-rose-300' },
+  { name: 'MongoDB', bg: 'bg-green-50 dark:bg-green-950/40', border: 'border-green-200/80 dark:border-green-800/60', text: 'text-green-700 dark:text-green-300' },
+  { name: 'PostgreSQL & Prisma', bg: 'bg-indigo-50 dark:bg-indigo-950/40', border: 'border-indigo-200/80 dark:border-indigo-800/60', text: 'text-indigo-700 dark:text-indigo-300' },
+  { name: 'Tailwind CSS', bg: 'bg-teal-50 dark:bg-teal-950/40', border: 'border-teal-200/80 dark:border-teal-800/60', text: 'text-teal-700 dark:text-teal-300' },
+  { name: 'GraphQL & Apollo', bg: 'bg-pink-50 dark:bg-pink-950/40', border: 'border-pink-200/80 dark:border-pink-800/60', text: 'text-pink-700 dark:text-pink-300' },
+  { name: 'AWS & Cloud Native', bg: 'bg-orange-50 dark:bg-orange-950/40', border: 'border-orange-200/80 dark:border-orange-800/60', text: 'text-orange-700 dark:text-orange-300' },
 ];
 
 const CAREER_ROADMAPS = [
@@ -319,12 +323,12 @@ export default function Home() {
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0d0f1a] text-gray-900 dark:text-gray-100 font-[Inter,sans-serif] selection:bg-purple-500 selection:text-white transition-colors duration-200">
       
       {/* ══════════════════════════════════════════════════════════
-          HERO SECTION (EduLe & ChaiCode Style with Three.js 3D WebGL)
+          HERO SECTION (EduLe & ChaiCode Style with GSAP Particles)
       ══════════════════════════════════════════════════════════ */}
       <section className="relative pt-8 pb-16 lg:pt-14 lg:pb-24 overflow-hidden bg-gradient-to-b from-purple-50/70 via-white to-[#f8fafc] dark:from-[#131628] dark:via-[#0f1222] dark:to-[#0d0f1a] border-b border-gray-200/70 dark:border-slate-800/80">
         
-        {/* Three.js Interactive 3D WebGL Background */}
-        <ThreeHeroCanvas />
+        {/* GSAP Floating Particle Engine (Webflow Reference) */}
+        <GsapHeroParticles count={40} />
 
         <div className="absolute top-0 left-1/4 w-[600px] h-[400px] bg-purple-500/10 dark:bg-purple-600/15 rounded-full blur-[140px] pointer-events-none -z-10" />
         <div className="absolute top-20 right-10 w-[500px] h-[350px] bg-indigo-500/10 dark:bg-indigo-600/15 rounded-full blur-[130px] pointer-events-none -z-10" />
@@ -456,23 +460,34 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════
-          TECH STACK MATRIX
+          TECH STACK INFINITE SMOOTH MARQUEE (Sheryians Style)
       ══════════════════════════════════════════════════════════ */}
-      <section className="py-8 bg-white dark:bg-[#101322] border-b border-gray-200/80 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-slate-500 mb-5">
+      <section className="py-6 sm:py-7 bg-white/80 dark:bg-[#0e1120]/90 border-b border-gray-200/70 dark:border-slate-800/80 overflow-hidden select-none relative backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-3.5">
+          <p className="text-center text-[11px] sm:text-xs font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400">
             Learn Industry-Standard Production Technologies
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-            {TECH_STACK.map((tech) => (
-              <motion.div
-                key={tech.name}
-                whileHover={{ scale: 1.05 }}
-                className={`px-4 py-2 rounded-xl bg-gradient-to-r ${tech.color} border ${tech.border} text-xs font-bold ${tech.text} shadow-2xs flex items-center gap-2 cursor-default`}
+        </div>
+
+        {/* Infinite Continuous Sliding Ribbon with Mask Gradients */}
+        <div
+          className="relative w-full overflow-hidden flex items-center"
+          style={{
+            maskImage:
+              'linear-gradient(to right, transparent, black 8%, black 92%, transparent)',
+            WebkitMaskImage:
+              'linear-gradient(to right, transparent, black 8%, black 92%, transparent)',
+          }}
+        >
+          <div className="flex w-max animate-marquee-smooth hover:[animation-play-state:paused] items-center gap-3.5 sm:gap-4 py-1.5">
+            {[...TECH_STACK, ...TECH_STACK, ...TECH_STACK].map((tech, idx) => (
+              <div
+                key={`${tech.name}-${idx}`}
+                className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl ${tech.bg} border ${tech.border} text-xs sm:text-sm font-bold ${tech.text} shadow-2xs flex items-center gap-2.5 shrink-0 transition-all duration-300 hover:scale-105 cursor-pointer backdrop-blur-md`}
               >
-                <Code2 className="w-3.5 h-3.5" />
-                <span>{tech.name}</span>
-              </motion.div>
+                <Code2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 opacity-80" />
+                <span className="whitespace-nowrap">{tech.name}</span>
+              </div>
             ))}
           </div>
         </div>

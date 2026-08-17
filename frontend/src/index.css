@@ -187,17 +187,16 @@ html.dark .bg-amber-50 { background-color: rgba(249,202,36,0.12) !important; col
 html.dark .bg-red-50 { background-color: rgba(214,48,49,0.12) !important; color: #ff7675 !important; }
 
 /* ─────────────────────────────────────────────────────────── */
-/*  THEME TRANSITION                                            */
+/*  INSTANT SMOOTH HARDWARE-ACCELERATED THEME TRANSITION      */
 /* ─────────────────────────────────────────────────────────── */
-html.theme-transition,
-html.theme-transition body,
-html.theme-transition header,
-html.theme-transition nav,
-html.theme-transition main,
-html.theme-transition footer,
-html.theme-transition .bg-white,
-html.theme-transition .bg-gray-50 {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition: background-color 320ms cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 320ms cubic-bezier(0.4, 0, 0.2, 1),
+              color 250ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition-delay: 0s !important;
 }
 
 /* ─────────────────────────────────────────────────────────── */
@@ -805,5 +804,29 @@ html.dark .stitch-glass {
   padding: 0.5rem 0.75rem !important;
   border-radius: 0 0 0.875rem 0.875rem;
 }
+
+/* ─────────────────────────────────────────────────────────── */
+/*  SHERYIANS-STYLE SMOOTH INFINITE MARQUEE                   */
+/* ─────────────────────────────────────────────────────────── */
+@keyframes marqueeSmooth {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-33.333333%);
+  }
+}
+
+.animate-marquee-smooth {
+  display: flex;
+  width: max-content;
+  animation: marqueeSmooth 22s linear infinite;
+  will-change: transform;
+}
+
+
+
+
+
 
 
