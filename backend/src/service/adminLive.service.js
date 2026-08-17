@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 import LiveClass from "../models/liveClass.model.js";
 import Enrollment from "../models/enrollment.model.js";
+import LiveClassAttendance from "../models/liveClassAttendance.model.js";
 import {parseBooleanQuery, parseDateRange, parseSortQuery} from "../utils/queryParser.js";
 
 import { ApiError } from "../utils/ApiError.js";
@@ -297,8 +298,37 @@ export async function getLiveClasses(query = {}) {
     LiveClass.countDocuments(filter),
   ]);
 
+  const classIds = liveClasses.map((lc) => lc._id);
+  let attendanceCounts = [];
+  if (classIds.length > 0) {
+    attendanceCounts = await LiveClassAttendance.aggregate([
+      {
+        $match: {
+          liveClass: { $in: classIds },
+          $or: [
+            { isPresent: true },
+            { status: { $in: ["present", "completed", "left"] } },
+            { totalDurationInSeconds: { $gt: 0 } },
+          ],
+        },
+      },
+      {
+        $group: {
+          _id: "$liveClass",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+  }
+
+  const countMap = new Map();
+  for (const item of attendanceCounts) {
+    countMap.set(String(item._id), item.count);
+  }
+
   const formattedClasses = liveClasses.map((lc) => ({
     ...lc,
+    attendanceCount: countMap.get(String(lc._id)) ?? lc.attendanceCount ?? 0,
     startsAt: lc.startsAt || lc.scheduledStartAt || lc.createdAt,
     endsAt: lc.endsAt || lc.scheduledEndAt || lc.createdAt,
     scheduledStartAt: lc.scheduledStartAt || lc.startsAt || lc.createdAt,

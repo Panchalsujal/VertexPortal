@@ -1963,9 +1963,7 @@ export async function getInstructorLiveClassAttendance({
     throw new ApiError(404, "Live class not found");
   }
 
-  const filter = {
-    liveClass: liveClassId,
-  };
+  const courseId = liveClass.course?._id || liveClass.course;
 
   const parsedStatus = parseEnumQuery(
     status,
@@ -1973,44 +1971,7 @@ export async function getInstructorLiveClassAttendance({
     "Attendance status",
   );
 
-  if (parsedStatus !== undefined) {
-    filter.status = parsedStatus;
-  }
-
   const parsedIsPresent = parseBooleanQuery(isPresent, "isPresent");
-
-  if (parsedIsPresent !== undefined) {
-    filter.isPresent = parsedIsPresent;
-  }
-
-  if (search?.trim()) {
-    const escapedSearch = escapeRegex(search.trim());
-
-    const matchingStudents = await User.find({
-      role: "student",
-
-      $or: [
-        {
-          fullName: {
-            $regex: escapedSearch,
-            $options: "i",
-          },
-        },
-        {
-          email: {
-            $regex: escapedSearch,
-            $options: "i",
-          },
-        },
-      ],
-    })
-      .select("_id")
-      .lean();
-
-    filter.student = {
-      $in: matchingStudents.map((student) => student._id),
-    };
-  }
 
   const {
     sortBy: selectedSortField,
@@ -2019,7 +1980,6 @@ export async function getInstructorLiveClassAttendance({
   } = parseSortQuery({
     sortBy,
     order,
-
     allowedFields: [
       "firstJoinedAt",
       "lastJoinedAt",
@@ -2030,44 +1990,132 @@ export async function getInstructorLiveClassAttendance({
       "createdAt",
       "updatedAt",
     ],
-
     defaultField: "totalDurationInSeconds",
-
     defaultOrder: "desc",
   });
 
-  const [records, totalRecords] = await Promise.all([
-    LiveClassAttendance.find(filter)
+  // 1. Fetch all existing attendance records for this live class
+  const existingAttendanceRecords = await LiveClassAttendance.find({
+    liveClass: liveClassId,
+  })
+    .populate({
+      path: "student",
+      select: "fullName email avatarUrl status isActive",
+    })
+    .populate({
+      path: "enrollment",
+      select: "status progressPercentage enrolledAt",
+    })
+    .lean();
+
+  // 2. Fetch all enrolled students for this course
+  let enrollments = [];
+  if (courseId) {
+    enrollments = await Enrollment.find({
+      course: courseId,
+      status: { $in: ["active", "completed"] },
+    })
       .populate({
         path: "student",
         select: "fullName email avatarUrl status isActive",
       })
-      .populate({
-        path: "enrollment",
-        select: "status progressPercentage enrolledAt",
-      })
-      .sort({
-        [selectedSortField]: sortOrder,
-        _id: sortOrder,
-      })
-      .skip(skip)
-      .limit(limit)
-      .lean(),
+      .lean();
+  }
 
-    LiveClassAttendance.countDocuments(filter),
-  ]);
+  // 3. Build merged attendance list
+  const attendanceMap = new Map();
+  for (const record of existingAttendanceRecords) {
+    if (record.student?._id) {
+      attendanceMap.set(String(record.student._id), record);
+    } else if (record.student) {
+      attendanceMap.set(String(record.student), record);
+    }
+  }
+
+  const mergedList = [];
+  const processedStudentIds = new Set();
+
+  for (const enrollment of enrollments) {
+    if (!enrollment.student) continue;
+    const studentIdStr = String(enrollment.student._id || enrollment.student);
+    processedStudentIds.add(studentIdStr);
+
+    if (attendanceMap.has(studentIdStr)) {
+      mergedList.push(attendanceMap.get(studentIdStr));
+    } else {
+      mergedList.push({
+        _id: `enr_${enrollment._id}`,
+        liveClass: liveClassId,
+        student: enrollment.student,
+        enrollment: {
+          _id: enrollment._id,
+          status: enrollment.status,
+          progressPercentage: enrollment.progressPercentage,
+          enrolledAt: enrollment.enrolledAt || enrollment.createdAt,
+        },
+        isPresent: false,
+        status: "not_joined",
+        totalDurationInSeconds: 0,
+        firstJoinedAt: null,
+        lastLeftAt: null,
+        joinCount: 0,
+        attendancePercentage: 0,
+        createdAt: enrollment.createdAt || liveClass.createdAt,
+      });
+    }
+  }
+
+  for (const record of existingAttendanceRecords) {
+    const studentIdStr = String(record.student?._id || record.student);
+    if (!processedStudentIds.has(studentIdStr)) {
+      mergedList.push(record);
+      processedStudentIds.add(studentIdStr);
+    }
+  }
+
+  // 4. Apply search & filters
+  let filtered = mergedList;
+
+  if (parsedStatus !== undefined) {
+    filtered = filtered.filter((r) => r.status === parsedStatus);
+  }
+
+  if (parsedIsPresent !== undefined) {
+    filtered = filtered.filter((r) => Boolean(r.isPresent) === parsedIsPresent);
+  }
+
+  if (search?.trim()) {
+    const s = search.trim().toLowerCase();
+    filtered = filtered.filter((r) => {
+      const name = r.student?.fullName || "";
+      const email = r.student?.email || "";
+      return name.toLowerCase().includes(s) || email.toLowerCase().includes(s);
+    });
+  }
+
+  // 5. Sort
+  filtered.sort((a, b) => {
+    if (selectedSortField === "firstJoinedAt") {
+      const timeA = a.firstJoinedAt ? new Date(a.firstJoinedAt).getTime() : 0;
+      const timeB = b.firstJoinedAt ? new Date(b.firstJoinedAt).getTime() : 0;
+      return sortOrder === -1 ? timeB - timeA : timeA - timeB;
+    }
+    const durA = a.totalDurationInSeconds || (a.isPresent ? 1 : 0);
+    const durB = b.totalDurationInSeconds || (b.isPresent ? 1 : 0);
+    return sortOrder === -1 ? durB - durA : durA - durB;
+  });
+
+  const totalRecords = filtered.length;
+  const paginatedRecords = filtered.slice(skip, skip + limit);
 
   return {
     liveClass,
-
-    attendance: records,
-
+    attendance: paginatedRecords,
     pagination: buildPaginationMeta({
       page,
       limit,
       totalRecords,
     }),
-
     filters: {
       search: search?.trim() || null,
       status: parsedStatus ?? null,

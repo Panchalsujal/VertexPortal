@@ -468,17 +468,19 @@ export default function AdminLiveAttendance() {
                   <div className="bg-white/80 dark:bg-gray-900/80 rounded-xl p-2 sm:p-2.5 border border-purple-100 dark:border-gray-800 text-center">
                     <span className="text-[9px] sm:text-[10px] text-gray-400 uppercase font-bold block truncate">Total Attendees</span>
                     <span className="text-sm sm:text-base font-black text-purple-600 dark:text-purple-400">
-                      {analytics?.totalAttendees || attendance.length}
+                      {analytics?.summary?.totalJoinedStudents ?? analytics?.totalAttendees ?? attendance.filter(a => isStudentPresent(a)).length}
                     </span>
                   </div>
                   <div className="bg-white/80 dark:bg-gray-900/80 rounded-xl p-2 sm:p-2.5 border border-purple-100 dark:border-gray-800 text-center">
                     <span className="text-[9px] sm:text-[10px] text-gray-400 uppercase font-bold block truncate">Avg Stay Time</span>
                     <span className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400">
-                      {analytics?.avgDurationMinutes
+                      {analytics?.summary?.averageDurationInSeconds
+                        ? `${Math.round(analytics.summary.averageDurationInSeconds / 60)} min`
+                        : analytics?.avgDurationMinutes
                         ? `${Math.round(analytics.avgDurationMinutes)} min`
-                        : attendance.length > 0
-                        ? `${Math.round(attendance.reduce((acc, a) => acc + getDurationMinutes(a), 0) / attendance.length)} min`
-                        : '-'}
+                        : attendance.filter(a => isStudentPresent(a)).length > 0
+                        ? `${Math.round(attendance.filter(a => isStudentPresent(a)).reduce((acc, a) => acc + getDurationMinutes(a), 0) / attendance.filter(a => isStudentPresent(a)).length)} min`
+                        : '0 min'}
                     </span>
                   </div>
                   <div className="bg-white/80 dark:bg-gray-900/80 rounded-xl p-2 sm:p-2.5 border border-purple-100 dark:border-gray-800 text-center">
