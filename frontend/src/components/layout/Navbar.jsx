@@ -32,6 +32,7 @@ import {
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logoutUser, selectUser } from '../../store/slices/authSlice';
 import { useTheme } from '../../context/ThemeContext.jsx';
+import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from '../ui/DropdownMenu';
 import toast from 'react-hot-toast';
 
 function NavItem({ to, icon: Icon, children, onNavigate, end = false }) {
@@ -180,81 +181,52 @@ export function Navbar() {
                   <span>AI Tutor</span>
                 </NavLink>
 
-                {/* Student Hub / More Dropdown */}
-                <div className="relative group py-2" ref={studentHubRef}>
-                  <button
-                    type="button"
-                    onClick={() => setStudentHubOpen(prev => !prev)}
-                    className="cursor-pointer whitespace-nowrap px-2.5 py-1.5 text-xs xl:text-sm font-semibold rounded-xl text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100/70 dark:hover:bg-slate-800/70 transition-all flex items-center gap-1 focus:outline-none"
-                  >
-                    <span>More</span>
-                    <ChevronDownIcon size={13} color="currentColor" />
-                  </button>
-
-                  <div
-                    className={`absolute left-0 top-full mt-1 w-52 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-xl py-2 z-50 transition-all ${
-                      studentHubOpen ? 'block' : 'hidden group-hover:block'
-                    }`}
-                  >
-                    <Link
-                      to="/dashboard"
-                      onClick={() => setStudentHubOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
+                {/* Student Hub Dropdown */}
+                <DropdownMenu
+                  align="start"
+                  className="w-52"
+                  trigger={
+                    <button
+                      type="button"
+                      className="cursor-pointer whitespace-nowrap px-2.5 py-1.5 text-xs xl:text-sm font-semibold rounded-xl text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100/70 dark:hover:bg-slate-800/70 transition-all flex items-center gap-1 focus:outline-none"
                     >
+                      <span>More</span>
+                      <ChevronDownIcon size={13} color="currentColor" />
+                    </button>
+                  }
+                >
+                  <div className="py-1">
+                    <DropdownMenuItem onClick={() => navigate('/dashboard')}>
                       <LayoutDashboard className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                       <span>Student Dashboard</span>
-                    </Link>
-
-                    <Link
-                      to="/discussions"
-                      onClick={() => setStudentHubOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
-                    >
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/discussions')}>
                       <MessageSquareIcon size={14} color="#6C5CE7" />
                       <span>Discussions</span>
-                    </Link>
-
-                    <Link
-                      to="/student/notes"
-                      onClick={() => setStudentHubOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
-                    >
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/student/notes')}>
                       <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                       <span>My Notes</span>
-                    </Link>
-
-                    <Link
-                      to="/student/quizzes"
-                      onClick={() => setStudentHubOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
-                    >
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/student/quizzes')}>
                       <CheckSquare className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                       <span>Quizzes</span>
-                    </Link>
-
-                    <Link
-                      to="/student/assignments"
-                      onClick={() => setStudentHubOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
-                    >
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/student/assignments')}>
                       <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                       <span>Assignments</span>
-                    </Link>
-
-                    <Link
-                      to="/certificates"
-                      onClick={() => setStudentHubOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
-                    >
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate('/certificates')}>
                       <Award className="w-4 h-4 text-sky-500" />
                       <span>My Certificates</span>
-                    </Link>
+                    </DropdownMenuItem>
                   </div>
-                </div>
+                </DropdownMenu>
               </>
             )}
 
-            {user && (user.role === 'instructor' || user.role === 'admin') && (
+            {user && user.role === 'instructor' && (
               <>
                 <NavLink to="/instructor/dashboard" className={desktopLinkClass}>
                   <LayoutDashboard className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
@@ -266,105 +238,78 @@ export function Navbar() {
                   <span>Create Course</span>
                 </NavLink>
 
-                <NavLink to="/instructor/quizzes" className={desktopLinkClass}>
-                  <CheckSquare className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
-                  <span>Quizzes</span>
-                </NavLink>
-
-                <NavLink to="/instructor/live-classes" className={desktopLinkClass}>
-                  <Video className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
-                  <span>Live Classes</span>
-                </NavLink>
-
-                {/* Instructor Hub / More Dropdown */}
-                <div className="relative group py-2" ref={instructorHubRef}>
-                  <button
-                    type="button"
-                    onClick={() => setInstructorHubOpen(prev => !prev)}
-                    className="cursor-pointer whitespace-nowrap px-2.5 py-1.5 text-xs xl:text-sm font-semibold rounded-xl text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100/70 dark:hover:bg-slate-800/70 transition-all flex items-center gap-1 focus:outline-none"
-                  >
-                    <span>More</span>
-                    <ChevronDownIcon size={13} color="currentColor" />
-                  </button>
-
-                  <div
-                    className={`absolute left-0 top-full mt-1 w-52 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-xl py-2 z-50 transition-all ${
-                      instructorHubOpen ? 'block' : 'hidden group-hover:block'
-                    }`}
-                  >
-                    <Link
-                      to="/instructor/assignments"
-                      onClick={() => setInstructorHubOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
+                {/* Instructor Hub Dropdown */}
+                <DropdownMenu
+                  align="start"
+                  className="w-56"
+                  trigger={
+                    <button
+                      type="button"
+                      className="cursor-pointer whitespace-nowrap px-2.5 py-1.5 text-xs xl:text-sm font-semibold rounded-xl text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100/70 dark:hover:bg-slate-800/70 transition-all flex items-center gap-1 focus:outline-none"
                     >
+                      <span>Teaching Tools</span>
+                      <ChevronDownIcon size={13} color="currentColor" />
+                    </button>
+                  }
+                >
+                  <div className="py-1">
+                    <DropdownMenuItem onClick={() => navigate('/instructor/quizzes')}>
+                      <CheckSquare className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <span>Quizzes & AI Generator</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/instructor/live-classes')}>
+                      <Video className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <span>Live Classes</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/instructor/assignments')}>
                       <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                       <span>Assignments & Grading</span>
-                    </Link>
-
-                    <Link
-                      to="/instructor/announcements"
-                      onClick={() => setInstructorHubOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
-                    >
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/instructor/announcements')}>
                       <Megaphone className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                       <span>Announcements</span>
-                    </Link>
-
-                    <Link
-                      to="/discussions"
-                      onClick={() => setInstructorHubOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
-                    >
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate('/discussions')}>
                       <MessageSquareIcon size={14} color="#6C5CE7" />
                       <span>Discussions</span>
-                    </Link>
-
-                    <Link
-                      to="/ai-chat"
-                      onClick={() => setInstructorHubOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
-                    >
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/ai-chat')}>
                       <BrainIcon size={14} color="#6C5CE7" />
                       <span>AI Assistant</span>
-                    </Link>
+                    </DropdownMenuItem>
                   </div>
-                </div>
+                </DropdownMenu>
               </>
             )}
 
             {user?.role === 'admin' && (
-              <div className="relative group py-2" ref={adminDropdownRef}>
-                <button
-                  type="button"
-                  onClick={() => setAdminDropdownOpen(prev => !prev)}
-                  className="cursor-pointer whitespace-nowrap px-2.5 py-1.5 text-xs xl:text-sm font-semibold rounded-xl text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100/70 dark:hover:bg-slate-800/70 transition-all flex items-center gap-1 focus:outline-none"
-                >
-                  <span>Admin</span>
-                  <ChevronDownIcon size={13} color="currentColor" />
-                </button>
-
-                <div
-                  className={`absolute left-0 top-full mt-1 w-48 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-xl py-2 z-50 transition-all ${
-                    adminDropdownOpen ? 'block' : 'hidden group-hover:block'
-                  }`}
-                >
+              <DropdownMenu
+                align="start"
+                className="w-52"
+                trigger={
+                  <button
+                    type="button"
+                    className="cursor-pointer whitespace-nowrap px-2.5 py-1.5 text-xs xl:text-sm font-semibold rounded-xl text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100/70 dark:hover:bg-slate-800/70 transition-all flex items-center gap-1 focus:outline-none"
+                  >
+                    <span>Admin Console</span>
+                    <ChevronDownIcon size={13} color="currentColor" />
+                  </button>
+                }
+              >
+                <div className="py-1">
                   {adminLinks.map(({ to, label }) => (
-                    <Link
-                      key={to}
-                      to={to}
-                      onClick={() => setAdminDropdownOpen(false)}
-                      className="block px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition"
-                    >
-                      {label}
-                    </Link>
+                    <DropdownMenuItem key={to} onClick={() => navigate(to)}>
+                      <span>{label}</span>
+                    </DropdownMenuItem>
                   ))}
                 </div>
-              </div>
+              </DropdownMenu>
             )}
           </nav>
 
           {/* Right Actions Toolbar */}
-          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto lg:ml-0">
             
             {/* Daily Learning Streak Badge */}
             {user && user.role === 'student' && (
@@ -387,9 +332,9 @@ export function Navbar() {
               aria-label="Toggle theme mode"
             >
               {darkMode ? (
-                <SunIcon size={17} color="#f59e0b" />
+                <SunIcon size={18} color="#f59e0b" />
               ) : (
-                <MoonIcon size={17} color="currentColor" />
+                <MoonIcon size={18} color="currentColor" />
               )}
             </button>
 
@@ -401,7 +346,7 @@ export function Navbar() {
                 title="Notifications"
                 aria-label="Notifications"
               >
-                <BellIcon size={17} color="currentColor" />
+                <BellIcon size={18} color="currentColor" />
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-purple-600 rounded-full ring-2 ring-white dark:ring-slate-900" />
               </Link>
             )}
@@ -415,7 +360,7 @@ export function Navbar() {
                   title="Cart"
                   aria-label="Shopping Cart"
                 >
-                  <ShoppingCartIcon size={17} color="currentColor" />
+                  <ShoppingCartIcon size={18} color="currentColor" />
                 </Link>
                 <Link
                   to="/wishlist"
@@ -423,164 +368,116 @@ export function Navbar() {
                   title="Wishlist"
                   aria-label="Saved Wishlist"
                 >
-                  <HeartIcon size={17} color="currentColor" />
+                  <HeartIcon size={18} color="currentColor" />
                 </Link>
               </>
             )}
 
-            <div className="h-5 w-px bg-gray-200 dark:bg-slate-800 hidden sm:block shrink-0 mx-0.5" />
+            <div className="h-5 w-px bg-gray-200 dark:bg-slate-800 hidden sm:block shrink-0 mx-1" />
 
             {/* User Profile Dropdown or Auth Buttons */}
             {user ? (
-              <div className="relative shrink-0" ref={dropdownRef}>
-                <button
-                  type="button"
-                  onClick={() => setDropdownOpen(prev => !prev)}
-                  className="flex items-center gap-1.5 sm:gap-2 p-1.5 rounded-xl hover:bg-purple-50 dark:hover:bg-slate-800 transition-all cursor-pointer border border-transparent hover:border-purple-200 dark:hover:border-slate-700"
-                  aria-label="User menu"
-                >
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 text-white font-bold flex items-center justify-center text-xs shadow-xs shrink-0 overflow-hidden">
-                    {user.avatarUrl ? (
-                      <img
-                        src={user.avatarUrl}
-                        alt={user.fullName || 'User'}
-                        className="w-full h-full rounded-full object-cover"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      user.fullName?.[0]?.toUpperCase() || 'U'
-                    )}
-                  </div>
-                  <span className="hidden md:inline-block text-xs font-bold text-gray-800 dark:text-gray-200 max-w-[100px] truncate">
-                    {user.fullName?.split(' ')[0]}
-                  </span>
-                  <ChevronDownIcon size={13} color="#9ca3af" />
-                </button>
-
-                {dropdownOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2">
-                    <div className="px-4 py-2.5 border-b border-gray-100 dark:border-slate-800">
-                      <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{user.fullName}</p>
-                      <p className="text-[11px] text-purple-600 dark:text-purple-400 font-bold capitalize mt-0.5">{user.role}</p>
+              <DropdownMenu
+                align="end"
+                className="w-56"
+                trigger={
+                  <div
+                    className="flex items-center gap-1.5 sm:gap-2 p-1.5 rounded-xl hover:bg-purple-50 dark:hover:bg-slate-800 transition-all cursor-pointer border border-transparent hover:border-purple-200 dark:hover:border-slate-700"
+                    aria-label="User menu"
+                  >
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 text-white font-bold flex items-center justify-center text-xs shadow-xs shrink-0 overflow-hidden">
+                      {user.avatarUrl ? (
+                        <img
+                          src={user.avatarUrl}
+                          alt={user.fullName || 'User'}
+                          className="w-full h-full rounded-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        user.fullName?.[0]?.toUpperCase() || 'U'
+                      )}
                     </div>
-
-                    <Link
-                      to="/profile"
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
-                    >
-                      <UserIcon size={14} color="#6C5CE7" />
-                      <span>Profile & Settings</span>
-                    </Link>
-
-                    {user.role === 'student' && (
-                      <>
-                        <Link
-                          to="/dashboard"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
-                        >
-                          <LayoutDashboard className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                          <span>Student Dashboard</span>
-                        </Link>
-                        <Link
-                          to="/my-learning"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
-                        >
-                          <BookOpenIcon size={14} color="#6C5CE7" />
-                          <span>My Learning</span>
-                        </Link>
-                        <Link
-                          to="/certificates"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
-                        >
-                          <Award className="w-3.5 h-3.5 text-sky-500" />
-                          <span>My Certificates</span>
-                        </Link>
-                      </>
-                    )}
-
-                    {user.role === 'instructor' && (
-                      <>
-                        <Link
-                          to="/instructor/dashboard"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
-                        >
-                          <LayoutDashboard className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                          <span>Instructor Dashboard</span>
-                        </Link>
-                        <Link
-                          to="/instructor/courses/new"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
-                        >
-                          <PlusCircle className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                          <span>Create New Course</span>
-                        </Link>
-                        <Link
-                          to="/instructor/quizzes"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
-                        >
-                          <CheckSquare className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                          <span>Quizzes & AI Generator</span>
-                        </Link>
-                        <Link
-                          to="/instructor/assignments"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
-                        >
-                          <FileText className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                          <span>Assignments & Grading</span>
-                        </Link>
-                        <Link
-                          to="/instructor/announcements"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
-                        >
-                          <Megaphone className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                          <span>Announcements</span>
-                        </Link>
-                        <Link
-                          to="/instructor/live-classes"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
-                        >
-                          <Video className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                          <span>Live Sessions</span>
-                        </Link>
-                      </>
-                    )}
-
-                    {user.role === 'admin' && (
-                      <Link
-                        to="/admin"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition-colors"
-                      >
-                        <Award className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                        <span>Admin Dashboard</span>
-                      </Link>
-                    )}
-
-                    <div className="border-t border-gray-100 dark:border-slate-800 my-1" />
-
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors text-left cursor-pointer"
-                    >
-                      <LogOutIcon size={14} color="#ef4444" />
-                      <span>Logout</span>
-                    </button>
+                    <span className="hidden md:inline-block text-xs font-bold text-gray-800 dark:text-gray-200 max-w-[100px] truncate">
+                      {user.fullName?.split(' ')[0]}
+                    </span>
+                    <ChevronDownIcon size={13} color="#9ca3af" />
                   </div>
-                )}
-              </div>
+                }
+              >
+                <div className="px-3 py-2 border-b border-gray-100 dark:border-slate-800">
+                  <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{user.fullName}</p>
+                  <p className="text-[11px] text-purple-600 dark:text-purple-400 font-bold capitalize mt-0.5">{user.role}</p>
+                </div>
+
+                <div className="py-1">
+                  <DropdownMenuItem onClick={() => navigate('/profile')}>
+                    <UserIcon size={14} color="#6C5CE7" />
+                    <span>Profile & Settings</span>
+                  </DropdownMenuItem>
+
+                  {user.role === 'student' && (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                        <LayoutDashboard className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        <span>Student Dashboard</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/my-learning')}>
+                        <BookOpenIcon size={14} color="#6C5CE7" />
+                        <span>My Learning</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/certificates')}>
+                        <Award className="w-3.5 h-3.5 text-sky-500" />
+                        <span>My Certificates</span>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
+                  {user.role === 'instructor' && (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate('/instructor/dashboard')}>
+                        <LayoutDashboard className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        <span>Instructor Dashboard</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/instructor/courses/new')}>
+                        <PlusCircle className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        <span>Create New Course</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/instructor/quizzes')}>
+                        <CheckSquare className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        <span>Quizzes & AI Generator</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/instructor/assignments')}>
+                        <FileText className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        <span>Assignments & Grading</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/instructor/announcements')}>
+                        <Megaphone className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        <span>Announcements</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/instructor/live-classes')}>
+                        <Video className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        <span>Live Sessions</span>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
+                  {user.role === 'admin' && (
+                    <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      <Award className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                      <span>Admin Dashboard</span>
+                    </DropdownMenuItem>
+                  )}
+
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem destructive onClick={handleLogout}>
+                    <LogOutIcon size={14} color="#ef4444" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </div>
+              </DropdownMenu>
             ) : (
               <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <Link

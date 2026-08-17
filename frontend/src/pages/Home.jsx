@@ -21,6 +21,8 @@ import { getAllCourses } from '../api/course.api';
 import { getAllCategories } from '../api/category.api';
 import { CourseCard } from '../components/course/CourseCard';
 import { ButtonGroup, ButtonGroupItem, ConnectedButtonGroup } from '../components/ui/ButtonGroup';
+import { ThreeHeroCanvas } from '../components/animations/ThreeHeroCanvas';
+import { GsapStagger, GsapCounter } from '../components/animations/GsapScrollReveal';
 
 // ── Organic Doodles & SVGs (EduLe Inspired) ──
 function DoodleUnderline() {
@@ -317,10 +319,13 @@ export default function Home() {
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0d0f1a] text-gray-900 dark:text-gray-100 font-[Inter,sans-serif] selection:bg-purple-500 selection:text-white transition-colors duration-200">
       
       {/* ══════════════════════════════════════════════════════════
-          HERO SECTION (EduLe & ChaiCode Style)
+          HERO SECTION (EduLe & ChaiCode Style with Three.js 3D WebGL)
       ══════════════════════════════════════════════════════════ */}
       <section className="relative pt-8 pb-16 lg:pt-14 lg:pb-24 overflow-hidden bg-gradient-to-b from-purple-50/70 via-white to-[#f8fafc] dark:from-[#131628] dark:via-[#0f1222] dark:to-[#0d0f1a] border-b border-gray-200/70 dark:border-slate-800/80">
         
+        {/* Three.js Interactive 3D WebGL Background */}
+        <ThreeHeroCanvas />
+
         <div className="absolute top-0 left-1/4 w-[600px] h-[400px] bg-purple-500/10 dark:bg-purple-600/15 rounded-full blur-[140px] pointer-events-none -z-10" />
         <div className="absolute top-20 right-10 w-[500px] h-[350px] bg-indigo-500/10 dark:bg-indigo-600/15 rounded-full blur-[130px] pointer-events-none -z-10" />
 
@@ -419,7 +424,10 @@ export default function Home() {
                       </div>
                     ))}
                   </div>
-                  <span className="font-semibold text-gray-900 dark:text-white">10,000+ Enrolled Learners</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    <GsapCounter value={10000} suffix="+ " duration={2.2} />
+                    Enrolled Learners
+                  </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="flex text-amber-400">
@@ -428,7 +436,7 @@ export default function Home() {
                     ))}
                   </div>
                   <span className="font-bold text-gray-900 dark:text-white">4.9 / 5.0</span>
-                  <span>(2.4k+ Reviews)</span>
+                  <span>(<GsapCounter value={2400} suffix="+ Reviews" duration={2} />)</span>
                 </div>
               </div>
             </motion.div>
@@ -673,7 +681,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <GsapStagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" stagger={0.15}>
           {PLATFORM_FEATURES.map((feat) => {
             const Icon = feat.icon;
             return (
@@ -705,7 +713,7 @@ export default function Home() {
               </motion.div>
             );
           })}
-        </div>
+        </GsapStagger>
       </section>
 
       {/* ══════════════════════════════════════════════════════════

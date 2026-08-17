@@ -26,6 +26,7 @@ import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { MessageScroller } from '../components/ui/MessageScroller';
+import { Combobox } from '../components/ui/Combobox';
 
 // Beautiful Syntax-Highlighted Code Block
 function CodeBlock({ children, className }) {
@@ -484,21 +485,17 @@ export default function AiChat() {
 
           {/* New Chat & Scope */}
           <div className="space-y-2 mb-3 shrink-0">
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <BookOpenIcon size={14} color="#9ca3af" />
-              </span>
-              <select
-                value={courseId}
-                onChange={(e) => setCourseId(e.target.value)}
-                className="w-full text-xs pl-8 pr-3 py-2.5 border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/80 text-gray-800 dark:text-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition font-medium cursor-pointer"
-              >
-                <option value="">Scope: All Knowledge Base</option>
-                {coursesList.map(c => (
-                  <option key={c._id} value={c._id}>{c.title}</option>
-                ))}
-              </select>
-            </div>
+            <Combobox
+              value={courseId}
+              onChange={(val) => setCourseId(val)}
+              options={[
+                { value: '', label: 'Scope: All Knowledge Base' },
+                ...coursesList.map((c) => ({ value: c._id, label: c.title })),
+              ]}
+              placeholder="Scope: All Knowledge Base"
+              searchPlaceholder="Filter knowledge scope..."
+              className="w-full text-xs"
+            />
 
             <button
               type="button"
