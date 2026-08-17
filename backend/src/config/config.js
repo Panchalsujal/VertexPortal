@@ -14,8 +14,15 @@ if (!process.env.JWT_EXPIRES_IN) {
 }
 
 // Email configuration: At least RESEND_API_KEY, GOOGLE OAuth, or SMTP is recommended.
-if (!process.env.RESEND_API_KEY && !process.env.GOOGLE_CLIENT_ID && !process.env.EMAIL_USER && !process.env.SMTP_HOST) {
-  console.warn("[CONFIG-WARNING] No email provider configured (RESEND_API_KEY, GOOGLE OAuth, or SMTP). Email sending will fallback to mock/logging.");
+if (
+  !process.env.RESEND_API_KEY &&
+  !process.env.GOOGLE_CLIENT_ID &&
+  !process.env.EMAIL_USER &&
+  !process.env.SMTP_HOST
+) {
+  console.warn(
+    "[CONFIG-WARNING] No email provider configured (RESEND_API_KEY, GOOGLE OAuth, or SMTP). Email sending will fallback to mock/logging.",
+  );
 }
 if (!process.env.API_URL) {
   throw new Error("API_URL is not defined in the environment variables");
@@ -86,13 +93,24 @@ if (!process.env.STREAM_API_SECRET) {
   );
 }
 
+// Redis Cache Configuration check
+if (!process.env.REDIS_URL && !process.env.REDIS_HOST) {
+  console.warn(
+    "[CONFIG-WARNING] No REDIS_URL configured. Caching will use in-memory L1 cache fallback.",
+  );
+}
+
 export const config = {
   MONGO_URI: process.env.MONGO_URI,
   JWT_SECRET: process.env.JWT_SECRET,
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN,
   EMAIL_USER: process.env.EMAIL_USER,
   RESEND_API_KEY: process.env.RESEND_API_KEY,
-  EMAIL_FROM: process.env.EMAIL_FROM || (process.env.EMAIL_USER ? `"Vertex LMS" <${process.env.EMAIL_USER}>` : "Vertex LMS <onboarding@resend.dev>"),
+  EMAIL_FROM:
+    process.env.EMAIL_FROM ||
+    (process.env.EMAIL_USER
+      ? `"Vertex LMS" <${process.env.EMAIL_USER}>`
+      : "Vertex LMS <onboarding@resend.dev>"),
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
   GOOGLE_REFRESH_TOKEN: process.env.GOOGLE_REFRESH_TOKEN,
@@ -110,4 +128,5 @@ export const config = {
     process.env.MISTRAL_TRANSCRIPTION_MODEL || "voxtral-mini-latest",
   STREAM_API_KEY: process.env.STREAM_API_KEY,
   STREAM_API_SECRET: process.env.STREAM_API_SECRET,
+  REDIS_URL: process.env.REDIS_URL?.trim(),
 };

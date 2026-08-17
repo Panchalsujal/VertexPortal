@@ -1,9 +1,12 @@
+import { createClient } from "redis";
+import { config } from "../config/config.js";
+
 /**
  * Multi-Tier High Performance Render Cache Service
  * 
  * Provides:
  * - Locale-aware and query-normalized cache key generation
- * - In-memory LRU + optional Redis caching with TTL
+ * - Hybrid Multi-Tier Cache: L1 Fast In-Memory LRU + L2 Distributed Redis
  * - Stale-While-Revalidate (SWR) background regeneration
  * - Tag-based cache invalidation (e.g. `course:react-masterclass`, `catalog:*`, `certificate:CERT-123`)
  * - Rendering load metrics (hits, misses, renders prevented, latency savings)
@@ -15,7 +18,7 @@ class RenderCacheService {
     this.defaultTtlSeconds = options.defaultTtlSeconds || 3600; // 1 hour default
     this.swrGraceSeconds = options.swrGraceSeconds || 300; // 5 min SWR window
     
-    // In-memory cache storage
+    // L1: In-memory cache storage (sub-millisecond local access)
     this.cache = new Map();
     // Inverted index for tag-based invalidation: tag -> Set<key>
     this.tagsIndex = new Map();
@@ -25,9 +28,15 @@ class RenderCacheService {
     // Revalidation lock to prevent dog-piling
     this.activeRevalidations = new Set();
 
+    // L2: Optional Redis client
+    this.redisClient = null;
+    this.isRedisConnected = false;
+
     // Metrics
     this.metrics = {
       hits: 0,
+      l1Hits: 0,
+      l2RedisHits: 0,
       misses: 0,
       swrHits: 0,
       invalidations: 0,
@@ -36,10 +45,69 @@ class RenderCacheService {
       createdAt: new Date().toISOString(),
     };
 
-    // Scheduled cleanup every 5 minutes
+    // Auto-connect to Redis if REDIS_URL is configured in environment
+    if (config.REDIS_URL) {
+      this.initRedis();
+    }
+
+    // Scheduled L1 cleanup every 5 minutes
     this.cleanupInterval = setInterval(() => this.evictExpired(), 5 * 60 * 1000);
     if (this.cleanupInterval.unref) {
       this.cleanupInterval.unref();
+    }
+  }
+
+  /**
+   * Cleans and normalizes Redis URL (handles quotes, redis-cli prefixes, and TLS upgrade)
+   */
+  sanitizeRedisUrl(rawUrl) {
+    if (!rawUrl || typeof rawUrl !== "string") return null;
+    let url = rawUrl.trim();
+
+    // Strip surrounding quotes
+    if ((url.startsWith('"') && url.endsWith('"')) || (url.startsWith("'") && url.endsWith("'"))) {
+      url = url.slice(1, -1).trim();
+    }
+
+    // Strip "redis-cli --tls -u " or "redis-cli -u " prefix if pasted directly from CLI tab
+    const cliMatch = url.match(/redis-cli\s+(?:--tls\s+)?-u\s+(.+)/i);
+    if (cliMatch && cliMatch[1]) {
+      url = cliMatch[1].trim();
+    }
+
+    // If Upstash or cloud Redis is using standard redis:// without TLS, convert to rediss://
+    if (url.includes(".upstash.io") && url.startsWith("redis://")) {
+      url = url.replace(/^redis:\/\//i, "rediss://");
+    }
+
+    return url;
+  }
+
+  /**
+   * Initializes Redis connection gracefully using REDIS_URL
+   */
+  async initRedis(customConfig = null) {
+    try {
+      const rawUrl = customConfig || config.REDIS_URL;
+      if (!rawUrl) return;
+
+      const cleanedUrl = this.sanitizeRedisUrl(rawUrl);
+      this.redisClient = createClient({ url: cleanedUrl });
+
+      this.redisClient.on("error", (err) => {
+        if (this.isRedisConnected) {
+          console.warn("[RENDER-CACHE] Redis connection lost, falling back to L1 in-memory cache:", err.message);
+        }
+        this.isRedisConnected = false;
+      });
+      this.redisClient.on("ready", () => {
+        this.isRedisConnected = true;
+        console.log("[RENDER-CACHE] Connected to Redis L2 cache tier");
+      });
+      await this.redisClient.connect();
+    } catch (err) {
+      console.warn("[RENDER-CACHE] Redis connection failed, using L1 in-memory cache:", err.message);
+      this.isRedisConnected = false;
     }
   }
 
@@ -132,7 +200,7 @@ class RenderCacheService {
   }
 
   /**
-   * Get cached item or execute render function with SWR support
+   * Get cached item (L1 in-memory -> L2 Redis) or execute render function with SWR support
    */
   async getOrRender({
     key,
@@ -142,14 +210,15 @@ class RenderCacheService {
     estimatedRenderCostMs = 50,
   }) {
     const now = Date.now();
-    const entry = this.cache.get(key);
 
+    // 1. Check L1 In-Memory Cache
+    const entry = this.cache.get(key);
     if (entry) {
       this.keyAccessTimestamps.set(key, now);
 
-      // Check if entry is still fresh
       if (now < entry.expiresAt) {
         this.metrics.hits++;
+        this.metrics.l1Hits++;
         this.metrics.rendersPrevented++;
         this.metrics.estimatedMsSaved += estimatedRenderCostMs;
         return {
@@ -158,17 +227,17 @@ class RenderCacheService {
           isStale: false,
           headers: entry.headers,
           generatedAt: entry.generatedAt,
+          tier: "L1_MEMORY",
         };
       }
 
-      // Check if within SWR grace window
       if (now < entry.expiresAt + this.swrGraceSeconds * 1000) {
         this.metrics.swrHits++;
         this.metrics.hits++;
+        this.metrics.l1Hits++;
         this.metrics.rendersPrevented++;
         this.metrics.estimatedMsSaved += estimatedRenderCostMs;
 
-        // Background stale-while-revalidate regeneration
         this.scheduleBackgroundRevalidation(key, tags, ttlSeconds, renderFn);
 
         return {
@@ -177,11 +246,47 @@ class RenderCacheService {
           isStale: true,
           headers: entry.headers,
           generatedAt: entry.generatedAt,
+          tier: "L1_SWR",
         };
       }
     }
 
-    // Cache Miss or hard expired
+    // 2. Check L2 Redis Cache (if connected)
+    if (this.isRedisConnected && this.redisClient) {
+      try {
+        const rawRedis = await this.redisClient.get(key);
+        if (rawRedis) {
+          const redisEntry = JSON.parse(rawRedis);
+          // Populate L1 cache
+          this.set({
+            key,
+            content: redisEntry.content,
+            tags: redisEntry.tags || tags,
+            ttlSeconds: Math.max(Math.floor((redisEntry.expiresAt - now) / 1000), 1),
+            headers: redisEntry.headers,
+            skipRedis: true, // already in Redis
+          });
+
+          this.metrics.hits++;
+          this.metrics.l2RedisHits++;
+          this.metrics.rendersPrevented++;
+          this.metrics.estimatedMsSaved += estimatedRenderCostMs;
+
+          return {
+            content: redisEntry.content,
+            isHit: true,
+            isStale: false,
+            headers: redisEntry.headers,
+            generatedAt: redisEntry.generatedAt,
+            tier: "L2_REDIS",
+          };
+        }
+      } catch (err) {
+        // Fall back gracefully to rendering
+      }
+    }
+
+    // 3. Cache Miss or hard expired -> Render fresh content
     this.metrics.misses++;
     const renderStartTime = Date.now();
     const renderResult = await renderFn();
@@ -210,14 +315,14 @@ class RenderCacheService {
       headers,
       renderDurationMs: renderDuration,
       generatedAt: now,
+      tier: "MISS_RENDERED",
     };
   }
 
   /**
-   * Set item into cache with LRU eviction and tag indexing
+   * Set item into cache (L1 Memory + L2 Redis)
    */
-  set({ key, content, tags = [], ttlSeconds = this.defaultTtlSeconds, headers = {} }) {
-    // Check max items limit for LRU eviction
+  set({ key, content, tags = [], ttlSeconds = this.defaultTtlSeconds, headers = {}, skipRedis = false }) {
     if (this.cache.size >= this.maxItems && !this.cache.has(key)) {
       this.evictLRU();
     }
@@ -233,15 +338,21 @@ class RenderCacheService {
       expiresAt,
     };
 
+    // Store in L1 Memory
     this.cache.set(key, entry);
     this.keyAccessTimestamps.set(key, now);
 
-    // Index tags
+    // Index tags locally
     for (const tag of tags) {
       if (!this.tagsIndex.has(tag)) {
         this.tagsIndex.set(tag, new Set());
       }
       this.tagsIndex.get(tag).add(key);
+    }
+
+    // Store in L2 Redis
+    if (!skipRedis && this.isRedisConnected && this.redisClient) {
+      this.redisClient.setEx(key, ttlSeconds, JSON.stringify(entry)).catch(() => {});
     }
   }
 
@@ -263,9 +374,13 @@ class RenderCacheService {
       this.cache.delete(key);
       this.keyAccessTimestamps.delete(key);
       this.metrics.invalidations++;
-      return true;
     }
-    return false;
+
+    if (this.isRedisConnected && this.redisClient) {
+      this.redisClient.del(key).catch(() => {});
+    }
+
+    return !!entry;
   }
 
   /**
@@ -328,6 +443,11 @@ class RenderCacheService {
     this.keyAccessTimestamps.clear();
     this.activeRevalidations.clear();
     this.metrics.invalidations += size;
+
+    if (this.isRedisConnected && this.redisClient) {
+      this.redisClient.flushDb().catch(() => {});
+    }
+
     return size;
   }
 
@@ -388,7 +508,7 @@ class RenderCacheService {
         headers,
       });
     } catch (err) {
-      // Log or swallow error in background revalidation to avoid impacting current requests
+      // Background revalidation error swallowed
     } finally {
       this.activeRevalidations.delete(key);
     }
@@ -407,6 +527,7 @@ class RenderCacheService {
       size: this.cache.size,
       maxItems: this.maxItems,
       totalTags: this.tagsIndex.size,
+      redisConnected: this.isRedisConnected,
       hitRate: `${hitRatePercent}%`,
       ...this.metrics,
     };
@@ -415,6 +536,9 @@ class RenderCacheService {
   destroy() {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
+    }
+    if (this.redisClient) {
+      this.redisClient.disconnect().catch(() => {});
     }
   }
 }
