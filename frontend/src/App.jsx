@@ -6,6 +6,7 @@ import { fetchMe, selectUser, selectAuthLoading } from './store/slices/authSlice
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { PageLoader } from './components/ui/Spinner';
+import { CookieConsent } from './components/common/CookieConsent';
 
 // Existing Pages
 import Home from './pages/Home';
@@ -122,6 +123,7 @@ function AppRoot() {
     <BrowserRouter>
       <ScrollToTop />
       <Toaster />
+      <CookieConsent />
       <Layout>
         <Routes>
           {/* Public */}

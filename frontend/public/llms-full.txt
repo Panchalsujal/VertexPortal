@@ -1,0 +1,28 @@
+# VertexPortal LMS — Complete Platform Specification & Documentation
+
+## 1. Platform Summary
+VertexPortal (https://vertex-mu-eight.vercel.app/) is a scalable, cloud-native learning management platform built with React, Tailwind CSS, Vite, Node.js, Express, MongoDB, and Gemini AI.
+
+## 2. Core Modules
+### 2.1 Course Catalog & Learning Management
+- Comprehensive course curriculum with video lectures, reading modules, and attached resources.
+- Progress tracking with automatic lesson completion and bookmarking.
+- Discussion forums attached to individual lectures and global community boards.
+
+### 2.2 Assessments & Examinations
+- Multiple choice, coding challenges, and essay question formats.
+- Real-time timer and automated grading with instant scorecard generation.
+- Instructor grading interface for subjective assignments.
+
+### 2.3 AI Tutor Assistant
+- Context-aware explanations of course topics.
+- Interactive code debugging with line-by-line breakdown.
+- Study plan generator based on student goals and schedule.
+
+### 2.4 Code Playground
+- Multi-language interactive compiler & execution sandbox.
+- Syntax highlighting, auto-formatting, and error diagnostics.
+
+### 2.5 Security & Privacy
+- Strict transport security (HSTS), Content-Security-Policy (CSP), and role-based access control (RBAC).
+- Data privacy compliant with GDPR principles.

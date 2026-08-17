@@ -1,0 +1,19 @@
+# AI Policy for VertexPortal
+# https://ai.txt.org/ / https://site.standards.ai/
+User-agent: *
+Allow: /
+Allow: /courses
+Allow: /playground
+Allow: /discussions
+Disallow: /admin
+Disallow: /api
+Disallow: /student
+Disallow: /instructor
+
+# Data usage policy
+Content-License: CC-BY-SA-4.0
+Attribution-Required: Yes
+Attribution-URL: https://vertex-mu-eight.vercel.app/
+Commercial-Use: Allowed
+Training-Data: Allowed
+Contact: support@vertexportal.com
