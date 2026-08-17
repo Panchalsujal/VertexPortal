@@ -1,9 +1,6 @@
-# https://www.robotstxt.org/robotstxt.html
 User-agent: *
 Allow: /
-Disallow: /admin
 Disallow: /admin/
-Disallow: /api/
 Disallow: /student/
 Disallow: /instructor/
 Disallow: /learn/
@@ -12,44 +9,59 @@ Disallow: /wishlist
 Disallow: /notifications
 Disallow: /profile
 
-# Search Engine Crawlers
+# Google Search crawler
 User-agent: Googlebot
 Allow: /
-Disallow: /admin/
-Disallow: /api/
+Allow: /api/courses
+Allow: /api/categories
+Disallow: /api/auth/
+Disallow: /api/admin/
+Disallow: /api/users/
 
+# Bing
 User-agent: Bingbot
 Allow: /
-Disallow: /admin/
-Disallow: /api/
+Allow: /api/courses
+Allow: /api/categories
+Disallow: /api/auth/
+Disallow: /api/admin/
+Disallow: /api/users/
 
-# AI Crawlers & LLM Agents
+# OpenAI crawlers
 User-agent: GPTBot
 Allow: /
 Allow: /courses
 Allow: /playground
+Allow: /api/courses
+Allow: /api/categories
 Disallow: /admin/
-Disallow: /api/
 
 User-agent: ChatGPT-User
 Allow: /
 
+# Anthropic
 User-agent: ClaudeBot
 Allow: /
 Allow: /courses
+Allow: /api/courses
+Allow: /api/categories
 Disallow: /admin/
-Disallow: /api/
 
+# Perplexity
 User-agent: PerplexityBot
 Allow: /
+Allow: /api/courses
+Allow: /api/categories
 Disallow: /admin/
-Disallow: /api/
 
+# Apple
 User-agent: Applebot
 Allow: /
+Allow: /api/courses
+Allow: /api/categories
 Disallow: /admin/
-Disallow: /api/
 
+# Google AI training controls
 User-agent: Google-Extended
 Allow: /
 
