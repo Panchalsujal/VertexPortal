@@ -12,6 +12,7 @@ import { addToCart } from '../../api/cart.api';
 import { addToWishlist, removeFromWishlist } from '../../api/wishlist.api';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { getOptimizedImageUrl } from '../../utils/imageUtils';
 
 function formatDuration(seconds) {
   const h = Math.floor(seconds / 3600);
@@ -81,8 +82,12 @@ export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
         <div className="relative aspect-video bg-gray-100 dark:bg-slate-800 overflow-hidden">
           {course.thumbnailUrl ? (
             <img
-              src={course.thumbnailUrl}
+              src={getOptimizedImageUrl(course.thumbnailUrl, { width: 500, quality: 80 })}
               alt={course.title}
+              width="400"
+              height="225"
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (

@@ -24,6 +24,7 @@ import { CourseCard } from '../components/course/CourseCard';
 import { ButtonGroup, ButtonGroupItem, ConnectedButtonGroup } from '../components/ui/ButtonGroup';
 import { GsapHeroParticles } from '../components/animations/GsapHeroParticles';
 import { GsapStagger, GsapCounter } from '../components/animations/GsapScrollReveal';
+import { getOptimizedImageUrl } from '../utils/imageUtils';
 
 // ── Organic Doodles & SVGs (EduLe Inspired) ──
 function DoodleUnderline() {
@@ -398,7 +399,7 @@ export default function Home() {
       <section className="relative pt-8 pb-16 lg:pt-14 lg:pb-24 overflow-hidden bg-gradient-to-b from-purple-50/70 via-white to-[#f8fafc] dark:from-[#131628] dark:via-[#0f1222] dark:to-[#0d0f1a] border-b border-gray-200/70 dark:border-slate-800/80">
         
         {/* GSAP Floating Particle Engine (Webflow Reference) */}
-        <GsapHeroParticles count={40} />
+        <GsapHeroParticles count={16} />
 
         <div className="absolute top-0 left-1/4 w-[600px] h-[400px] bg-purple-500/10 dark:bg-purple-600/15 rounded-full blur-[140px] pointer-events-none -z-10" />
         <div className="absolute top-20 right-10 w-[500px] h-[350px] bg-indigo-500/10 dark:bg-indigo-600/15 rounded-full blur-[130px] pointer-events-none -z-10" />
@@ -500,7 +501,15 @@ export default function Home() {
                         title={st.fullName}
                       >
                         {st.avatarUrl && !st.avatarUrl.includes('default.avif') ? (
-                          <img src={st.avatarUrl} alt={st.fullName} className="w-full h-full object-cover" />
+                          <img
+                            src={getOptimizedImageUrl(st.avatarUrl, { width: 64, quality: 80 })}
+                            alt={st.fullName}
+                            width="28"
+                            height="28"
+                            loading="lazy"
+                            decoding="async"
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
                           <span>{(st.fullName || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</span>
                         )}
@@ -925,8 +934,12 @@ export default function Home() {
                     >
                       {avatarUrl && !avatarUrl.includes('default.avif') ? (
                         <img
-                          src={avatarUrl}
+                          src={getOptimizedImageUrl(avatarUrl, { width: 80, quality: 80 })}
                           alt={reviewerName}
+                          width="40"
+                          height="40"
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             e.target.style.display = 'none';
