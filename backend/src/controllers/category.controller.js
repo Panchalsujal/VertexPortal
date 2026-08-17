@@ -63,11 +63,29 @@ export const createCategoryController = asyncHandler(async (req, res) => {
 
 
 export const getAllCategoriesController = asyncHandler(async (req, res) => {
-  const categories = await Category.find({
-    isActive: true,
-  })
-    .sort({ name: 1 })
-    .select("name slug description");
+  const cacheKey = "api:categories:all";
+  const cacheResult = await renderCacheService.getOrRender({
+    key: cacheKey,
+    tags: ["categories", "catalog"],
+    ttlSeconds: 1800, // 30 minutes in Redis
+    renderFn: async () => {
+      const categories = await Category.find({
+        isActive: true,
+      })
+        .sort({ name: 1 })
+        .select("name slug description")
+        .lean();
+
+      return {
+        content: categories,
+      };
+    },
+  });
+
+  res.setHeader("X-Cache-Status", cacheResult.isHit ? (cacheResult.isStale ? "STALE" : "HIT") : "MISS");
+  res.setHeader("X-Cache-Tier", cacheResult.tier || "MEMORY");
+
+  const categories = cacheResult.content || [];
 
   return res.status(200).json({
     success: true,
@@ -77,27 +95,39 @@ export const getAllCategoriesController = asyncHandler(async (req, res) => {
   });
 });
 
-
-
 export const getCategoryBySlugController = asyncHandler(async (req, res) => {
   const { slug } = req.params;
 
-  const category = await Category.findOne({
-    slug,
-    isActive: true,
-  }).select("name slug description createdAt");
+  const cacheKey = `api:category:${slug}`;
+  const cacheResult = await renderCacheService.getOrRender({
+    key: cacheKey,
+    tags: ["categories", "catalog"],
+    ttlSeconds: 1800,
+    renderFn: async () => {
+      const category = await Category.findOne({
+        slug,
+        isActive: true,
+      }).select("name slug description createdAt").lean();
 
-  if (!category) {
-    return res.status(404).json({
-      success: false,
-      message: "Category not found",
-    });
-  }
+      if (!category) {
+        const err = new Error("Category not found");
+        err.statusCode = 404;
+        throw err;
+      }
+
+      return {
+        content: category,
+      };
+    },
+  });
+
+  res.setHeader("X-Cache-Status", cacheResult.isHit ? (cacheResult.isStale ? "STALE" : "HIT") : "MISS");
+  res.setHeader("X-Cache-Tier", cacheResult.tier || "MEMORY");
 
   return res.status(200).json({
     success: true,
     message: "Category fetched successfully",
-    category,
+    category: cacheResult.content,
   });
 });
 

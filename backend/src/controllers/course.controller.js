@@ -376,30 +376,44 @@ export const publishCourseController = asyncHandler(async (req, res) => {
 export const getCourseBySlugController = asyncHandler(async (req, res) => {
   const { slug } = req.params;
 
-  const course = await Course.findOne({
-    slug,
-    status: "published",
-    isPublished: true,
-    isActive: true,
-  })
-    .populate("category", "name slug")
-    .populate("instructor", "fullName avatarUrl")
-    .select(
-      "title slug subtitle description thumbnailUrl category instructor level language price discountPrice requirements learningOutcomes totalModules totalLectures totalDurationInSeconds enrolledStudentsCount averageRating totalReviews publishedAt",
-    )
-    .lean();
+  const cacheKey = `api:course:${slug}`;
+  const cacheResult = await renderCacheService.getOrRender({
+    key: cacheKey,
+    tags: [`course:${slug}`, "catalog"],
+    ttlSeconds: 3600, // 1 hour in Redis / L1
+    renderFn: async () => {
+      const course = await Course.findOne({
+        slug,
+        status: "published",
+        isPublished: true,
+        isActive: true,
+      })
+        .populate("category", "name slug")
+        .populate("instructor", "fullName avatarUrl")
+        .select(
+          "title slug subtitle description thumbnailUrl category instructor level language price discountPrice requirements learningOutcomes totalModules totalLectures totalDurationInSeconds enrolledStudentsCount averageRating totalReviews publishedAt",
+        )
+        .lean();
 
-  if (!course) {
-    return res.status(404).json({
-      success: false,
-      message: "Course not found",
-    });
-  }
+      if (!course) {
+        const err = new Error("Course not found");
+        err.statusCode = 404;
+        throw err;
+      }
+
+      return {
+        content: course,
+      };
+    },
+  });
+
+  res.setHeader("X-Cache-Status", cacheResult.isHit ? (cacheResult.isStale ? "STALE" : "HIT") : "MISS");
+  res.setHeader("X-Cache-Tier", cacheResult.tier || "MEMORY");
 
   return res.status(200).json({
     success: true,
     message: "Course fetched successfully",
-    course,
+    course: cacheResult.content,
   });
 });
 

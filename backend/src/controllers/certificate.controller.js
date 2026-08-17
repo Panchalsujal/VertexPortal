@@ -1,5 +1,6 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { config } from "../config/config.js";
+import { renderCacheService } from "../service/renderCache.service.js";
 
 import {
   getMyCertificates,
@@ -54,8 +55,25 @@ export const getMyCertificateByIdController = asyncHandler(async (req, res) => {
 
 export const verifyCertificateController = asyncHandler(async (req, res) => {
   const { verificationCode } = req.params;
+  const normalizedCode = verificationCode.toUpperCase().trim();
 
-  const result = await verifyCertificate(verificationCode);
+  const cacheKey = `api:certificate:verify:${normalizedCode}`;
+  const cacheResult = await renderCacheService.getOrRender({
+    key: cacheKey,
+    tags: [`certificate:${normalizedCode}`],
+    ttlSeconds: 86400, // 24 hours TTL in Redis
+    renderFn: async () => {
+      const result = await verifyCertificate(normalizedCode);
+      return {
+        content: result,
+      };
+    },
+  });
+
+  res.setHeader("X-Cache-Status", cacheResult.isHit ? (cacheResult.isStale ? "STALE" : "HIT") : "MISS");
+  res.setHeader("X-Cache-Tier", cacheResult.tier || "MEMORY");
+
+  const result = cacheResult.content;
 
   return res.status(200).json({
     success: true,
