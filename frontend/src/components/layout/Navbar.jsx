@@ -479,7 +479,7 @@ export function Navbar() {
                 </div>
               </DropdownMenu>
             ) : (
-              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <div className="hidden sm:flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <Link
                   to="/login"
                   className="px-3 sm:px-4 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400 transition whitespace-nowrap shrink-0"
@@ -499,7 +499,7 @@ export function Navbar() {
             <button
               type="button"
               onClick={() => setMobileOpen(prev => !prev)}
-              className="lg:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition shrink-0 cursor-pointer"
+              className="lg:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition shrink-0 cursor-pointer flex items-center justify-center"
               aria-label="Toggle Navigation Menu"
             >
               {mobileOpen ? <XIcon size={20} color="currentColor" /> : <MenuIcon size={20} color="currentColor" />}
@@ -510,7 +510,26 @@ export function Navbar() {
 
       {/* Mobile Drawer */}
       {mobileOpen && (
-        <div className="lg:hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 px-4 pt-3 pb-6 space-y-2 animate-in fade-in slide-in-from-top-2 max-h-[85vh] overflow-y-auto">
+        <div className="lg:hidden bg-white/98 dark:bg-slate-900/98 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 px-4 pt-3 pb-6 space-y-2 animate-in fade-in slide-in-from-top-2 max-h-[85vh] overflow-y-auto shadow-xl">
+          {!user && (
+            <div className="pb-3 mb-2 border-b border-gray-100 dark:border-slate-800 grid grid-cols-2 gap-2.5">
+              <Link
+                to="/login"
+                onClick={closeMobile}
+                className="w-full text-center py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition"
+              >
+                Log in
+              </Link>
+              <Link
+                to="/register"
+                onClick={closeMobile}
+                className="w-full text-center py-2.5 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl shadow-xs transition"
+              >
+                Sign up
+              </Link>
+            </div>
+          )}
+
           {user?.role === 'student' && (
             <div className="pb-2 mb-2 border-b border-gray-100 dark:border-slate-800 space-y-1">
               <NavItem to="/dashboard" icon={LayoutDashboard} onNavigate={closeMobile}>Dashboard</NavItem>

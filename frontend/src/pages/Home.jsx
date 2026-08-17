@@ -43,7 +43,7 @@ function HeroInteractiveWorkspace() {
       <motion.div
         animate={{ y: [0, -8, 0] }}
         transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut' }}
-        className="absolute -top-5 -left-4 z-20 bg-white dark:bg-[#161928] border border-gray-200 dark:border-[#2a2f4e] rounded-2xl p-3 shadow-xl flex items-center gap-3"
+        className="hidden sm:flex absolute -top-5 -left-4 z-20 bg-white dark:bg-[#161928] border border-gray-200 dark:border-[#2a2f4e] rounded-2xl p-3 shadow-xl items-center gap-3"
       >
         <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center font-black text-sm shrink-0">
           <BookOpen className="w-5 h-5" />
@@ -58,7 +58,7 @@ function HeroInteractiveWorkspace() {
       <motion.div
         animate={{ y: [0, 8, 0] }}
         transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut', delay: 0.5 }}
-        className="absolute -bottom-4 -right-3 z-20 bg-white dark:bg-[#161928] border border-gray-200 dark:border-[#2a2f4e] rounded-2xl p-3 shadow-xl flex items-center gap-3"
+        className="hidden sm:flex absolute -bottom-4 -right-3 z-20 bg-white dark:bg-[#161928] border border-gray-200 dark:border-[#2a2f4e] rounded-2xl p-3 shadow-xl items-center gap-3"
       >
         <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
           <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
@@ -352,7 +352,7 @@ export default function Home() {
               </div>
 
               <div className="relative">
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white tracking-tight leading-[1.14]">
+                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white tracking-tight leading-[1.18] sm:leading-[1.14]">
                   Now learning from anywhere, and build your{' '}
                   <span className="relative inline-block text-purple-600 dark:text-purple-400">
                     bright career.
@@ -361,61 +361,62 @@ export default function Home() {
                 </h1>
               </div>
 
-              <p className="text-base sm:text-lg text-gray-600 dark:text-slate-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
+              <p className="text-sm sm:text-lg text-gray-600 dark:text-slate-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
                 Step-by-step full-stack roadmaps, built-in interactive playgrounds, 24/7 AI tutor assistance, and industry-recognized verified certificates.
               </p>
 
               {/* Search Bar */}
               <div className="max-w-xl mx-auto lg:mx-0 relative">
-                <div className="flex items-center bg-white dark:bg-[#161928] border border-gray-200 dark:border-[#2a2f4e] rounded-2xl p-2 shadow-sm focus-within:ring-2 focus-within:ring-purple-500/30 focus-within:border-purple-500 transition-all">
-                  <Search className="w-5 h-5 text-gray-400 dark:text-slate-400 ml-3 shrink-0" />
+                <div className="flex items-center bg-white dark:bg-[#161928] border border-gray-200 dark:border-[#2a2f4e] rounded-2xl p-1.5 sm:p-2 shadow-sm focus-within:ring-2 focus-within:ring-purple-500/30 focus-within:border-purple-500 transition-all">
+                  <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 dark:text-slate-400 ml-2.5 sm:ml-3 shrink-0" />
                   <input
                     type="text"
-                    placeholder="Search your course (e.g. MERN Stack, React, Python)..."
+                    placeholder="Search courses (e.g. React, Python)..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full px-3 py-2 text-xs sm:text-sm bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none"
+                    className="w-full min-w-0 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none"
                   />
                   <Link
                     to={`/courses${searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ''}`}
-                    className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition shrink-0 inline-flex items-center gap-1.5"
+                    className="px-3.5 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition shrink-0 inline-flex items-center gap-1.5 active:scale-95"
                   >
                     <span>Search</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </Link>
                 </div>
               </div>
 
-              {/* Shadcn-Style Connected Button Group for Primary Actions */}
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-1">
-                <ConnectedButtonGroup className="border border-purple-600/30 dark:border-purple-500/30 shadow-lg shadow-purple-600/20">
-                  <Link
-                    to="/courses"
-                    className="px-7 py-3.5 rounded-l-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-sm transition-all inline-flex items-center gap-2"
-                  >
-                    <BookOpen className="w-4 h-4" />
-                    <span>Start A Course</span>
-                  </Link>
+              {/* Responsive Primary Action CTAs */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3 pt-1">
+                <Link
+                  to="/courses"
+                  className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-sm transition-all shadow-lg shadow-purple-600/25 hover:shadow-purple-600/35 flex items-center justify-center gap-2 active:scale-95"
+                >
+                  <BookOpen className="w-4 h-4 shrink-0" />
+                  <span>Start A Course</span>
+                </Link>
+
+                <div className="grid grid-cols-2 sm:flex sm:items-center gap-3 w-full sm:w-auto">
                   <Link
                     to="/playground"
-                    className="px-6 py-3.5 rounded-r-2xl bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border-l border-purple-200 dark:border-slate-700 text-gray-800 dark:text-slate-200 font-bold text-sm transition-all inline-flex items-center gap-2"
+                    className="px-4 sm:px-5 py-3.5 rounded-2xl bg-white dark:bg-slate-800/90 hover:bg-gray-50 dark:hover:bg-slate-700/90 border border-gray-200 dark:border-slate-700/80 text-gray-800 dark:text-slate-200 font-bold text-xs sm:text-sm transition-all shadow-2xs hover:shadow-md flex items-center justify-center gap-2 active:scale-95"
                   >
-                    <Code2 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    <Code2 className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
                     <span>Playground</span>
                   </Link>
-                </ConnectedButtonGroup>
 
-                <Link
-                  to="/ai-chat"
-                  className="px-5 py-3.5 rounded-2xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-bold text-sm transition-all inline-flex items-center gap-2"
-                >
-                  <Brain className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  <span>AI Tutor 24/7</span>
-                </Link>
+                  <Link
+                    to="/ai-chat"
+                    className="px-4 sm:px-5 py-3.5 rounded-2xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-bold text-xs sm:text-sm transition-all shadow-2xs hover:shadow-md flex items-center justify-center gap-2 active:scale-95"
+                  >
+                    <Brain className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                    <span>AI Tutor</span>
+                  </Link>
+                </div>
               </div>
 
               {/* Social Proof */}
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 pt-2 border-t border-gray-200/60 dark:border-slate-800 text-xs text-gray-600 dark:text-slate-400">
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 pt-2 border-t border-gray-200/60 dark:border-slate-800 text-xs text-gray-600 dark:text-slate-400">
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-2">
                     {['#6C5CE7', '#0984e3', '#00b894', '#fdcb6e'].map((color, i) => (
