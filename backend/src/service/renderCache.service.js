@@ -84,6 +84,16 @@ class RenderCacheService {
   }
 
   /**
+   * Checks if Redis client is currently open and usable
+   */
+  isRedisAvailable() {
+    return Boolean(
+      this.redisClient &&
+      (this.isRedisConnected || this.redisClient.isOpen || this.redisClient.isReady)
+    );
+  }
+
+  /**
    * Initializes Redis connection gracefully using REDIS_URL
    */
   async initRedis(customConfig = null) {
@@ -102,9 +112,10 @@ class RenderCacheService {
       });
       this.redisClient.on("ready", () => {
         this.isRedisConnected = true;
-        console.log("[RENDER-CACHE] Connected to Redis L2 cache tier");
       });
       await this.redisClient.connect();
+      this.isRedisConnected = true;
+      console.log("[RENDER-CACHE] Connected to Redis L2 cache tier");
     } catch (err) {
       console.warn("[RENDER-CACHE] Redis connection failed, using L1 in-memory cache:", err.message);
       this.isRedisConnected = false;
@@ -252,7 +263,7 @@ class RenderCacheService {
     }
 
     // 2. Check L2 Redis Cache (if connected)
-    if (this.isRedisConnected && this.redisClient) {
+    if (this.isRedisAvailable()) {
       try {
         const rawRedis = await this.redisClient.get(key);
         if (rawRedis) {
@@ -351,7 +362,7 @@ class RenderCacheService {
     }
 
     // Store in L2 Redis
-    if (!skipRedis && this.isRedisConnected && this.redisClient) {
+    if (!skipRedis && this.isRedisAvailable()) {
       this.redisClient.setEx(key, ttlSeconds, JSON.stringify(entry)).catch(() => {});
     }
   }
@@ -376,7 +387,7 @@ class RenderCacheService {
       this.metrics.invalidations++;
     }
 
-    if (this.isRedisConnected && this.redisClient) {
+    if (this.isRedisAvailable()) {
       this.redisClient.del(key).catch(() => {});
     }
 
