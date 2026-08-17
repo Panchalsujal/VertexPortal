@@ -80,6 +80,28 @@ jobs:
       run:
         working-directory: ./backend
 
+    env:
+      NODE_ENV: test
+      PORT: 4000
+      MONGO_URI: mongodb://127.0.0.1:27017/test_vertex_db
+      API_URL: http://127.0.0.1:4000
+      FRONTEND_URL: http://localhost:5173
+      REDIS_URL: redis://127.0.0.1:6379
+      JWT_SECRET: ci_pipeline_jwt_secret_token_123456789_abcdef
+      JWT_EXPIRES_IN: 7d
+      AUTO_VERIFY_EMAIL: "true"
+      DISABLE_EMAIL_VERIFY: "false"
+      RESEND_API_KEY: re_ci_mock_test_key_123456
+      EMAIL_FROM: "Vertex LMS <ci@vertexportal.com>"
+      IMAGEKIT_PUBLIC_KEY: ci_mock_public_key
+      IMAGEKIT_PRIVATE_KEY: ci_mock_private_key
+      IMAGEKIT_URL_ENDPOINT: https://ik.imagekit.io/ci_mock
+      RAZORPAY_KEY_ID: rzp_test_mock
+      RAZORPAY_SECRET_ID: rzp_test_mock_secret
+      MISTRAL_API_KEY: mistral_test_mock_key
+      STREAM_API_KEY: stream_test_mock_key
+      STREAM_API_SECRET: stream_test_mock_secret
+
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
@@ -101,29 +123,9 @@ jobs:
 
       - name: Test Redis Connection & Cache Operations
         run: npm run test:redis
-        env:
-          REDIS_URL: redis://127.0.0.1:6379
 
       - name: Run Backend Automated Test Suites (Circuit Breaker & SSR Cache)
         run: npm test
-        env:
-          NODE_ENV: test
-          PORT: 4000
-          REDIS_URL: redis://127.0.0.1:6379
-          JWT_SECRET: ci_pipeline_jwt_secret_token_123456789_abcdef
-          JWT_EXPIRES_IN: 7d
-          AUTO_VERIFY_EMAIL: "true"
-          DISABLE_EMAIL_VERIFY: "false"
-          RESEND_API_KEY: re_ci_mock_test_key_123456
-          EMAIL_FROM: "Vertex LMS <ci@vertexportal.com>"
-          IMAGEKIT_PUBLIC_KEY: ci_mock_public_key
-          IMAGEKIT_PRIVATE_KEY: ci_mock_private_key
-          IMAGEKIT_URL_ENDPOINT: https://ik.imagekit.io/ci_mock
-          RAZORPAY_KEY_ID: rzp_test_mock
-          RAZORPAY_SECRET_ID: rzp_test_mock_secret
-          MISTRAL_API_KEY: mistral_test_mock_key
-          STREAM_API_KEY: stream_test_mock_key
-          STREAM_API_SECRET: stream_test_mock_secret
 
   # ── 3. SECURITY AUDIT: High-Severity Dependency Scan ─────────────
   security-audit:
