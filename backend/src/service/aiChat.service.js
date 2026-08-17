@@ -13,6 +13,7 @@ import { validateObjectId } from "../utils/validator.js";
 import { config } from "../config/config.js";
 
 import { ApiError } from "../utils/ApiError.js";
+import { circuitBreakers } from "../utils/circuitBreaker.js";
 
 /*
  * ============================================
@@ -524,15 +525,18 @@ ${normalizedContent}
   let response;
 
   try {
-    response = await mistral.chat.complete({
-      model: CHAT_MODEL,
-
-      messages: modelMessages,
-
-      temperature: 0.2,
-
-      maxTokens: 1200,
-    });
+    response = await circuitBreakers.mistral.fire(
+      () =>
+        mistral.chat.complete({
+          model: CHAT_MODEL,
+          messages: modelMessages,
+          temperature: 0.2,
+          maxTokens: 1200,
+        }),
+      {
+        args: [],
+      }
+    );
   } catch (error) {
     console.error("Mistral chat generation failed:", error);
 

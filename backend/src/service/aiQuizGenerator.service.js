@@ -1,6 +1,7 @@
 import { Mistral } from "@mistralai/mistralai";
 import { config } from "../config/config.js";
 import { ApiError } from "../utils/ApiError.js";
+import { circuitBreakers } from "../utils/circuitBreaker.js";
 
 const mistral = new Mistral({
   apiKey: config.MISTRAL_API_KEY,
@@ -45,20 +46,22 @@ Requirements:
 ]`;
 
   try {
-    const response = await mistral.chat.complete({
-      model: CHAT_MODEL,
-      messages: [
-        {
-          role: "system",
-          content: "You are a JSON-only API that generates structured educational quiz questions. Output strictly raw JSON array.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      temperature: 0.3,
-    });
+    const response = await circuitBreakers.mistral.fire(() =>
+      mistral.chat.complete({
+        model: CHAT_MODEL,
+        messages: [
+          {
+            role: "system",
+            content: "You are a JSON-only API that generates structured educational quiz questions. Output strictly raw JSON array.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        temperature: 0.3,
+      })
+    );
 
     let rawContent = response.choices?.[0]?.message?.content;
     if (typeof rawContent !== "string") {

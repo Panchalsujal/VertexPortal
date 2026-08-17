@@ -16,6 +16,7 @@ import { validateCheckout } from "../service/checkout.service.js";
 import { config } from "../config/config.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
+import { circuitBreakers } from "../utils/circuitBreaker.js";
 /*
  * =========================================================
  * SAFE SIGNATURE COMPARISON
@@ -99,19 +100,17 @@ export const createPaymentOrderController = asyncHandler(async (req, res) => {
      * 4. Create Razorpay order
      * ---------------------------------------
      */
-    razorpayOrder = await razorpay.orders.create({
-      amount: Math.round(pricing.totalAmount * 100),
-
-      currency: "INR",
-
-      receipt: order._id.toString(),
-
-      notes: {
-        studentId: req.user.id.toString(),
-
-        databaseOrderId: order._id.toString(),
-      },
-    });
+    razorpayOrder = await circuitBreakers.razorpay.fire(() =>
+      razorpay.orders.create({
+        amount: Math.round(pricing.totalAmount * 100),
+        currency: "INR",
+        receipt: order._id.toString(),
+        notes: {
+          studentId: req.user.id.toString(),
+          databaseOrderId: order._id.toString(),
+        },
+      })
+    );
   } catch (error) {
     /*
      * Razorpay order create fail ho gaya,
@@ -125,6 +124,9 @@ export const createPaymentOrderController = asyncHandler(async (req, res) => {
 
     console.error("Razorpay order creation failed:", error);
 
+    if (error instanceof ApiError) {
+      throw error;
+    }
     throw new ApiError(502, "Failed to create payment order");
   }
 

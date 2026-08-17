@@ -1,6 +1,6 @@
 import imagekit from "../service/imagekit.js";
-
 import { ApiError } from "../utils/ApiError.js";
+import { circuitBreakers } from "../utils/circuitBreaker.js";
 
 export async function uploadCertificatePdf({ pdfBuffer, certificateNumber }) {
   if (!Buffer.isBuffer(pdfBuffer)) {
@@ -12,14 +12,16 @@ export async function uploadCertificatePdf({ pdfBuffer, certificateNumber }) {
   const fileName = `${certificateNumber}-${timestamp}.pdf`;
 
   try {
-    const uploadResult = await imagekit.upload({
-      file: pdfBuffer.toString("base64"),
-      fileName,
-      folder: "/vertexportal/certificates",
-      useUniqueFileName: false,
-      overwriteFile: true,
-      tags: ["certificate", "course-completion"],
-    });
+    const uploadResult = await circuitBreakers.imagekit.fire(() =>
+      imagekit.upload({
+        file: pdfBuffer.toString("base64"),
+        fileName,
+        folder: "/vertexportal/certificates",
+        useUniqueFileName: false,
+        overwriteFile: true,
+        tags: ["certificate", "course-completion"],
+      })
+    );
 
     return {
       certificateUrl: uploadResult.url,

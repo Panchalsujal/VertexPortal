@@ -17,6 +17,7 @@ import {
   orderLimiter,
 } from "./middlewares/rateLimiter.middleware.js";
 import { sanitizeInput } from "./middlewares/sanitize.middleware.js";
+import { circuitBreakerRegistry } from "./utils/circuitBreaker.js";
 
 // Routes
 import authRoutes from "./routes/auth.route.js";
@@ -193,9 +194,22 @@ app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
 // Ignore /favicon.ico requests to avoid 404 logs
 app.get("/favicon.ico", (req, res) => res.status(204).end());
 
-// Health check endpoints
+// Health check endpoints & Circuit Breakers Monitoring
 app.get("/health", (req, res) => res.status(200).json({ status: "ok" }));
 app.get("/api/health", (req, res) => res.status(200).json({ status: "ok" }));
+
+const getCircuitBreakersHealthHandler = (req, res) => {
+  const breakers = circuitBreakerRegistry.getAllStatus();
+  const hasOpenBreakers = Object.values(breakers).some((b) => b.state === "OPEN");
+  return res.status(hasOpenBreakers ? 503 : 200).json({
+    status: hasOpenBreakers ? "degraded" : "healthy",
+    timestamp: new Date().toISOString(),
+    breakers,
+  });
+};
+
+app.get("/health/circuit-breakers", getCircuitBreakersHealthHandler);
+app.get("/api/health/circuit-breakers", getCircuitBreakersHealthHandler);
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome to the Vertex LMS API" });

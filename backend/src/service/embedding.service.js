@@ -2,6 +2,7 @@ import { Mistral } from "@mistralai/mistralai";
 
 import { config } from "../config/config.js";
 import { ApiError } from "../utils/ApiError.js";
+import { circuitBreakers } from "../utils/circuitBreaker.js";
 
 const EMBEDDING_MODEL = "mistral-embed";
 
@@ -123,14 +124,12 @@ export async function generateEmbedding(
   }
 
   try {
-    const response =
-      await mistral.embeddings.create({
+    const response = await circuitBreakers.mistralEmbedding.fire(() =>
+      mistral.embeddings.create({
         model: EMBEDDING_MODEL,
-
-        inputs: [
-          normalizedText,
-        ],
-      });
+        inputs: [normalizedText],
+      })
+    );
 
     const embedding =
       response.data?.[0]?.embedding;
@@ -186,12 +185,12 @@ export async function generateEmbeddings(
   }
 
   try {
-    const response =
-      await mistral.embeddings.create({
+    const response = await circuitBreakers.mistralEmbedding.fire(() =>
+      mistral.embeddings.create({
         model: EMBEDDING_MODEL,
-
         inputs: normalizedTexts,
-      });
+      })
+    );
 
     if (
       !Array.isArray(response.data) ||

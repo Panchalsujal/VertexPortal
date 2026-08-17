@@ -1,5 +1,6 @@
 import { StreamClient } from "@stream-io/node-sdk";
 import { config } from "../config/config.js";
+import { circuitBreakers } from "../utils/circuitBreaker.js";
 
 let streamClientInstance = null;
 
@@ -64,15 +65,17 @@ export async function upsertStreamUser({
 }) {
   try {
     const client = getStreamClient();
-    await client.upsertUsers([
-      {
-        id: String(userId),
-        name: name || "User",
-        image: image || undefined,
-        role: role || "user",
-        custom,
-      },
-    ]);
+    await circuitBreakers.stream.fire(() =>
+      client.upsertUsers([
+        {
+          id: String(userId),
+          name: name || "User",
+          image: image || undefined,
+          role: role || "user",
+          custom,
+        },
+      ])
+    );
   } catch (error) {
     // Log error but don't strictly block caller if offline/soft failure
     console.error("Failed to upsert user to GetStream:", error?.message || error);
@@ -112,9 +115,11 @@ export async function createStreamCall({
     callData.starts_at = new Date(startsAt).toISOString();
   }
 
-  const response = await call.getOrCreate({
-    data: callData,
-  });
+  const response = await circuitBreakers.stream.fire(() =>
+    call.getOrCreate({
+      data: callData,
+    })
+  );
 
   return {
     call,
@@ -134,5 +139,5 @@ export async function createStreamCall({
 export async function getStreamCall({ callId, callType = "default" }) {
   const client = getStreamClient();
   const call = client.video.call(callType, String(callId));
-  return await call.get();
+  return await circuitBreakers.stream.fire(() => call.get());
 }

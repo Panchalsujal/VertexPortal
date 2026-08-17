@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import nodemailer from "nodemailer";
 import { config } from "../config/config.js";
+import { circuitBreakers } from "../utils/circuitBreaker.js";
 
 // Initialize Resend client if API key is provided
 const resend = config.RESEND_API_KEY ? new Resend(config.RESEND_API_KEY) : null;
@@ -180,44 +181,58 @@ export async function sendEmail({
     throw new Error("Email text or HTML content is required");
   }
 
-  // 1. Primary: Send via Resend REST API over HTTPS (Port 443)
-  if (resend) {
-    try {
-      return await sendViaResend({ to, subject, text, html, replyTo });
-    } catch (resendError) {
-      console.warn(`[EMAIL-RESEND] Resend delivery warning: ${resendError.message}. Attempting fallback...`);
-    }
-  }
+  return await circuitBreakers.mail.fire(
+    async () => {
+      // 1. Primary: Send via Resend REST API over HTTPS (Port 443)
+      if (resend) {
+        try {
+          return await sendViaResend({ to, subject, text, html, replyTo });
+        } catch (resendError) {
+          console.warn(`[EMAIL-RESEND] Resend delivery warning: ${resendError.message}. Attempting fallback...`);
+        }
+      }
 
-  // 2. Secondary: Send via Google Gmail REST API over HTTPS (Port 443)
-  if (config.GOOGLE_CLIENT_ID && config.GOOGLE_CLIENT_SECRET && config.GOOGLE_REFRESH_TOKEN) {
-    try {
-      return await sendViaGmailRestApi({ to, subject, text, html, replyTo });
-    } catch (apiError) {
-      console.warn(`[EMAIL-API] Gmail REST API warning: ${apiError.message}. Attempting fallback...`);
-    }
-  }
+      // 2. Secondary: Send via Google Gmail REST API over HTTPS (Port 443)
+      if (config.GOOGLE_CLIENT_ID && config.GOOGLE_CLIENT_SECRET && config.GOOGLE_REFRESH_TOKEN) {
+        try {
+          return await sendViaGmailRestApi({ to, subject, text, html, replyTo });
+        } catch (apiError) {
+          console.warn(`[EMAIL-API] Gmail REST API warning: ${apiError.message}. Attempting fallback...`);
+        }
+      }
 
-  // 3. Tertiary: Fallback SMTP if configured
-  if (fallbackTransporter) {
-    try {
-      const info = await fallbackTransporter.sendMail({
-        from: config.EMAIL_FROM || `"Vertex LMS" <${config.EMAIL_USER}>`,
-        to,
-        subject,
-        text: text || undefined,
-        html: html || undefined,
-        ...(replyTo ? { replyTo } : {}),
-      });
-      console.log("[EMAIL-SMTP] Email sent via SMTP:", info.messageId);
-      return info;
-    } catch (smtpError) {
-      console.warn(`[EMAIL-SMTP] SMTP delivery warning: ${smtpError.message}`);
-    }
-  }
+      // 3. Tertiary: Fallback SMTP if configured
+      if (fallbackTransporter) {
+        try {
+          const info = await fallbackTransporter.sendMail({
+            from: config.EMAIL_FROM || `"Vertex LMS" <${config.EMAIL_USER}>`,
+            to,
+            subject,
+            text: text || undefined,
+            html: html || undefined,
+            ...(replyTo ? { replyTo } : {}),
+          });
+          console.log("[EMAIL-SMTP] Email sent via SMTP:", info.messageId);
+          return info;
+        } catch (smtpError) {
+          console.warn(`[EMAIL-SMTP] SMTP delivery warning: ${smtpError.message}`);
+        }
+      }
 
-  console.log(`[EMAIL-LOG] Email to ${to}: ${subject}`);
-  return { messageId: "logged-" + Date.now() };
+      console.log(`[EMAIL-LOG] Email to ${to}: ${subject}`);
+      return { messageId: "logged-" + Date.now() };
+    },
+    {
+      fallback: (error) => {
+        console.warn(`[EMAIL-CIRCUIT-FALLBACK] Email service degraded (${error?.message}). Logging email to console:`, { to, subject });
+        return {
+          messageId: "circuit-fallback-" + Date.now(),
+          degraded: true,
+          error: error?.message,
+        };
+      },
+    }
+  );
 }
 
 /*

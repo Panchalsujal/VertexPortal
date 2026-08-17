@@ -1,6 +1,6 @@
 import imagekit from "../service/imagekit.js";
-
 import { ApiError } from "../utils/ApiError.js";
+import { circuitBreakers } from "../utils/circuitBreaker.js";
 
 function sanitizeFileName(fileName) {
   return String(fileName || "assignment-file")
@@ -30,21 +30,19 @@ export async function uploadAssignmentSubmissionFiles({
 
       const fileName = `${Date.now()}-${safeFileName}`;
 
-      const uploadResult = await imagekit.upload({
-        file: file.buffer.toString("base64"),
-
-        fileName,
-
-        folder: `/vertexportal/assignments/${assignmentId}/${studentId}/attempt-${attemptNumber}`,
-
-        useUniqueFileName: true,
-
-        tags: [
-          "assignment-submission",
-          `assignment-${assignmentId}`,
-          `student-${studentId}`,
-        ],
-      });
+      const uploadResult = await circuitBreakers.imagekit.fire(() =>
+        imagekit.upload({
+          file: file.buffer.toString("base64"),
+          fileName,
+          folder: `/vertexportal/assignments/${assignmentId}/${studentId}/attempt-${attemptNumber}`,
+          useUniqueFileName: true,
+          tags: [
+            "assignment-submission",
+            `assignment-${assignmentId}`,
+            `student-${studentId}`,
+          ],
+        })
+      );
 
       uploadedFiles.push({
         fileUrl: uploadResult.url,
