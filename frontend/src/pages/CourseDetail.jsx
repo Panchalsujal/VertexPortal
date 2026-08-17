@@ -13,12 +13,13 @@ import { CurriculumAccordion } from '../components/course/CurriculumAccordion';
 import { ButtonGroup, ButtonGroupItem } from '../components/ui/ButtonGroup';
 import { Tabs, TabsList, TabsTrigger } from '../components/ui/Tabs';
 import {
-  BookOpen, Clock, Users, Star, Heart, ShoppingCart, Play, CheckCircle,
+  BookOpen, Clock, Users, Star, Heart, ShoppingCart, Play, CheckCircle, CheckCircle2,
   Globe, BarChart2, Trash2, Edit3, Send, ArrowLeft, Award, Sparkles,
   ShieldCheck, Video, FileCode, MessageSquare, AlertCircle,
   HelpCircle,
   FileQuestion,
   Info,
+  UserCheck,
 } from 'lucide-react';
 
 const SAFE_DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%237c3aed'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
