@@ -6,7 +6,7 @@ import { fetchMe, selectUser, selectAuthLoading } from './store/slices/authSlice
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { PageLoader } from './components/ui/Spinner';
-import { CookieConsent } from './components/common/CookieConsent';
+import { CookieConsent } from './components/common/PrivacyBanner';
 
 // Eager Main Landing Page
 import Home from './pages/Home';
