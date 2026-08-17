@@ -4,6 +4,8 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import hpp from "hpp";
+import compression from "compression";
+import zlib from "zlib";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -144,6 +146,29 @@ const corsOptions = {
 
 // CORS Middleware
 app.use(cors(corsOptions));
+
+// HTTP Compression (Gzip & Brotli for JSON/text responses >= 1KB)
+app.use(
+  compression({
+    // Only compress responses exceeding 1KB threshold to prevent CPU overhead on tiny responses
+    threshold: 1024,
+    // Custom filter to respect client opt-out (x-no-compression) and check compressible content-types
+    filter: (req, res) => {
+      if (req.headers["x-no-compression"]) {
+        return false;
+      }
+      return compression.filter(req, res);
+    },
+    // Brotli compression options
+    brotli: {
+      params: {
+        [zlib.constants.BROTLI_PARAM_QUALITY]: 4,
+      },
+    },
+    // Gzip compression level
+    level: 6,
+  })
+);
 
 // Logging
 app.use(morgan("dev"));
