@@ -8,8 +8,10 @@ import { Footer } from './components/layout/Footer';
 import { PageLoader } from './components/ui/Spinner';
 import { CookieConsent } from './components/common/PrivacyBanner';
 
-// Eager Main Landing Page
-import Home from './pages/Home';
+// Home: lazy but pre-fetched immediately → framer-motion + swiper removed from
+// critical-path parse, while the chunk still downloads in parallel with React boot.
+const _homePreload = import('./pages/Home');
+const Home = lazy(() => _homePreload);
 
 // Lazy Loaded Pages (Code Splitting for Optimal Performance)
 const Courses = lazy(() => import('./pages/Courses'));

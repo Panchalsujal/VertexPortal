@@ -10,8 +10,8 @@ export function PrivacyBanner() {
     try {
       const consent = localStorage.getItem('vp_cookie_consent');
       if (!consent) {
-        // Show after a brief delay for smooth appearance
-        const timer = setTimeout(() => setVisible(true), 1200);
+        // Show after initial page load and interactivity are settled
+        const timer = setTimeout(() => setVisible(true), 4500);
         return () => clearTimeout(timer);
       }
     } catch (_) {}

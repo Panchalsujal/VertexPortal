@@ -1,11 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  StarIcon,
-  ClockIcon,
-  BookOpenIcon,
-  HeartIcon,
-  ShoppingCartIcon,
-} from '@animateicons/react/lucide';
+  Star,
+  Clock,
+  BookOpen,
+  Heart,
+  ShoppingCart,
+} from 'lucide-react';
 import { useAppSelector } from '../../store/hooks';
 import { selectUser } from '../../store/slices/authSlice';
 import { addToCart } from '../../api/cart.api';
@@ -92,7 +92,7 @@ export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
             />
           ) : (
             <div className="w-full h-full min-h-[160px] bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
-              <BookOpenIcon size={40} color="#a29bfe" />
+              <BookOpen className="w-10 h-10 text-purple-400" />
             </div>
           )}
 
@@ -112,9 +112,8 @@ export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
               className="absolute top-3 right-3 p-2 bg-black/40 backdrop-blur-sm hover:bg-black/60 rounded-full text-white transition shadow-xs cursor-pointer flex items-center justify-center"
               title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
             >
-              <HeartIcon
-                size={16}
-                color={isWishlisted ? '#ef4444' : '#ffffff'}
+              <Heart
+                className={`w-4 h-4 ${isWishlisted ? 'fill-rose-500 text-rose-500' : 'text-white'}`}
               />
             </button>
           )}
@@ -139,20 +138,20 @@ export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
             <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400 pt-3 border-t border-gray-100 dark:border-slate-800/80 mb-3">
               {course.averageRating > 0 && (
                 <div className="flex items-center gap-1 font-bold text-gray-900 dark:text-white">
-                  <StarIcon size={14} color="#f59e0b" />
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                   <span>{course.averageRating.toFixed(1)}</span>
                   <span className="text-gray-400 font-normal">({course.totalReviews})</span>
                 </div>
               )}
               {course.totalDurationInSeconds > 0 && (
                 <div className="flex items-center gap-1">
-                  <ClockIcon size={14} color="#9ca3af" />
+                  <Clock className="w-3.5 h-3.5 text-gray-400" />
                   <span>{formatDuration(course.totalDurationInSeconds)}</span>
                 </div>
               )}
               {course.totalLectures > 0 && (
                 <div className="flex items-center gap-1">
-                  <BookOpenIcon size={14} color="#9ca3af" />
+                  <BookOpen className="w-3.5 h-3.5 text-gray-400" />
                   <span>{course.totalLectures} lectures</span>
                 </div>
               )}
@@ -180,7 +179,7 @@ export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
                   disabled={cartLoading}
                   className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl inline-flex items-center gap-1.5 shadow-sm shadow-purple-950/20 transition cursor-pointer"
                 >
-                  <ShoppingCartIcon size={14} color="#ffffff" />
+                  <ShoppingCart className="w-3.5 h-3.5 text-white" />
                   <span>{cartLoading ? '...' : 'Add'}</span>
                 </button>
               )}

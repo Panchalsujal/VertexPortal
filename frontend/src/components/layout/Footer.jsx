@@ -1,21 +1,20 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  MailIcon,
-  ArrowRightIcon,
-  ShieldCheckIcon,
-  ZapIcon,
-  MessageSquareIcon,
-  BookOpenIcon,
-  VideoIcon,
-  SparklesIcon,
-} from '@animateicons/react/lucide';
-import {
-  GraduationCap as GraduationCapStatic,
-  Globe as GlobeStatic,
-  Share2 as Share2Static,
+  Mail,
+  ArrowRight,
+  ShieldCheck,
+  Zap,
+  MessageSquare,
+  BookOpen,
+  Video,
+  Sparkles,
+  GraduationCap,
+  Globe,
+  Share2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+
 export function Footer() {
   const [email, setEmail] = useState('');
 
@@ -30,16 +29,17 @@ export function Footer() {
 
   return (
     <footer className="bg-white dark:bg-slate-950 text-gray-700 dark:text-slate-300 border-t border-gray-200/90 dark:border-slate-800/90 relative overflow-hidden font-[Inter,sans-serif] transition-colors duration-200">
-      {/* Decorative Top Gradient Highlight */}
-      <div className="h-1 w-full bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-500" />
+      {/* Subtle Top Gradient Line */}
+      <div className="h-[2px] w-full bg-gradient-to-r from-purple-600/40 via-indigo-500 to-purple-600/40" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10">
+          
           {/* Brand & Description */}
-          <div className="sm:col-span-2 md:col-span-3 lg:col-span-2 space-y-5">
+          <div className="sm:col-span-2 lg:col-span-4 space-y-4">
             <Link to="/" className="inline-flex items-center gap-3 group no-underline">
               <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-purple-600/20 group-hover:scale-105 transition-transform duration-200 shrink-0">
-                <GraduationCapStatic className="w-5 h-5 text-white" />
+                <GraduationCap className="w-5 h-5 text-white" />
               </div>
               <div>
                 <span className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">
@@ -58,11 +58,11 @@ export function Footer() {
             {/* Platform Badges */}
             <div className="flex flex-wrap items-center gap-4 text-xs font-semibold pt-1">
               <div className="flex items-center gap-1.5 text-purple-600 dark:text-purple-400">
-                <ShieldCheckIcon size={16} color="#6C5CE7" />
+                <ShieldCheck className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                 <span>Verified Certificates</span>
               </div>
               <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
-                <ZapIcon size={16} color="#4f46e5" />
+                <Zap className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                 <span>AI-Powered Learning</span>
               </div>
             </div>
@@ -74,7 +74,7 @@ export function Footer() {
                 className="w-9 h-9 rounded-xl bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600/40 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-gray-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-300 flex items-center justify-center transition-all duration-200"
                 title="Browse All Courses"
               >
-                <GlobeStatic className="w-4 h-4" />
+                <Globe className="w-4 h-4" />
               </Link>
               <button
                 type="button"
@@ -85,96 +85,89 @@ export function Footer() {
                 className="w-9 h-9 rounded-xl bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600/40 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-gray-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-300 flex items-center justify-center transition-all duration-200 cursor-pointer"
                 title="Share Portal"
               >
-                <Share2Static className="w-4 h-4" />
+                <Share2 className="w-4 h-4" />
               </button>
               <Link
                 to="/discussions"
                 className="w-9 h-9 rounded-xl bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600/40 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-gray-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-300 flex items-center justify-center transition-all duration-200"
                 title="Community Discussions"
               >
-                <MessageSquareIcon size={16} color="currentColor" />
+                <MessageSquare className="w-4 h-4" />
               </Link>
             </div>
           </div>
 
           {/* Learn Column */}
-          <div>
-            <h4 className="text-xs font-extrabold text-gray-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-purple-600 shrink-0" /> Learn
+          <div className="sm:col-span-1 lg:col-span-2 space-y-3.5">
+            <h4 className="text-xs font-extrabold text-gray-900 dark:text-white uppercase tracking-wider mb-3.5 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" /> Learn
             </h4>
-            <ul className="space-y-3 text-sm">
+            <ul className="space-y-2.5 text-xs">
               <li>
                 <Link
                   to="/courses"
-                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-flex items-center gap-1.5 transition-all duration-200"
+                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-flex items-center transition-all duration-200"
                 >
-                  <BookOpenIcon size={14} color="#6C5CE7" />
-                  <span>Browse Courses</span>
+                  All Courses
                 </Link>
               </li>
               <li>
                 <Link
-                  to="/my-learning"
-                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-block transition-all duration-200"
+                  to="/courses?sort=popular"
+                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-flex items-center transition-all duration-200"
                 >
-                  My Learning Portal
+                  Popular Masterclasses
                 </Link>
               </li>
               <li>
                 <Link
-                  to="/discussions"
-                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-block transition-all duration-200"
+                  to="/courses?sort=newest"
+                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-flex items-center transition-all duration-200"
                 >
-                  Discussions & Q&A
+                  Newly Added
                 </Link>
               </li>
               <li>
                 <Link
-                  to="/ai-chat"
-                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-flex items-center gap-1.5 transition-all duration-200"
+                  to="/playground"
+                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-flex items-center gap-1.5 transition-all duration-200 whitespace-nowrap"
                 >
-                  <SparklesIcon size={14} color="#6C5CE7" />
-                  <span>AI Tutor Assistant</span>
+                  <span>Code Playground</span>
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
+                    Live
+                  </span>
                 </Link>
               </li>
             </ul>
           </div>
 
           {/* Platform Column */}
-          <div>
-            <h4 className="text-xs font-extrabold text-gray-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+          <div className="sm:col-span-1 lg:col-span-3 space-y-3.5">
+            <h4 className="text-xs font-extrabold text-gray-900 dark:text-white uppercase tracking-wider mb-3.5 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" /> Platform
             </h4>
-            <ul className="space-y-3 text-sm">
+            <ul className="space-y-2.5 text-xs">
               <li>
                 <Link
-                  to="/student/live-classes"
-                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-flex items-center gap-1.5 transition-all duration-200"
+                  to="/ai-chat"
+                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-flex items-center gap-1.5 transition-all duration-200 whitespace-nowrap"
                 >
-                  <VideoIcon size={14} color="#4f46e5" />
-                  <span>Live Classes</span>
+                  <span>AI Study Assistant</span>
+                  <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
                 </Link>
               </li>
               <li>
                 <Link
-                  to="/student/quizzes"
-                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-block transition-all duration-200"
+                  to="/discussions"
+                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-flex items-center transition-all duration-200"
                 >
-                  Quizzes & Tests
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/student/assignments"
-                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-block transition-all duration-200"
-                >
-                  Assignments
+                  Discussion Forum
                 </Link>
               </li>
               <li>
                 <Link
                   to="/certificates"
-                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-block transition-all duration-200"
+                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-flex items-center transition-all duration-200"
                 >
                   Verified Certificates
                 </Link>
@@ -182,7 +175,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/student/notes"
-                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-block transition-all duration-200"
+                  className="text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:translate-x-1 inline-flex items-center transition-all duration-200"
                 >
                   Study Notes
                 </Link>
@@ -191,8 +184,8 @@ export function Footer() {
           </div>
 
           {/* Newsletter Column */}
-          <div className="space-y-4 sm:col-span-2 md:col-span-1 lg:col-span-1">
-            <h4 className="text-xs font-extrabold text-gray-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+          <div className="sm:col-span-2 lg:col-span-3 space-y-3.5">
+            <h4 className="text-xs font-extrabold text-gray-900 dark:text-white uppercase tracking-wider mb-3.5 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" /> Stay Updated
             </h4>
             <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">
@@ -200,8 +193,8 @@ export function Footer() {
             </p>
             <form onSubmit={handleSubscribe} className="space-y-2.5">
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <MailIcon size={15} color="#9ca3af" />
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                  <Mail className="w-3.5 h-3.5" />
                 </span>
                 <input
                   id="footer-newsletter-email"
@@ -216,10 +209,10 @@ export function Footer() {
               </div>
               <button
                 type="submit"
-                className="w-full inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl transition shadow-sm cursor-pointer"
+                className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl transition shadow-xs cursor-pointer"
               >
                 <span>Subscribe Now</span>
-                <ArrowRightIcon size={14} color="#ffffff" />
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </form>
           </div>
@@ -250,3 +243,4 @@ export function Footer() {
     </footer>
   );
 }
+export default Footer;
