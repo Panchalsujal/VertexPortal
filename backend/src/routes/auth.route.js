@@ -7,6 +7,9 @@ import {
   logoutController,
   verifyEmailController,
   resendVerificationController,
+  forgotPasswordController,
+  verifyResetTokenController,
+  resetPasswordController,
 } from "../controllers/auth.controller.js";
 import {
   registerValidator,
@@ -64,5 +67,26 @@ router.get("/verify-email/:userId/:token", verifyEmailController);
  *  @Api /api/auth/resend-verification
  */
 router.post("/resend-verification", resendVerificationController);
+
+/**
+ *  @access Public
+ *  @desc Request password reset email
+ *  @Api /api/auth/forgot-password
+ */
+router.post("/forgot-password", forgotPasswordController);
+
+/**
+ *  @access Public
+ *  @desc Verify password reset token validity
+ *  @Api /api/auth/verify-reset-token/:userId/:token
+ */
+router.get("/verify-reset-token/:userId/:token", verifyResetTokenController);
+
+/**
+ *  @access Public
+ *  @desc Reset password with token
+ *  @Api /api/auth/reset-password/:userId/:token
+ */
+router.post("/reset-password/:userId/:token", resetPasswordController);
 
 export default router;

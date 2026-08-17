@@ -13,6 +13,8 @@ import Courses from './pages/Courses';
 import CourseDetail from './pages/CourseDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
 import MyLearning from './pages/MyLearning';
 import CoursePlayer from './pages/CoursePlayer';
@@ -83,7 +85,9 @@ function Layout({ children }) {
     location.pathname === '/dashboard' ||
     location.pathname.startsWith('/admin') ||
     location.pathname === '/login' ||
-    location.pathname === '/register'
+    location.pathname === '/register' ||
+    location.pathname === '/forgot-password' ||
+    location.pathname.startsWith('/reset-password')
   );
 
   // Footer is shown ONLY on the Home / landing page ('/')
@@ -131,6 +135,8 @@ function AppRoot() {
           <Route path="/status" element={<PlatformStatus />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:userId/:token" element={<ResetPassword />} />
           <Route path="/verify-email/:userId/:token" element={<VerifyEmail />} />
           <Route path="/verify-certificate/:verificationCode" element={<VerifyCertificate />} />
           <Route path="/certificates/verify/:verificationCode" element={<VerifyCertificate />} />

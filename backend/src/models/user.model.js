@@ -86,6 +86,16 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
 
+    passwordResetToken: {
+      type: String,
+      select: false,
+    },
+
+    passwordResetExpires: {
+      type: Date,
+      select: false,
+    },
+
     lastLoginAt: {
       type: Date,
       default: null,

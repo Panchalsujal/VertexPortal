@@ -505,4 +505,76 @@ export async function sendVerificationEmail({
   });
 }
 
+/**
+ * Send password reset email
+ */
+export async function sendPasswordResetEmail({ user, resetLink }) {
+  const subject = "Reset your Vertex password";
+  const text = `Hi ${user.fullName || "there"}, you requested to reset your password. Open this link to create a new password: ${resetLink}. This link will expire in 1 hour. If you did not request this, please ignore this email.`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Reset Your Password</title>
+      </head>
+      <body style="margin:0;padding:0;background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="padding:40px 15px;background:#0f172a;">
+          <tr>
+            <td align="center">
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:560px;background:#1e293b;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.3);border:1px solid #334155;">
+                <tr>
+                  <td align="center" style="background:linear-gradient(135deg, #7c3aed, #4f46e5);padding:35px 20px;">
+                    <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:800;letter-spacing:-0.5px;">VERTEX</h1>
+                    <p style="margin:6px 0 0;color:#e0e7ff;font-size:13px;letter-spacing:0.5px;">SECURE PASSWORD RECOVERY</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:36px 30px;color:#f1f5f9;">
+                    <h2 style="margin:0 0 16px;color:#ffffff;font-size:20px;font-weight:700;">Password Reset Request</h2>
+                    <p style="margin:0 0 14px;color:#cbd5e1;line-height:1.6;font-size:15px;">
+                      Hi <strong>${user.fullName || "there"}</strong>,
+                    </p>
+                    <p style="margin:0 0 24px;color:#94a3b8;line-height:1.6;font-size:14px;">
+                      We received a request to reset your password for your Vertex account. Click the button below to choose a new password.
+                    </p>
+                    <div style="text-align:center;margin:32px 0;">
+                      <a href="${resetLink}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:linear-gradient(135deg, #7c3aed, #6366f1);color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:10px;font-size:15px;font-weight:700;box-shadow:0 4px 14px rgba(124,58,237,0.4);">
+                        Reset Password
+                      </a>
+                    </div>
+                    <p style="margin:24px 0 8px;color:#94a3b8;font-size:13px;line-height:1.6;">
+                      This link will expire in <strong>1 hour</strong>. If you did not make this request, you can safely ignore this email — your password will remain unchanged.
+                    </p>
+                    <div style="margin-top:20px;padding:12px 16px;background:#0f172a;border-radius:8px;border:1px solid #334155;">
+                      <p style="margin:0 0 6px;color:#64748b;font-size:11px;">If the button doesn't work, copy and paste this link:</p>
+                      <p style="margin:0;word-break:break-all;font-size:12px;"><a href="${resetLink}" style="color:#818cf8;text-decoration:none;">${resetLink}</a></p>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="padding:20px;background:#0f172a;border-top:1px solid #334155;">
+                    <p style="margin:0;color:#64748b;font-size:12px;">© ${new Date().getFullYear()} Vertex Portal. All rights reserved.</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+
+  console.log(`[EMAIL] Password Reset Link for ${user.email}: ${resetLink}`);
+
+  return sendEmail({
+    to: user.email,
+    subject,
+    text,
+    html,
+  });
+}
+
 export default fallbackTransporter;
