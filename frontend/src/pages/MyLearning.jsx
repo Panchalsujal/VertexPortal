@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { getMyEnrollments } from '../api/enrollment.api';
 import { Spinner } from '../components/ui/Spinner';
 import { ButtonGroup, ButtonGroupItem } from '../components/ui/ButtonGroup';
@@ -76,7 +77,13 @@ export default function MyLearning() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] py-8 text-gray-900 dark:text-gray-100">
+    <>
+      <Helmet>
+        <title>My Learning & Enrolled Courses — VertexPortal</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] py-8 text-gray-900 dark:text-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Page Top Header */}
@@ -307,5 +314,6 @@ export default function MyLearning() {
         )}
       </div>
     </div>
-  );
+  </>
+);
 }

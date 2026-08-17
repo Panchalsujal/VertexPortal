@@ -1,9 +1,90 @@
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { FileText, ArrowLeft, CheckCircle2, Shield, Scale, Award, AlertCircle, Clock } from 'lucide-react';
 
 export default function TermsOfService() {
+  const seoTitle = 'Terms of Service & User Agreement — VertexPortal';
+  const seoDescription =
+    'Read the VertexPortal Terms of Service and user agreement. Understand course access licenses, verified certificate rules, community guidelines, and refund policy.';
+  const canonicalUrl = 'https://vertex-mu-eight.vercel.app/terms';
+  const seoImage = 'https://vertex-mu-eight.vercel.app/og-image.png';
+
+  const termsStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: 'VertexPortal Terms of Service',
+    url: canonicalUrl,
+    description: seoDescription,
+    publisher: {
+      '@type': 'Organization',
+      name: 'VertexPortal',
+      url: 'https://vertex-mu-eight.vercel.app',
+    },
+  };
+
+  const breadcrumbStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://vertex-mu-eight.vercel.app/',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Terms of Service',
+        item: canonicalUrl,
+      },
+    ],
+  };
+
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0d0f1a] text-gray-900 dark:text-gray-100 font-[Inter,sans-serif] py-6 sm:py-10 md:py-12 px-3.5 sm:px-6 lg:px-8">
+    <>
+      <Helmet>
+        {/* Dynamic Title */}
+        <title>{seoTitle}</title>
+
+        {/* Primary Meta Tags */}
+        <meta name="description" content={seoDescription} />
+        <meta name="robots" content="index, follow" />
+        <meta
+          name="keywords"
+          content="terms of service, user agreement, course license, vertexportal terms, refund policy"
+        />
+
+        {/* Canonical URL */}
+        <link rel="canonical" href={canonicalUrl} />
+
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="VertexPortal" />
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content={seoImage} />
+        <meta property="og:image:alt" content="VertexPortal Terms of Service" />
+
+        {/* Twitter Metadata */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={seoTitle} />
+        <meta name="twitter:description" content={seoDescription} />
+        <meta name="twitter:image" content={seoImage} />
+
+        {/* Structured Data: WebPage */}
+        <script type="application/ld+json">
+          {JSON.stringify(termsStructuredData)}
+        </script>
+
+        {/* Structured Data: Breadcrumbs */}
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbStructuredData)}
+        </script>
+      </Helmet>
+
+      <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0d0f1a] text-gray-900 dark:text-gray-100 font-[Inter,sans-serif] py-6 sm:py-10 md:py-12 px-3.5 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
         
         {/* Top Navigation */}
@@ -93,5 +174,6 @@ export default function TermsOfService() {
         </div>
       </div>
     </div>
-  );
+  </>
+);
 }

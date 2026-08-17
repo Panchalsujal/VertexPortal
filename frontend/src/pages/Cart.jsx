@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { getMyCart, removeFromCart, clearCart } from '../api/cart.api';
 import { checkoutPreview, createPaymentOrder, verifyPayment } from '../api/order.api';
 import { useAuth } from '../context/AuthContext';
@@ -200,7 +201,13 @@ export default function Cart() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] py-8 text-gray-900 dark:text-gray-100 transition-colors">
+    <>
+      <Helmet>
+        <title>Shopping Cart &amp; Checkout — VertexPortal</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] py-8 text-gray-900 dark:text-gray-100 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Page Top Header */}
@@ -465,5 +472,6 @@ export default function Cart() {
         )}
       </div>
     </div>
-  );
+  </>
+);
 }

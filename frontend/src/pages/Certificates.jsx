@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   fetchMyCertificates,
@@ -40,7 +41,13 @@ export default function Certificates() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-gray-50 dark:bg-[#0b0f17] font-[Inter,sans-serif] py-6 sm:py-10 px-3 sm:px-6 lg:px-8">
+    <>
+      <Helmet>
+        <title>My Certificates & Credentials — VertexPortal</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+
+      <div className="min-h-[calc(100vh-4rem)] bg-gray-50 dark:bg-[#0b0f17] font-[Inter,sans-serif] py-6 sm:py-10 px-3 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-gray-900 p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
@@ -168,5 +175,6 @@ export default function Certificates() {
         </div>
       </div>
     </div>
-  );
+  </>
+);
 }

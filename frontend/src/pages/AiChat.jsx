@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   fetchConversations, fetchConversation, startConversation, sendMessage,
@@ -502,7 +503,17 @@ export default function AiChat() {
   const activeCourse = coursesList.find(c => c._id === current?.course);
 
   return (
-    <div className="h-[calc(100dvh-4rem)] bg-gray-50 dark:bg-[#0b0f17] font-[Inter,sans-serif] flex relative overflow-hidden">
+    <>
+      <Helmet>
+        <title>
+          {current?.title
+            ? `${current.title} — AI Tutor | VertexPortal`
+            : 'Vertex AI Tutor & Study Assistant — VertexPortal'}
+        </title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+
+      <div className="h-[calc(100dvh-4rem)] bg-gray-50 dark:bg-[#0b0f17] font-[Inter,sans-serif] flex relative overflow-hidden">
       {/* Mobile Backdrop */}
       {sidebarOpen && (
         <div
@@ -842,5 +853,6 @@ export default function AiChat() {
         </footer>
       </main>
     </div>
-  );
+  </>
+);
 }

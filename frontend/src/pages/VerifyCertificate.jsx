@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { verifyCertificate } from '../api/certificate.api';
 import { ShieldCheck, XCircle, User, BookOpen, Calendar, Search, ArrowLeft, CheckCircle2, Sparkles, Award } from 'lucide-react';
 
@@ -37,8 +38,120 @@ export default function VerifyCertificate() {
     navigate(`/verify-certificate/${searchInput.trim()}`);
   };
 
+  const recipientName = cert?.student?.fullName || cert?.user?.fullName || cert?.user?.name || '';
+  const courseTitle = cert?.course?.title || '';
+
+  let seoTitle = 'Verify Certificate Authenticity — VertexPortal';
+  if (cert && recipientName && courseTitle) {
+    seoTitle = `Certificate: ${recipientName} (${courseTitle}) — VertexPortal`;
+  } else if (verificationCode) {
+    seoTitle = `Verify Certificate #${verificationCode} — VertexPortal`;
+  }
+
+  let seoDescription =
+    'Verify the authenticity and tamper-evident cryptographic signature of VertexPortal course completion certificates.';
+  if (cert && recipientName && courseTitle) {
+    seoDescription = `Official VertexPortal Certificate of Completion awarded to ${recipientName} for successfully mastering ${courseTitle}. Verified cryptographic record.`;
+  }
+
+  const canonicalUrl = verificationCode
+    ? `https://vertex-mu-eight.vercel.app/verify-certificate/${verificationCode}`
+    : 'https://vertex-mu-eight.vercel.app/verify-certificate';
+  const seoImage = 'https://vertex-mu-eight.vercel.app/og-image.png';
+
+  const credentialStructuredData = cert
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'EducationalOccupationalCredential',
+        name: `${courseTitle} Certificate of Completion`,
+        credentialCategory: 'Certificate',
+        recognizedBy: {
+          '@type': 'Organization',
+          name: 'VertexPortal',
+          url: 'https://vertex-mu-eight.vercel.app',
+        },
+        about: {
+          '@type': 'Course',
+          name: courseTitle,
+        },
+        url: canonicalUrl,
+      }
+    : {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: 'VertexPortal Certificate Verification',
+        url: canonicalUrl,
+        description: seoDescription,
+        publisher: {
+          '@type': 'Organization',
+          name: 'VertexPortal',
+          url: 'https://vertex-mu-eight.vercel.app',
+        },
+      };
+
+  const breadcrumbStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://vertex-mu-eight.vercel.app/',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Verify Certificate',
+        item: canonicalUrl,
+      },
+    ],
+  };
+
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-gray-50 dark:bg-[#0b0f17] font-[Inter,sans-serif] py-8 sm:py-12 px-3 sm:px-6 lg:px-8">
+    <>
+      <Helmet>
+        {/* Dynamic Title */}
+        <title>{seoTitle}</title>
+
+        {/* Primary Meta Tags */}
+        <meta name="description" content={seoDescription} />
+        <meta name="robots" content="index, follow" />
+        <meta
+          name="keywords"
+          content="verify certificate, certificate validation, credential verification, vertexportal certificate, online course certificate"
+        />
+
+        {/* Canonical URL */}
+        <link rel="canonical" href={canonicalUrl} />
+
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="VertexPortal" />
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content={seoImage} />
+        <meta property="og:image:alt" content="VertexPortal Certificate Verification" />
+
+        {/* Twitter Metadata */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={seoTitle} />
+        <meta name="twitter:description" content={seoDescription} />
+        <meta name="twitter:image" content={seoImage} />
+
+        {/* Structured Data: Credential / WebPage */}
+        <script type="application/ld+json">
+          {JSON.stringify(credentialStructuredData)}
+        </script>
+
+        {/* Structured Data: Breadcrumbs */}
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbStructuredData)}
+        </script>
+      </Helmet>
+
+      <div className="min-h-[calc(100vh-4rem)] bg-gray-50 dark:bg-[#0b0f17] font-[Inter,sans-serif] py-8 sm:py-12 px-3 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto space-y-6">
         {/* Search Bar */}
         <div className="bg-white dark:bg-gray-900 p-4 sm:p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
@@ -176,5 +289,6 @@ export default function VerifyCertificate() {
         ) : null}
       </div>
     </div>
-  );
+  </>
+);
 }

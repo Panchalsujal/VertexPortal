@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { getMyWishlist } from '../api/wishlist.api';
 import { CourseCard } from '../components/course/CourseCard';
 import { SkeletonCard } from '../components/ui/Spinner';
@@ -22,7 +23,13 @@ export default function Wishlist() {
   useEffect(() => { fetchWishlist(); }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] py-8 text-gray-900 dark:text-gray-100">
+    <>
+      <Helmet>
+        <title>My Saved Wishlist — VertexPortal</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] py-8 text-gray-900 dark:text-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Page Top Header */}
@@ -95,5 +102,6 @@ export default function Wishlist() {
         )}
       </div>
     </div>
-  );
+  </>
+);
 }

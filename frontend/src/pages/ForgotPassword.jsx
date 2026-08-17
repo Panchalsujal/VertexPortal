@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import {
   GraduationCap,
   ArrowLeft,
@@ -78,7 +79,27 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full grid lg:grid-cols-2 bg-white dark:bg-slate-950 font-[Inter,sans-serif] text-slate-900 dark:text-slate-100 overflow-x-hidden">
+    <>
+      <Helmet>
+        <title>Forgot Password & Account Recovery — VertexPortal</title>
+        <meta
+          name="description"
+          content="Reset your VertexPortal account password securely. Receive a cryptographic password reset token in your email."
+        />
+        <meta name="robots" content="noindex, follow" />
+        <link rel="canonical" href="https://vertex-mu-eight.vercel.app/forgot-password" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="VertexPortal" />
+        <meta property="og:title" content="Forgot Password & Account Recovery — VertexPortal" />
+        <meta
+          property="og:description"
+          content="Reset your VertexPortal account password securely."
+        />
+        <meta property="og:url" content="https://vertex-mu-eight.vercel.app/forgot-password" />
+        <meta property="og:image" content="https://vertex-mu-eight.vercel.app/og-image.png" />
+      </Helmet>
+
+      <div className="min-h-[100dvh] w-full grid lg:grid-cols-2 bg-white dark:bg-slate-950 font-[Inter,sans-serif] text-slate-900 dark:text-slate-100 overflow-x-hidden">
       
       {/* ══ LEFT: Forgot Password Form ══ */}
       <div className="flex flex-col justify-between min-h-[100dvh] p-4 sm:p-8 lg:p-12 xl:p-16 border-r border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900/90 z-10">
@@ -320,5 +341,6 @@ export default function ForgotPassword() {
       </div>
 
     </div>
-  );
+  </>
+);
 }

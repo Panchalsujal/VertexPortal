@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import {
   LayoutDashboard, BookOpen, Video, FileText, Bot, Heart, ShoppingBag,
   Award, Settings, ChevronRight, Bell, MessageSquare, TrendingUp,
@@ -238,7 +239,13 @@ export default function StudentDashboard() {
     : 'Every lesson counts! Keep up your study streak today.';
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] w-full max-w-full overflow-x-hidden">
+    <>
+      <Helmet>
+        <title>Student Dashboard — VertexPortal</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+
+      <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] w-full max-w-full overflow-x-hidden">
       {/* Sidebar Mobile Overlay */}
       {sidebarOpen && (
         <div
@@ -807,5 +814,6 @@ export default function StudentDashboard() {
         </div>
       </main>
     </div>
-  );
+  </>
+);
 }

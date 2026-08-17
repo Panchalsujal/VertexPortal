@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '../context/AuthContext';
 import { updateMyProfile, updatePassword, updateAvatar } from '../api/user.api';
 import { Spinner } from '../components/ui/Spinner';
@@ -107,7 +108,13 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-[Inter,sans-serif] pb-16">
+    <>
+      <Helmet>
+        <title>Account Settings &amp; Profile — VertexPortal</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-[Inter,sans-serif] pb-16">
       {/* Header Banner */}
       <div className="bg-linear-to-r from-purple-900/10 via-indigo-900/10 to-slate-900/5 dark:from-purple-950/40 dark:to-slate-900 border-b border-gray-200 dark:border-slate-800 py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -356,5 +363,6 @@ export default function Profile() {
         )}
       </div>
     </div>
-  );
+  </>
+);
 }

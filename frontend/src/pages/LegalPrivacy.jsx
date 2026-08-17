@@ -1,9 +1,90 @@
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { ShieldCheck, ArrowLeft, Lock, Eye, Database, Globe, Clock, Sparkles } from 'lucide-react';
 
 export default function LegalPrivacy() {
+  const seoTitle = 'Privacy Policy & Data Protection — VertexPortal';
+  const seoDescription =
+    'Read the VertexPortal Privacy Policy. Learn how we collect, protect, and isolate your personal data, code snippets, AI interactions, and verified credentials.';
+  const canonicalUrl = 'https://vertex-mu-eight.vercel.app/privacy';
+  const seoImage = 'https://vertex-mu-eight.vercel.app/og-image.png';
+
+  const privacyStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: 'VertexPortal Privacy Policy',
+    url: canonicalUrl,
+    description: seoDescription,
+    publisher: {
+      '@type': 'Organization',
+      name: 'VertexPortal',
+      url: 'https://vertex-mu-eight.vercel.app',
+    },
+  };
+
+  const breadcrumbStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://vertex-mu-eight.vercel.app/',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Privacy Policy',
+        item: canonicalUrl,
+      },
+    ],
+  };
+
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0d0f1a] text-gray-900 dark:text-gray-100 font-[Inter,sans-serif] py-6 sm:py-10 md:py-12 px-3.5 sm:px-6 lg:px-8">
+    <>
+      <Helmet>
+        {/* Dynamic Title */}
+        <title>{seoTitle}</title>
+
+        {/* Primary Meta Tags */}
+        <meta name="description" content={seoDescription} />
+        <meta name="robots" content="index, follow" />
+        <meta
+          name="keywords"
+          content="privacy policy, data protection, security, AI sandbox privacy, vertexportal privacy"
+        />
+
+        {/* Canonical URL */}
+        <link rel="canonical" href={canonicalUrl} />
+
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="VertexPortal" />
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content={seoImage} />
+        <meta property="og:image:alt" content="VertexPortal Privacy Policy" />
+
+        {/* Twitter Metadata */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={seoTitle} />
+        <meta name="twitter:description" content={seoDescription} />
+        <meta name="twitter:image" content={seoImage} />
+
+        {/* Structured Data: WebPage */}
+        <script type="application/ld+json">
+          {JSON.stringify(privacyStructuredData)}
+        </script>
+
+        {/* Structured Data: Breadcrumbs */}
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbStructuredData)}
+        </script>
+      </Helmet>
+
+      <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0d0f1a] text-gray-900 dark:text-gray-100 font-[Inter,sans-serif] py-6 sm:py-10 md:py-12 px-3.5 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
         
         {/* Top Navigation */}
@@ -114,5 +195,6 @@ export default function LegalPrivacy() {
         </div>
       </div>
     </div>
-  );
+  </>
+);
 }

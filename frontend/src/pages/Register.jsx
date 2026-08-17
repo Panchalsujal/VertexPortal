@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Eye, EyeOff, GraduationCap, Tag } from 'lucide-react';
 import {
   MailIcon,
@@ -140,7 +141,27 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-slate-50 dark:bg-slate-950 font-[Inter,sans-serif] text-slate-900 dark:text-slate-100">
+    <>
+      <Helmet>
+        <title>Create a Free Account — VertexPortal</title>
+        <meta
+          name="description"
+          content="Join VertexPortal to access interactive coding courses, 24/7 AI tutor assistance, real-time live classes, and verified certificates."
+        />
+        <meta name="robots" content="noindex, follow" />
+        <link rel="canonical" href="https://vertex-mu-eight.vercel.app/register" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="VertexPortal" />
+        <meta property="og:title" content="Create a Free Account — VertexPortal" />
+        <meta
+          property="og:description"
+          content="Join VertexPortal to access interactive coding courses, 24/7 AI tutor assistance, real-time live classes, and verified certificates."
+        />
+        <meta property="og:url" content="https://vertex-mu-eight.vercel.app/register" />
+        <meta property="og:image" content="https://vertex-mu-eight.vercel.app/og-image.png" />
+      </Helmet>
+
+      <div className="min-h-screen grid lg:grid-cols-2 bg-slate-50 dark:bg-slate-950 font-[Inter,sans-serif] text-slate-900 dark:text-slate-100">
       {/* ══ LEFT: Authentication Form ══ */}
       <div className="flex flex-col justify-between min-h-screen p-6 sm:p-10 lg:p-12 xl:p-16 border-r border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900/90 z-10">
         {/* Top bar with Logo & Switch to Login */}
@@ -510,5 +531,6 @@ export default function Register() {
         </div>
       </div>
     </div>
-  );
+  </>
+);
 }

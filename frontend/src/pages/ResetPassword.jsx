@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import {
   GraduationCap,
   Lock,
@@ -112,7 +113,24 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full grid lg:grid-cols-2 bg-white dark:bg-slate-950 font-[Inter,sans-serif] text-slate-900 dark:text-slate-100 overflow-x-hidden">
+    <>
+      <Helmet>
+        <title>Reset Your Password — VertexPortal</title>
+        <meta
+          name="description"
+          content="Choose a new secure password for your VertexPortal account."
+        />
+        <meta name="robots" content="noindex, follow" />
+        <link rel="canonical" href="https://vertex-mu-eight.vercel.app/reset-password" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="VertexPortal" />
+        <meta property="og:title" content="Reset Your Password — VertexPortal" />
+        <meta property="og:description" content="Choose a new secure password for your VertexPortal account." />
+        <meta property="og:url" content="https://vertex-mu-eight.vercel.app/reset-password" />
+        <meta property="og:image" content="https://vertex-mu-eight.vercel.app/og-image.png" />
+      </Helmet>
+
+      <div className="min-h-[100dvh] w-full grid lg:grid-cols-2 bg-white dark:bg-slate-950 font-[Inter,sans-serif] text-slate-900 dark:text-slate-100 overflow-x-hidden">
       
       {/* ══ LEFT: Reset Password Form ══ */}
       <div className="flex flex-col justify-between min-h-[100dvh] p-4 sm:p-8 lg:p-12 xl:p-16 border-r border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900/90 z-10">
@@ -426,5 +444,6 @@ export default function ResetPassword() {
       </div>
 
     </div>
-  );
+  </>
+);
 }

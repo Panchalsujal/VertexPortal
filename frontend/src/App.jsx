@@ -59,6 +59,7 @@ const LegalPrivacy = lazy(() => import('./pages/LegalPrivacy'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const HelpCenter = lazy(() => import('./pages/HelpCenter'));
 const PlatformStatus = lazy(() => import('./pages/PlatformStatus'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 // ─── Protected Route ─────────────────────────────────────────────────────────
 function ProtectedRoute({ children, allowedRoles }) {
@@ -199,8 +200,8 @@ function AppRoot() {
             <Route path="/admin/notes" element={<ProtectedRoute allowedRoles={['admin']}><AdminNotes /></ProtectedRoute>} />
             <Route path="/admin/live-attendance" element={<ProtectedRoute allowedRoles={['admin', 'instructor']}><AdminLiveAttendance /></ProtectedRoute>} />
 
-            {/* Catch All */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            {/* Catch All — 404 Not Found */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </Layout>
