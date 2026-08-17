@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   Mail,
   ArrowRight,
-  Sparkles,
   CheckCircle2,
   AlertCircle,
   KeyRound,
@@ -79,32 +78,32 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-slate-50 dark:bg-slate-950 font-[Inter,sans-serif] text-slate-900 dark:text-slate-100">
+    <div className="min-h-[100dvh] w-full grid lg:grid-cols-2 bg-white dark:bg-slate-950 font-[Inter,sans-serif] text-slate-900 dark:text-slate-100 overflow-x-hidden">
       
       {/* ══ LEFT: Forgot Password Form ══ */}
-      <div className="flex flex-col justify-between min-h-screen p-6 sm:p-10 lg:p-12 xl:p-16 border-r border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900/90 z-10">
+      <div className="flex flex-col justify-between min-h-[100dvh] p-4 sm:p-8 lg:p-12 xl:p-16 border-r border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900/90 z-10">
         
         {/* Top Bar with Logo & Switch to Login */}
-        <div className="flex items-center justify-between gap-4 pb-6">
-          <Link to="/" className="flex items-center gap-2.5 no-underline shrink-0 group">
-            <div className="w-9 h-9 rounded-2xl flex items-center justify-center shadow-md bg-gradient-to-tr from-purple-600 to-indigo-500 group-hover:scale-105 transition-transform">
-              <GraduationCap className="w-5 h-5 text-white" />
+        <div className="flex items-center justify-between gap-2 sm:gap-4 pb-4 sm:pb-6 border-b sm:border-b-0 border-slate-100 dark:border-slate-800/60">
+          <Link to="/" className="flex items-center gap-2 sm:gap-2.5 no-underline shrink-0 group">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-md bg-gradient-to-tr from-purple-600 to-indigo-500 group-hover:scale-105 transition-transform">
+              <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
             <div>
-              <p className="text-base font-extrabold text-slate-900 dark:text-white leading-none font-['Plus_Jakarta_Sans',sans-serif]">
+              <p className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white leading-none font-['Plus_Jakarta_Sans',sans-serif]">
                 VertexPortal
               </p>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400 mt-0.5">
+              <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400 mt-0.5">
                 LMS Platform
               </p>
             </div>
           </Link>
 
-          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-            <span className="hidden sm:inline">Remember password?</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <span className="hidden md:inline">Remember password?</span>
             <Link
               to="/login"
-              className="px-3.5 py-1.5 rounded-xl font-bold text-xs bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800/60 transition shadow-xs whitespace-nowrap"
+              className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-xl font-bold text-xs bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800/60 transition shadow-xs whitespace-nowrap"
             >
               Sign In
             </Link>
@@ -112,19 +111,19 @@ export default function ForgotPassword() {
         </div>
 
         {/* Center Main Content */}
-        <div className="max-w-md w-full mx-auto my-auto py-6">
+        <div className="max-w-md w-full mx-auto my-auto py-6 sm:py-8">
           {!submitted ? (
-            <div className="space-y-6">
+            <div className="space-y-5 sm:space-y-6">
               {/* Header */}
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 text-xs font-semibold mb-3">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 text-xs font-semibold mb-2.5 sm:mb-3">
                   <KeyRound className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                   Account Recovery
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight font-['Plus_Jakarta_Sans',sans-serif] mb-2">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white tracking-tight font-['Plus_Jakarta_Sans',sans-serif] mb-1.5 sm:mb-2">
                   Forgot Password? 🔑
                 </h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
                   Enter your registered email address below. We'll send you secure instructions to reset your password.
                 </p>
               </div>
@@ -146,7 +145,7 @@ export default function ForgotPassword() {
                       placeholder="name@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 text-sm rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/70 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition"
+                      className="w-full pl-10 pr-4 py-3 sm:py-3.5 text-base sm:text-sm rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/70 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition shadow-2xs"
                     />
                   </div>
                 </div>
@@ -154,7 +153,7 @@ export default function ForgotPassword() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 text-sm font-bold py-3.5 px-4 rounded-xl text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-500/25 transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 text-sm font-bold py-3.5 px-4 rounded-xl text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 active:scale-[0.99] shadow-lg shadow-purple-500/25 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {loading ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -167,10 +166,10 @@ export default function ForgotPassword() {
                 </button>
               </form>
 
-              <div className="text-center pt-2">
+              <div className="text-center pt-1 sm:pt-2">
                 <Link
                   to="/login"
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-400 transition"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-400 transition py-1"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   Return to Sign In
@@ -179,16 +178,16 @@ export default function ForgotPassword() {
             </div>
           ) : (
             /* Email Sent State */
-            <div className="space-y-6 text-center">
-              <div className="w-16 h-16 rounded-3xl mx-auto flex items-center justify-center bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-600 dark:text-emerald-400 shadow-inner">
-                <CheckCircle2 className="w-8 h-8" />
+            <div className="space-y-5 sm:space-y-6 text-center">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl mx-auto flex items-center justify-center bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-600 dark:text-emerald-400 shadow-inner">
+                <CheckCircle2 className="w-7 h-7 sm:w-8 sm:h-8" />
               </div>
 
               <div>
-                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight font-['Plus_Jakarta_Sans',sans-serif] mb-2">
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white tracking-tight font-['Plus_Jakarta_Sans',sans-serif] mb-1.5 sm:mb-2">
                   Check Your Inbox 📬
                 </h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
                   We've sent a password reset link to:
                 </p>
                 <p className="mt-2 inline-block px-3.5 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800/50 text-xs font-bold font-mono text-purple-700 dark:text-purple-300 max-w-full truncate">
@@ -196,7 +195,7 @@ export default function ForgotPassword() {
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 text-left text-xs text-slate-600 dark:text-slate-300 space-y-2.5">
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 text-left text-xs text-slate-600 dark:text-slate-300 space-y-2 sm:space-y-2.5">
                 <div className="flex items-start gap-2.5">
                   <Clock className="w-4 h-4 text-purple-500 shrink-0 mt-0.5" />
                   <span>The reset link is active for <strong>60 minutes</strong>.</span>
@@ -207,7 +206,7 @@ export default function ForgotPassword() {
                 </div>
               </div>
 
-              <div className="space-y-3 pt-2">
+              <div className="space-y-3 pt-1 sm:pt-2">
                 <button
                   type="button"
                   onClick={handleResend}
@@ -218,7 +217,7 @@ export default function ForgotPassword() {
                   {resendCooldown > 0 ? `Resend link in ${resendCooldown}s` : 'Resend reset link'}
                 </button>
 
-                <div className="flex items-center justify-center gap-4 text-xs">
+                <div className="flex items-center justify-center gap-3 sm:gap-4 text-xs pt-1">
                   <button
                     type="button"
                     onClick={() => setSubmitted(false)}
@@ -240,10 +239,10 @@ export default function ForgotPassword() {
         </div>
 
         {/* Security / Privacy Trust Badge */}
-        <div className="pt-6 border-t border-slate-200/80 dark:border-slate-800">
-          <div className="flex items-center gap-3 rounded-2xl p-3 bg-purple-50/80 dark:bg-purple-950/30 border border-purple-200/70 dark:border-purple-800/40">
+        <div className="pt-4 sm:pt-6 border-t border-slate-200/80 dark:border-slate-800">
+          <div className="flex items-center gap-2.5 sm:gap-3 rounded-2xl p-2.5 sm:p-3 bg-purple-50/80 dark:bg-purple-950/30 border border-purple-200/70 dark:border-purple-800/40">
             <ShieldCheck className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
-            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+            <p className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
               <span className="font-bold text-slate-900 dark:text-white">Encrypted & Secure.</span>{' '}
               Protected by TLS encryption and SHA-256 salted single-use recovery tokens.
             </p>

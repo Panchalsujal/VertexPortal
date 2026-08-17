@@ -14,6 +14,7 @@ import {
 import { login as loginApi, googleAuth } from '../api/auth.api';
 import { useAuth } from '../store/slices/authSlice';
 import toast from 'react-hot-toast';
+import { initGoogleAuth, renderGoogleButton, triggerGooglePrompt } from '../utils/googleAuth';
 
 const PERKS = [
   { icon: BookOpenIcon, title: '200+ Interactive Courses', desc: 'Expert-curated paths across full-stack tech & design' },
@@ -54,48 +55,9 @@ export default function Login() {
   };
 
   useEffect(() => {
-    const clientId =
-      import.meta.env.VITE_GOOGLE_CLIENT_ID ||
-      '437241590710-ce84o2fcqnbg1esivhsbgcdr8cpfs0m3.apps.googleusercontent.com';
-
-    const setupGsi = () => {
-      if (!window.google?.accounts?.id || gsiInitializedRef.current) return;
-      try {
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: (response) => {
-            if (response?.credential) {
-              handleGoogleSuccess(response.credential);
-            }
-          },
-          auto_select: false,
-          cancel_on_tap_outside: true,
-          itp_support: true,
-        });
-
-        if (googleBtnRef.current) {
-          window.google.accounts.id.renderButton(googleBtnRef.current, {
-            type: 'standard',
-            theme: 'outline',
-            size: 'large',
-          });
-        }
-
-        gsiInitializedRef.current = true;
-      } catch (err) {
-        console.warn('GSI Init Error:', err);
-      }
-    };
-
-    if (window.google?.accounts?.id) {
-      setupGsi();
-    } else {
-      const script = document.createElement('script');
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      script.onload = setupGsi;
-      document.body.appendChild(script);
+    initGoogleAuth(handleGoogleSuccess);
+    if (googleBtnRef.current) {
+      renderGoogleButton(googleBtnRef.current);
     }
   }, []);
 
@@ -107,12 +69,7 @@ export default function Login() {
         return;
       }
     }
-
-    if (window.google?.accounts?.id) {
-      window.google.accounts.id.prompt();
-    } else {
-      toast.error('Google service is loading, please try again.');
-    }
+    triggerGooglePrompt();
   };
 
   const handleSubmit = async (e) => {
