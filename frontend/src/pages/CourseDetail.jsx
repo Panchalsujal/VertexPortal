@@ -455,89 +455,231 @@ export default function CourseDetail() {
 
         {/* Reviews */}
         {tab === 'reviews' && (
-          <div className="max-w-3xl space-y-6">
-            {/* Stats Summary */}
-            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 flex items-center gap-6 shadow-xs">
-              <div className="text-center shrink-0 pr-6 border-r border-gray-100 dark:border-slate-800">
-                <div className="text-4xl font-extrabold text-amber-500">
-                  {course.averageRating ? course.averageRating.toFixed(1) : '0.0'}
+          <div className="max-w-4xl space-y-8">
+            {/* Stats Summary & Breakdown Card */}
+            <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 items-center">
+                {/* Score Column */}
+                <div className="md:col-span-4 text-center md:text-left flex flex-col items-center md:items-start justify-center md:border-r md:border-gray-100 dark:md:border-slate-800 md:pr-6">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-5xl sm:text-6xl font-black text-gray-900 dark:text-white tracking-tight">
+                      {course.averageRating ? course.averageRating.toFixed(1) : '0.0'}
+                    </span>
+                    <span className="text-gray-400 dark:text-slate-500 font-medium text-lg">/ 5.0</span>
+                  </div>
+
+                  <div className="my-2.5">
+                    <StarRating rating={course.averageRating || 0} size={20} />
+                  </div>
+
+                  <p className="text-xs font-semibold text-gray-500 dark:text-slate-400">
+                    Based on {course.totalReviews || reviews.length || 0} verified reviews
+                  </p>
                 </div>
-                <div className="my-1">
-                  <StarRating rating={course.averageRating || 0} size={18} />
+
+                {/* Rating Distribution Bars Column */}
+                <div className="md:col-span-8 space-y-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                      Rating Distribution
+                    </h4>
+                    <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                      <CheckCircle className="w-3.5 h-3.5 inline" /> 100% Verified
+                    </span>
+                  </div>
+
+                  {[5, 4, 3, 2, 1].map((starVal) => {
+                    const totalRevCount = reviews.length || 1;
+                    const countForStar = reviews.filter((r) => Math.round(r.rating) === starVal).length;
+                    const percentage = reviews.length ? Math.round((countForStar / totalRevCount) * 100) : 0;
+
+                    return (
+                      <div key={starVal} className="flex items-center gap-3 text-xs">
+                        <div className="flex items-center gap-1 w-12 shrink-0 font-semibold text-gray-700 dark:text-slate-300">
+                          <span>{starVal}</span>
+                          <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                        </div>
+                        <div className="flex-1 h-2 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full transition-all duration-500"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <span className="w-9 text-right text-gray-400 dark:text-slate-500 text-[11px]">
+                          {percentage}%
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">{course.totalReviews || reviews.length || 0} reviews</div>
-              </div>
-              <div className="flex-1 text-xs text-gray-600 dark:text-gray-300">
-                <p className="font-semibold text-gray-900 dark:text-white text-sm mb-1">Student Ratings & Reviews</p>
-                <p>Ratings are calculated from verified enrolled student reviews. Rate this course to share your experience!</p>
               </div>
             </div>
 
-            {/* Write/Edit Review */}
+            {/* Write / Edit Review Section */}
             {user?.role === 'student' && isEnrolled && (
-              <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
-                <h4 className="text-sm font-bold text-gray-900 dark:text-white">{myReview ? 'Your Review & Rating' : 'Write a Review & Rate Course'}</h4>
+              <div className="bg-gradient-to-br from-white to-gray-50/50 dark:from-slate-900 dark:to-slate-900/60 border border-gray-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-7 shadow-xs">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <Edit3 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    {myReview ? 'Your Course Review' : 'Write a Review & Rate'}
+                  </h4>
+                  {myReview && !editingReview && (
+                    <span className="text-xs font-semibold px-2.5 py-1 bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 rounded-full border border-purple-200/60 dark:border-purple-800/60">
+                      Published by You
+                    </span>
+                  )}
+                </div>
 
                 {myReview && !editingReview ? (
-                  <div>
-                    <StarRating rating={myReview.rating} size={18} />
-                    <p style={{ marginTop: '0.75rem', marginBottom: '1rem' }}>{myReview.comment}</p>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button className="btn btn-secondary btn-sm" onClick={() => setEditingReview(true)} id="edit-review-btn">
-                        <Edit3 size={14} /> Edit
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <StarRating rating={myReview.rating} size={20} />
+                      <span className="text-xs font-semibold text-gray-600 dark:text-slate-400">
+                        ({myReview.rating} out of 5)
+                      </span>
+                    </div>
+
+                    <p className="text-sm text-gray-700 dark:text-slate-200 bg-white dark:bg-slate-800/80 p-4 rounded-2xl border border-gray-100 dark:border-slate-700/60 leading-relaxed whitespace-pre-line">
+                      {myReview.comment}
+                    </p>
+
+                    <div className="flex items-center gap-3 pt-1">
+                      <button
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                        onClick={() => setEditingReview(true)}
+                        id="edit-review-btn"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" /> Edit Review
                       </button>
-                      <button className="btn btn-danger btn-sm" onClick={handleDeleteReview} id="delete-review-btn">
-                        <Trash2 size={14} /> Delete
+                      <button
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                        onClick={handleDeleteReview}
+                        id="delete-review-btn"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Delete
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <>
-                    <div style={{ marginBottom: '1rem' }}>
-                      <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Your Rating</p>
-                      <StarRating rating={reviewForm.rating} size={24} interactive onRate={r => setReviewForm(f => ({ ...f, rating: r }))} />
+                  <div className="space-y-5">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                        Select Your Rating
+                      </label>
+                      <StarRating
+                        rating={reviewForm.rating}
+                        size={28}
+                        interactive
+                        showLabel
+                        onRate={(r) => setReviewForm((f) => ({ ...f, rating: r }))}
+                      />
                     </div>
-                    <textarea
-                      className="input-field"
-                      placeholder="Share your experience with this course…"
-                      rows={4}
-                      value={reviewForm.comment}
-                      onChange={e => setReviewForm(f => ({ ...f, comment: e.target.value }))}
-                      style={{ resize: 'vertical', marginBottom: '1rem' }}
-                      id="review-comment-input"
-                    />
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button className="btn btn-primary btn-sm" onClick={submitReview} disabled={reviewLoading} id="submit-review-btn">
-                        {reviewLoading ? <div className="spinner spinner-sm" /> : <><Send size={14} /> {editingReview ? 'Update' : 'Submit'}</>}
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                        Your Feedback & Experience
+                      </label>
+                      <textarea
+                        className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-4 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-all resize-y min-h-[110px]"
+                        placeholder="What did you like about this course? How clear were the concepts and exercises?"
+                        rows={4}
+                        value={reviewForm.comment}
+                        onChange={(e) => setReviewForm((f) => ({ ...f, comment: e.target.value }))}
+                        id="review-comment-input"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <button
+                        className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer disabled:opacity-50"
+                        onClick={submitReview}
+                        disabled={reviewLoading}
+                        id="submit-review-btn"
+                      >
+                        {reviewLoading ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            <Send className="w-3.5 h-3.5" />
+                            {editingReview ? 'Update Review' : 'Submit Review'}
+                          </>
+                        )}
                       </button>
                       {editingReview && (
-                        <button className="btn btn-ghost btn-sm" onClick={() => setEditingReview(false)}>Cancel</button>
+                        <button
+                          className="px-4 py-2.5 text-xs font-semibold text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white rounded-xl transition-all cursor-pointer"
+                          onClick={() => setEditingReview(false)}
+                        >
+                          Cancel
+                        </button>
                       )}
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             )}
 
             {/* Review List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              {reviews.map(rev => (
-                <div key={rev._id} style={{ padding: '1.25rem', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                    <img src={rev.student?.avatarUrl || 'https://ik.imagekit.io/Sujalpanchal/default.avif'} alt={rev.student?.fullName} className="avatar" style={{ width: 36, height: 36 }} />
-                    <div>
-                      <p style={{ fontWeight: 600, fontSize: '0.9375rem' }}>{rev.student?.fullName}</p>
-                      <StarRating rating={rev.rating} size={13} />
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-1">
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+                  Student Comments ({reviews.length})
+                </h4>
+              </div>
+
+              {reviews.map((rev) => (
+                <div
+                  key={rev._id}
+                  className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800/80 rounded-2xl p-5 sm:p-6 shadow-xs hover:border-gray-200 dark:hover:border-slate-700 transition-all space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3.5">
+                      <img
+                        src={rev.student?.avatarUrl || 'https://ik.imagekit.io/Sujalpanchal/default.avif'}
+                        alt={rev.student?.fullName}
+                        className="w-10 h-10 rounded-full object-cover ring-2 ring-purple-100 dark:ring-purple-950"
+                      />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-sm text-gray-900 dark:text-white">
+                            {rev.student?.fullName || 'Enrolled Student'}
+                          </p>
+                          <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full">
+                            Verified
+                          </span>
+                        </div>
+                        <div className="mt-1">
+                          <StarRating rating={rev.rating} size={14} />
+                        </div>
+                      </div>
                     </div>
+
+                    {rev.createdAt && (
+                      <span className="text-[11px] text-gray-400 dark:text-slate-500 font-medium">
+                        {new Date(rev.createdAt).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    )}
                   </div>
-                  <p style={{ fontSize: '0.9375rem' }}>{rev.comment}</p>
+
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-300 leading-relaxed whitespace-pre-line pl-0.5">
+                    {rev.comment}
+                  </p>
                 </div>
               ))}
+
               {reviews.length === 0 && (
-                <div className="empty-state">
-                  <div className="empty-state-icon"><Star size={40} /></div>
-                  <h3>No reviews yet</h3>
-                  <p>Be the first to review this course!</p>
+                <div className="text-center py-12 px-4 bg-white dark:bg-slate-900 border border-dashed border-gray-200 dark:border-slate-800 rounded-3xl space-y-3">
+                  <div className="w-12 h-12 bg-amber-50 dark:bg-amber-950/40 rounded-2xl flex items-center justify-center mx-auto text-amber-500">
+                    <Star className="w-6 h-6 fill-amber-400" />
+                  </div>
+                  <h4 className="text-sm font-bold text-gray-900 dark:text-white">No Reviews Yet</h4>
+                  <p className="text-xs text-gray-500 dark:text-slate-400 max-w-sm mx-auto">
+                    Be the first verified student to rate and share your experience with this course!
+                  </p>
                 </div>
               )}
             </div>
