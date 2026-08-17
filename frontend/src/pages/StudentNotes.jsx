@@ -99,35 +99,38 @@ export default function StudentNotes() {
     if (!content || (!lectureId && !editingNote)) {
       return toast.error('Please select a Lecture and write Note content');
     }
-    try {
-      if (editingNote) {
-        await dispatch(editNote({ noteId: editingNote._id, data: { title, content, isPinned } })).unwrap();
-        toast.success('Note updated!');
-      } else {
-        await dispatch(
-          addNote({
-            lectureId,
-            title,
-            content,
-            isPinned,
-          })
-        ).unwrap();
-        toast.success('Note added!');
+    const currentEditing = editingNote;
+    setShowModal(false);
+    resetForm();
+
+    if (currentEditing) {
+      toast.success('Note updated!');
+      const res = await dispatch(editNote({ noteId: currentEditing._id, data: { title, content, isPinned } }));
+      if (editNote.rejected.match(res)) {
+        toast.error(res.payload || 'Failed to update note. Action rolled back.');
       }
-      setShowModal(false);
-      resetForm();
-    } catch (err) {
-      toast.error(typeof err === 'string' ? err : err?.message || 'Failed to save note');
+    } else {
+      toast.success('Note added!');
+      const res = await dispatch(
+        addNote({
+          lectureId,
+          title,
+          content,
+          isPinned,
+        })
+      );
+      if (addNote.rejected.match(res)) {
+        toast.error(res.payload || 'Failed to save note. Action rolled back.');
+      }
     }
   };
 
   const handleDelete = async (noteId) => {
     if (!window.confirm('Are you sure you want to delete this note?')) return;
-    try {
-      await dispatch(removeNote(noteId)).unwrap();
-      toast.success('Note deleted');
-    } catch (err) {
-      toast.error(err.message || 'Failed to delete note');
+    toast.success('Note deleted');
+    const res = await dispatch(removeNote(noteId));
+    if (removeNote.rejected.match(res)) {
+      toast.error(res.payload || 'Failed to delete note. Action rolled back.');
     }
   };
 

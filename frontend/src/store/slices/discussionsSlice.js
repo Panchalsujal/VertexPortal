@@ -117,7 +117,92 @@ const discussionsSlice = createSlice({
     list: [], current: null, pagination: null, voteStatus: null,
     loading: false, error: null,
   },
-  reducers: { clearCurrent: (s) => { s.current = null; } },
+  reducers: {
+    clearCurrent: (s) => { s.current = null; },
+    setDiscussionsSnapshot: (s, a) => {
+      if (a.payload.list !== undefined) s.list = a.payload.list;
+      if (a.payload.current !== undefined) s.current = a.payload.current;
+      if (a.payload.voteStatus !== undefined) s.voteStatus = a.payload.voteStatus;
+    },
+    optimisticToggleDiscussionUpvote: (s, a) => {
+      const { id } = a.payload;
+      const currentlyUpvoted = Boolean(s.voteStatus?.discussionUpvoted);
+      const newUpvoted = !currentlyUpvoted;
+      const delta = newUpvoted ? 1 : -1;
+
+      if (!s.voteStatus) s.voteStatus = { discussionUpvoted: false, replyUpvotes: [] };
+      s.voteStatus.discussionUpvoted = newUpvoted;
+
+      if (s.current && (s.current._id === id || s.current.id === id)) {
+        const currentCount = Number(s.current.upvoteCount ?? s.current.upvotesCount ?? s.current.upvotes?.length ?? 0);
+        const nextCount = Math.max(0, currentCount + delta);
+        s.current.upvoteCount = nextCount;
+        s.current.upvotesCount = nextCount;
+      }
+      const listItem = s.list.find((d) => d._id === id || d.id === id);
+      if (listItem) {
+        const currentCount = Number(listItem.upvoteCount ?? listItem.upvotesCount ?? listItem.upvotes?.length ?? 0);
+        const nextCount = Math.max(0, currentCount + delta);
+        listItem.upvoteCount = nextCount;
+        listItem.upvotesCount = nextCount;
+      }
+    },
+    optimisticToggleReplyUpvote: (s, a) => {
+      const { replyId } = a.payload;
+      if (!s.voteStatus) s.voteStatus = { discussionUpvoted: false, replyUpvotes: [] };
+      if (!Array.isArray(s.voteStatus.replyUpvotes)) s.voteStatus.replyUpvotes = [];
+
+      const strReplyId = String(replyId);
+      const isUpvoted = s.voteStatus.replyUpvotes.map(String).includes(strReplyId);
+      const delta = isUpvoted ? -1 : 1;
+
+      if (isUpvoted) {
+        s.voteStatus.replyUpvotes = s.voteStatus.replyUpvotes.filter((id) => String(id) !== strReplyId);
+      } else {
+        s.voteStatus.replyUpvotes.push(replyId);
+      }
+
+      if (s.current && Array.isArray(s.current.replies)) {
+        const reply = s.current.replies.find((r) => String(r._id || r.id) === strReplyId);
+        if (reply) {
+          const currentCount = Number(reply.upvoteCount ?? reply.upvotesCount ?? reply.upvotes?.length ?? 0);
+          const nextCount = Math.max(0, currentCount + delta);
+          reply.upvoteCount = nextCount;
+          reply.upvotesCount = nextCount;
+        }
+      }
+    },
+    optimisticRemoveDiscussion: (s, a) => {
+      const id = a.payload;
+      s.list = s.list.filter((d) => d._id !== id && d.id !== id);
+      if (s.current && (s.current._id === id || s.current.id === id)) {
+        s.current = null;
+      }
+    },
+    optimisticRemoveReply: (s, a) => {
+      const { replyId } = a.payload;
+      if (s.current && Array.isArray(s.current.replies)) {
+        s.current.replies = s.current.replies.filter((r) => String(r._id || r.id) !== String(replyId));
+      }
+    },
+    optimisticAddReply: (s, a) => {
+      const { reply } = a.payload;
+      if (s.current) {
+        if (!Array.isArray(s.current.replies)) s.current.replies = [];
+        s.current.replies.push(reply);
+      }
+    },
+    optimisticModerateDiscussion: (s, a) => {
+      const { id, data } = a.payload;
+      if (s.current && (s.current._id === id || s.current.id === id)) {
+        Object.assign(s.current, data);
+      }
+      const listItem = s.list.find((d) => d._id === id || d.id === id);
+      if (listItem) {
+        Object.assign(listItem, data);
+      }
+    },
+  },
   extraReducers: (b) => {
     b
       .addCase(fetchDiscussions.pending, (s) => { s.loading = true; s.error = null; })
@@ -131,7 +216,16 @@ const discussionsSlice = createSlice({
   },
 });
 
-export const { clearCurrent } = discussionsSlice.actions;
+export const {
+  clearCurrent,
+  setDiscussionsSnapshot,
+  optimisticToggleDiscussionUpvote,
+  optimisticToggleReplyUpvote,
+  optimisticRemoveDiscussion,
+  optimisticRemoveReply,
+  optimisticAddReply,
+  optimisticModerateDiscussion,
+} = discussionsSlice.actions;
 export const selectDiscussions = (s) => s.discussions.list;
 export const selectCurrentDiscussion = (s) => s.discussions.current;
 export const selectDiscussionPagination = (s) => s.discussions.pagination;

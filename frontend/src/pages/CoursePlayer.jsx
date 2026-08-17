@@ -208,34 +208,49 @@ export default function CoursePlayer() {
   const handleCreateNote = async (e) => {
     e.preventDefault();
     if (!newNoteContent.trim() || !activeLecture?._id) return;
-    setSubmittingNote(true);
+    const content = newNoteContent.trim();
+    const timestamp = noteTimestamp;
+    setNewNoteContent('');
+    setNoteTimestamp(null);
+
+    const tempId = 'temp-' + Date.now();
+    const tempNote = {
+      _id: tempId,
+      lectureId: activeLecture._id,
+      content,
+      timestampInSeconds: timestamp,
+      createdAt: new Date().toISOString(),
+    };
+
+    setNotes((prev) => [tempNote, ...prev]);
+    toast.success('Note saved!');
+
     try {
       const res = await createNote({
         lectureId: activeLecture._id,
-        content: newNoteContent.trim(),
-        timestampInSeconds: noteTimestamp,
+        content,
+        timestampInSeconds: timestamp,
       });
       const created = res.data?.note || res.data?.data;
       if (created) {
-        setNotes((prev) => [created, ...prev]);
+        setNotes((prev) => prev.map((n) => (n._id === tempId ? created : n)));
       }
-      setNewNoteContent('');
-      setNoteTimestamp(null);
-      toast.success('Note saved!');
-    } catch {
-      toast.error('Failed to save note');
-    } finally {
-      setSubmittingNote(false);
+    } catch (err) {
+      setNotes((prev) => prev.filter((n) => n._id !== tempId));
+      toast.error(err?.response?.data?.message || err.message || 'Failed to save note. Rolled back.');
     }
   };
 
   const handleDeleteNote = async (noteId) => {
+    const prevNotes = [...notes];
+    setNotes((prev) => prev.filter((n) => n._id !== noteId));
+    toast.success('Note deleted');
+
     try {
       await deleteNote(noteId);
-      setNotes((prev) => prev.filter((n) => n._id !== noteId));
-      toast.success('Note deleted');
-    } catch {
-      toast.error('Failed to delete note');
+    } catch (err) {
+      setNotes(prevNotes);
+      toast.error(err?.response?.data?.message || err.message || 'Failed to delete note. Action rolled back.');
     }
   };
 
@@ -255,25 +270,34 @@ export default function CoursePlayer() {
 
   const handleMarkComplete = async () => {
     if (!activeLecture) return;
-    setMarking(true);
-    try {
-      const res = await markLectureCompleted(activeLecture._id);
-      setCompletedIds((prev) =>
-        prev.includes(activeLecture._id) ? prev : [...prev, activeLecture._id]
-      );
-      setProgressPct(
-        res.data.enrollment?.progressPercentage ??
-          Math.min(100, Math.round(((completedIds.length + 1) / allLectures.length) * 100))
-      );
-      toast.success('Lesson marked as completed! 🎉');
+    const currentLectureId = activeLecture._id;
+    const prevCompleted = [...completedIds];
+    const prevPct = progressPct;
 
-      if (hasNext) {
-        goToNextLecture();
+    const newCompleted = prevCompleted.includes(currentLectureId)
+      ? prevCompleted
+      : [...prevCompleted, currentLectureId];
+    const newPct = Math.min(100, Math.round((newCompleted.length / Math.max(1, allLectures.length)) * 100));
+
+    // Optimistically update
+    setCompletedIds(newCompleted);
+    setProgressPct(newPct);
+    toast.success('Lesson marked as completed! 🎉');
+
+    if (hasNext) {
+      goToNextLecture();
+    }
+
+    try {
+      const res = await markLectureCompleted(currentLectureId);
+      if (res.data?.enrollment?.progressPercentage !== undefined) {
+        setProgressPct(res.data.enrollment.progressPercentage);
       }
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Failed to update progress');
-    } finally {
-      setMarking(false);
+      // Rollback
+      setCompletedIds(prevCompleted);
+      setProgressPct(prevPct);
+      toast.error(err?.response?.data?.message || err.message || 'Failed to update progress. Action rolled back.');
     }
   };
 

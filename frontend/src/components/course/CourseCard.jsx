@@ -33,22 +33,23 @@ export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
     e.preventDefault();
     e.stopPropagation();
     if (!user) { navigate('/login'); return; }
-    setWishLoading(true);
+    
+    const prevWishlisted = isWishlisted;
+    const nextWishlisted = !prevWishlisted;
+    setIsWishlisted(nextWishlisted);
+    toast.success(nextWishlisted ? 'Added to wishlist' : 'Removed from wishlist');
+    onWishlistChange?.(course._id, nextWishlisted);
+
     try {
-      if (isWishlisted) {
+      if (prevWishlisted) {
         await removeFromWishlist(course._id);
-        setIsWishlisted(false);
-        toast.success('Removed from wishlist');
       } else {
         await addToWishlist(course._id);
-        setIsWishlisted(true);
-        toast.success('Added to wishlist');
       }
-      onWishlistChange?.();
     } catch (err) {
-      toast.error(err.message || 'Action failed');
-    } finally {
-      setWishLoading(false);
+      setIsWishlisted(prevWishlisted);
+      onWishlistChange?.(course._id, prevWishlisted);
+      toast.error(err.response?.data?.message || err.message || 'Failed to update wishlist. Rolled back.');
     }
   };
 

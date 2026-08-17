@@ -56,7 +56,16 @@ export default function Wishlist() {
                   key={item._id || course._id}
                   course={course}
                   wishlisted={true}
-                  onWishlistChange={fetchWishlist}
+                  onWishlistChange={(courseId, isWishlisted) => {
+                    if (isWishlisted === false) {
+                      setWishlist(prev => prev.filter(it => {
+                        const itId = it.course?._id || it.course || it._id;
+                        return itId !== courseId && itId !== course._id;
+                      }));
+                    } else if (isWishlisted === true) {
+                      fetchWishlist();
+                    }
+                  }}
                 />
               );
             })}

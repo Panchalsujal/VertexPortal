@@ -24,7 +24,7 @@ export const markRead = createAsyncThunk(
 
 const studentAnnouncementsSlice = createSlice({
   name: 'studentAnnouncements',
-  initialState: { items: [], loading: false, error: null },
+  initialState: { items: [], loading: false, error: null, _snapshots: {} },
   reducers: {},
   extraReducers: (builder) => {
     builder
@@ -32,9 +32,26 @@ const studentAnnouncementsSlice = createSlice({
       .addCase(fetchStudentAnnouncements.fulfilled, (s, a) => { s.loading = false; s.items = a.payload; })
       .addCase(fetchStudentAnnouncements.rejected,  (s, a) => { s.loading = false; s.error = a.payload; })
 
+      // Optimistic mark read
+      .addCase(markRead.pending, (s, a) => {
+        const id = a.meta.arg;
+        const item = s.items.find(x => x._id === id);
+        if (item) {
+          s._snapshots[`read_${id}`] = item.isRead;
+          item.isRead = true;
+        }
+      })
       .addCase(markRead.fulfilled, (s, a) => {
-        const item = s.items.find(x => x._id === a.payload);
-        if (item) item.isRead = true;
+        delete s._snapshots[`read_${a.payload}`];
+      })
+      .addCase(markRead.rejected, (s, a) => {
+        const id = a.meta.arg;
+        const wasRead = s._snapshots[`read_${id}`];
+        if (wasRead !== undefined) {
+          const item = s.items.find(x => x._id === id);
+          if (item) item.isRead = wasRead;
+          delete s._snapshots[`read_${id}`];
+        }
       });
   },
 });

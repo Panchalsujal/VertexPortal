@@ -2,11 +2,27 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
-  fetchDiscussions, fetchDiscussionById, addDiscussion, addReply,
-  acceptAnswer, markResolved, moderateDiscussion, upvoteDiscussion, upvoteReply,
-  removeDiscussion, removeReply, fetchVoteStatus,
+  fetchDiscussions, fetchDiscussionById, addDiscussion,
+  acceptAnswer,
+  setDiscussionsSnapshot,
+  optimisticToggleDiscussionUpvote,
+  optimisticToggleReplyUpvote,
+  optimisticRemoveDiscussion,
+  optimisticRemoveReply,
+  optimisticAddReply,
+  optimisticModerateDiscussion,
+  fetchVoteStatus,
   selectDiscussions, selectCurrentDiscussion, selectDiscussionLoading, selectDiscussionVoteStatus,
 } from '../store/slices/discussionsSlice';
+import {
+  deleteDiscussion,
+  deleteDiscussionReply,
+  createDiscussionReply,
+  updateDiscussionModeration,
+  updateDiscussionResolved,
+  toggleDiscussionUpvote,
+  toggleReplyUpvote,
+} from '../api/discussion.api';
 import { getAllCourses } from '../api/course.api';
 import { MessageSquare, ThumbsUp, CheckCircle, Lock, Pin, Send, Plus, Filter, Trash2, Shield, Unlock, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -75,56 +91,85 @@ export default function Discussions() {
 
   const handleDeleteDiscussion = async (discussionId) => {
     if (!window.confirm('Are you sure you want to delete this discussion?')) return;
+    const snapshot = { list: discussions, current };
+    // Optimistic removal
+    dispatch(optimisticRemoveDiscussion(discussionId));
+    toast.success('Discussion deleted');
+
     try {
-      await dispatch(removeDiscussion(discussionId)).unwrap();
-      toast.success('Discussion deleted');
+      await deleteDiscussion(discussionId);
       dispatch(fetchDiscussions(filterCourseId ? { courseId: filterCourseId } : {}));
     } catch (err) {
-      toast.error(err || 'Failed to delete discussion');
+      // Rollback
+      dispatch(setDiscussionsSnapshot(snapshot));
+      toast.error(err.response?.data?.message || err.message || 'Failed to delete discussion. Action rolled back.');
     }
   };
 
   const handleDeleteReply = async (replyId) => {
     if (!current || !window.confirm('Delete this reply?')) return;
+    const snapshot = { current: { ...current, replies: [...(current.replies || [])] } };
+    // Optimistic removal
+    dispatch(optimisticRemoveReply({ discussionId: current._id, replyId }));
+    toast.success('Reply deleted');
+
     try {
-      await dispatch(removeReply({ discussionId: current._id, replyId })).unwrap();
-      toast.success('Reply deleted');
+      await deleteDiscussionReply(current._id, replyId);
     } catch (err) {
-      toast.error(err || 'Failed to delete reply');
+      // Rollback
+      dispatch(setDiscussionsSnapshot(snapshot));
+      toast.error(err.response?.data?.message || err.message || 'Failed to delete reply. Action rolled back.');
     }
   };
 
   const handleTogglePin = async () => {
     if (!current) return;
+    const nextState = !current.isPinned;
+    const snapshot = { current: { ...current }, list: [...discussions] };
+    // Optimistic toggle
+    dispatch(optimisticModerateDiscussion({ id: current._id, data: { isPinned: nextState } }));
+    toast.success(nextState ? 'Discussion pinned' : 'Discussion unpinned');
+
     try {
-      await dispatch(moderateDiscussion({ id: current._id, data: { isPinned: !current.isPinned } })).unwrap();
-      toast.success(current.isPinned ? 'Discussion unpinned' : 'Discussion pinned');
-      dispatch(fetchDiscussionById(current._id));
-      dispatch(fetchDiscussions(filterCourseId ? { courseId: filterCourseId } : {}));
+      await updateDiscussionModeration(current._id, { isPinned: nextState });
     } catch (err) {
-      toast.error(err || 'Failed to toggle pin');
+      // Rollback
+      dispatch(setDiscussionsSnapshot(snapshot));
+      toast.error(err.response?.data?.message || err.message || 'Failed to toggle pin. Action rolled back.');
     }
   };
 
   const handleToggleLock = async () => {
     if (!current) return;
+    const nextState = !current.isLocked;
+    const snapshot = { current: { ...current }, list: [...discussions] };
+    // Optimistic toggle
+    dispatch(optimisticModerateDiscussion({ id: current._id, data: { isLocked: nextState } }));
+    toast.success(nextState ? 'Discussion locked' : 'Discussion unlocked');
+
     try {
-      await dispatch(moderateDiscussion({ id: current._id, data: { isLocked: !current.isLocked } })).unwrap();
-      toast.success(current.isLocked ? 'Discussion unlocked' : 'Discussion locked');
-      dispatch(fetchDiscussionById(current._id));
+      await updateDiscussionModeration(current._id, { isLocked: nextState });
     } catch (err) {
-      toast.error(err || 'Failed to toggle lock');
+      // Rollback
+      dispatch(setDiscussionsSnapshot(snapshot));
+      toast.error(err.response?.data?.message || err.message || 'Failed to toggle lock. Action rolled back.');
     }
   };
 
   const handleToggleResolved = async () => {
     if (!current) return;
+    const nextState = !current.isResolved;
+    const snapshot = { current: { ...current }, list: [...discussions] };
+    // Optimistic toggle
+    dispatch(optimisticModerateDiscussion({ id: current._id, data: { isResolved: nextState } }));
+    toast.success(nextState ? 'Discussion marked resolved' : 'Discussion reopened');
+
     try {
-      await dispatch(markResolved({ id: current._id, data: { isResolved: !current.isResolved } })).unwrap();
-      toast.success(current.isResolved ? 'Discussion reopened' : 'Discussion marked resolved');
-      dispatch(fetchDiscussionById(current._id));
+      await updateDiscussionResolved(current._id, { isResolved: nextState });
     } catch (err) {
-      toast.error(err || 'Failed to update resolved status');
+      // Rollback
+      dispatch(setDiscussionsSnapshot(snapshot));
+      toast.error(err.response?.data?.message || err.message || 'Failed to update resolved status. Action rolled back.');
     }
   };
 
@@ -135,13 +180,37 @@ export default function Discussions() {
   const handleAddReply = async (e) => {
     e.preventDefault();
     if (submittingReply || !replyText?.trim() || !current) return;
+    const content = replyText.trim();
+    setReplyText('');
     setSubmittingReply(true);
+
+    const tempReplyId = 'temp-' + Date.now();
+    const tempReply = {
+      _id: tempReplyId,
+      content,
+      user: {
+        _id: user?._id || user?.id || 'temp-user',
+        fullName: user?.fullName || user?.name || 'You',
+        avatar: user?.avatar || null,
+      },
+      upvoteCount: 0,
+      isAccepted: false,
+      createdAt: new Date().toISOString(),
+    };
+
+    const snapshot = { current: { ...current, replies: [...(current.replies || [])] } };
+    // Optimistically add reply
+    dispatch(optimisticAddReply({ discussionId: current._id, reply: tempReply }));
+    toast.success('Reply posted');
+
     try {
-      await dispatch(addReply({ discussionId: current._id, data: { content: replyText.trim() } })).unwrap();
-      toast.success('Reply posted');
-      setReplyText('');
+      await createDiscussionReply(current._id, { content });
+      dispatch(fetchDiscussionById(current._id));
     } catch (err) {
-      toast.error(err || 'Failed to post reply');
+      // Rollback
+      dispatch(setDiscussionsSnapshot(snapshot));
+      setReplyText(content);
+      toast.error(err.response?.data?.message || err.message || 'Failed to post reply. Action rolled back.');
     } finally {
       setSubmittingReply(false);
     }
@@ -155,30 +224,53 @@ export default function Discussions() {
   }, [current?._id, dispatch]);
 
   const handleUpvoteDiscussion = async (id) => {
+    const snapshot = {
+      current: current ? { ...current } : null,
+      list: [...discussions],
+      voteStatus: voteStatus ? { ...voteStatus } : null,
+    };
+    // Optimistic toggle
+    dispatch(optimisticToggleDiscussionUpvote({ id }));
+
     try {
-      const res = await dispatch(upvoteDiscussion(id)).unwrap();
-      dispatch(fetchVoteStatus(id));
-      if (res?.message) toast.success(res.message);
+      await toggleDiscussionUpvote(id);
     } catch (err) {
-      toast.error(typeof err === 'string' ? err : err?.message || 'Failed to update vote');
+      // Rollback
+      dispatch(setDiscussionsSnapshot(snapshot));
+      toast.error(typeof err === 'string' ? err : err?.response?.data?.message || err?.message || 'Failed to update vote. Rolled back.');
     }
   };
 
   const handleUpvoteReply = async (replyId) => {
     if (!current) return;
+    const snapshot = {
+      current: { ...current, replies: (current.replies || []).map((r) => ({ ...r })) },
+      voteStatus: voteStatus ? { ...voteStatus, replyUpvotes: [...(voteStatus.replyUpvotes || [])] } : null,
+    };
+    // Optimistic toggle
+    dispatch(optimisticToggleReplyUpvote({ replyId }));
+
     try {
-      const res = await dispatch(upvoteReply({ discussionId: current._id, replyId })).unwrap();
-      dispatch(fetchVoteStatus(current._id));
-      if (res?.message) toast.success(res.message);
+      await toggleReplyUpvote(current._id, replyId);
     } catch (err) {
-      toast.error(typeof err === 'string' ? err : err?.message || 'Failed to update reply vote');
+      // Rollback
+      dispatch(setDiscussionsSnapshot(snapshot));
+      toast.error(typeof err === 'string' ? err : err?.response?.data?.message || err?.message || 'Failed to update reply vote. Rolled back.');
     }
   };
 
   const handleAcceptAnswer = async (replyId) => {
     if (!current) return;
-    await dispatch(acceptAnswer({ discussionId: current._id, replyId }));
+    const snapshot = { current: { ...current, replies: (current.replies || []).map(r => ({ ...r, isAccepted: r._id === replyId })) } };
+    dispatch(setDiscussionsSnapshot({ current: { ...current, replies: (current.replies || []).map(r => ({ ...r, isAccepted: r._id === replyId })) } }));
     toast.success('Answer marked as accepted');
+
+    try {
+      await dispatch(acceptAnswer({ discussionId: current._id, replyId })).unwrap();
+    } catch (err) {
+      dispatch(setDiscussionsSnapshot(snapshot));
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to accept answer. Rolled back.');
+    }
   };
 
   const currentAuthorId = (current?.author?._id || current?.author || current?.user?._id || current?.user || '').toString();

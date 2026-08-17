@@ -41,22 +41,50 @@ export default function Cart() {
   useEffect(() => { fetchCart(); }, []);
 
   const handleRemove = async (courseId) => {
+    const prevItems = [...cartItems];
+    const prevSummary = cartSummary ? { ...cartSummary } : null;
+    const prevPreview = preview ? { ...preview } : null;
+
+    // Optimistic removal
+    const updated = cartItems.filter((item) => {
+      const id = item.course?._id || item.course || item._id || item.courseId;
+      return id !== courseId;
+    });
+    setCartItems(updated);
+    setPreview(null);
+    toast.success('Removed from cart');
+
     try {
       await removeFromCart(courseId);
-      toast.success('Removed from cart');
-      fetchCart();
-      setPreview(null);
-    } catch (err) { toast.error(err.message || 'Failed to remove item'); }
+    } catch (err) {
+      // Rollback
+      setCartItems(prevItems);
+      setCartSummary(prevSummary);
+      setPreview(prevPreview);
+      toast.error(err.response?.data?.message || err.message || 'Failed to remove item. Rolled back.');
+    }
   };
 
   const handleClear = async () => {
+    const prevItems = [...cartItems];
+    const prevSummary = cartSummary ? { ...cartSummary } : null;
+    const prevPreview = preview ? { ...preview } : null;
+
+    // Optimistic clear
+    setCartItems([]);
+    setCartSummary(null);
+    setPreview(null);
+    toast.success('Cart cleared');
+
     try {
       await clearCart();
-      setCartItems([]);
-      setCartSummary(null);
-      setPreview(null);
-      toast.success('Cart cleared');
-    } catch (err) { toast.error(err.message || 'Failed to clear cart'); }
+    } catch (err) {
+      // Rollback
+      setCartItems(prevItems);
+      setCartSummary(prevSummary);
+      setPreview(prevPreview);
+      toast.error(err.response?.data?.message || err.message || 'Failed to clear cart. Rolled back.');
+    }
   };
 
   const handlePreview = async () => {

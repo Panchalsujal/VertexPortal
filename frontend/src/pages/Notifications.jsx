@@ -128,51 +128,60 @@ export default function Notifications() {
 
   const handleMarkRead = async (id, e) => {
     e?.stopPropagation();
+    toast.success('Marked as read');
     const res = await dispatch(markOneRead(id));
-    if (markOneRead.fulfilled.match(res)) {
-      toast.success('Marked as read');
-    } else {
-      toast.error('Failed to mark read');
+    if (markOneRead.rejected.match(res)) {
+      toast.error(res.payload?.message || 'Failed to mark read. Action rolled back.');
     }
   };
 
   const handleMarkAllRead = async () => {
+    toast.success('All notifications marked as read');
     const res = await dispatch(markAllRead());
-    if (markAllRead.fulfilled.match(res)) {
-      toast.success('All notifications marked as read');
-    } else {
-      toast.error('Failed to mark all as read');
+    if (markAllRead.rejected.match(res)) {
+      toast.error(res.payload || 'Failed to mark all as read. Action rolled back.');
     }
   };
 
   const handleArchive = async (id, e) => {
     e?.stopPropagation();
+    toast.success('Notification archived');
     const res = await dispatch(archiveOne(id));
-    if (archiveOne.fulfilled.match(res)) {
-      toast.success('Notification archived');
-    } else {
-      toast.error('Failed to archive');
+    if (archiveOne.rejected.match(res)) {
+      toast.error(res.payload?.message || 'Failed to archive. Action rolled back.');
     }
   };
 
   const handleRestore = async (id, e) => {
     e?.stopPropagation();
+    // Optimistic removal from archived view
+    const targetItem = notifications.find(x => x._id === id);
+    if (targetItem) {
+      dispatch(setNotificationsSnapshot({
+        items: notifications.filter(x => x._id !== id),
+      }));
+    }
+    toast.success('Notification unarchived');
+
     try {
       await restoreNotification(id);
-      toast.success('Notification unarchived');
-      loadCurrentNotifications();
-    } catch {
-      toast.error('Failed to unarchive notification');
+    } catch (err) {
+      // Rollback
+      if (targetItem) {
+        dispatch(setNotificationsSnapshot({
+          items: notifications,
+        }));
+      }
+      toast.error(err.response?.data?.message || err.message || 'Failed to unarchive notification. Rolled back.');
     }
   };
 
   const handleDelete = async (id, e) => {
     e?.stopPropagation();
+    toast.success('Notification removed');
     const res = await dispatch(deleteOne(id));
-    if (deleteOne.fulfilled.match(res)) {
-      toast.success('Notification removed');
-    } else {
-      toast.error('Failed to delete notification');
+    if (deleteOne.rejected.match(res)) {
+      toast.error(res.payload?.message || 'Failed to delete notification. Action rolled back.');
     }
   };
 

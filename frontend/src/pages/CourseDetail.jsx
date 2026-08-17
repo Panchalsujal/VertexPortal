@@ -139,17 +139,21 @@ export default function CourseDetail() {
 
   const handleWishlist = async () => {
     if (!user) { navigate('/login'); return; }
+    const prevWishlisted = isWishlisted;
+    const nextWishlisted = !prevWishlisted;
+    setIsWishlisted(nextWishlisted);
+    toast.success(nextWishlisted ? 'Added to wishlist' : 'Removed from wishlist');
+
     try {
-      if (isWishlisted) {
+      if (prevWishlisted) {
         await removeFromWishlist(course._id);
-        setIsWishlisted(false);
-        toast.success('Removed from wishlist');
       } else {
         await addToWishlist(course._id);
-        setIsWishlisted(true);
-        toast.success('Added to wishlist');
       }
-    } catch (err) { toast.error(err.message); }
+    } catch (err) {
+      setIsWishlisted(prevWishlisted);
+      toast.error(err.response?.data?.message || err.message || 'Failed to update wishlist. Rolled back.');
+    }
   };
 
   const submitReview = async () => {
@@ -171,13 +175,22 @@ export default function CourseDetail() {
 
   const handleDeleteReview = async () => {
     if (!myReview) return;
+    const prevReview = myReview;
+    const prevForm = reviewForm;
+    // Optimistic delete
+    setMyReview(null);
+    setReviewForm({ rating: 5, comment: '' });
+    toast.success('Review deleted');
+
     try {
-      await deleteReview(myReview._id);
-      setMyReview(null);
-      setReviewForm({ rating: 5, comment: '' });
-      toast.success('Review deleted');
+      await deleteReview(prevReview._id);
       fetchData();
-    } catch (err) { toast.error(err.message); }
+    } catch (err) {
+      // Rollback
+      setMyReview(prevReview);
+      setReviewForm(prevForm);
+      toast.error(err.response?.data?.message || err.message || 'Failed to delete review. Action rolled back.');
+    }
   };
 
   if (loading) {

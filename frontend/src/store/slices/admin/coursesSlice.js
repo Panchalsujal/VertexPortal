@@ -82,20 +82,109 @@ const adminCoursesSlice = createSlice({
       })
       .addCase(fetchAdminCourses.rejected, (s, a) => { s.loading = false; s.error = a.payload; })
       .addCase(fetchAdminCourse.fulfilled, (s, a) => { s.current = a.payload; })
+      // Optimistic publish
+      .addCase(publishCourse.pending, (s, a) => {
+        const courseId = a.meta.arg;
+        if (!s._snapshots) s._snapshots = {};
+        const c = s.list.find(x => x._id === courseId);
+        if (c) {
+          s._snapshots[`pub_${courseId}`] = { isPublished: c.isPublished, status: c.status };
+          c.isPublished = true;
+          c.status = 'published';
+        }
+        if (s.current?._id === courseId) {
+          s._snapshots[`curr_pub_${courseId}`] = { isPublished: s.current.isPublished, status: s.current.status };
+          s.current.isPublished = true;
+          s.current.status = 'published';
+        }
+      })
       .addCase(publishCourse.fulfilled, (s, a) => {
-        const c = s.list.find(x => x._id === a.payload);
-        if (c) { c.isPublished = true; c.status = 'published'; }
-        if (s.current?._id === a.payload) { s.current.isPublished = true; s.current.status = 'published'; }
+        if (s._snapshots) {
+          delete s._snapshots[`pub_${a.payload}`];
+          delete s._snapshots[`curr_pub_${a.payload}`];
+        }
+      })
+      .addCase(publishCourse.rejected, (s, a) => {
+        const courseId = a.meta.arg;
+        if (s._snapshots?.[`pub_${courseId}`]) {
+          const c = s.list.find(x => x._id === courseId);
+          if (c) Object.assign(c, s._snapshots[`pub_${courseId}`]);
+          delete s._snapshots[`pub_${courseId}`];
+        }
+        if (s._snapshots?.[`curr_pub_${courseId}`] && s.current?._id === courseId) {
+          Object.assign(s.current, s._snapshots[`curr_pub_${courseId}`]);
+          delete s._snapshots[`curr_pub_${courseId}`];
+        }
+      })
+
+      // Optimistic unpublish
+      .addCase(unpublishCourse.pending, (s, a) => {
+        const courseId = a.meta.arg;
+        if (!s._snapshots) s._snapshots = {};
+        const c = s.list.find(x => x._id === courseId);
+        if (c) {
+          s._snapshots[`unpub_${courseId}`] = { isPublished: c.isPublished, status: c.status };
+          c.isPublished = false;
+          c.status = 'draft';
+        }
+        if (s.current?._id === courseId) {
+          s._snapshots[`curr_unpub_${courseId}`] = { isPublished: s.current.isPublished, status: s.current.status };
+          s.current.isPublished = false;
+          s.current.status = 'draft';
+        }
       })
       .addCase(unpublishCourse.fulfilled, (s, a) => {
-        const c = s.list.find(x => x._id === a.payload);
-        if (c) { c.isPublished = false; c.status = 'draft'; }
-        if (s.current?._id === a.payload) { s.current.isPublished = false; s.current.status = 'draft'; }
+        if (s._snapshots) {
+          delete s._snapshots[`unpub_${a.payload}`];
+          delete s._snapshots[`curr_unpub_${a.payload}`];
+        }
+      })
+      .addCase(unpublishCourse.rejected, (s, a) => {
+        const courseId = a.meta.arg;
+        if (s._snapshots?.[`unpub_${courseId}`]) {
+          const c = s.list.find(x => x._id === courseId);
+          if (c) Object.assign(c, s._snapshots[`unpub_${courseId}`]);
+          delete s._snapshots[`unpub_${courseId}`];
+        }
+        if (s._snapshots?.[`curr_unpub_${courseId}`] && s.current?._id === courseId) {
+          Object.assign(s.current, s._snapshots[`curr_unpub_${courseId}`]);
+          delete s._snapshots[`curr_unpub_${courseId}`];
+        }
+      })
+
+      // Optimistic archive
+      .addCase(archiveCourse.pending, (s, a) => {
+        const courseId = a.meta.arg;
+        if (!s._snapshots) s._snapshots = {};
+        const c = s.list.find(x => x._id === courseId);
+        if (c) {
+          s._snapshots[`arch_${courseId}`] = { isPublished: c.isPublished, status: c.status };
+          c.status = 'archived';
+          c.isPublished = false;
+        }
+        if (s.current?._id === courseId) {
+          s._snapshots[`curr_arch_${courseId}`] = { isPublished: s.current.isPublished, status: s.current.status };
+          s.current.status = 'archived';
+          s.current.isPublished = false;
+        }
       })
       .addCase(archiveCourse.fulfilled, (s, a) => {
-        const c = s.list.find(x => x._id === a.payload);
-        if (c) { c.status = 'archived'; c.isPublished = false; }
-        if (s.current?._id === a.payload) { s.current.status = 'archived'; s.current.isPublished = false; }
+        if (s._snapshots) {
+          delete s._snapshots[`arch_${a.payload}`];
+          delete s._snapshots[`curr_arch_${a.payload}`];
+        }
+      })
+      .addCase(archiveCourse.rejected, (s, a) => {
+        const courseId = a.meta.arg;
+        if (s._snapshots?.[`arch_${courseId}`]) {
+          const c = s.list.find(x => x._id === courseId);
+          if (c) Object.assign(c, s._snapshots[`arch_${courseId}`]);
+          delete s._snapshots[`arch_${courseId}`];
+        }
+        if (s._snapshots?.[`curr_arch_${courseId}`] && s.current?._id === courseId) {
+          Object.assign(s.current, s._snapshots[`curr_arch_${courseId}`]);
+          delete s._snapshots[`curr_arch_${courseId}`];
+        }
       });
   },
 });
