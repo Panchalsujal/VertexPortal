@@ -572,22 +572,14 @@ export function Navbar() {
             </div>
           )}
 
-          {!user && (
-            <div className="pt-4 mt-3 border-t border-gray-100 dark:border-slate-800 grid grid-cols-2 gap-2.5">
-              <Link
-                to="/login"
-                onClick={closeMobile}
-                className="w-full text-center py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition"
+          {user && (
+            <div className="pt-4 mt-3 border-t border-gray-100 dark:border-slate-800">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-bold text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800/50 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer"
               >
-                Log in
-              </Link>
-              <Link
-                to="/register"
-                onClick={closeMobile}
-                className="w-full text-center py-2.5 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl shadow-xs transition"
-              >
-                Sign up
-              </Link>
+                <LogOutIcon size={14} color="currentColor" /> Log out
+              </button>
             </div>
           )}
         </div>

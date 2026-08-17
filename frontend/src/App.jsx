@@ -86,13 +86,14 @@ function Layout({ children }) {
     location.pathname === '/register'
   );
 
-  // Footer is visible on landing page, info pages
-  const isFooterPage = (
-    location.pathname === '/' ||
-    location.pathname === '/privacy' ||
-    location.pathname === '/terms' ||
-    location.pathname === '/help' ||
-    location.pathname === '/status'
+  // Footer is hidden only on authenticated app pages (learn, admin, dashboard, auth)
+  const isFooterPage = !(
+    location.pathname.startsWith('/learn/') ||
+    location.pathname.startsWith('/live-class') ||
+    location.pathname === '/dashboard' ||
+    location.pathname.startsWith('/admin') ||
+    location.pathname === '/login' ||
+    location.pathname === '/register'
   );
 
   return (

@@ -257,7 +257,59 @@ export default function CourseDetail() {
   const discountPercent = hasDiscount ? Math.round(((course.price - course.discountPrice) / course.price) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0d0f1a] text-gray-900 dark:text-gray-100 font-[Inter,sans-serif] selection:bg-purple-500 selection:text-white transition-colors duration-200">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0d0f1a] text-gray-900 dark:text-gray-100 font-[Inter,sans-serif] selection:bg-purple-500 selection:text-white transition-colors duration-200 pb-24 lg:pb-0">
+      
+      {/* ── Mobile Sticky Bottom CTA Bar (hidden on lg+) ─────────────────── */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-white/95 dark:bg-[#10121f]/95 backdrop-blur-md border-t border-gray-200/80 dark:border-slate-800 px-4 py-3 flex items-center gap-3 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.4)]">
+        <div className="flex-1 min-w-0">
+          {!isEnrolled && !enrollment ? (
+            effectivePrice === 0 ? (
+              <p className="text-base font-black text-emerald-600 dark:text-emerald-400">Free Course</p>
+            ) : (
+              <div className="flex items-baseline gap-2">
+                <span className="text-xl font-black text-gray-900 dark:text-white">₹{effectivePrice}</span>
+                {hasDiscount && (
+                  <>
+                    <span className="text-sm line-through text-gray-400">₹{course.price}</span>
+                    <span className="text-xs font-bold text-rose-600 dark:text-rose-400">{discountPercent}% OFF</span>
+                  </>
+                )}
+              </div>
+            )
+          ) : (
+            <p className="text-sm font-bold text-purple-700 dark:text-purple-300">You are enrolled 🎉</p>
+          )}
+        </div>
+        <div className="shrink-0">
+          {isEnrolled || enrollment ? (
+            <Link
+              to={`/learn/${course._id}`}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-sm shadow-lg shadow-purple-600/30 transition-all"
+              id="mobile-go-to-course-btn"
+            >
+              <Play className="w-4 h-4 fill-white" /> Continue
+            </Link>
+          ) : effectivePrice === 0 ? (
+            <button
+              onClick={handleFreeEnroll}
+              disabled={cartLoading}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-sm shadow-lg shadow-emerald-600/30 transition-all"
+              id="mobile-free-enroll-btn"
+            >
+              {cartLoading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Play className="w-4 h-4 fill-white" /> Enroll Free</>}
+            </button>
+          ) : (
+            <button
+              onClick={handleAddToCart}
+              disabled={cartLoading}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-sm shadow-lg shadow-purple-600/30 transition-all"
+              id="mobile-add-to-cart-btn"
+            >
+              {cartLoading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><ShoppingCart className="w-4 h-4" /> Enroll Now</>}
+            </button>
+          )}
+        </div>
+      </div>
       
       {/* Hero Section with Unified Seamless Gradient Mesh (ChaiCode & Sheryians Style) */}
       <section className="relative pt-6 pb-12 sm:pb-16 bg-gradient-to-b from-purple-50/70 via-white to-[#f8fafc] dark:from-[#131627] dark:via-[#0f1220] dark:to-[#0d0f1a] border-b border-gray-200/70 dark:border-slate-800/80">
