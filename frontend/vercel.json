@@ -38,7 +38,12 @@
       ]
     }
   ],
+
   "rewrites": [
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://vertexportal.onrender.com/api/seo/sitemap.xml"
+    },
     {
       "source": "/api/:path*",
       "destination": "https://vertexportal.onrender.com/api/:path*"

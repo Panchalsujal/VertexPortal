@@ -67,7 +67,7 @@ import studentNoteRoutes from "./routes/studentNote.routes.js";
 import ssrRoutes from "./routes/ssr.routes.js";
 import { notFoundHandler } from "./middlewares/notFound.middleware.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
-
+import seoRoutes from "./routes/seo.routes.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -256,7 +256,7 @@ app.use("/api/cart", cartRouter);
 app.use("/api", couponRouter);
 app.use("/api", orderLimiter, checkoutRouter);
 app.use("/api/orders", orderLimiter, orderRouter);
-
+app.use("/api/seo", seoRoutes);
 app.use("/api/instructor/quizzes", instructorQuizRoutes);
 app.use("/api/certificates", certificateRoutes);
 app.use("/api/student/quizzes", studentQuizRoutes);

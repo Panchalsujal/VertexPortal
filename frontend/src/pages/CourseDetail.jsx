@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { getCourseBySlug } from '../api/course.api';
 import { getPublishedModules } from '../api/module.api';
 import { getPublishedLectures } from '../api/lecture.api';
@@ -257,8 +258,71 @@ export default function CourseDetail() {
   const hasDiscount = course.discountPrice !== null && course.discountPrice !== undefined && course.discountPrice < course.price;
   const discountPercent = hasDiscount ? Math.round(((course.price - course.discountPrice) / course.price) * 100) : 0;
 
+  // SEO
+  const siteUrl = 'https://vertex-mu-eight.vercel.app';
+  const canonicalUrl = `${siteUrl}/courses/${encodeURIComponent(slug)}`;
+  const seoTitle = `${course.title} | VertexPortal`;
+  const rawDescription =
+    course.subtitle ||
+    course.description ||
+    `Learn ${course.title} on VertexPortal with structured lessons, practical learning, AI assistance, and a verified certificate.`;
+  const seoDescription =
+    rawDescription.length > 160
+      ? `${rawDescription.slice(0, 157).trim()}...`
+      : rawDescription;
+  const seoImage = course.thumbnailUrl || `${siteUrl}/og-image.png`;
+  const instructorName =
+    course.instructor?.fullName ||
+    course.instructor?.name ||
+    'VertexPortal Instructor';
+
+  const courseStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name: course.title,
+    description: seoDescription,
+    url: canonicalUrl,
+    image: seoImage,
+    provider: {
+      '@type': 'Organization',
+      name: 'VertexPortal',
+      sameAs: `${siteUrl}/`,
+    },
+    author: {
+      '@type': 'Person',
+      name: instructorName,
+    },
+    inLanguage: course.language || 'English',
+    educationalLevel: course.level || 'All Levels',
+  };
+
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0d0f1a] text-gray-900 dark:text-gray-100 font-[Inter,sans-serif] selection:bg-purple-500 selection:text-white transition-colors duration-200 pb-24 lg:pb-0">
+    <>
+      <Helmet>
+        <title>{seoTitle}</title>
+        <meta name="description" content={seoDescription} />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href={canonicalUrl} />
+
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="VertexPortal" />
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content={seoImage} />
+        <meta property="og:image:alt" content={`${course.title} course thumbnail`} />
+
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={seoTitle} />
+        <meta name="twitter:description" content={seoDescription} />
+        <meta name="twitter:image" content={seoImage} />
+
+        <script type="application/ld+json">
+          {JSON.stringify(courseStructuredData)}
+        </script>
+      </Helmet>
+
+      <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0d0f1a] text-gray-900 dark:text-gray-100 font-[Inter,sans-serif] selection:bg-purple-500 selection:text-white transition-colors duration-200 pb-24 lg:pb-0">
       
       {/* ── Mobile Sticky Bottom CTA Bar (hidden on lg+) ─────────────────── */}
       <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-white/95 dark:bg-[#10121f]/95 backdrop-blur-md border-t border-gray-200/80 dark:border-slate-800 px-4 py-3 flex items-center gap-3 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.4)]">
@@ -966,6 +1030,7 @@ export default function CourseDetail() {
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }

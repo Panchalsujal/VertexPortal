@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay, FreeMode } from 'swiper/modules';
@@ -391,7 +392,57 @@ export default function Home() {
   }, [courses, selectedCategory, searchQuery]);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0d0f1a] text-gray-900 dark:text-gray-100 font-[Inter,sans-serif] selection:bg-purple-500 selection:text-white transition-colors duration-200">
+    <>
+      <Helmet>
+        <title>VertexPortal LMS — Modern AI-Powered Learning Platform</title>
+
+        <meta
+          name="description"
+          content="Learn, teach and master in-demand skills with VertexPortal. AI tutor assistant, interactive quizzes, live video classes, browser coding playground, and verified certificates."
+        />
+
+        <link
+          rel="canonical"
+          href="https://vertex-mu-eight.vercel.app/"
+        />
+
+        <meta
+          property="og:title"
+          content="VertexPortal LMS — Modern AI-Powered Learning Platform"
+        />
+
+        <meta
+          property="og:description"
+          content="Learn, teach and master in-demand skills with VertexPortal. AI tutor assistant, interactive quizzes, live video classes, browser coding playground, and verified certificates."
+        />
+
+        <meta
+          property="og:url"
+          content="https://vertex-mu-eight.vercel.app/"
+        />
+
+        <meta
+          property="og:image"
+          content="https://vertex-mu-eight.vercel.app/og-image.png"
+        />
+
+        <meta
+          name="twitter:title"
+          content="VertexPortal LMS — Modern AI-Powered Learning Platform"
+        />
+
+        <meta
+          name="twitter:description"
+          content="Learn, teach and master in-demand skills with VertexPortal. AI tutor assistant, interactive quizzes, live video classes, browser coding playground, and verified certificates."
+        />
+
+        <meta
+          name="twitter:image"
+          content="https://vertex-mu-eight.vercel.app/og-image.png"
+        />
+      </Helmet>
+
+      <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0d0f1a] text-gray-900 dark:text-gray-100 font-[Inter,sans-serif] selection:bg-purple-500 selection:text-white transition-colors duration-200">
 
       {/* ══════════════════════════════════════════════════════════
           HERO SECTION (EduLe & ChaiCode Style with GSAP Particles)
@@ -994,6 +1045,7 @@ export default function Home() {
         </div>
       </section>
 
-    </div>
+      </div>
+    </>
   );
 }
