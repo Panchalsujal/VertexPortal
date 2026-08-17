@@ -25,6 +25,7 @@ import {
 import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { MessageScroller } from '../components/ui/MessageScroller';
 
 // Beautiful Syntax-Highlighted Code Block
 function CodeBlock({ children, className }) {
@@ -648,10 +649,9 @@ export default function AiChat() {
           </div>
         </header>
 
-        {/* Message Stream */}
-        <div
-          ref={messagesContainerRef}
-          className="flex-1 overflow-y-auto px-3 sm:px-6 py-3 sm:py-6 space-y-3 sm:space-y-6 scrollbar-none"
+        {/* Message Stream with Shadcn MessageScroller */}
+        <MessageScroller
+          className="px-3 sm:px-6 py-3 sm:py-6 space-y-3 sm:space-y-6"
         >
           <div className="max-w-3xl mx-auto space-y-3 sm:space-y-6">
             {!current || messages.length === 0 ? (
@@ -702,9 +702,6 @@ export default function AiChat() {
               );
 
               return (
-                // React.memo-like key stability: use a stable key so React
-                // never unmounts/remounts previous messages while the last
-                // one streams. This keeps the input focused during streaming.
                 <ChatMessage
                   key={m._id || m.id || `msg-${idx}`}
                   message={m}
@@ -737,7 +734,7 @@ export default function AiChat() {
               </div>
             )}
           </div>
-        </div>
+        </MessageScroller>
 
         {/* Floating Input Area */}
         <footer className="p-2 sm:p-4 pb-3 sm:pb-5 bg-gradient-to-t from-white via-white/95 to-transparent dark:from-[#0b0f17] dark:via-[#0b0f17]/95 dark:to-transparent shrink-0">

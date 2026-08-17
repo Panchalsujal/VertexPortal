@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { updateMyProfile, updatePassword, updateAvatar } from '../api/user.api';
 import { Spinner } from '../components/ui/Spinner';
+import { Input, Label } from '../components/ui/Input';
+import { Marker } from '../components/ui/Marker';
+import { Tabs, TabsList, TabsTrigger } from '../components/ui/Tabs';
 import { User, Lock, Camera, Save, Eye, EyeOff, ArrowLeft, ShieldCheck, Mail, Sparkles, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -168,40 +171,29 @@ export default function Profile() {
               <Mail className="w-3.5 h-3.5 text-purple-500" /> {user.email}
             </p>
             <div className="pt-2 flex items-center justify-center sm:justify-start gap-2">
-              <span className="inline-flex items-center gap-1 bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                <ShieldCheck className="w-3.5 h-3.5" /> {user.role}
-              </span>
-              <span className="inline-flex items-center gap-1 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 text-xs font-semibold px-2.5 py-1 rounded-full">
-                <CheckCircle2 className="w-3 h-3" /> Active Account
-              </span>
+              <Marker variant="purple" size="sm">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span className="uppercase">{user.role}</span>
+              </Marker>
+              <Marker variant="emerald" size="sm" dot>
+                Active Account
+              </Marker>
             </div>
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex border-b border-gray-200 dark:border-slate-800 mb-8 gap-4">
-          <button
-            className={`pb-3 px-1 font-bold text-sm flex items-center gap-2 border-b-2 transition cursor-pointer ${
-              tab === 'profile'
-                ? 'border-purple-600 text-purple-600 dark:text-purple-400'
-                : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
-            }`}
-            onClick={() => setTab('profile')}
-            id="tab-profile"
-          >
-            <User className="w-4 h-4" /> Profile Details
-          </button>
-          <button
-            className={`pb-3 px-1 font-bold text-sm flex items-center gap-2 border-b-2 transition cursor-pointer ${
-              tab === 'security'
-                ? 'border-purple-600 text-purple-600 dark:text-purple-400'
-                : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
-            }`}
-            onClick={() => setTab('security')}
-            id="tab-security"
-          >
-            <Lock className="w-4 h-4" /> Security & Password
-          </button>
+        {/* Tab Navigation with Shadcn Tabs */}
+        <div className="mb-8">
+          <Tabs value={tab} onValueChange={setTab}>
+            <TabsList>
+              <TabsTrigger value="profile" id="tab-profile">
+                <User className="w-4 h-4" /> Profile Details
+              </TabsTrigger>
+              <TabsTrigger value="security" id="tab-security">
+                <Lock className="w-4 h-4" /> Security & Password
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
 
         {/* Profile Details Form */}

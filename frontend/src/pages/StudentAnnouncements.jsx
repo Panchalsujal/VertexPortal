@@ -8,6 +8,8 @@ import {
   selectStudentAnnouncementsLoading,
 } from '../store/slices/student/studentAnnouncementsSlice';
 import { SkeletonFeed } from '../components/ui/Spinner';
+import { Empty } from '../components/ui/Empty';
+import { Marker } from '../components/ui/Marker';
 import { Megaphone, ArrowLeft, Calendar, Bell, Sparkles } from 'lucide-react';
 
 export default function StudentAnnouncements() {
@@ -94,17 +96,11 @@ export default function StudentAnnouncements() {
               ))}
             </div>
           ) : (
-            <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-12 text-center shadow-sm">
-              <div className="w-16 h-16 rounded-3xl bg-purple-50 dark:bg-purple-950/50 flex items-center justify-center mx-auto mb-4 text-purple-600 dark:text-purple-400 shadow-sm">
-                <Megaphone className="w-8 h-8" />
-              </div>
-              <h3 className="text-base font-bold text-gray-900 dark:text-white">
-                No announcements yet
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">
-                Your course instructors haven't posted any announcements yet. Check back here for updates.
-              </p>
-            </div>
+            <Empty
+              icon={Megaphone}
+              title="No announcements yet"
+              description="Your course instructors haven't posted any announcements yet. Check back here for updates."
+            />
           )}
         </div>
       </div>

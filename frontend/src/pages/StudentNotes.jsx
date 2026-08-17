@@ -15,6 +15,9 @@ import {
 } from '@animateicons/react/lucide';
 import { FileText, Plus, Pin, Trash2, Edit3, Search, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Empty } from '../components/ui/Empty';
+import { Combobox } from '../components/ui/Combobox';
+import { Marker } from '../components/ui/Marker';
 
 export default function StudentNotes() {
   const dispatch = useAppDispatch();
@@ -189,25 +192,17 @@ export default function StudentNotes() {
             <label className="block text-[11px] font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">
               Select Enrolled Course
             </label>
-            <select
+            <Combobox
               value={selectedCourseId}
-              onChange={(e) => setSelectedCourseId(e.target.value)}
-              className="w-full border border-gray-300 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-800 font-medium text-gray-800 dark:text-gray-200"
-            >
-              {enrollments.length === 0 ? (
-                <option value="">No Enrolled Courses Found</option>
-              ) : (
-                enrollments.map((enr) => {
-                  const c = typeof enr.course === 'object' && enr.course !== null ? enr.course : { _id: enr.course, title: 'Enrolled Course' };
-                  const courseId = c._id || enr.course || enr._id;
-                  return (
-                    <option key={enr._id} value={courseId}>
-                      {c.title || 'Enrolled Course'}
-                    </option>
-                  );
-                })
-              )}
-            </select>
+              onChange={(val) => setSelectedCourseId(val)}
+              options={enrollments.map((enr) => {
+                const c = typeof enr.course === 'object' && enr.course !== null ? enr.course : { _id: enr.course, title: 'Enrolled Course' };
+                const courseId = c._id || enr.course || enr._id;
+                return { value: courseId, label: c.title || 'Enrolled Course' };
+              })}
+              placeholder="Select Enrolled Course..."
+              searchPlaceholder="Search enrolled courses..."
+            />
           </div>
 
           <div className="flex-1">
@@ -215,13 +210,13 @@ export default function StudentNotes() {
               Search Within Notes
             </label>
             <div className="relative">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3 pointer-events-none" />
+              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3.5 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search notes content or title..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full border border-gray-300 dark:border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200"
+                className="w-full border border-gray-200 dark:border-slate-800 rounded-2xl pl-9 pr-3 h-10 sm:h-11 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-900 text-gray-800 dark:text-gray-200"
               />
             </div>
           </div>
@@ -235,11 +230,27 @@ export default function StudentNotes() {
             ))}
           </div>
         ) : notes.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 p-12 text-center text-gray-400">
-            <FileText className="w-12 h-12 mx-auto mb-3 text-purple-400 opacity-40" />
-            <p className="text-base font-bold text-gray-700 dark:text-gray-300">No notes found for this course</p>
-            <p className="text-xs text-gray-400 mt-1">Select an enrolled course above or click "Add New Note" to write one!</p>
-          </div>
+          <Empty
+            icon={FileText}
+            title="No notes found for this course"
+            description='Select an enrolled course above or click "+ New Note" to write one!'
+            action={
+              <button
+                onClick={() => {
+                  setEditingNote(null);
+                  setTitle('');
+                  setContent('');
+                  setLectureId('');
+                  setIsPinned(false);
+                  setShowModal(true);
+                }}
+                className="px-5 py-2.5 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md transition cursor-pointer inline-flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add First Note</span>
+              </button>
+            }
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {notes.map((n) => (

@@ -7,6 +7,10 @@ import {
 } from '../store/slices/student/studentLiveClassesSlice';
 import { joinLiveClass, getLiveClassAttendanceHistory } from '../api/student.api';
 import { SkeletonLiveClassGrid, SkeletonAttendanceList } from '../components/ui/Spinner';
+import { Empty } from '../components/ui/Empty';
+import { Marker } from '../components/ui/Marker';
+import { Table, TableHeader, TableHead, TableRow, TableCell, TableBody } from '../components/ui/Table';
+import { Tabs, TabsList, TabsTrigger } from '../components/ui/Tabs';
 import {
   VideoIcon,
   BookOpenIcon,
@@ -396,13 +400,11 @@ export default function StudentLiveClasses() {
                 })}
               </div>
             ) : (
-              <div className="text-center py-16 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-8">
-                <VideoIcon size={48} color="#c4b5fd" className="mx-auto mb-3 opacity-40" />
-                <h3 className="text-base font-bold text-gray-900 dark:text-white">No Live Classes Found</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">
-                  There are currently no live sessions matching this filter. Check back when your instructor schedules the next class.
-                </p>
-              </div>
+              <Empty
+                icon={VideoIcon}
+                title="No Live Classes Found"
+                description="There are currently no live sessions matching this filter. Check back when your instructor schedules the next class."
+              />
             )}
           </>
         )}
@@ -480,60 +482,56 @@ export default function StudentLiveClasses() {
                 </div>
 
                 {/* Desktop Table View (>= md) */}
-                <div className="hidden md:block bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs text-gray-700 dark:text-gray-300">
-                      <thead className="bg-gray-50 dark:bg-slate-800/80 text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-slate-800">
-                        <tr>
-                          <th className="px-6 py-3.5">Session / Course</th>
-                          <th className="px-6 py-3.5">Date</th>
-                          <th className="px-6 py-3.5">Join Time</th>
-                          <th className="px-6 py-3.5">Duration</th>
-                          <th className="px-6 py-3.5">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100 dark:divide-slate-800/60">
-                        {attendanceRecords.map((rec, i) => {
-                          const classTitle = rec.liveClass?.title || rec.title || 'Live Lecture';
-                          const courseName = rec.course?.title || rec.liveClass?.course?.title || 'Enrolled Course';
-                          const joinTime = rec.joinedAt ? new Date(rec.joinedAt).toLocaleTimeString() : 'Recorded';
-                          const dateStr = rec.joinedAt
-                            ? new Date(rec.joinedAt).toLocaleDateString()
-                            : new Date(rec.createdAt || Date.now()).toLocaleDateString();
-                          const durationMins = rec.durationInMinutes || (rec.durationSeconds ? Math.round(rec.durationSeconds / 60) : 'Active');
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Session / Course</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Join Time</TableHead>
+                        <TableHead>Duration</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {attendanceRecords.map((rec, i) => {
+                        const classTitle = rec.liveClass?.title || rec.title || 'Live Lecture';
+                        const courseName = rec.course?.title || rec.liveClass?.course?.title || 'Enrolled Course';
+                        const joinTime = rec.joinedAt ? new Date(rec.joinedAt).toLocaleTimeString() : 'Recorded';
+                        const dateStr = rec.joinedAt
+                          ? new Date(rec.joinedAt).toLocaleDateString()
+                          : new Date(rec.createdAt || Date.now()).toLocaleDateString();
+                        const durationMins = rec.durationInMinutes || (rec.durationSeconds ? Math.round(rec.durationSeconds / 60) : 'Active');
 
-                          return (
-                            <tr key={rec._id || i} className="hover:bg-gray-50/60 dark:hover:bg-slate-800/40 transition">
-                              <td className="px-6 py-4">
-                                <p className="font-bold text-gray-900 dark:text-white">{classTitle}</p>
-                                <p className="text-[11px] text-purple-600 dark:text-purple-400 font-semibold">{courseName}</p>
-                              </td>
-                              <td className="px-6 py-4 text-gray-600 dark:text-gray-400 whitespace-nowrap">{dateStr}</td>
-                              <td className="px-6 py-4 whitespace-nowrap">{joinTime}</td>
-                              <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white whitespace-nowrap">
-                                {typeof durationMins === 'number' ? `${durationMins} mins` : durationMins}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                                  <CircleCheckIcon size={12} color="#00b894" /> Present
-                                </span>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+                        return (
+                          <TableRow key={rec._id || i}>
+                            <TableCell>
+                              <p className="font-bold text-gray-900 dark:text-white">{classTitle}</p>
+                              <p className="text-[11px] text-purple-600 dark:text-purple-400 font-semibold">{courseName}</p>
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">{dateStr}</TableCell>
+                            <TableCell className="whitespace-nowrap">{joinTime}</TableCell>
+                            <TableCell className="font-semibold text-gray-900 dark:text-white whitespace-nowrap">
+                              {typeof durationMins === 'number' ? `${durationMins} mins` : durationMins}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              <Marker variant="emerald" size="sm" dot>
+                                Present
+                              </Marker>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
                 </div>
               </>
             ) : (
-              <div className="text-center py-16 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-8">
-                <History className="w-12 h-12 text-purple-400 mx-auto mb-3 opacity-40" />
-                <h3 className="text-base font-bold text-gray-900 dark:text-white">No Attendance Records Yet</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">
-                  When you join scheduled live sessions, your presence and duration will be automatically recorded here.
-                </p>
-              </div>
+              <Empty
+                icon={History}
+                title="No Attendance Records Yet"
+                description="Your attendance logs will automatically be recorded here whenever you attend live classes."
+              />
             )}
           </div>
         )}

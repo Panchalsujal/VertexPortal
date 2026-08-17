@@ -15,6 +15,8 @@ import {
 } from '../api/student.api';
 import { Spinner } from '../components/ui/Spinner';
 import { Modal } from '../components/ui/Modal';
+import { Empty } from '../components/ui/Empty';
+import { Marker } from '../components/ui/Marker';
 import { HelpCircle, Clock, CheckCircle, XCircle, ArrowRight, RotateCcw, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -239,11 +241,11 @@ export default function StudentQuizzes() {
             ))}
           </div>
         ) : (
-          <div className="empty-state">
-            <div className="empty-state-icon"><HelpCircle size={48} /></div>
-            <h3>No quizzes available</h3>
-            <p>Enrolled course quizzes will show up here.</p>
-          </div>
+          <Empty
+            icon={HelpCircle}
+            title="No quizzes available"
+            description="Enrolled course quizzes will automatically appear here as they are published by instructors."
+          />
         )}
       </div>
 

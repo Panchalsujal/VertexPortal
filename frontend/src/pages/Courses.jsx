@@ -9,6 +9,17 @@ import { getAllCourses } from '../api/course.api';
 import { CourseCard } from '../components/course/CourseCard';
 import { CourseFilters } from '../components/course/CourseFilters';
 import { SkeletonCard } from '../components/ui/Spinner';
+import { ConnectedButtonGroup } from '../components/ui/ButtonGroup';
+import { Empty } from '../components/ui/Empty';
+import { Marker } from '../components/ui/Marker';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+} from '../components/ui/Pagination';
 
 export default function Courses() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -113,42 +124,54 @@ export default function Courses() {
               {courses.map(c => <CourseCard key={c._id} course={c} />)}
             </div>
 
-            {/* Pagination */}
+            {/* Shadcn Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center gap-2 mt-12 flex-wrap">
-                <button
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  id="prev-page-btn"
-                >← Prev</button>
+              <div className="mt-12">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                      />
+                    </PaginationItem>
 
-                {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => i + 1).map(p => (
-                  <button
-                    key={p}
-                    className={`btn btn-sm ${p === page ? 'btn-primary' : 'btn-secondary'}`}
-                    onClick={() => setPage(p)}
-                    id={`page-${p}-btn`}
-                  >{p}</button>
-                ))}
+                    {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => i + 1).map(p => (
+                      <PaginationItem key={p}>
+                        <PaginationLink
+                          isActive={p === page}
+                          onClick={() => setPage(p)}
+                        >
+                          {p}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
 
-                <button
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  id="next-page-btn"
-                >Next →</button>
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        disabled={page === totalPages}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
               </div>
             )}
           </>
         ) : (
-          <div className="empty-state">
-            <div className="empty-state-icon">
-              <BookOpenIcon size={48} color="#a29bfe" />
-            </div>
-            <h3>No published courses found</h3>
-            <p>Try adjusting your search or filters, or check back later.</p>
-          </div>
+          <Empty
+            icon={BookOpenIcon}
+            title="No published courses found"
+            description="Try adjusting your search or category filters to discover courses."
+            action={
+              <button
+                onClick={() => handleFiltersChange({})}
+                className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-sm transition"
+              >
+                Reset All Filters
+              </button>
+            }
+          />
         )}
       </div>
     </div>

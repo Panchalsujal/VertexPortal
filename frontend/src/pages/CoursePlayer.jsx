@@ -8,6 +8,10 @@ import { createNote, getLectureNotes, deleteNote } from '../api/notes.api';
 import { useAuth } from '../context/AuthContext';
 import { CurriculumAccordion } from '../components/course/CurriculumAccordion';
 import { Spinner } from '../components/ui/Spinner';
+import { Tabs, TabsList, TabsTrigger } from '../components/ui/Tabs';
+import { ScrollArea } from '../components/ui/ScrollArea';
+import { Empty } from '../components/ui/Empty';
+import { Marker } from '../components/ui/Marker';
 import {
   Award,
   CheckCircle,
@@ -541,27 +545,27 @@ export default function CoursePlayer() {
               </div>
             </div>
 
-            {/* In-Page Navigation Tabs */}
-            <div className="flex items-center gap-2 border-b border-gray-200 dark:border-slate-800/80 pb-2 overflow-x-auto scrollbar-none">
-              {[
-                { id: 'overview', label: 'Overview', icon: Info },
-                { id: 'syllabus', label: `Syllabus (${allLectures.length})`, icon: Layers },
-                { id: 'notes', label: `My Notes (${notes.length})`, icon: FileText },
-                { id: 'ai', label: 'AI Doubt Solver', icon: Sparkles },
-              ].map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => setMobileTab(id)}
-                  className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer ${
-                    mobileTab === id
-                      ? 'bg-purple-600 text-white shadow-sm'
-                      : 'bg-gray-100 dark:bg-slate-800/70 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-700/50'
-                  }`}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span>{label}</span>
-                </button>
-              ))}
+            {/* In-Page Navigation Tabs with Shadcn Tabs */}
+            <div className="border-b border-gray-200 dark:border-slate-800/80 pb-2">
+              <Tabs value={mobileTab} onValueChange={setMobileTab}>
+                <TabsList>
+                  {[
+                    { id: 'overview', label: 'Overview', icon: Info },
+                    { id: 'syllabus', label: `Syllabus (${allLectures.length})`, icon: Layers },
+                    { id: 'notes', label: `My Notes (${notes.length})`, icon: FileText },
+                    { id: 'ai', label: 'AI Doubt Solver', icon: Sparkles },
+                  ].map(({ id, label, icon: Icon }) => (
+                    <TabsTrigger
+                      key={id}
+                      value={id}
+                      className="px-3.5 py-1.5 text-xs"
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      <span>{label}</span>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
             </div>
 
             {/* Tab Content Panels */}

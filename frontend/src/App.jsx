@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from './components/ui/Toast';
 import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { fetchMe, selectUser, selectAuthLoading } from './store/slices/authSlice';
@@ -101,19 +101,7 @@ function AppRoot() {
 
   return (
     <BrowserRouter>
-      <Toaster
-        position="bottom-right"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: 'var(--color-surface)',
-            color: 'var(--color-text-primary)',
-            border: '1px solid var(--color-border)',
-            fontSize: '0.875rem',
-            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-          },
-        }}
-      />
+      <Toaster />
       <Layout>
         <Routes>
           {/* Public */}

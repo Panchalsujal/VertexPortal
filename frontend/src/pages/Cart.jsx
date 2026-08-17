@@ -4,6 +4,8 @@ import { getMyCart, removeFromCart, clearCart } from '../api/cart.api';
 import { checkoutPreview, createPaymentOrder, verifyPayment } from '../api/order.api';
 import { useAuth } from '../context/AuthContext';
 import { Spinner } from '../components/ui/Spinner';
+import { Empty } from '../components/ui/Empty';
+import { ConnectedButtonGroup } from '../components/ui/ButtonGroup';
 import {
   ShoppingCart, Trash2, Tag, ArrowRight, BookOpen,
   ShieldCheck, Sparkles, CheckCircle2, X
@@ -236,23 +238,23 @@ export default function Cart() {
           )}
         </div>
 
-        {/* Empty State */}
+        {/* Empty State with Shadcn Empty */}
         {cartItems.length === 0 ? (
-          <div className="py-16 sm:py-20 text-center bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-8 shadow-xs max-w-lg mx-auto">
-            <div className="w-16 h-16 rounded-3xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center mx-auto mb-4">
-              <ShoppingCart className="w-8 h-8" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Your cart is empty</h3>
-            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1.5 max-w-sm mx-auto">
-              Looks like you haven&apos;t added any courses yet. Discover top-rated courses and start learning today!
-            </p>
-            <Link
-              to="/courses"
-              className="mt-6 px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-sm inline-flex items-center gap-2 shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5"
-            >
-              Browse Courses <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+          <Empty
+            icon={ShoppingCart}
+            title="Your cart is empty"
+            description="Looks like you haven't added any courses yet. Discover top-rated courses and start learning today!"
+            action={
+              <Link
+                to="/courses"
+                id="explore-courses-btn"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-extrabold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-md shadow-purple-600/30 transition hover:scale-105"
+              >
+                <span>Explore Courses</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            }
+          />
         ) : (
           /* Main Cart Content Grid */
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">

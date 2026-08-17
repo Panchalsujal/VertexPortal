@@ -8,6 +8,14 @@ import {
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { selectUser, logoutUser } from '../../store/slices/authSlice';
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
+  SidebarTrigger,
+} from '../ui/Sidebar';
 import toast from 'react-hot-toast';
 
 const sidebarSections = [
@@ -85,89 +93,83 @@ export default function AdminLayout({ children, title, subtitle, actions, showBa
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] w-full max-w-full overflow-x-hidden">
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/40 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
+    <SidebarProvider defaultOpen={true}>
+      <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] w-full max-w-full overflow-x-hidden">
+        {/* Mobile overlay */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 bg-black/40 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        )}
 
-      {/* Sidebar */}
-      <aside
-        className={`fixed top-0 left-0 h-full w-56 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex flex-col z-30 transition-transform duration-300
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
-      >
-        <div className="px-4 pt-5 pb-4 border-b border-gray-100 dark:border-gray-800">
-          <Link to="/admin" className="flex items-center gap-2 no-underline">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center shadow-md shrink-0"
-              style={{ background: 'linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%)' }}>
-              <GraduationCap className="w-4.5 h-4.5 text-white" />
-            </div>
-            <div>
-              <p className="text-sm font-extrabold text-gray-900 dark:text-white leading-tight">VertexPortal</p>
-              <p className="text-[10px] text-purple-500 font-semibold">Admin Panel</p>
-            </div>
-          </Link>
-        </div>
+        {/* Shadcn Sidebar */}
+        <Sidebar className={sidebarOpen ? '!translate-x-0' : ''}>
+          <SidebarHeader>
+            <Link to="/admin" className="flex items-center gap-2 no-underline">
+              <div
+                className="w-8 h-8 rounded-xl flex items-center justify-center shadow-md shrink-0"
+                style={{ background: 'linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%)' }}
+              >
+                <GraduationCap className="w-4.5 h-4.5 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-extrabold text-gray-900 dark:text-white leading-tight">VertexPortal</p>
+                <p className="text-[10px] text-purple-500 font-semibold">Admin Panel</p>
+              </div>
+            </Link>
+          </SidebarHeader>
 
-        <nav className="flex-1 overflow-y-auto py-3">
-          {sidebarSections.map((section) => (
-            <div key={section.label} className="mb-1">
-              <p className="text-[9px] font-bold tracking-widest uppercase text-gray-400 dark:text-gray-500 px-4 py-2">
-                {section.label}
-              </p>
-              {section.items.map(({ to, icon: Icon, label, end }) => (
-                <NavLink
-                  key={`${to}-${label}`}
-                  to={to}
-                  end={end}
-                  onClick={() => setSidebarOpen(false)}
-                  className={({ isActive }) =>
-                    `flex items-center gap-2.5 px-4 py-2 text-xs font-medium transition-colors ${
-                      isActive
-                        ? 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 font-semibold border-r-2 border-purple-600'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-gray-50 dark:hover:bg-gray-800'
-                    }`
-                  }
-                >
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span>{label}</span>
-                </NavLink>
-              ))}
-            </div>
-          ))}
-        </nav>
+          <SidebarContent>
+            {sidebarSections.map((section) => (
+              <div key={section.label} className="mb-1">
+                <p className="text-[9px] font-bold tracking-widest uppercase text-gray-400 dark:text-gray-500 px-3 py-2">
+                  {section.label}
+                </p>
+                {section.items.map(({ to, icon: Icon, label, end }) => (
+                  <NavLink
+                    key={`${to}-${label}`}
+                    to={to}
+                    end={end}
+                    onClick={() => setSidebarOpen(false)}
+                    className={({ isActive }) =>
+                      `flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium rounded-xl transition-colors ${
+                        isActive
+                          ? 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 font-semibold shadow-2xs'
+                          : 'text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-gray-50 dark:hover:bg-gray-800'
+                      }`
+                    }
+                  >
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span>{label}</span>
+                  </NavLink>
+                ))}
+              </div>
+            ))}
+          </SidebarContent>
 
-        <div className="border-t border-gray-100 dark:border-gray-800">
-          <Link
-            to="/"
-            className="flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-colors no-underline"
-          >
-            <Globe className="w-4 h-4" />
-            <span>Visit Website</span>
-            <ArrowUpRight className="w-3.5 h-3.5 ml-auto" />
-          </Link>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
-          >
-            <LogOut className="w-4 h-4" /> Logout
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 min-w-0 w-full max-w-full lg:ml-56 min-h-screen flex flex-col overflow-x-hidden">
-        {/* Top Header */}
-        <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-30 w-full max-w-full">
-          <div className="flex items-center gap-2 sm:gap-3 px-3.5 sm:px-6 py-3 sm:py-3.5 max-w-full">
+          <SidebarFooter>
+            <Link
+              to="/"
+              className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-xl transition-colors no-underline"
+            >
+              <Globe className="w-4 h-4" />
+              <span>Visit Website</span>
+              <ArrowUpRight className="w-3.5 h-3.5 ml-auto" />
+            </Link>
             <button
               type="button"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 shrink-0"
+              onClick={handleLogout}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-colors cursor-pointer"
             >
-              <Menu className="w-5 h-5" />
+              <LogOut className="w-4 h-4" /> Logout
             </button>
+          </SidebarFooter>
+        </Sidebar>
+
+        {/* Main Content */}
+        <main className="flex-1 min-w-0 w-full max-w-full lg:ml-60 min-h-screen flex flex-col overflow-x-hidden">
+          {/* Top Header */}
+          <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-30 w-full max-w-full">
+            <div className="flex items-center gap-2 sm:gap-3 px-3.5 sm:px-6 py-3 sm:py-3.5 max-w-full">
+              <SidebarTrigger className="lg:hidden" onClick={() => setSidebarOpen(!sidebarOpen)} />
 
             {/* Back Button */}
             <button
@@ -302,5 +304,6 @@ export default function AdminLayout({ children, title, subtitle, actions, showBa
         </div>
       </main>
     </div>
+  </SidebarProvider>
   );
 }

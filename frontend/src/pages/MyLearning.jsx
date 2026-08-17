@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getMyEnrollments } from '../api/enrollment.api';
 import { Spinner } from '../components/ui/Spinner';
+import { ButtonGroup, ButtonGroupItem } from '../components/ui/ButtonGroup';
 import {
   BookOpen, Play, TrendingUp, Award, CheckCircle2, Clock,
   Search, ArrowRight, Sparkles, GraduationCap, Layers, Check
@@ -132,41 +133,29 @@ export default function MyLearning() {
 
         {/* Filter Controls & Search */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
-          {/* Segmented Tab Buttons */}
-          <div className="flex items-center p-1.5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xs self-stretch sm:self-auto">
-            <button
+          {/* Shadcn ButtonGroup for Filter Controls */}
+          <ButtonGroup className="gap-1 self-stretch sm:self-auto">
+            <ButtonGroupItem
+              active={tab === 'all'}
               onClick={() => setTab('all')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                tab === 'all'
-                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
             >
               All Courses ({totalCourses})
-            </button>
+            </ButtonGroupItem>
 
-            <button
+            <ButtonGroupItem
+              active={tab === 'active'}
               onClick={() => setTab('active')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                tab === 'active'
-                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
             >
               In Progress ({inProgressCourses})
-            </button>
+            </ButtonGroupItem>
 
-            <button
+            <ButtonGroupItem
+              active={tab === 'completed'}
               onClick={() => setTab('completed')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                tab === 'completed'
-                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
             >
               Completed ({completedCourses})
-            </button>
-          </div>
+            </ButtonGroupItem>
+          </ButtonGroup>
 
           {/* Search Input */}
           <div className="relative w-full sm:w-72">

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { getMyWishlist } from '../api/wishlist.api';
 import { CourseCard } from '../components/course/CourseCard';
 import { SkeletonCard } from '../components/ui/Spinner';
+import { Empty } from '../components/ui/Empty';
+import { Marker } from '../components/ui/Marker';
 import { Heart, ArrowRight } from 'lucide-react';
 
 export default function Wishlist() {
@@ -30,11 +32,16 @@ export default function Wishlist() {
               <Heart className="w-5 h-5 fill-rose-500" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
-                My Wishlist
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+                  My Wishlist
+                </h1>
+                <Marker variant="rose" size="sm">
+                  {wishlist.length} Saved
+                </Marker>
+              </div>
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                {wishlist.length} saved course{wishlist.length !== 1 ? 's' : ''} for later learning
+                Saved courses ready for future learning
               </p>
             </div>
           </div>
@@ -71,21 +78,20 @@ export default function Wishlist() {
             })}
           </div>
         ) : (
-          <div className="py-20 text-center bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm max-w-lg mx-auto">
-            <div className="w-16 h-16 rounded-3xl bg-rose-50 dark:bg-rose-950/50 text-rose-500 flex items-center justify-center mx-auto mb-4">
-              <Heart className="w-8 h-8" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Your wishlist is empty</h3>
-            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">
-              Explore courses and click the heart icon on any course card to bookmark it here.
-            </p>
-            <Link
-              to="/courses"
-              className="mt-6 px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xs inline-flex items-center gap-2 shadow-sm transition"
-            >
-              Browse Courses <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+          <Empty
+            icon={Heart}
+            title="Your wishlist is empty"
+            description="Explore courses and click the heart icon on any course card to bookmark it here."
+            action={
+              <Link
+                to="/courses"
+                className="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xs inline-flex items-center gap-2 shadow-md shadow-purple-600/30 transition hover:scale-105"
+              >
+                <span>Browse Courses</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            }
+          />
         )}
       </div>
     </div>

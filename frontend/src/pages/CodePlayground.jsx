@@ -21,6 +21,10 @@ import {
   Settings,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { ButtonGroup, ButtonGroupItem } from '../components/ui/ButtonGroup';
+import { Combobox } from '../components/ui/Combobox';
+import { Kbd } from '../components/ui/Kbd';
+import { Tooltip, TooltipTrigger, TooltipContent } from '../components/ui/Tooltip';
 
 const JS_SNIPPETS = [
   {
@@ -433,74 +437,78 @@ export default function CodePlayground() {
 
         {/* Right: Language Switcher, Presets, Run Button */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* Language Toggle (JavaScript vs HTML/CSS) */}
-          <div className="flex items-center bg-gray-100 dark:bg-[#090d16] p-0.5 sm:p-1 rounded-xl border border-gray-200 dark:border-slate-800">
-            <button
+          {/* Shadcn ButtonGroup for Language Toggle */}
+          <ButtonGroup className="p-0.5 sm:p-1">
+            <ButtonGroupItem
+              active={lang === 'javascript'}
               onClick={() => {
                 setLang('javascript');
                 setLogs([]);
               }}
-              className={`px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                lang === 'javascript'
-                  ? 'bg-purple-600 text-white shadow-xs'
-                  : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
+              className="px-2.5 sm:px-3 py-1 text-xs"
             >
               JS
-            </button>
-            <button
+            </ButtonGroupItem>
+            <ButtonGroupItem
+              active={lang === 'html'}
               onClick={() => setLang('html')}
-              className={`px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                lang === 'html'
-                  ? 'bg-purple-600 text-white shadow-xs'
-                  : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
+              className="px-2.5 sm:px-3 py-1 text-xs"
             >
               HTML
-            </button>
+            </ButtonGroupItem>
+          </ButtonGroup>
+
+          {/* Snippet Presets Combobox */}
+          <div className="hidden md:block w-48">
+            <Combobox
+              value=""
+              onChange={(val) => {
+                const item = activeSnippetList.find((s) => s.title === val);
+                if (item) {
+                  if (lang === 'javascript') {
+                    setJsCode(item.code);
+                    setLogs([]);
+                  } else {
+                    setHtmlCode(item.code);
+                  }
+                }
+              }}
+              options={activeSnippetList.map((s) => ({ value: s.title, label: s.title }))}
+              placeholder="Load Preset..."
+              searchPlaceholder="Search snippets..."
+              size="sm"
+            />
           </div>
 
-          {/* Snippet Presets Selector */}
-          <select
-            onChange={(e) => {
-              const item = activeSnippetList.find((s) => s.title === e.target.value);
-              if (item) {
-                if (lang === 'javascript') {
-                  setJsCode(item.code);
-                  setLogs([]);
-                } else {
-                  setHtmlCode(item.code);
-                }
-              }
-            }}
-            className="hidden md:block text-xs bg-white dark:bg-[#090d16] border border-gray-200 dark:border-slate-800 rounded-xl px-2.5 py-1.5 text-gray-700 dark:text-slate-300 font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer shadow-xs"
-          >
-            {activeSnippetList.map((s) => (
-              <option key={s.title} value={s.title}>
-                {s.title}
-              </option>
-            ))}
-          </select>
-
-          {/* Run Code Button */}
+          {/* Run Code Button with Kbd */}
           <button
             onClick={handleRun}
-            className="flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-white text-xs font-bold shadow-md shadow-purple-600/30 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-xl text-white text-xs font-bold shadow-md shadow-purple-600/30 transition-all hover:scale-105 active:scale-95 cursor-pointer"
             style={{ background: 'linear-gradient(135deg, #6C5CE7, #5046d4)' }}
             title="Run code (Ctrl + Enter)"
           >
             <Play className="w-3.5 h-3.5 fill-white" />
             <span>Run</span>
+            <Kbd className="hidden lg:inline-flex bg-white/20 border-white/30 text-white font-mono text-[9px] px-1 py-0 h-4">
+              ⌘↵
+            </Kbd>
           </button>
 
-          {/* Fullscreen Toggle */}
-          <button
-            onClick={() => setFullScreen(!fullScreen)}
-            className="hidden sm:inline-flex p-2 text-gray-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer"
-            title={fullScreen ? 'Exit Fullscreen' : 'Fullscreen'}
-          >
-            {fullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-          </button>
+          {/* Fullscreen Toggle with Shadcn Tooltip */}
+          <Tooltip>
+            <TooltipTrigger>
+              <button
+                type="button"
+                onClick={() => setFullScreen(!fullScreen)}
+                className="hidden sm:inline-flex p-2 text-gray-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer"
+              >
+                {fullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {fullScreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+            </TooltipContent>
+          </Tooltip>
         </div>
       </header>
 

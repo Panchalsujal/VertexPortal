@@ -11,6 +11,8 @@ import {
 } from '../api/student.api';
 import { Spinner, SkeletonFeed } from '../components/ui/Spinner';
 import { Modal } from '../components/ui/Modal';
+import { Empty } from '../components/ui/Empty';
+import { Marker } from '../components/ui/Marker';
 import {
   FileText, Upload, Calendar, AlertCircle, CheckCircle2,
   Clock, Star, RotateCcw, ChevronDown, ChevronUp,
@@ -389,11 +391,11 @@ export default function StudentAssignments() {
             })}
           </div>
         ) : (
-          <div className="empty-state">
-            <div className="empty-state-icon"><FileText size={48} /></div>
-            <h3>No assignments found</h3>
-            <p>Course assignments assigned by your instructors will appear here.</p>
-          </div>
+          <Empty
+            icon={FileText}
+            title="No assignments found"
+            description="Course assignments assigned by your instructors will appear here."
+          />
         )}
       </div>
 

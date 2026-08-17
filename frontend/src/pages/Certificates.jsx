@@ -10,6 +10,8 @@ import { downloadMyCertificate } from '../api/certificate.api';
 import { SkeletonFeed } from '../components/ui/Spinner';
 import { Award, Download, ExternalLink, ShieldCheck, ArrowLeft, Sparkles, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { ConnectedButtonGroup } from '../components/ui/ButtonGroup';
+import { Empty } from '../components/ui/Empty';
 
 export default function Certificates() {
   const dispatch = useAppDispatch();
@@ -120,44 +122,48 @@ export default function Certificates() {
                       </div>
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 pt-4 border-t border-gray-100 dark:border-gray-800">
-                      <button
-                        onClick={() => handleDownload(cert._id, courseTitle)}
-                        className="flex-1 py-2.5 px-4 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white font-bold text-xs rounded-xl shadow-sm hover:shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                        <span>Download PDF</span>
-                      </button>
-
-                      {cert.verificationCode && (
-                        <a
-                          href={`/verify-certificate/${cert.verificationCode}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-gray-600 dark:text-gray-300 hover:text-sky-600 rounded-xl transition"
-                          title="Verify Certificate"
+                    {/* Shadcn Connected ButtonGroup Actions */}
+                    <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
+                      <ConnectedButtonGroup className="w-full shadow-2xs">
+                        <button
+                          onClick={() => handleDownload(cert._id, courseTitle)}
+                          className="flex-1 py-2.5 px-4 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white font-bold text-xs rounded-l-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
                         >
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                      )}
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Download PDF</span>
+                        </button>
+
+                        {cert.verificationCode && (
+                          <a
+                            href={`/verify-certificate/${cert.verificationCode}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-gray-600 dark:text-gray-300 hover:text-sky-600 rounded-r-xl border-l border-sky-700 dark:border-gray-700 transition flex items-center justify-center"
+                            title="Verify Certificate"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
+                      </ConnectedButtonGroup>
                     </div>
                   </div>
                 );
               })}
             </div>
           ) : (
-            <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-12 text-center shadow-sm">
-              <div className="w-16 h-16 rounded-3xl bg-sky-50 dark:bg-sky-950/50 flex items-center justify-center mx-auto mb-4 text-sky-600 dark:text-sky-400 shadow-sm">
-                <Award className="w-8 h-8" />
-              </div>
-              <h3 className="text-base font-bold text-gray-900 dark:text-white">
-                No certificates earned yet
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">
-                Complete 100% of lectures in any course to automatically generate and unlock your verified certificate of completion!
-              </p>
-            </div>
+            <Empty
+              icon={Award}
+              title="No certificates earned yet"
+              description="Complete 100% of lectures in any course to automatically generate and unlock your verified certificate of completion!"
+              action={
+                <button
+                  onClick={() => navigate('/courses')}
+                  className="px-6 py-2.5 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-md transition"
+                >
+                  Explore Courses to Earn
+                </button>
+              }
+            />
           )}
         </div>
       </div>

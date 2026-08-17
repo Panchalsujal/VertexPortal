@@ -17,6 +17,11 @@ import {
   restoreNotification,
 } from '../api/notification.api';
 import { Spinner, SkeletonFeed, SkeletonTable } from '../components/ui/Spinner';
+import { Switch } from '../components/ui/Switch';
+import { Table, TableHeader, TableHead, TableRow, TableCell, TableBody } from '../components/ui/Table';
+import { Empty } from '../components/ui/Empty';
+import { Marker } from '../components/ui/Marker';
+import { Tabs, TabsList, TabsTrigger } from '../components/ui/Tabs';
 import {
   Bell, Check, CheckCheck, Trash2, Settings, AlertCircle,
   Info, CheckCircle, ArrowLeft, Archive, Mail, Smartphone,
@@ -406,74 +411,66 @@ export default function Notifications() {
                 )}
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs sm:text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-100 dark:border-gray-800 text-gray-400 text-xs font-bold uppercase tracking-wider">
-                      <th className="pb-3">Category</th>
-                      <th className="pb-3 text-center">
-                        <span className="inline-flex items-center gap-1">
-                          <Mail className="w-3.5 h-3.5" /> Email
-                        </span>
-                      </th>
-                      <th className="pb-3 text-center">
-                        <span className="inline-flex items-center gap-1">
-                          <Smartphone className="w-3.5 h-3.5" /> In-App
-                        </span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60 font-medium">
-                    {NOTIFICATION_CATEGORIES.map(item => {
-                      const emailVal = preferences.email?.[item.key] ?? true;
-                      const inAppVal = preferences.inApp?.[item.key] ?? true;
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Category</TableHead>
+                    <TableHead className="text-center">
+                      <span className="inline-flex items-center gap-1">
+                        <Mail className="w-3.5 h-3.5" /> Email
+                      </span>
+                    </TableHead>
+                    <TableHead className="text-center">
+                      <span className="inline-flex items-center gap-1">
+                        <Smartphone className="w-3.5 h-3.5" /> In-App
+                      </span>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {NOTIFICATION_CATEGORIES.map(item => {
+                    const emailVal = preferences.email?.[item.key] ?? true;
+                    const inAppVal = preferences.inApp?.[item.key] ?? true;
 
-                      return (
-                        <tr key={item.key} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/40">
-                          <td className="py-4">
-                            <div className="flex items-center gap-3">
-                              <div
-                                className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-                                style={{ backgroundColor: item.bg, color: item.color }}
-                              >
-                                <item.icon className="w-4 h-4" />
-                              </div>
-                              <div>
-                                <p className="font-bold text-gray-900 dark:text-white">{item.label}</p>
-                                <p className="text-[11px] text-gray-500 dark:text-gray-400">{item.desc}</p>
-                              </div>
+                    return (
+                      <TableRow key={item.key}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                              style={{ backgroundColor: item.bg, color: item.color }}
+                            >
+                              <item.icon className="w-4 h-4" />
                             </div>
-                          </td>
+                            <div>
+                              <p className="font-bold text-gray-900 dark:text-white">{item.label}</p>
+                              <p className="text-[11px] text-gray-500 dark:text-gray-400">{item.desc}</p>
+                            </div>
+                          </div>
+                        </TableCell>
 
-                          <td className="py-4 text-center">
-                            <label className="relative inline-flex items-center cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={!!emailVal}
-                                onChange={e => handleTogglePref('email', item.key, e.target.checked)}
-                                className="sr-only peer"
-                              />
-                              <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
-                            </label>
-                          </td>
+                        <TableCell className="text-center">
+                          <div className="flex justify-center">
+                            <Switch
+                              checked={!!emailVal}
+                              onCheckedChange={checked => handleTogglePref('email', item.key, checked)}
+                            />
+                          </div>
+                        </TableCell>
 
-                          <td className="py-4 text-center">
-                            <label className="relative inline-flex items-center cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={!!inAppVal}
-                                onChange={e => handleTogglePref('inApp', item.key, e.target.checked)}
-                                className="sr-only peer"
-                              />
-                              <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
-                            </label>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                        <TableCell className="text-center">
+                          <div className="flex justify-center">
+                            <Switch
+                              checked={!!inAppVal}
+                              onCheckedChange={checked => handleTogglePref('inApp', item.key, checked)}
+                            />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             </div>
           )
         ) : loading ? (
@@ -593,25 +590,23 @@ export default function Notifications() {
             })}
           </div>
         ) : (
-          <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-16 text-center shadow-sm max-w-md mx-auto">
-            <div className="w-16 h-16 rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 flex items-center justify-center mx-auto mb-4">
-              <Bell className="w-8 h-8 opacity-80" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-              {activeTab === 'unread'
+          <Empty
+            icon={Bell}
+            title={
+              activeTab === 'unread'
                 ? 'No unread notifications'
                 : activeTab === 'archived'
                 ? 'No archived notifications'
-                : 'All caught up!'}
-            </h3>
-            <p className="text-xs text-gray-400 mt-1 max-w-xs mx-auto">
-              {activeTab === 'unread'
+                : 'All caught up!'
+            }
+            description={
+              activeTab === 'unread'
                 ? 'You have read all your notifications. Great job!'
                 : activeTab === 'archived'
                 ? 'Notifications you archive will appear here for future reference.'
-                : 'When new course updates, quizzes, announcements, or grades arrive, they will show up here.'}
-            </p>
-          </div>
+                : 'When new course updates, quizzes, announcements, or grades arrive, they will show up here.'
+            }
+          />
         )}
       </div>
     </div>

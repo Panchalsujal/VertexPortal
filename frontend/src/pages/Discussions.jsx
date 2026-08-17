@@ -26,6 +26,7 @@ import {
 import { getAllCourses } from '../api/course.api';
 import { MessageSquare, ThumbsUp, CheckCircle, Lock, Pin, Send, Plus, Filter, Trash2, Shield, Unlock, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Combobox } from '../components/ui/Combobox';
 
 export default function Discussions() {
   const dispatch = useAppDispatch();
@@ -314,36 +315,40 @@ export default function Discussions() {
       <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-200 dark:border-slate-800 mb-6 flex flex-col sm:flex-row items-center gap-3 shadow-xs">
         <div className="flex items-center gap-2 flex-1 w-full">
           <Filter className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
-          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider shrink-0">Filter Course:</span>
-          <select
-            value={filterCourseId}
-            onChange={(e) => setFilterCourseId(e.target.value)}
-            className="border border-gray-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-800 font-medium text-gray-800 dark:text-gray-200 w-full"
-          >
-            <option value="">All Platform Courses</option>
-            {coursesList.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.title}
-              </option>
-            ))}
-          </select>
+          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider shrink-0">Course:</span>
+          <div className="flex-1 min-w-0">
+            <Combobox
+              value={filterCourseId}
+              onChange={(val) => setFilterCourseId(val)}
+              options={[
+                { value: '', label: 'All Platform Courses' },
+                ...coursesList.map((c) => ({ value: c._id, label: c.title }))
+              ]}
+              placeholder="All Platform Courses"
+              searchPlaceholder="Search courses..."
+            />
+          </div>
         </div>
 
         {isAdminOrInstructor && (
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-2 w-full sm:w-auto sm:min-w-[200px]">
             <Shield className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
             <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider shrink-0">Status:</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-800 font-medium text-gray-800 dark:text-gray-200"
-            >
-              <option value="">All Statuses</option>
-              <option value="open">Open</option>
-              <option value="answered">Answered</option>
-              <option value="resolved">Resolved</option>
-              <option value="closed">Closed</option>
-            </select>
+            <div className="flex-1 min-w-0">
+              <Combobox
+                value={statusFilter}
+                onChange={(val) => setStatusFilter(val)}
+                options={[
+                  { value: '', label: 'All Statuses' },
+                  { value: 'open', label: 'Open' },
+                  { value: 'answered', label: 'Answered' },
+                  { value: 'resolved', label: 'Resolved' },
+                  { value: 'closed', label: 'Closed' }
+                ]}
+                placeholder="All Statuses"
+                searchPlaceholder="Search status..."
+              />
+            </div>
           </div>
         )}
       </div>
