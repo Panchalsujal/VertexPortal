@@ -297,65 +297,105 @@ export default function CodePlayground() {
 
   const activeCode = lang === 'javascript' ? jsCode : htmlCode;
 
-  // Run JavaScript in safe sandbox
+  // Run JavaScript in safe sandboxed iframe (avoids main-thread eval CSP violation)
   const runJsCode = () => {
     setLogs([]);
-    const capturedLogs = [];
     const startTime = performance.now();
+    const capturedLogs = [];
 
-    const fakeConsole = {
-      log: (...args) => {
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.setAttribute('sandbox', 'allow-scripts');
+
+    const timeout = setTimeout(() => {
+      if (document.body.contains(iframe)) {
+        document.body.removeChild(iframe);
+        capturedLogs.push({ type: 'error', content: 'Execution timed out (infinite loop protection).' });
+        setLogs([...capturedLogs]);
+      }
+    }, 4000);
+
+    const messageHandler = (event) => {
+      if (event.data && event.data.type === 'VP_PLAYGROUND_LOG') {
         capturedLogs.push({
-          type: 'log',
-          content: args.map((a) => (typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a))).join(' '),
+          type: event.data.level || 'log',
+          content: event.data.content,
         });
+      } else if (event.data && event.data.type === 'VP_PLAYGROUND_DONE') {
+        clearTimeout(timeout);
+        window.removeEventListener('message', messageHandler);
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
+        }
+        const elapsed = (performance.now() - startTime).toFixed(2);
+        setExecTime(elapsed);
+        setLogs([...capturedLogs]);
+        toast.success('Code executed!');
+        if (window.innerWidth < 1024) {
+          setMobileTab('output');
+        }
+      }
+    };
+
+    window.addEventListener('message', messageHandler);
+
+    const runnerHtml = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"/></head>
+<body>
+<script>
+  (function() {
+    const stringify = function(val) {
+      if (val === undefined) return 'undefined';
+      if (val === null) return 'null';
+      if (typeof val === 'object') {
+        try { return JSON.stringify(val, null, 2); } catch(e) { return String(val); }
+      }
+      return String(val);
+    };
+
+    window.console = {
+      log: function() {
+        const args = Array.prototype.slice.call(arguments);
+        window.parent.postMessage({ type: 'VP_PLAYGROUND_LOG', level: 'log', content: args.map(stringify).join(' ') }, '*');
       },
-      warn: (...args) => {
-        capturedLogs.push({
-          type: 'warn',
-          content: args.map((a) => (typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a))).join(' '),
-        });
+      warn: function() {
+        const args = Array.prototype.slice.call(arguments);
+        window.parent.postMessage({ type: 'VP_PLAYGROUND_LOG', level: 'warn', content: args.map(stringify).join(' ') }, '*');
       },
-      error: (...args) => {
-        capturedLogs.push({
-          type: 'error',
-          content: args.map((a) => (typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a))).join(' '),
-        });
+      error: function() {
+        const args = Array.prototype.slice.call(arguments);
+        window.parent.postMessage({ type: 'VP_PLAYGROUND_LOG', level: 'error', content: args.map(stringify).join(' ') }, '*');
       },
-      table: (data) => {
-        capturedLogs.push({
-          type: 'table',
-          content: JSON.stringify(data, null, 2),
-        });
-      },
+      table: function(data) {
+        window.parent.postMessage({ type: 'VP_PLAYGROUND_LOG', level: 'table', content: stringify(data) }, '*');
+      }
+    };
+
+    window.onerror = function(msg) {
+      window.parent.postMessage({ type: 'VP_PLAYGROUND_LOG', level: 'error', content: String(msg) }, '*');
+      return true;
     };
 
     try {
-      const runFn = new Function('console', jsCode);
-      const result = runFn(fakeConsole);
-
-      if (result !== undefined) {
-        capturedLogs.push({
-          type: 'return',
-          content: typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result),
-        });
+      const execResult = (function() {
+        ${jsCode}
+      })();
+      if (execResult !== undefined) {
+        window.parent.postMessage({ type: 'VP_PLAYGROUND_LOG', level: 'return', content: stringify(execResult) }, '*');
       }
-    } catch (err) {
-      capturedLogs.push({
-        type: 'error',
-        content: `${err.name}: ${err.message}`,
-      });
+    } catch(err) {
+      window.parent.postMessage({ type: 'VP_PLAYGROUND_LOG', level: 'error', content: (err.name || 'Error') + ': ' + err.message }, '*');
     }
 
-    const elapsed = (performance.now() - startTime).toFixed(2);
-    setExecTime(elapsed);
-    setLogs(capturedLogs);
-    toast.success('Code executed!');
-    
-    // On mobile, auto-switch to output pane so student sees result immediately
-    if (window.innerWidth < 1024) {
-      setMobileTab('output');
-    }
+    window.parent.postMessage({ type: 'VP_PLAYGROUND_DONE' }, '*');
+  })();
+<\/script>
+</body>
+</html>`;
+
+    document.body.appendChild(iframe);
+    iframe.srcdoc = runnerHtml;
   };
 
   const handleRun = () => {

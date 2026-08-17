@@ -321,6 +321,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+
     Promise.allSettled([
       getAllCourses({ limit: 12, sort: 'popular', status: 'published' }),
       getAllCategories(),
@@ -438,10 +440,13 @@ export default function Home() {
                 <div className="flex items-center bg-white dark:bg-[#161928] border border-gray-200 dark:border-[#2a2f4e] rounded-2xl p-1.5 sm:p-2 shadow-sm focus-within:ring-2 focus-within:ring-purple-500/30 focus-within:border-purple-500 transition-all">
                   <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 dark:text-slate-400 ml-2.5 sm:ml-3 shrink-0" />
                   <input
+                    id="home-search-input"
+                    name="courseSearch"
                     type="text"
                     placeholder="Search courses (e.g. React, Python)..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    autoComplete="off"
                     className="w-full min-w-0 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none"
                   />
                   <Link

@@ -51,10 +51,14 @@ import AdminReviews from './pages/admin/AdminReviews';
 import AdminNotes from './pages/admin/AdminNotes';
 import AdminLiveAttendance from './pages/admin/AdminLiveAttendance';
 import CodePlayground from './pages/CodePlayground';
+import LegalPrivacy from './pages/LegalPrivacy';
+import TermsOfService from './pages/TermsOfService';
+import HelpCenter from './pages/HelpCenter';
+import PlatformStatus from './pages/PlatformStatus';
 
 // ─── Protected Route ─────────────────────────────────────────────────────────
 function ProtectedRoute({ children, allowedRoles }) {
-  const user    = useAppSelector(selectUser);
+  const user = useAppSelector(selectUser);
   const loading = useAppSelector(selectAuthLoading);
   const location = useLocation();
 
@@ -71,7 +75,7 @@ function ProtectedRoute({ children, allowedRoles }) {
 // ─── Layout ───────────────────────────────────────────────────────────────────
 function Layout({ children }) {
   const location = useLocation();
-  
+
   // Pages that use their own standalone layout (no shared navbar)
   const hideNavbar = (
     location.pathname.startsWith('/learn/') ||
@@ -82,16 +86,33 @@ function Layout({ children }) {
     location.pathname === '/register'
   );
 
-  // Footer is ONLY visible on the Landing Page ('/')
-  const isLandingPage = location.pathname === '/';
+  // Footer is visible on landing page, info pages
+  const isFooterPage = (
+    location.pathname === '/' ||
+    location.pathname === '/privacy' ||
+    location.pathname === '/terms' ||
+    location.pathname === '/help' ||
+    location.pathname === '/status'
+  );
 
   return (
     <>
       {!hideNavbar && <Navbar />}
       <main className={`w-full overflow-x-hidden ${hideNavbar ? '' : 'min-h-[80vh]'}`}>{children}</main>
-      {isLandingPage && <Footer />}
+      {isFooterPage && <Footer />}
     </>
   );
+}
+
+// ─── Scroll To Top On Navigation / Reload ────────────────────────────────────
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [pathname]);
+
+  return null;
 }
 
 // ─── Root ────────────────────────────────────────────────────────────────────
@@ -101,6 +122,7 @@ function AppRoot() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Toaster />
       <Layout>
         <Routes>
@@ -109,6 +131,10 @@ function AppRoot() {
           <Route path="/courses" element={<Courses />} />
           <Route path="/courses/:slug" element={<CourseDetail />} />
           <Route path="/playground" element={<CodePlayground />} />
+          <Route path="/privacy" element={<LegalPrivacy />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/help" element={<HelpCenter />} />
+          <Route path="/status" element={<PlatformStatus />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-email/:userId/:token" element={<VerifyEmail />} />
@@ -125,30 +151,30 @@ function AppRoot() {
 
           {/* General Protected */}
           <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-          <Route path="/certificates" element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><Certificates /></ProtectedRoute>} />
+          <Route path="/certificates" element={<ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}><Certificates /></ProtectedRoute>} />
 
           {/* Student */}
-          <Route path="/my-learning" element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><MyLearning /></ProtectedRoute>} />
+          <Route path="/my-learning" element={<ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}><MyLearning /></ProtectedRoute>} />
           <Route path="/student/quizzes" element={<ProtectedRoute allowedRoles={['student']}><StudentQuizzes /></ProtectedRoute>} />
           <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={['student']}><StudentAssignments /></ProtectedRoute>} />
           <Route path="/student/announcements" element={<ProtectedRoute allowedRoles={['student']}><StudentAnnouncements /></ProtectedRoute>} />
           <Route path="/student/live-classes" element={<ProtectedRoute allowedRoles={['student']}><StudentLiveClasses /></ProtectedRoute>} />
-          <Route path="/live-class/:liveClassId" element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><LiveClassRoom /></ProtectedRoute>} />
-          <Route path="/live-class/stream/:liveClassId" element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><LiveClassRoom /></ProtectedRoute>} />
-          <Route path="/learn/:courseId" element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><CoursePlayer /></ProtectedRoute>} />
+          <Route path="/live-class/:liveClassId" element={<ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}><LiveClassRoom /></ProtectedRoute>} />
+          <Route path="/live-class/stream/:liveClassId" element={<ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}><LiveClassRoom /></ProtectedRoute>} />
+          <Route path="/learn/:courseId" element={<ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}><CoursePlayer /></ProtectedRoute>} />
           <Route path="/cart" element={<ProtectedRoute allowedRoles={['student']}><Cart /></ProtectedRoute>} />
           <Route path="/wishlist" element={<ProtectedRoute allowedRoles={['student']}><Wishlist /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
           {/* Instructor */}
-          <Route path="/instructor/dashboard" element={<ProtectedRoute allowedRoles={['instructor','admin']}><InstructorDashboard /></ProtectedRoute>} />
-          <Route path="/instructor/quizzes" element={<ProtectedRoute allowedRoles={['instructor','admin']}><InstructorQuizzes /></ProtectedRoute>} />
-          <Route path="/instructor/assignments" element={<ProtectedRoute allowedRoles={['instructor','admin']}><InstructorAssignments /></ProtectedRoute>} />
-          <Route path="/instructor/live-classes" element={<ProtectedRoute allowedRoles={['instructor','admin']}><InstructorLiveClasses /></ProtectedRoute>} />
-          <Route path="/instructor/announcements" element={<ProtectedRoute allowedRoles={['instructor','admin']}><InstructorAnnouncements /></ProtectedRoute>} />
-          <Route path="/instructor/courses/new" element={<ProtectedRoute allowedRoles={['instructor','admin']}><CourseForm /></ProtectedRoute>} />
-          <Route path="/instructor/courses/:courseId/edit" element={<ProtectedRoute allowedRoles={['instructor','admin']}><CourseForm /></ProtectedRoute>} />
-          <Route path="/instructor/courses/:courseId/curriculum" element={<ProtectedRoute allowedRoles={['instructor','admin']}><Curriculum /></ProtectedRoute>} />
+          <Route path="/instructor/dashboard" element={<ProtectedRoute allowedRoles={['instructor', 'admin']}><InstructorDashboard /></ProtectedRoute>} />
+          <Route path="/instructor/quizzes" element={<ProtectedRoute allowedRoles={['instructor', 'admin']}><InstructorQuizzes /></ProtectedRoute>} />
+          <Route path="/instructor/assignments" element={<ProtectedRoute allowedRoles={['instructor', 'admin']}><InstructorAssignments /></ProtectedRoute>} />
+          <Route path="/instructor/live-classes" element={<ProtectedRoute allowedRoles={['instructor', 'admin']}><InstructorLiveClasses /></ProtectedRoute>} />
+          <Route path="/instructor/announcements" element={<ProtectedRoute allowedRoles={['instructor', 'admin']}><InstructorAnnouncements /></ProtectedRoute>} />
+          <Route path="/instructor/courses/new" element={<ProtectedRoute allowedRoles={['instructor', 'admin']}><CourseForm /></ProtectedRoute>} />
+          <Route path="/instructor/courses/:courseId/edit" element={<ProtectedRoute allowedRoles={['instructor', 'admin']}><CourseForm /></ProtectedRoute>} />
+          <Route path="/instructor/courses/:courseId/curriculum" element={<ProtectedRoute allowedRoles={['instructor', 'admin']}><Curriculum /></ProtectedRoute>} />
 
           {/* Admin Routes */}
           <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
@@ -167,7 +193,7 @@ function AppRoot() {
           <Route path="/admin/reviews" element={<ProtectedRoute allowedRoles={['admin']}><AdminReviews /></ProtectedRoute>} />
           <Route path="/admin/discussions" element={<ProtectedRoute allowedRoles={['admin']}><Discussions /></ProtectedRoute>} />
           <Route path="/admin/notes" element={<ProtectedRoute allowedRoles={['admin']}><AdminNotes /></ProtectedRoute>} />
-          <Route path="/admin/live-attendance" element={<ProtectedRoute allowedRoles={['admin','instructor']}><AdminLiveAttendance /></ProtectedRoute>} />
+          <Route path="/admin/live-attendance" element={<ProtectedRoute allowedRoles={['admin', 'instructor']}><AdminLiveAttendance /></ProtectedRoute>} />
 
           {/* Catch All */}
           <Route path="*" element={<Navigate to="/" replace />} />

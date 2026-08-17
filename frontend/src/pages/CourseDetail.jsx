@@ -15,9 +15,13 @@ import { Tabs, TabsList, TabsTrigger } from '../components/ui/Tabs';
 import {
   BookOpen, Clock, Users, Star, Heart, ShoppingCart, Play, CheckCircle,
   Globe, BarChart2, Trash2, Edit3, Send, ArrowLeft, Award, Sparkles,
-  ShieldCheck, Video, FileCode, MessageSquare, Flame, CheckCircle2,
-  ExternalLink, UserCheck
+  ShieldCheck, Video, FileCode, MessageSquare, AlertCircle,
+  HelpCircle,
+  FileQuestion,
+  Info,
 } from 'lucide-react';
+
+const SAFE_DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%237c3aed'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
 import toast from 'react-hot-toast';
 
 function formatDuration(s = 0) {
@@ -362,8 +366,9 @@ export default function CourseDetail() {
               {/* Mentor / Instructor Info Card */}
               <div className="flex items-center gap-3.5 pt-2">
                 <img
-                  src={course.instructor?.avatarUrl || 'https://ik.imagekit.io/Sujalpanchal/default.avif'}
+                  src={course.instructor?.avatarUrl && !course.instructor.avatarUrl.includes('default.avif') ? course.instructor.avatarUrl : SAFE_DEFAULT_AVATAR}
                   alt={course.instructor?.fullName || 'Instructor'}
+                  onError={(e) => { e.currentTarget.src = SAFE_DEFAULT_AVATAR; }}
                   className="w-11 h-11 rounded-full object-cover ring-2 ring-purple-500/30 border border-gray-200 dark:border-slate-800 shadow-2xs"
                 />
                 <div>
@@ -643,8 +648,9 @@ export default function CourseDetail() {
                 <div className="bg-white dark:bg-[#161928] border border-gray-200/80 dark:border-[#2a2f4e] rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xs">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
                     <img
-                      src={course.instructor?.avatarUrl || 'https://ik.imagekit.io/Sujalpanchal/default.avif'}
+                      src={course.instructor?.avatarUrl && !course.instructor.avatarUrl.includes('default.avif') ? course.instructor.avatarUrl : SAFE_DEFAULT_AVATAR}
                       alt={course.instructor?.fullName}
+                      onError={(e) => { e.currentTarget.src = SAFE_DEFAULT_AVATAR; }}
                       className="w-20 h-20 rounded-2xl object-cover ring-2 ring-purple-500/30 border border-gray-200 dark:border-slate-800"
                     />
                     <div className="space-y-1.5">
@@ -852,8 +858,9 @@ export default function CourseDetail() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3.5">
                             <img
-                              src={rev.student?.avatarUrl || 'https://ik.imagekit.io/Sujalpanchal/default.avif'}
+                              src={rev.student?.avatarUrl && !rev.student.avatarUrl.includes('default.avif') ? rev.student.avatarUrl : SAFE_DEFAULT_AVATAR}
                               alt={rev.student?.fullName}
+                              onError={(e) => { e.currentTarget.src = SAFE_DEFAULT_AVATAR; }}
                               className="w-10 h-10 rounded-full object-cover ring-2 ring-purple-100 dark:ring-purple-900 border border-gray-200 dark:border-slate-800"
                             />
                             <div>

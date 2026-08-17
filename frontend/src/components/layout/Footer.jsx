@@ -16,7 +16,6 @@ import {
   Share2 as Share2Static,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-
 export function Footer() {
   const [email, setEmail] = useState('');
 
@@ -70,27 +69,31 @@ export function Footer() {
 
             {/* Social Links */}
             <div className="flex items-center gap-2.5 pt-1">
-              <a
-                href="#"
+              <Link
+                to="/courses"
                 className="w-9 h-9 rounded-xl bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600/40 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-gray-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-300 flex items-center justify-center transition-all duration-200"
-                title="Global Site"
+                title="Browse All Courses"
               >
                 <GlobeStatic className="w-4 h-4" />
-              </a>
-              <a
-                href="#"
-                className="w-9 h-9 rounded-xl bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600/40 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-gray-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-300 flex items-center justify-center transition-all duration-200"
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.origin);
+                  toast.success('VertexPortal link copied to clipboard!');
+                }}
+                className="w-9 h-9 rounded-xl bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600/40 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-gray-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-300 flex items-center justify-center transition-all duration-200 cursor-pointer"
                 title="Share Portal"
               >
                 <Share2Static className="w-4 h-4" />
-              </a>
-              <a
-                href="#"
+              </button>
+              <Link
+                to="/discussions"
                 className="w-9 h-9 rounded-xl bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600/40 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-gray-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-300 flex items-center justify-center transition-all duration-200"
-                title="Community Chat"
+                title="Community Discussions"
               >
                 <MessageSquareIcon size={16} color="currentColor" />
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -201,10 +204,13 @@ export function Footer() {
                   <MailIcon size={15} color="#9ca3af" />
                 </span>
                 <input
+                  id="footer-newsletter-email"
+                  name="subscriberEmail"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
+                  autoComplete="email"
                   className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl text-xs text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition"
                 />
               </div>
@@ -226,18 +232,18 @@ export function Footer() {
           </div>
 
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4 sm:gap-6 font-medium">
-            <a href="#" className="hover:text-purple-600 dark:hover:text-purple-300 transition-colors">
+            <Link to="/privacy" className="hover:text-purple-600 dark:hover:text-purple-300 transition-colors">
               Privacy Policy
-            </a>
-            <a href="#" className="hover:text-purple-600 dark:hover:text-purple-300 transition-colors">
+            </Link>
+            <Link to="/terms" className="hover:text-purple-600 dark:hover:text-purple-300 transition-colors">
               Terms of Service
-            </a>
-            <a href="#" className="hover:text-purple-600 dark:hover:text-purple-300 transition-colors">
+            </Link>
+            <Link to="/help" className="hover:text-purple-600 dark:hover:text-purple-300 transition-colors">
               Help Center
-            </a>
-            <a href="#" className="hover:text-purple-600 dark:hover:text-purple-300 transition-colors">
+            </Link>
+            <Link to="/status" className="hover:text-purple-600 dark:hover:text-purple-300 transition-colors">
               Platform Status
-            </a>
+            </Link>
           </div>
         </div>
       </div>
