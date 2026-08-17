@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import {
   HelpCircle,
   Search,
@@ -97,8 +98,94 @@ export default function HelpCenter() {
     ),
   })).filter(cat => cat.questions.length > 0);
 
+  const seoTitle = search.trim()
+    ? `Search: "${search.trim()}" — Help Center & FAQs | VertexPortal`
+    : 'Help Center & FAQs — Knowledge Base | VertexPortal';
+
+  const seoDescription =
+    'Find answers to frequently asked questions about VertexPortal courses, AI tutor assistance, verified certificates, coding playground, live classes, and account support.';
+
+  const canonicalUrl = 'https://vertex-mu-eight.vercel.app/help';
+  const seoImage = 'https://vertex-mu-eight.vercel.app/og-image.png';
+
+  const faqStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: FAQS.flatMap((cat) =>
+      cat.questions.map((faq) => ({
+        '@type': 'Question',
+        name: faq.q,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: faq.a,
+        },
+      }))
+    ),
+  };
+
+  const breadcrumbStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://vertex-mu-eight.vercel.app/',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Help Center',
+        item: canonicalUrl,
+      },
+    ],
+  };
+
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0d0f1a] text-gray-900 dark:text-gray-100 font-[Inter,sans-serif] py-12 px-4 sm:px-6 lg:px-8">
+    <>
+      <Helmet>
+        {/* Dynamic Title */}
+        <title>{seoTitle}</title>
+
+        {/* Primary Meta Tags */}
+        <meta name="description" content={seoDescription} />
+        <meta name="robots" content="index, follow" />
+        <meta
+          name="keywords"
+          content="help center, support, FAQ, vertexportal help, AI tutor help, certificates verification, course enrollment help"
+        />
+
+        {/* Canonical URL */}
+        <link rel="canonical" href={canonicalUrl} />
+
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="VertexPortal" />
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content={seoImage} />
+        <meta property="og:image:alt" content="VertexPortal Help Center & Knowledge Base" />
+
+        {/* Twitter Metadata */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={seoTitle} />
+        <meta name="twitter:description" content={seoDescription} />
+        <meta name="twitter:image" content={seoImage} />
+
+        {/* Structured Data: FAQPage */}
+        <script type="application/ld+json">
+          {JSON.stringify(faqStructuredData)}
+        </script>
+
+        {/* Structured Data: Breadcrumbs */}
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbStructuredData)}
+        </script>
+      </Helmet>
+
+      <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0d0f1a] text-gray-900 dark:text-gray-100 font-[Inter,sans-serif] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-8">
         
         {/* Top Navigation */}
@@ -238,5 +325,6 @@ export default function HelpCenter() {
 
       </div>
     </div>
-  );
+  </>
+);
 }

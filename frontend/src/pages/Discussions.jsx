@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   fetchDiscussions, fetchDiscussionById, addDiscussion,
@@ -281,8 +282,136 @@ export default function Discussions() {
 
   const navigate = useNavigate();
 
+  const selectedCourse = coursesList.find((c) => c._id === filterCourseId);
+
+  let seoTitle = 'Community Discussions & Student Q&A Forum — VertexPortal';
+  if (current?.title) {
+    seoTitle = `${current.title} — Community Discussion | VertexPortal`;
+  } else if (selectedCourse?.title) {
+    seoTitle = `${selectedCourse.title} Q&A & Discussions | VertexPortal`;
+  }
+
+  let seoDescription =
+    'Join the VertexPortal student and developer discussion community. Ask questions, share programming knowledge, solve coding problems, and collaborate with instructors.';
+  if (current?.title) {
+    const rawContent = (current.content || current.body || '').replace(/\s+/g, ' ').trim();
+    seoDescription = rawContent
+      ? rawContent.length > 150
+        ? `${rawContent.slice(0, 147)}...`
+        : rawContent
+      : `Read and participate in the discussion "${current.title}" on the VertexPortal student community forum.`;
+  } else if (selectedCourse?.title) {
+    seoDescription = `Explore questions, answers, and discussions related to ${selectedCourse.title} on the VertexPortal learning community.`;
+  }
+
+  const canonicalUrl = 'https://vertex-mu-eight.vercel.app/discussions';
+  const seoImage = 'https://vertex-mu-eight.vercel.app/og-image.png';
+
+  const forumStructuredData = current
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'DiscussionForumPosting',
+        headline: current.title,
+        articleBody: current.content || current.body || current.title,
+        url: canonicalUrl,
+        author: {
+          '@type': 'Person',
+          name: current.author?.fullName || current.user?.fullName || current.user?.name || 'VertexPortal Community Member',
+        },
+        interactionStatistic: [
+          {
+            '@type': 'InteractionCounter',
+            interactionType: 'https://schema.org/LikeAction',
+            userInteractionCount: current.upvoteCount ?? current.upvotesCount ?? 0,
+          },
+          {
+            '@type': 'InteractionCounter',
+            interactionType: 'https://schema.org/CommentAction',
+            userInteractionCount: current.replies?.length || 0,
+          },
+        ],
+        publisher: {
+          '@type': 'Organization',
+          name: 'VertexPortal',
+          url: 'https://vertex-mu-eight.vercel.app',
+        },
+      }
+    : {
+        '@context': 'https://schema.org',
+        '@type': 'DiscussionForumPosting',
+        headline: 'VertexPortal Student Community Discussions',
+        description: seoDescription,
+        url: canonicalUrl,
+        publisher: {
+          '@type': 'Organization',
+          name: 'VertexPortal',
+          url: 'https://vertex-mu-eight.vercel.app',
+        },
+      };
+
+  const breadcrumbStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://vertex-mu-eight.vercel.app/',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Discussions',
+        item: canonicalUrl,
+      },
+    ],
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <>
+      <Helmet>
+        {/* Dynamic Title */}
+        <title>{seoTitle}</title>
+
+        {/* Primary Meta Tags */}
+        <meta name="description" content={seoDescription} />
+        <meta name="robots" content="index, follow" />
+        <meta
+          name="keywords"
+          content="student discussions, coding forum, programming Q&A, course questions, peer learning, developer community, VertexPortal"
+        />
+
+        {/* Canonical URL */}
+        <link rel="canonical" href={canonicalUrl} />
+
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content={current ? 'article' : 'website'} />
+        <meta property="og:site_name" content="VertexPortal" />
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content={seoImage} />
+        <meta property="og:image:alt" content="VertexPortal Community Discussions" />
+
+        {/* Twitter Metadata */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={seoTitle} />
+        <meta name="twitter:description" content={seoDescription} />
+        <meta name="twitter:image" content={seoImage} />
+
+        {/* Structured Data: DiscussionForumPosting */}
+        <script type="application/ld+json">
+          {JSON.stringify(forumStructuredData)}
+        </script>
+
+        {/* Structured Data: Breadcrumbs */}
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbStructuredData)}
+        </script>
+      </Helmet>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div className="flex items-center gap-3">
           <button
@@ -655,5 +784,6 @@ export default function Discussions() {
         </div>
       )}
     </div>
-  );
+  </>
+);
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import {
   Play,
   RotateCcw,
@@ -435,19 +436,123 @@ export default function CodePlayground() {
 
   const activeSnippetList = lang === 'javascript' ? JS_SNIPPETS : HTML_SNIPPETS;
 
+  // Dynamic SEO metadata based on active language tab
+  const seoTitle =
+    lang === 'javascript'
+      ? 'Interactive JavaScript Playground & Sandbox — VertexPortal'
+      : 'Interactive HTML & Web Live Preview Playground — VertexPortal';
+
+  const seoDescription =
+    lang === 'javascript'
+      ? 'Write, run, and debug modern JavaScript in your browser with VertexPortal Code Playground. Features instant sandbox execution, console logging, and code presets.'
+      : 'Live HTML & CSS code playground. Build, test, and preview responsive web components in real time with desktop, tablet, and mobile viewports on VertexPortal.';
+
+  const canonicalUrl = 'https://vertex-mu-eight.vercel.app/playground';
+  const seoImage = 'https://vertex-mu-eight.vercel.app/og-image.png';
+
+  const playgroundStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'VertexPortal Code Playground',
+    url: canonicalUrl,
+    description:
+      'Free in-browser interactive code playground and sandbox for experimenting with JavaScript and HTML/CSS web applications with live execution, console debugging, and responsive previews.',
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'All',
+    browserRequirements: 'Requires JavaScript. Requires HTML5.',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+    author: {
+      '@type': 'Organization',
+      name: 'VertexPortal',
+      url: 'https://vertex-mu-eight.vercel.app',
+    },
+    featureList: [
+      'Real-time JavaScript Sandbox Execution',
+      'Live HTML/CSS Responsive Multi-Device Preview',
+      'In-browser Console Output and Error Inspection',
+      'Curated Code Snippet Presets',
+      'Full-screen Coding Environment',
+    ],
+  };
+
+  const breadcrumbStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://vertex-mu-eight.vercel.app/',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Playground',
+        item: canonicalUrl,
+      },
+    ],
+  };
+
   // Calculate line numbers for the editor
   const lineCount = activeCode.split('\n').length;
   const lineNumbers = Array.from({ length: lineCount }, (_, i) => i + 1);
 
   return (
-    <div
-      className={`flex flex-col bg-[#f7f8fc] dark:bg-[#0b0f19] text-gray-900 dark:text-slate-100 transition-all ${
-        fullScreen
-          ? 'fixed inset-0 z-50 h-screen w-screen bg-[#f7f8fc] dark:bg-[#0b0f19]'
-          : 'h-[calc(100vh-64px)] max-h-[calc(100vh-64px)]'
-      } overflow-hidden font-sans`}
-      style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif" }}
-    >
+    <>
+      <Helmet>
+        {/* Dynamic Title */}
+        <title>{seoTitle}</title>
+
+        {/* Primary Meta Tags */}
+        <meta name="description" content={seoDescription} />
+        <meta name="robots" content="index, follow" />
+        <meta
+          name="keywords"
+          content="code playground, javascript sandbox, online javascript editor, html preview, html css playground, web sandbox, live code editor, VertexPortal"
+        />
+
+        {/* Canonical URL */}
+        <link rel="canonical" href={canonicalUrl} />
+
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="VertexPortal" />
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content={seoImage} />
+        <meta property="og:image:alt" content="VertexPortal Interactive Code Playground" />
+
+        {/* Twitter Metadata */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={seoTitle} />
+        <meta name="twitter:description" content={seoDescription} />
+        <meta name="twitter:image" content={seoImage} />
+
+        {/* Structured Data: WebApplication */}
+        <script type="application/ld+json">
+          {JSON.stringify(playgroundStructuredData)}
+        </script>
+
+        {/* Structured Data: Breadcrumbs */}
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbStructuredData)}
+        </script>
+      </Helmet>
+
+      <div
+        className={`flex flex-col bg-[#f7f8fc] dark:bg-[#0b0f19] text-gray-900 dark:text-slate-100 transition-all ${
+          fullScreen
+            ? 'fixed inset-0 z-50 h-screen w-screen bg-[#f7f8fc] dark:bg-[#0b0f19]'
+            : 'h-[calc(100vh-64px)] max-h-[calc(100vh-64px)]'
+        } overflow-hidden font-sans`}
+        style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif" }}
+      >
       {/* ── Subheader / Toolbar ── */}
       <header className="h-14 bg-white dark:bg-[#111827] border-b border-gray-200 dark:border-slate-800/80 px-3 sm:px-6 flex items-center justify-between gap-2 shrink-0 shadow-2xs">
         {/* Left: Brand / Title */}
@@ -804,5 +909,6 @@ export default function CodePlayground() {
         </div>
       </div>
     </div>
-  );
+  </>
+);
 }
