@@ -350,14 +350,14 @@ export default function Home() {
           }
         }
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, []);
 
   const displayReviews = reviews.length > 0 ? reviews : FALLBACK_TESTIMONIALS;
 
-  const enrolledCount = platformStats.totalStudents > 0 
-    ? platformStats.totalStudents 
+  const enrolledCount = platformStats.totalStudents > 0
+    ? platformStats.totalStudents
     : (platformStats.totalEnrollments > 0 ? platformStats.totalEnrollments : 1200);
 
   const reviewCount = platformStats.totalReviews > 0 ? platformStats.totalReviews : 480;
@@ -392,12 +392,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0d0f1a] text-gray-900 dark:text-gray-100 font-[Inter,sans-serif] selection:bg-purple-500 selection:text-white transition-colors duration-200">
-      
+
       {/* ══════════════════════════════════════════════════════════
           HERO SECTION (EduLe & ChaiCode Style with GSAP Particles)
       ══════════════════════════════════════════════════════════ */}
       <section className="relative pt-8 pb-16 lg:pt-14 lg:pb-24 overflow-hidden bg-gradient-to-b from-purple-50/70 via-white to-[#f8fafc] dark:from-[#131628] dark:via-[#0f1222] dark:to-[#0d0f1a] border-b border-gray-200/70 dark:border-slate-800/80">
-        
+
         {/* GSAP Floating Particle Engine (Webflow Reference) */}
         <GsapHeroParticles count={16} />
 
@@ -406,7 +406,7 @@ export default function Home() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-            
+
             {/* Left Hero Content */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -414,7 +414,7 @@ export default function Home() {
               transition={{ duration: 0.5 }}
               className="lg:col-span-7 space-y-7 text-center lg:text-left"
             >
-              
+
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100 dark:bg-purple-950/70 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 text-xs font-bold shadow-2xs">
                 <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
                 <span>Start your favorite course</span>
@@ -585,7 +585,7 @@ export default function Home() {
           ALL COURSES SHOWCASE (With Shadcn ButtonGroup & Swiper.js)
       ══════════════════════════════════════════════════════════ */}
       <section className="py-14 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Header with Title and Search */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
           <div>
@@ -710,7 +710,7 @@ export default function Home() {
       ══════════════════════════════════════════════════════════ */}
       <section className="py-16 bg-gradient-to-b from-white via-gray-50 to-white dark:from-[#101322] dark:via-[#0e1020] dark:to-[#101322] border-y border-gray-200/80 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
+
           <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
             <span className="text-xs font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400">
               Structured Career Tracks
@@ -846,7 +846,7 @@ export default function Home() {
               <p className="text-sm sm:text-base text-purple-100 dark:text-purple-200/90 leading-relaxed max-w-xl mx-auto lg:mx-0 font-normal">
                 Every completed curriculum awards a verified cryptographic digital credential with instant public verification URL for LinkedIn and resumes.
               </p>
-              
+
               <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-4">
                 <Link
                   to="/certificates"
