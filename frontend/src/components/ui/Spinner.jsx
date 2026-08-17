@@ -327,171 +327,108 @@ export function SkeletonLiveRoom() {
   );
 }
 
-// ── #19 Canvas Loading Animation (Constellation Network) ────────────────────
-export function CanvasLoader({ width = 240, height = 240, color = '#6C5CE7' }) {
-  const canvasRef = React.useRef(null);
-
-  React.useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animationFrameId;
-    let time = 0;
-
-    // Handle high DPI displays for sharp rendering
-    const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    ctx.scale(dpr, dpr);
-
-    const cx = width / 2;
-    const cy = height / 2;
-    const numPoints = 26;
-    const maxDist = 58;
-
-    // Palette: Purple, Indigo, Sky Blue, Violet
-    const colors = [
-      '#6C5CE7',
-      '#8B5CF6',
-      '#A78BFA',
-      '#38BDF8',
-      '#818CF8',
-      '#C084FC',
-    ];
-
-    const points = [];
-    for (let i = 0; i < numPoints; i++) {
-      const angle = (i / numPoints) * Math.PI * 2;
-      const baseRadius = 42 + (i % 3) * 16;
-      points.push({
-        angle,
-        speed: (0.015 + (i % 4) * 0.005) * (i % 2 === 0 ? 1 : -0.85),
-        baseRadius,
-        radiusSpeed: 0.02 + (i % 3) * 0.015,
-        radiusOffset: i * 0.45,
-        radiusAmp: 14 + (i % 3) * 6,
-        size: 2.2 + (i % 3) * 0.8,
-        color: colors[i % colors.length],
-        x: cx,
-        y: cy,
-      });
-    }
-
-    const render = () => {
-      time += 1;
-      ctx.clearRect(0, 0, width, height);
-
-      // 1. Update point positions
-      for (let i = 0; i < points.length; i++) {
-        const p = points[i];
-        p.angle += p.speed;
-        const currentR = p.baseRadius + Math.sin(time * p.radiusSpeed + p.radiusOffset) * p.radiusAmp;
-        p.x = cx + Math.cos(p.angle) * currentR;
-        p.y = cy + Math.sin(p.angle) * currentR;
-      }
-
-      // 2. Draw connecting dynamic constellation lines
-      for (let i = 0; i < points.length; i++) {
-        for (let j = i + 1; j < points.length; j++) {
-          const p1 = points[i];
-          const p2 = points[j];
-          const dx = p1.x - p2.x;
-          const dy = p1.y - p2.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          if (dist < maxDist) {
-            const alpha = ((1 - dist / maxDist) * 0.55).toFixed(3);
-            ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = `rgba(139, 92, 246, ${alpha})`;
-            ctx.lineWidth = 1.2;
-            ctx.stroke();
-          }
-        }
-      }
-
-      // 3. Draw soft center pulse aura
-      const pulseRadius = 18 + Math.sin(time * 0.05) * 4;
-      const gradient = ctx.createRadialGradient(cx, cy, 2, cx, cy, pulseRadius + 14);
-      gradient.addColorStop(0, 'rgba(108, 92, 231, 0.4)');
-      gradient.addColorStop(0.6, 'rgba(139, 92, 246, 0.15)');
-      gradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
-      ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.arc(cx, cy, pulseRadius + 14, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 4. Draw glowing points
-      for (let i = 0; i < points.length; i++) {
-        const p = points[i];
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
-        ctx.shadowColor = p.color;
-        ctx.shadowBlur = 6;
-        ctx.fill();
-        ctx.restore();
-      }
-
-      animationFrameId = requestAnimationFrame(render);
-    };
-
-    render();
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [width, height]);
-
+/**
+ * ── Ultra-Modern High-End SaaS PageLoader ──────────────────────────────────────
+ * Features:
+ * • Obsidian & Glass Card with Multi-layered Ambient Radial Glows
+ * • Dual Synchronized Glowing Orbit Rings
+ * • Breathing Vertex Brand Badge with Radiant Center Beacon
+ * • Indeterminate Sleek Gradient Progress Track
+ * • Hardware-Accelerated 60fps Animations (Zero CPU Lag)
+ */
+export function PageLoader({ text = 'Preparing your learning space...' }) {
   return (
-    <canvas
-      ref={canvasRef}
-      style={{ width: `${width}px`, height: `${height}px` }}
-      className="block mx-auto select-none"
-    />
-  );
-}
+    <div className="min-h-[75vh] flex flex-col items-center justify-center p-4 relative overflow-hidden font-[Inter,sans-serif] select-none">
+      {/* Dynamic Ambient Background Glows */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-purple-600/20 via-indigo-500/15 to-transparent rounded-full blur-[100px] pointer-events-none -z-10" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-sky-500/10 rounded-full blur-[80px] pointer-events-none -z-10 animate-pulse" />
 
-// ── Full Page Modern SaaS Loader with Canvas Animation ──────────────────────
-export function PageLoader({ text = 'Loading VertexPortal...' }) {
-  return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 relative overflow-hidden font-[Inter,sans-serif] select-none">
-      {/* Soft Ambient Background Glow */}
-      <div className="absolute w-80 h-80 rounded-full bg-purple-500/10 dark:bg-purple-600/15 blur-3xl pointer-events-none animate-pulse" />
-      <div className="absolute w-64 h-64 rounded-full bg-sky-500/10 dark:bg-sky-600/10 blur-3xl pointer-events-none animate-pulse [animation-delay:1s]" />
+      {/* Main Glassmorphic Loader Container */}
+      <div className="relative flex flex-col items-center max-w-xs text-center space-y-6">
+        
+        {/* Glowing Orbit Rings + Brand Beacon */}
+        <div className="relative w-24 h-24 flex items-center justify-center">
+          
+          {/* Outer Slow Rotating Gradient Ring */}
+          <div
+            className="absolute inset-0 rounded-full border border-dashed border-purple-400/40 dark:border-purple-500/40 animate-spin"
+            style={{ animationDuration: '10s' }}
+          />
 
-      <div className="relative z-10 flex flex-col items-center max-w-sm text-center">
-        {/* Canvas Constellation Animation */}
-        <div className="relative flex items-center justify-center">
-          <CanvasLoader width={220} height={220} />
-          {/* Center Brand Icon */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-10 h-10 rounded-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-purple-200/60 dark:border-purple-800/60 shadow-lg flex items-center justify-center text-purple-600 dark:text-purple-400">
-              <svg className="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-              </svg>
-            </div>
+          {/* Middle Fast Conic Orbit Ring */}
+          <div
+            className="absolute inset-2 rounded-full p-[2px] bg-gradient-to-tr from-purple-600 via-indigo-500 to-transparent animate-spin"
+            style={{ animationDuration: '2s' }}
+          >
+            <div className="w-full h-full bg-[#f8fafc] dark:bg-[#0b0f19] rounded-full" />
+          </div>
+
+          {/* Central Glassmorphic Beacon */}
+          <div className="relative z-10 w-14 h-14 rounded-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-purple-200 dark:border-purple-800/80 shadow-xl shadow-purple-900/15 flex items-center justify-center text-purple-600 dark:text-purple-400 transition-transform duration-300">
+            <svg
+              className="w-7 h-7 animate-pulse text-purple-600 dark:text-purple-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 14l9-5-9-5-9 5 9 5z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+              />
+            </svg>
           </div>
         </div>
 
-        {/* Dynamic Title and Status */}
-        <div className="mt-2 space-y-1.5">
-          <div className="flex items-center justify-center gap-1.5">
-            <span className="text-sm font-extrabold text-gray-900 dark:text-white tracking-tight">
-              Vertex<span className="text-purple-600 dark:text-purple-400">Portal</span>
-            </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+        {/* Brand Title & Status Pill */}
+        <div className="space-y-2.5">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50/80 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-800/40 text-purple-700 dark:text-purple-300 text-xs font-bold shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
+            <span>VertexPortal LMS</span>
           </div>
-          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 tracking-wide animate-pulse">
+
+          <p className="text-xs font-medium text-gray-500 dark:text-slate-400 tracking-wide">
             {text}
           </p>
         </div>
+
+        {/* Shimmering Indeterminate Progress Bar */}
+        <div className="w-44 h-1.5 rounded-full bg-gray-200/80 dark:bg-slate-800/80 overflow-hidden relative shadow-inner">
+          <div className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-purple-600 to-indigo-500 rounded-full animate-[progress_1.4s_ease-in-out_infinite]" />
+        </div>
       </div>
+
+      {/* Embedded Hardware-Accelerated Animation Styles */}
+      <style>{`
+        @keyframes progress {
+          0% {
+            left: -50%;
+            width: 30%;
+          }
+          50% {
+            left: 25%;
+            width: 60%;
+          }
+          100% {
+            left: 100%;
+            width: 40%;
+          }
+        }
+      `}</style>
     </div>
   );
 }
+
+// CanvasLoader alias for backwards compatibility if needed
+export function CanvasLoader(props) {
+  return <PageLoader {...props} />;
+}
+
+export default PageLoader;
+
