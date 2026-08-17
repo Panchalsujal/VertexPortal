@@ -29,11 +29,16 @@ const mistral = new Mistral({
   apiKey: config.MISTRAL_API_KEY,
 });
 
-const CHAT_MODEL = config.MISTRAL_CHAT_MODEL || "mistral-large-latest";
+// Use a faster model by default (can be overridden via MISTRAL_CHAT_MODEL env)
+// mistral-large-latest is very capable but slow (often >12s); mistral-small-latest
+// is ~3-5x faster and good enough for most Q&A / teaching assistant use-cases.
+const CHAT_MODEL = config.MISTRAL_CHAT_MODEL || "mistral-small-latest";
 
-const MAX_HISTORY_MESSAGES = 10;
+// Keep history short to reduce token count and response latency
+const MAX_HISTORY_MESSAGES = 6;
 
-const RAG_RESULT_LIMIT = 6;
+// Fewer RAG chunks = smaller prompt = faster response
+const RAG_RESULT_LIMIT = 4;
 
 /*
  * ============================================
@@ -531,10 +536,14 @@ ${normalizedContent}
           model: CHAT_MODEL,
           messages: modelMessages,
           temperature: 0.2,
-          maxTokens: 1200,
+          // Reduced from 1200 → 900 to cut response latency
+          maxTokens: 900,
         }),
       {
         args: [],
+        // Override circuit breaker timeout to 30s for AI generation
+        // (mistral-small still occasionally needs 15-25s under load)
+        timeoutMs: 30000,
       }
     );
   } catch (error) {

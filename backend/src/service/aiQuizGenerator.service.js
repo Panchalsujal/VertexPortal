@@ -7,7 +7,8 @@ const mistral = new Mistral({
   apiKey: config.MISTRAL_API_KEY,
 });
 
-const CHAT_MODEL = config.MISTRAL_CHAT_MODEL || "mistral-large-latest";
+// mistral-small-latest is ~3x faster than large and sufficient for MCQ generation
+const CHAT_MODEL = config.MISTRAL_CHAT_MODEL || "mistral-small-latest";
 
 /**
  * Generates MCQs for a given topic or lecture content using Mistral AI.
@@ -46,21 +47,24 @@ Requirements:
 ]`;
 
   try {
-    const response = await circuitBreakers.mistral.fire(() =>
-      mistral.chat.complete({
-        model: CHAT_MODEL,
-        messages: [
-          {
-            role: "system",
-            content: "You are a JSON-only API that generates structured educational quiz questions. Output strictly raw JSON array.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.3,
-      })
+    const response = await circuitBreakers.mistral.fire(
+      () =>
+        mistral.chat.complete({
+          model: CHAT_MODEL,
+          messages: [
+            {
+              role: "system",
+              content: "You are a JSON-only API that generates structured educational quiz questions. Output strictly raw JSON array.",
+            },
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          temperature: 0.3,
+          maxTokens: 2000,
+        }),
+      { timeoutMs: 30000 }
     );
 
     let rawContent = response.choices?.[0]?.message?.content;
