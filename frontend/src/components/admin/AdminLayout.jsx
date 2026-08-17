@@ -15,6 +15,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarTrigger,
+  useSidebar,
 } from '../ui/Sidebar';
 import toast from 'react-hot-toast';
 
@@ -64,10 +65,20 @@ const sidebarSections = [
 ];
 
 export default function AdminLayout({ children, title, subtitle, actions, showBack = false }) {
+  return (
+    <SidebarProvider defaultOpen={true}>
+      <AdminLayoutInner title={title} subtitle={subtitle} actions={actions} showBack={showBack}>
+        {children}
+      </AdminLayoutInner>
+    </SidebarProvider>
+  );
+}
+
+function AdminLayoutInner({ children, title, subtitle, actions, showBack = false }) {
   const dispatch  = useAppDispatch();
   const user      = useAppSelector(selectUser);
   const navigate  = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { open, setOpen } = useSidebar();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
 
@@ -92,84 +103,96 @@ export default function AdminLayout({ children, title, subtitle, actions, showBa
     navigate('/login');
   };
 
+  const closeSidebarOnMobile = () => {
+    if (window.innerWidth < 1024) {
+      setOpen(false);
+    }
+  };
+
   return (
-    <SidebarProvider defaultOpen={true}>
-      <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] w-full max-w-full overflow-x-hidden">
-        {/* Mobile overlay */}
-        {sidebarOpen && (
-          <div className="fixed inset-0 bg-black/40 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />
-        )}
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] w-full max-w-full overflow-x-hidden">
+      {/* Mobile overlay backdrop when sidebar is open */}
+      {open && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-xs transition-opacity"
+          onClick={() => setOpen(false)}
+        />
+      )}
 
-        {/* Shadcn Sidebar */}
-        <Sidebar className={sidebarOpen ? '!translate-x-0' : ''}>
-          <SidebarHeader>
-            <Link to="/admin" className="flex items-center gap-2 no-underline">
-              <div
-                className="w-8 h-8 rounded-xl flex items-center justify-center shadow-md shrink-0"
-                style={{ background: 'linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%)' }}
-              >
-                <GraduationCap className="w-4.5 h-4.5 text-white" />
-              </div>
-              <div>
-                <p className="text-sm font-extrabold text-gray-900 dark:text-white leading-tight">VertexPortal</p>
-                <p className="text-[10px] text-purple-500 font-semibold">Admin Panel</p>
-              </div>
-            </Link>
-          </SidebarHeader>
-
-          <SidebarContent>
-            {sidebarSections.map((section) => (
-              <div key={section.label} className="mb-1">
-                <p className="text-[9px] font-bold tracking-widest uppercase text-gray-400 dark:text-gray-500 px-3 py-2">
-                  {section.label}
-                </p>
-                {section.items.map(({ to, icon: Icon, label, end }) => (
-                  <NavLink
-                    key={`${to}-${label}`}
-                    to={to}
-                    end={end}
-                    onClick={() => setSidebarOpen(false)}
-                    className={({ isActive }) =>
-                      `flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium rounded-xl transition-colors ${
-                        isActive
-                          ? 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 font-semibold shadow-2xs'
-                          : 'text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-gray-50 dark:hover:bg-gray-800'
-                      }`
-                    }
-                  >
-                    <Icon className="w-4 h-4 shrink-0" />
-                    <span>{label}</span>
-                  </NavLink>
-                ))}
-              </div>
-            ))}
-          </SidebarContent>
-
-          <SidebarFooter>
-            <Link
-              to="/"
-              className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-xl transition-colors no-underline"
+      {/* Sidebar Navigation */}
+      <Sidebar>
+        <SidebarHeader>
+          <Link to="/admin" className="flex items-center gap-2 no-underline" onClick={closeSidebarOnMobile}>
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center shadow-md shrink-0"
+              style={{ background: 'linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%)' }}
             >
-              <Globe className="w-4 h-4" />
-              <span>Visit Website</span>
-              <ArrowUpRight className="w-3.5 h-3.5 ml-auto" />
-            </Link>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-colors cursor-pointer"
-            >
-              <LogOut className="w-4 h-4" /> Logout
-            </button>
-          </SidebarFooter>
-        </Sidebar>
+              <GraduationCap className="w-4.5 h-4.5 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-extrabold text-gray-900 dark:text-white leading-tight">VertexPortal</p>
+              <p className="text-[10px] text-purple-500 font-semibold">Admin Panel</p>
+            </div>
+          </Link>
+        </SidebarHeader>
 
-        {/* Main Content */}
-        <main className="flex-1 min-w-0 w-full max-w-full lg:ml-60 min-h-screen flex flex-col overflow-x-hidden">
-          {/* Top Header */}
-          <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-30 w-full max-w-full">
-            <div className="flex items-center gap-2 sm:gap-3 px-3.5 sm:px-6 py-3 sm:py-3.5 max-w-full">
-              <SidebarTrigger className="lg:hidden" onClick={() => setSidebarOpen(!sidebarOpen)} />
+        <SidebarContent>
+          {sidebarSections.map((section) => (
+            <div key={section.label} className="mb-1">
+              <p className="text-[9px] font-bold tracking-widest uppercase text-gray-400 dark:text-gray-500 px-3 py-2">
+                {section.label}
+              </p>
+              {section.items.map(({ to, icon: Icon, label, end }) => (
+                <NavLink
+                  key={`${to}-${label}`}
+                  to={to}
+                  end={end}
+                  onClick={closeSidebarOnMobile}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium rounded-xl transition-colors ${
+                      isActive
+                        ? 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 font-semibold shadow-2xs'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-gray-50 dark:hover:bg-gray-800'
+                    }`
+                  }
+                >
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span>{label}</span>
+                </NavLink>
+              ))}
+            </div>
+          ))}
+        </SidebarContent>
+
+        <SidebarFooter>
+          <Link
+            to="/"
+            onClick={closeSidebarOnMobile}
+            className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-xl transition-colors no-underline"
+          >
+            <Globe className="w-4 h-4" />
+            <span>Visit Website</span>
+            <ArrowUpRight className="w-3.5 h-3.5 ml-auto" />
+          </Link>
+          <button
+            type="button"
+            onClick={() => {
+              closeSidebarOnMobile();
+              handleLogout();
+            }}
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-colors cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" /> Logout
+          </button>
+        </SidebarFooter>
+      </Sidebar>
+
+      {/* Main Content Area */}
+      <main className="flex-1 min-w-0 w-full max-w-full lg:ml-60 min-h-screen flex flex-col overflow-x-hidden">
+        {/* Top Header */}
+        <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-30 w-full max-w-full">
+          <div className="flex items-center gap-2 sm:gap-3 px-3.5 sm:px-6 py-3 sm:py-3.5 max-w-full">
+            <SidebarTrigger className="lg:hidden" />
 
             {/* Back Button */}
             <button
@@ -304,6 +327,5 @@ export default function AdminLayout({ children, title, subtitle, actions, showBa
         </div>
       </main>
     </div>
-  </SidebarProvider>
   );
 }

@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState } from 'react';
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { PanelLeftClose, PanelLeftOpen, Menu } from 'lucide-react';
 
 const SidebarContext = createContext({
-  open: true,
+  open: false,
   setOpen: () => {},
   toggleSidebar: () => {},
 });
@@ -16,7 +16,23 @@ export function SidebarProvider({
   children,
   className = '',
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  // Mobile screens (< 1024px) start with sidebar closed by default
+  const [open, setOpen] = useState(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      return false;
+    }
+    return defaultOpen;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const toggleSidebar = () => setOpen((prev) => !prev);
 
@@ -40,8 +56,8 @@ export function Sidebar({ children, className = '' }) {
 
   return (
     <aside
-      className={`fixed top-0 bottom-0 left-0 z-40 flex flex-col border-r border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 transition-all duration-300 ${
-        open ? 'w-60 translate-x-0' : 'w-16 -translate-x-full lg:translate-x-0'
+      className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col border-r border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 transition-transform duration-300 w-60 ${
+        open ? 'translate-x-0 shadow-2xl lg:shadow-none' : '-translate-x-full lg:translate-x-0'
       } ${className}`}
     >
       {children}
@@ -73,17 +89,25 @@ export function SidebarFooter({ children, className = '' }) {
   );
 }
 
-export function SidebarTrigger({ className = '', children }) {
+export function SidebarTrigger({ className = '', children, onClick }) {
   const { open, toggleSidebar } = useSidebar();
+
+  const handleClick = (e) => {
+    if (onClick) {
+      onClick(e);
+    } else {
+      toggleSidebar();
+    }
+  };
 
   return (
     <button
       type="button"
-      onClick={toggleSidebar}
+      onClick={handleClick}
       className={`p-2 rounded-xl text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 transition cursor-pointer shrink-0 ${className}`}
-      title={open ? 'Collapse Sidebar' : 'Expand Sidebar'}
+      title={open ? 'Close Sidebar' : 'Open Sidebar'}
     >
-      {children || (open ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />)}
+      {children || <Menu className="h-5 w-5" />}
     </button>
   );
 }
