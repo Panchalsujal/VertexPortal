@@ -6,6 +6,7 @@ import Lecture from "../models/lecture.model.js";
 import Enrollment from "../models/enrollment.model.js";
 import { validateObjectId } from "../utils/validator.js";
 import { ApiError } from "../utils/ApiError.js";
+import { executeChunkedBulkWrite } from "../utils/bulkWriteHelper.js";
 import { notifyCourseEnrolledStudents } from "./notification.service.js";
 import { getPagination, buildPaginationMeta } from "../utils/pagination.js";
 import LiveClassAttendance from "../models/liveClassAttendance.model.js";
@@ -2277,6 +2278,8 @@ async function finalizeLiveClassAttendance({ liveClassId, liveClass }) {
     liveClass: liveClassId,
   });
 
+  const bulkOperations = [];
+
   for (const attendance of attendanceRecords) {
     let addedDuration = 0;
 
@@ -2311,34 +2314,47 @@ async function finalizeLiveClassAttendance({ liveClassId, liveClass }) {
       addedDuration += session.durationInSeconds;
     }
 
-    attendance.totalDurationInSeconds += addedDuration;
-
-    attendance.totalDurationInSeconds = Math.min(
-      attendance.totalDurationInSeconds,
-
+    const newTotalDuration = Math.min(
+      attendance.totalDurationInSeconds + addedDuration,
       Number(liveClass.durationInMinutes || 0) * 60,
     );
 
+    let newLastLeftAt = attendance.lastLeftAt;
     if (attendance.sessions.length > 0) {
       const latestClosedSession = [...attendance.sessions]
         .reverse()
         .find((session) => session.leftAt !== null);
 
-      attendance.lastLeftAt =
-        latestClosedSession?.leftAt ?? attendance.lastLeftAt;
+      newLastLeftAt = latestClosedSession?.leftAt ?? attendance.lastLeftAt;
     }
 
-    attendance.isPresent = false;
-
-    attendance.status = "completed";
-
-    attendance.attendancePercentage = calculateAttendancePercentage({
-      totalDurationInSeconds: attendance.totalDurationInSeconds,
-
+    const newAttendancePercentage = calculateAttendancePercentage({
+      totalDurationInSeconds: newTotalDuration,
       liveClassDurationInMinutes: liveClass.durationInMinutes,
     });
 
-    await attendance.save();
+    bulkOperations.push({
+      updateOne: {
+        filter: { _id: attendance._id },
+        update: {
+          $set: {
+            sessions: attendance.sessions,
+            totalDurationInSeconds: newTotalDuration,
+            lastLeftAt: newLastLeftAt,
+            isPresent: false,
+            status: "completed",
+            attendancePercentage: newAttendancePercentage,
+          },
+        },
+      },
+    });
+  }
+
+  if (bulkOperations.length > 0) {
+    await executeChunkedBulkWrite(LiveClassAttendance, bulkOperations, {
+      chunkSize: 500,
+      ordered: false,
+    });
   }
 
   return {

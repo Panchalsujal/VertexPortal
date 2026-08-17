@@ -17,6 +17,7 @@ import {
 } from "../utils/queryParser.js";
 
 import { ApiError } from "../utils/ApiError.js";
+import { executeChunkedInsertMany } from "../utils/bulkWriteHelper.js";
 const NOTIFICATION_TYPES = [
   "announcement",
   "assignment",
@@ -393,9 +394,14 @@ export async function createBulkNotifications({
     archivedAt: null,
   }));
 
-  const notifications = await Notification.insertMany(documents, {
-    ordered: false,
-  });
+  const notifications = await executeChunkedInsertMany(
+    Notification,
+    documents,
+    {
+      chunkSize: 500,
+      ordered: false,
+    }
+  );
 
   return {
     insertedCount: notifications.length,

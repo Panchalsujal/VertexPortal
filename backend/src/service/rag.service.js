@@ -16,6 +16,7 @@ import { getPagination, buildPaginationMeta } from "../utils/pagination.js";
 import { parseEnumQuery } from "../utils/queryParser.js";
 
 import { ApiError } from "../utils/ApiError.js";
+import { executeChunkedInsertMany } from "../utils/bulkWriteHelper.js";
 
 const RESOURCE_TYPES = ["course", "module", "lecture", "document", "note"];
 
@@ -339,7 +340,10 @@ export async function ingestRagResource({
     isActive: true,
   }));
 
-  await RagChunk.insertMany(documents);
+  await executeChunkedInsertMany(RagChunk, documents, {
+    chunkSize: 100,
+    ordered: false,
+  });
 
   return {
     courseId,

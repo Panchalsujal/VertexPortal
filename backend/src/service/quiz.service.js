@@ -23,6 +23,7 @@ import { validateObjectId } from "../utils/validator.js";
 import { ApiError } from "../utils/ApiError.js";
 import { getPagination, buildPaginationMeta } from "../utils/pagination.js";
 import { buildSearchFilter } from "../utils/search.js";
+import { executeChunkedBulkWrite } from "../utils/bulkWriteHelper.js";
 import { randomBytes } from "node:crypto";
 import { shuffleWithSeed } from "../utils/shuffle.js";
 
@@ -3525,6 +3526,8 @@ export async function submitQuizAttempt({
       ? incomingAnswers
       : Object.entries(incomingAnswers).map(([qId, val]) => ({ questionId: qId, value: val }));
 
+    const upsertOperations = [];
+
     for (const item of entries) {
       const qId = item.questionId || item.question || item._id;
       const val = item.value !== undefined ? item.value : (item.selectedOptionIds || item.selectedOption || item.answerText);
@@ -3541,21 +3544,30 @@ export async function submitQuizAttempt({
         else if (val) selectedOptionIds = [val];
       }
 
-      await QuizAnswer.findOneAndUpdate(
-        { attempt: attempt._id, question: question._id },
-        {
-          $set: {
-            quiz: attempt.quiz,
-            student: attempt.student,
-            questionType: question.questionType,
-            selectedOptionIds: selectedOptionIds.map(String),
-            answerText,
-            isAnswered: question.questionType === "short_answer" ? answerText.length > 0 : selectedOptionIds.length > 0,
-            maxMarks: question.marks,
+      upsertOperations.push({
+        updateOne: {
+          filter: { attempt: attempt._id, question: question._id },
+          update: {
+            $set: {
+              quiz: attempt.quiz,
+              student: attempt.student,
+              questionType: question.questionType,
+              selectedOptionIds: selectedOptionIds.map(String),
+              answerText,
+              isAnswered: question.questionType === "short_answer" ? answerText.length > 0 : selectedOptionIds.length > 0,
+              maxMarks: question.marks,
+            },
           },
+          upsert: true,
         },
-        { upsert: true, returnDocument: 'after' }
-      );
+      });
+    }
+
+    if (upsertOperations.length > 0) {
+      await executeChunkedBulkWrite(QuizAnswer, upsertOperations, {
+        chunkSize: 500,
+        ordered: false,
+      });
     }
   }
 
@@ -3654,7 +3666,10 @@ export async function submitQuizAttempt({
   }
 
   if (answerWriteOperations.length > 0) {
-    await QuizAnswer.bulkWrite(answerWriteOperations);
+    await executeChunkedBulkWrite(QuizAnswer, answerWriteOperations, {
+      chunkSize: 500,
+      ordered: false,
+    });
   }
 
   const totalMarks = questions.reduce(

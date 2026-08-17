@@ -1,6 +1,7 @@
 import LiveClass from "../models/liveClass.model.js";
 import Enrollment from "../models/enrollment.model.js";
-import {config} from "../config/config.js";
+import { config } from "../config/config.js";
+import { executeChunkedBulkWrite } from "../utils/bulkWriteHelper.js";
 import {
   dispatchBulkNotifications,
 } from "./notification.service.js";
@@ -225,52 +226,40 @@ export async function processLiveClassReminders() {
       0,
   };
 
-  for (
-    const liveClass
-    of liveClasses
-  ) {
+  const bulkOperations = [];
+
+  for (const liveClass of liveClasses) {
     try {
-      const startsAt =
-        new Date(
-          liveClass.startsAt,
-        );
-
-      const differenceMs =
-        startsAt.getTime() -
-        now.getTime();
-
-      const differenceMinutes =
-        differenceMs /
-        (1000 * 60);
+      const startsAt = new Date(liveClass.startsAt);
+      const differenceMs = startsAt.getTime() - now.getTime();
+      const differenceMinutes = differenceMs / (1000 * 60);
 
       /*
        * 24 hour reminder:
-       *
-       * Scheduler har minute chalega,
-       * isliye 23h59 - 24h range target karenge.
+       * Scheduler har minute chalega, isliye 23h59 - 24h range target karenge.
        */
       if (
-        !liveClass.reminders
-          ?.reminder24HoursSent &&
+        !liveClass.reminders?.reminder24HoursSent &&
         differenceMinutes <= 24 * 60 &&
-        differenceMinutes >
-          23 * 60
+        differenceMinutes > 23 * 60
       ) {
         await sendLiveClassReminder({
           liveClass,
-          reminderType:
-            "24_hours",
+          reminderType: "24_hours",
         });
 
-        liveClass.reminders
-          .reminder24HoursSent =
-          true;
+        bulkOperations.push({
+          updateOne: {
+            filter: { _id: liveClass._id },
+            update: {
+              $set: {
+                "reminders.reminder24HoursSent": true,
+              },
+            },
+          },
+        });
 
-        await liveClass.save();
-
-        summary.reminder24Hours +=
-          1;
-
+        summary.reminder24Hours += 1;
         continue;
       }
 
@@ -278,26 +267,27 @@ export async function processLiveClassReminders() {
        * 1 hour reminder.
        */
       if (
-        !liveClass.reminders
-          ?.reminder1HourSent &&
+        !liveClass.reminders?.reminder1HourSent &&
         differenceMinutes <= 60 &&
         differenceMinutes > 10
       ) {
         await sendLiveClassReminder({
           liveClass,
-          reminderType:
-            "1_hour",
+          reminderType: "1_hour",
         });
 
-        liveClass.reminders
-          .reminder1HourSent =
-          true;
+        bulkOperations.push({
+          updateOne: {
+            filter: { _id: liveClass._id },
+            update: {
+              $set: {
+                "reminders.reminder1HourSent": true,
+              },
+            },
+          },
+        });
 
-        await liveClass.save();
-
-        summary.reminder1Hour +=
-          1;
-
+        summary.reminder1Hour += 1;
         continue;
       }
 
@@ -305,25 +295,27 @@ export async function processLiveClassReminders() {
        * 10 minute reminder.
        */
       if (
-        !liveClass.reminders
-          ?.reminder10MinutesSent &&
+        !liveClass.reminders?.reminder10MinutesSent &&
         differenceMinutes <= 10 &&
         differenceMinutes > 0
       ) {
         await sendLiveClassReminder({
           liveClass,
-          reminderType:
-            "10_minutes",
+          reminderType: "10_minutes",
         });
 
-        liveClass.reminders
-          .reminder10MinutesSent =
-          true;
+        bulkOperations.push({
+          updateOne: {
+            filter: { _id: liveClass._id },
+            update: {
+              $set: {
+                "reminders.reminder10MinutesSent": true,
+              },
+            },
+          },
+        });
 
-        await liveClass.save();
-
-        summary.reminder10Minutes +=
-          1;
+        summary.reminder10Minutes += 1;
       }
     } catch (error) {
       summary.failed += 1;
@@ -333,6 +325,13 @@ export async function processLiveClassReminders() {
         error,
       );
     }
+  }
+
+  if (bulkOperations.length > 0) {
+    await executeChunkedBulkWrite(LiveClass, bulkOperations, {
+      chunkSize: 500,
+      ordered: false,
+    });
   }
 
   return summary;

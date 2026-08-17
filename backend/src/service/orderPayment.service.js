@@ -8,6 +8,7 @@ import CouponUsage from "../models/couponUsage.model.js";
 import Course from "../models/course.model.js";
 
 import { ApiError } from "../utils/ApiError.js";
+import { executeChunkedBulkWrite } from "../utils/bulkWriteHelper.js";
 
 /*
  * =========================================================
@@ -183,134 +184,83 @@ export async function completePaidOrder({
 
         /*
          * =========================================
-         * ENROLLMENTS
+         * ENROLLMENTS (BATCHED BULK WRITE)
          * =========================================
          */
 
-        const newlyActivatedCourseIds =
-          [];
+        const courseIdsInOrder = order.courses.map((item) => item.course);
+        const existingEnrollments = await Enrollment.find({
+          student: order.student,
+          course: { $in: courseIdsInOrder },
+        }).session(session);
 
-        for (
-          const item of
-          order.courses
-        ) {
-          let enrollment =
-            await Enrollment.findOne({
-              student:
-                order.student,
+        const existingEnrollmentMap = new Map(
+          existingEnrollments.map((enr) => [enr.course.toString(), enr])
+        );
 
-              course:
-                item.course,
-            }).session(session);
+        const newlyActivatedCourseIds = [];
+        const enrollmentBulkOperations = [];
+        const now = new Date();
 
-          /*
-           * -----------------------------------------
-           * EXISTING ENROLLMENT
-           * -----------------------------------------
-           */
+        for (const item of order.courses) {
+          const courseIdStr = item.course.toString();
+          const enrollment = existingEnrollmentMap.get(courseIdStr);
+
           if (enrollment) {
-            /*
-             * Active/completed already hai.
-             *
-             * Nothing to do.
-             */
             if (
-              enrollment.status ===
-                "active" ||
-              enrollment.status ===
-                "completed"
+              enrollment.status === "active" ||
+              enrollment.status === "completed"
             ) {
               continue;
             }
 
-            /*
-             * cancelled / expired ko reactivate.
-             */
-            enrollment.status =
-              "active";
-
-            enrollment.enrolledAt =
-              new Date();
-
-            enrollment.expiresAt =
-              null;
-
-            /*
-             * New purchase ko fresh enrollment
-             * treat karna ho to progress reset.
-             */
-            enrollment.progressPercentage =
-              0;
-
-            enrollment.completedLecturesCount =
-              0;
-
-            enrollment.lastWatchedLecture =
-              null;
-
-            enrollment.lastWatchedAt =
-              null;
-
-            enrollment.completedAt =
-              null;
-
-            enrollment.certificateStatus =
-              "not_eligible";
-
-            enrollment.certificateIssuedAt =
-              null;
-
-            enrollment.certificateIssueError =
-              "";
-
-            enrollment.certificateIssueAttempts =
-              0;
-
-            await enrollment.save({
-              session,
+            // Reactivate cancelled / expired enrollment
+            enrollmentBulkOperations.push({
+              updateOne: {
+                filter: { _id: enrollment._id },
+                update: {
+                  $set: {
+                    status: "active",
+                    enrolledAt: now,
+                    expiresAt: null,
+                    progressPercentage: 0,
+                    completedLecturesCount: 0,
+                    lastWatchedLecture: null,
+                    lastWatchedAt: null,
+                    completedAt: null,
+                    certificateStatus: "not_eligible",
+                    certificateIssuedAt: null,
+                    certificateIssueError: "",
+                    certificateIssueAttempts: 0,
+                  },
+                },
+              },
             });
 
-            newlyActivatedCourseIds.push(
-              item.course,
-            );
-
-            continue;
-          }
-
-          /*
-           * -----------------------------------------
-           * NEW ENROLLMENT
-           * -----------------------------------------
-           */
-
-          const created =
-            await Enrollment.create(
-              [
-                {
-                  student:
-                    order.student,
-
-                  course:
-                    item.course,
-
-                  status:
-                    "active",
-
-                  enrolledAt:
-                    new Date(),
+            newlyActivatedCourseIds.push(item.course);
+          } else {
+            // New enrollment
+            enrollmentBulkOperations.push({
+              insertOne: {
+                document: {
+                  student: order.student,
+                  course: item.course,
+                  status: "active",
+                  enrolledAt: now,
                 },
-              ],
-              {
-                session,
               },
-            );
+            });
 
-          enrollment =
-            created[0];
+            newlyActivatedCourseIds.push(item.course);
+          }
+        }
 
-          newlyActivatedCourseIds.push(
-            item.course,
-          );
+        if (enrollmentBulkOperations.length > 0) {
+          await executeChunkedBulkWrite(Enrollment, enrollmentBulkOperations, {
+            chunkSize: 500,
+            session,
+            ordered: false,
+          });
         }
 
         /*
