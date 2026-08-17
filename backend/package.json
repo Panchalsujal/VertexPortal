@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node src/test/circuitBreaker.test.js",
+    "test": "node src/test/circuitBreaker.test.js && node src/test/serverRenderCache.test.js",
+    "test:ssr": "node src/test/serverRenderCache.test.js",
+    "test:circuit": "node src/test/circuitBreaker.test.js",
     "dev": "nodemon server.js",
     "start": "node server.js"
   },

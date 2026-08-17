@@ -64,6 +64,7 @@ import aiAssistantRoutes from "./routes/aiAssistant.routes.js";
 import ragRoutes from "./routes/rag.routes.js";
 import ragIndexingRouter from "./routes/ragIndexing.routes.js";
 import studentNoteRoutes from "./routes/studentNote.routes.js";
+import ssrRoutes from "./routes/ssr.routes.js";
 import { notFoundHandler } from "./middlewares/notFound.middleware.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 
@@ -271,6 +272,10 @@ app.use("/api/ai", aiLimiter, aiAssistantRoutes);
 app.use("/api/ai/indexing", ragIndexingRouter);
 app.use("/api/notes", studentNoteRoutes);
 app.use("/api/instructor/dashboard", instructorDashboardRoutes);
+
+// Server-Side Rendered (SSR) & Cached Fragment Routes
+app.use("/ssr", ssrRoutes);
+app.use("/api/ssr", ssrRoutes);
 
 // Error Handlers
 app.use(notFoundHandler);

@@ -1,5 +1,6 @@
 import Course from "../models/course.model.js";
 import CourseReview from "../models/courseReview.model.js";
+import { renderCacheService } from "./renderCache.service.js";
 
 export async function recalculateCourseRating(
   courseId,
@@ -128,4 +129,8 @@ export async function recalculateCourseRating(
       update,
     );
   }
+
+  // Purge SSR caches for this course and catalog
+  renderCacheService.purgeByTag("catalog");
+  renderCacheService.purgeByTag("courses");
 }

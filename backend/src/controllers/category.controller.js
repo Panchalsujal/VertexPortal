@@ -3,6 +3,7 @@ import Category from "../models/category.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { escapeRegex } from "../middlewares/regex.middleware.js";
 import mongoose from "mongoose";
+import { renderCacheService } from "../service/renderCache.service.js";
 
 export const createCategoryController = asyncHandler(async (req, res) => {
   const { name, description } = req.body;
@@ -48,6 +49,9 @@ export const createCategoryController = asyncHandler(async (req, res) => {
     slug,
     description: description?.trim() || "",
   });
+
+  renderCacheService.purgeByTag("catalog");
+  renderCacheService.purgeByTag("categories");
 
   return res.status(201).json({
     success: true,
@@ -175,6 +179,9 @@ export const updateCategoryController = asyncHandler(async (req, res) => {
 
   await category.save();
 
+  renderCacheService.purgeByTag("catalog");
+  renderCacheService.purgeByTag("categories");
+
   return res.status(200).json({
     success: true,
     message: "Category updated successfully",
@@ -205,6 +212,9 @@ export const deleteCategoryController = asyncHandler(async (req, res) => {
   category.isActive = false;
 
   await category.save();
+
+  renderCacheService.purgeByTag("catalog");
+  renderCacheService.purgeByTag("categories");
 
   return res.status(200).json({
     success: true,

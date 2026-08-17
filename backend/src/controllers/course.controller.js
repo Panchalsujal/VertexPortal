@@ -5,6 +5,7 @@ import Category from "../models/category.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import imagekit from "../service/imagekit.js";
 import { escapeRegex, generateUniqueCourseSlug, normalizeStringArray } from "../middlewares/regex.middleware.js";
+import { renderCacheService } from "../service/renderCache.service.js";
 export const createCourseController = asyncHandler(async (req, res) => {
   const {
     title,
@@ -362,6 +363,10 @@ export const publishCourseController = asyncHandler(async (req, res) => {
 
   await course.save();
 
+  // Invalidate SSR and fragment caches
+  renderCacheService.purgeByTag(`course:${course.slug}`);
+  renderCacheService.purgeByTag("catalog");
+
   return res.status(200).json({
     success: true,
     message: "Course published successfully",
@@ -594,6 +599,10 @@ export const updateCourseController = asyncHandler(async (req, res) => {
 
   await course.save();
 
+  // Invalidate SSR and fragment caches
+  renderCacheService.purgeByTag(`course:${course.slug}`);
+  renderCacheService.purgeByTag("catalog");
+
   const updatedCourse = await Course.findById(course._id)
     .populate("category", "name slug")
     .populate("instructor", "fullName email avatarUrl");
@@ -657,6 +666,10 @@ export const updateCourseThumbnailController = asyncHandler(
     course.thumbnailFileId = uploadedImage.fileId;
 
     await course.save();
+
+    // Invalidate SSR cache
+    renderCacheService.purgeByTag(`course:${course.slug}`);
+    renderCacheService.purgeByTag("catalog");
 
     if (oldThumbnailFileId) {
       try {
@@ -723,6 +736,10 @@ export const archiveCourseController = asyncHandler(async (req, res) => {
   course.isPublished = false;
 
   await course.save();
+
+  // Invalidate SSR cache
+  renderCacheService.purgeByTag(`course:${course.slug}`);
+  renderCacheService.purgeByTag("catalog");
 
   return res.status(200).json({
     success: true,

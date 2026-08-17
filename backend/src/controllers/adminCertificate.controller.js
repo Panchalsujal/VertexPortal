@@ -14,6 +14,7 @@ import {
 
 import { logAdminAction } from "../service/adminAuditLogger.service.js";
 import { AUDIT_ACTIONS } from "../constants/auditActions.js";
+import { renderCacheService } from "../service/renderCache.service.js";
 
 export const issueCertificateController = asyncHandler(async (req, res) => {
   const { studentId, courseId, enrollmentId } = req.body || {};
@@ -100,6 +101,13 @@ export const revokeCertificateController = asyncHandler(async (req, res) => {
     });
   }
 
+  if (result.certificate?.verificationCode) {
+    renderCacheService.purgeByTag(`certificate:${result.certificate.verificationCode}`);
+  }
+  if (result.certificate?.certificateNumber) {
+    renderCacheService.purgeByTag(`certificate:${result.certificate.certificateNumber}`);
+  }
+
   return res.status(200).json({
     success: true,
     message: result.message,
@@ -131,6 +139,13 @@ export const restoreCertificateController = asyncHandler(async (req, res) => {
         courseTitle: result.certificate.courseTitle,
       },
     });
+  }
+
+  if (result.certificate?.verificationCode) {
+    renderCacheService.purgeByTag(`certificate:${result.certificate.verificationCode}`);
+  }
+  if (result.certificate?.certificateNumber) {
+    renderCacheService.purgeByTag(`certificate:${result.certificate.certificateNumber}`);
   }
 
   return res.status(200).json({
@@ -323,6 +338,13 @@ export const regenerateCertificatePdfController = asyncHandler(
         courseTitle: result.certificate.courseTitle,
       },
     });
+
+    if (result.certificate?.verificationCode) {
+      renderCacheService.purgeByTag(`certificate:${result.certificate.verificationCode}`);
+    }
+    if (result.certificate?.certificateNumber) {
+      renderCacheService.purgeByTag(`certificate:${result.certificate.certificateNumber}`);
+    }
 
     return res.status(200).json({
       success: true,
