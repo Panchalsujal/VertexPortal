@@ -417,8 +417,7 @@ export default function AdminDiscussionReports() {
                   >
                     <option value="hide_content">Hide / Remove Content</option>
                     <option value="delete_content">Permanently Delete Content</option>
-                    <option value="warn_user">Warn Target User</option>
-                    <option value="ban_user">Suspend / Ban User Account</option>
+                    <option value="lock_discussion">Lock Discussion Thread</option>
                     <option value="none">None (Record Only)</option>
                   </select>
                 </div>
