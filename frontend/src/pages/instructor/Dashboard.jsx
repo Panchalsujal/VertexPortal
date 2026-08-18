@@ -27,6 +27,7 @@ import {
   TrendingUp,
   BarChart3,
   ExternalLink,
+  Zap,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useInstructorGuard } from '../../hooks/useInstructorGuard';
