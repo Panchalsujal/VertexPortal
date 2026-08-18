@@ -379,47 +379,63 @@ export const resendVerificationController = asyncHandler(async (req, res) => {
 
 export const googleAuthController = asyncHandler(async (req, res) => {
   try {
-    const { credential, referralCode, ref } = req.body;
-    if (!credential) {
+    const { credential, accessToken, referralCode, ref } = req.body;
+    if (!credential && !accessToken) {
       return res.status(400).json({
         success: false,
-        message: "Google credential token is required",
+        message: "Google credential token or access token is required",
       });
     }
 
     let payload = null;
 
-    // Verify Google ID token via Google Tokeninfo API
-    try {
-      const googleRes = await fetch(
-        `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
-      );
-      if (googleRes.ok) {
-        payload = await googleRes.json();
+    // 1. If accessToken provided (OAuth2 Token Client flow), fetch profile directly from Google
+    if (accessToken) {
+      try {
+        const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (userInfoRes.ok) {
+          payload = await userInfoRes.json();
+        }
+      } catch (err) {
+        console.error("Google userinfo fetch failed:", err);
       }
-    } catch {
-      // Fallback to JWT payload decode
     }
 
-    if (!payload || !payload.email) {
+    // 2. If credential (ID token) provided (Google One-Tap / GSI button flow)
+    if (!payload && credential) {
       try {
-        const parts = credential.split(".");
-        if (parts.length === 3) {
-          const raw = Buffer.from(parts[1], "base64").toString("utf8");
-          payload = JSON.parse(raw);
+        const googleRes = await fetch(
+          `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
+        );
+        if (googleRes.ok) {
+          payload = await googleRes.json();
         }
       } catch {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid Google credential format",
-        });
+        // Fallback to JWT payload decode
+      }
+
+      if (!payload || !payload.email) {
+        try {
+          const parts = credential.split(".");
+          if (parts.length === 3) {
+            const raw = Buffer.from(parts[1], "base64").toString("utf8");
+            payload = JSON.parse(raw);
+          }
+        } catch {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid Google credential format",
+          });
+        }
       }
     }
 
     if (!payload || !payload.email) {
       return res.status(400).json({
         success: false,
-        message: "Unable to retrieve email from Google credential",
+        message: "Unable to retrieve email from Google authentication",
       });
     }
 

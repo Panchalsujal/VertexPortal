@@ -15,7 +15,7 @@ import {
 import { login as loginApi, googleAuth } from '../api/auth.api';
 import { useAuth } from '../store/slices/authSlice';
 import toast from 'react-hot-toast';
-import { initGoogleAuth, renderGoogleButton, triggerGooglePrompt } from '../utils/googleAuth';
+import { initGoogleAuth, triggerGoogleLogin } from '../utils/googleAuth';
 
 const PERKS = [
   { icon: BookOpenIcon, title: '200+ Interactive Courses', desc: 'Expert-curated paths across full-stack tech & design' },
@@ -32,13 +32,11 @@ export default function Login() {
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const googleBtnRef = useRef(null);
-  const gsiInitializedRef = useRef(false);
-
-  const handleGoogleSuccess = async (credential) => {
+  const handleGoogleSuccess = async (authPayload) => {
     setLoading(true);
     try {
-      const res = await googleAuth({ credential });
+      const payload = typeof authPayload === 'string' ? { credential: authPayload } : authPayload;
+      const res = await googleAuth(payload);
       const userData = res.data.data.user;
       if (res.data.data?.token) {
         localStorage.setItem('token', res.data.data.token);
@@ -57,20 +55,10 @@ export default function Login() {
 
   useEffect(() => {
     initGoogleAuth(handleGoogleSuccess);
-    if (googleBtnRef.current) {
-      renderGoogleButton(googleBtnRef.current);
-    }
   }, []);
 
   const handleGoogleAuth = () => {
-    if (googleBtnRef.current) {
-      const btn = googleBtnRef.current.querySelector('div[role=button]');
-      if (btn) {
-        btn.click();
-        return;
-      }
-    }
-    triggerGooglePrompt();
+    triggerGoogleLogin();
   };
 
   const handleSubmit = async (e) => {
@@ -295,7 +283,6 @@ export default function Login() {
                 <span>GitHub</span>
               </button>
             </div>
-            <div ref={googleBtnRef} className="hidden" aria-hidden="true" />
           </div>
         </div>
 

@@ -16,7 +16,7 @@ import {
 import { register as registerApi, googleAuth } from '../api/auth.api';
 import { useAuth } from '../store/slices/authSlice';
 import toast from 'react-hot-toast';
-import { initGoogleAuth, renderGoogleButton, triggerGooglePrompt } from '../utils/googleAuth';
+import { initGoogleAuth, triggerGoogleLogin } from '../utils/googleAuth';
 
 const PERKS = [
   { icon: SparklesIcon, title: 'AI Tutor Included', desc: 'Ask your personal AI tutor anything, 24/7.' },
@@ -44,14 +44,12 @@ export default function Register() {
   const [showRefInput, setShowRefInput] = useState(Boolean(refCodeFromUrl));
   const [loading, setLoading] = useState(false);
 
-  const googleBtnRef = useRef(null);
-  const gsiInitializedRef = useRef(false);
-
-  const handleGoogleSuccess = async (credential) => {
+  const handleGoogleSuccess = async (authPayload) => {
     setLoading(true);
     try {
+      const payload = typeof authPayload === 'string' ? { credential: authPayload } : authPayload;
       const res = await googleAuth({
-        credential,
+        ...payload,
         referralCode: form.referralCode || refCodeFromUrl,
       });
       const userData = res.data.data.user;
@@ -70,20 +68,10 @@ export default function Register() {
 
   useEffect(() => {
     initGoogleAuth(handleGoogleSuccess);
-    if (googleBtnRef.current) {
-      renderGoogleButton(googleBtnRef.current);
-    }
   }, []);
 
   const handleGoogleAuth = () => {
-    if (googleBtnRef.current) {
-      const btn = googleBtnRef.current.querySelector('div[role=button]');
-      if (btn) {
-        btn.click();
-        return;
-      }
-    }
-    triggerGooglePrompt();
+    triggerGoogleLogin();
   };
 
   const strength = (() => {
@@ -435,7 +423,6 @@ export default function Register() {
                 <span>GitHub</span>
               </button>
             </div>
-            <div ref={googleBtnRef} className="hidden" aria-hidden="true" />
           </div>
         </div>
 
