@@ -24,7 +24,6 @@ import {
   VideoOff,
   Mic,
   MicOff,
-  Volume,
   Volume1,
   Volume2,
   VolumeX,
@@ -49,17 +48,13 @@ import {
   Headphones,
   Sliders,
   X,
-  Shield,
-  ShieldAlert,
-  Pin,
   UserX,
-  CheckCircle2,
   Lock,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. Live Chat Drawer Component
+// 1. Live Chat Drawer Component (Fully Mobile Responsive)
 // ─────────────────────────────────────────────────────────────────────────────
 function ChatDrawer({
   messages = [],
@@ -71,8 +66,8 @@ function ChatDrawer({
 }) {
   const safeMessages = Array.isArray(messages) ? messages : [];
   return (
-    <div className="w-full lg:w-84 sm:w-96 bg-slate-900/95 backdrop-blur-xl border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col h-72 lg:h-full z-30 transition-all shadow-2xl">
-      <div className="p-3.5 border-b border-slate-800 flex items-center justify-between">
+    <div className="w-full lg:w-84 xl:w-96 bg-slate-900/98 backdrop-blur-xl border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col fixed inset-x-0 bottom-0 top-14 sm:top-16 lg:relative lg:inset-auto lg:top-auto lg:h-full z-40 transition-all shadow-2xl rounded-t-3xl lg:rounded-none">
+      <div className="p-3.5 border-b border-slate-800 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <MessageSquare className="w-4 h-4 text-purple-400" />
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
@@ -86,34 +81,34 @@ function ChatDrawer({
           {onClose && (
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded hover:bg-slate-800 cursor-pointer"
+              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3.5 space-y-3 bg-slate-950/60">
+      <div className="flex-1 overflow-y-auto p-3.5 space-y-3 bg-slate-950/60 min-h-0">
         {safeMessages.map((msg) => (
           <div key={msg.id} className="text-xs">
             <div className="flex items-center justify-between gap-1 mb-1">
-              <span className="font-bold text-slate-200 flex items-center gap-1.5">
+              <span className="font-bold text-slate-200 flex items-center gap-1.5 truncate">
                 {msg.senderName}
                 {msg.senderRole === 'instructor' && (
-                  <span className="text-[9px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.2 rounded font-bold uppercase">
+                  <span className="text-[9px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.2 rounded font-bold uppercase shrink-0">
                     Instructor
                   </span>
                 )}
                 {msg.senderRole === 'system' && (
-                  <span className="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.2 rounded font-bold uppercase">
+                  <span className="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.2 rounded font-bold uppercase shrink-0">
                     Bot
                   </span>
                 )}
               </span>
-              <span className="text-[10px] text-slate-500">{msg.time}</span>
+              <span className="text-[10px] text-slate-500 shrink-0">{msg.time}</span>
             </div>
-            <div className="bg-slate-800/80 rounded-xl p-2.5 text-slate-200 leading-relaxed border border-slate-700/50 shadow-xs">
+            <div className="bg-slate-800/80 rounded-xl p-2.5 text-slate-200 leading-relaxed border border-slate-700/50 shadow-xs break-words">
               {msg.text}
             </div>
           </div>
@@ -121,7 +116,7 @@ function ChatDrawer({
         <div ref={chatBottomRef} />
       </div>
 
-      <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-800 bg-slate-900/90 flex gap-2">
+      <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-800 bg-slate-900/95 flex gap-2 shrink-0">
         <input
           type="text"
           value={inputText}
@@ -132,7 +127,7 @@ function ChatDrawer({
         <button
           type="submit"
           disabled={!inputText.trim()}
-          className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white p-2 rounded-xl transition cursor-pointer shadow-xs"
+          className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white p-2.5 rounded-xl transition cursor-pointer shadow-xs shrink-0"
         >
           <Send className="w-4 h-4" />
         </button>
@@ -142,7 +137,7 @@ function ChatDrawer({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. Participants & Voice Control Drawer Component
+// 2. Participants & Voice Control Drawer Component (Fully Mobile Responsive)
 // ─────────────────────────────────────────────────────────────────────────────
 function ParticipantsDrawer({
   participants = [],
@@ -214,8 +209,8 @@ function ParticipantsDrawer({
   };
 
   return (
-    <div className="w-full lg:w-96 sm:w-96 bg-slate-900/95 backdrop-blur-xl border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col h-80 lg:h-full z-30 transition-all shadow-2xl">
-      <div className="p-3.5 border-b border-slate-800 flex items-center justify-between">
+    <div className="w-full lg:w-96 bg-slate-900/98 backdrop-blur-xl border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col fixed inset-x-0 bottom-0 top-14 sm:top-16 lg:relative lg:inset-auto lg:top-auto lg:h-full z-40 transition-all shadow-2xl rounded-t-3xl lg:rounded-none">
+      <div className="p-3.5 border-b border-slate-800 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <Users className="w-4 h-4 text-purple-400" />
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
@@ -226,15 +221,15 @@ function ParticipantsDrawer({
           {onClose && (
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded hover:bg-slate-800 cursor-pointer"
+              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3.5 space-y-3 bg-slate-950/60">
+      <div className="flex-1 overflow-y-auto p-3.5 space-y-3 bg-slate-950/60 min-h-0">
         {participants.map((p) => {
           const isMe = String(p.userId) === currentUserId;
           const isParticipantHost = p.role === 'admin' || p.role === 'host' || p.role === 'instructor' || p.custom?.role === 'instructor';
@@ -249,7 +244,7 @@ function ParticipantsDrawer({
               {/* Participant Header Info */}
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="relative">
+                  <div className="relative shrink-0">
                     {p.image ? (
                       <img
                         src={p.image}
@@ -269,17 +264,17 @@ function ParticipantsDrawer({
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-bold text-white truncate">{p.name || 'User'}</span>
                       {isMe && (
-                        <span className="text-[9px] bg-slate-700 text-slate-300 px-1.5 py-0.2 rounded font-bold">
+                        <span className="text-[9px] bg-slate-700 text-slate-300 px-1.5 py-0.2 rounded font-bold shrink-0">
                           You
                         </span>
                       )}
                       {isParticipantHost && (
-                        <span className="text-[9px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.2 rounded font-bold uppercase">
+                        <span className="text-[9px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.2 rounded font-bold uppercase shrink-0">
                           Instructor
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                    <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5 flex-wrap">
                       <span className="flex items-center gap-1">
                         {p.audioStream ? (
                           <Mic className="w-3 h-3 text-emerald-400" />
@@ -310,7 +305,7 @@ function ParticipantsDrawer({
                 </div>
               </div>
 
-              {/* Individual Voice Controller (For all users & participants) */}
+              {/* Individual Voice Controller */}
               {!isMe && (
                 <div className="bg-slate-900/80 rounded-xl p-2 border border-slate-800 space-y-1">
                   <div className="flex items-center justify-between text-[10px]">
@@ -346,7 +341,6 @@ function ParticipantsDrawer({
                   <button
                     onClick={() => handleGrantPermission(p.userId, OwnCapability.SEND_AUDIO, 'Microphone')}
                     className="px-2 py-1 bg-slate-700/60 hover:bg-slate-700 text-slate-200 rounded-lg font-medium flex items-center justify-center gap-1 transition cursor-pointer"
-                    title="Allow student to speak"
                   >
                     <Mic className="w-3 h-3 text-emerald-400" />
                     <span>Allow Audio</span>
@@ -354,7 +348,6 @@ function ParticipantsDrawer({
                   <button
                     onClick={() => handleRevokePermission(p.userId, OwnCapability.SEND_AUDIO, 'Microphone')}
                     className="px-2 py-1 bg-slate-700/60 hover:bg-slate-700 text-slate-200 rounded-lg font-medium flex items-center justify-center gap-1 transition cursor-pointer"
-                    title="Disable student microphone"
                   >
                     <MicOff className="w-3 h-3 text-amber-400" />
                     <span>Disable Audio</span>
@@ -362,7 +355,6 @@ function ParticipantsDrawer({
                   <button
                     onClick={() => handleGrantPermission(p.userId, OwnCapability.SEND_VIDEO, 'Camera')}
                     className="px-2 py-1 bg-slate-700/60 hover:bg-slate-700 text-slate-200 rounded-lg font-medium flex items-center justify-center gap-1 transition cursor-pointer"
-                    title="Allow student to enable video"
                   >
                     <Video className="w-3 h-3 text-emerald-400" />
                     <span>Allow Video</span>
@@ -370,7 +362,6 @@ function ParticipantsDrawer({
                   <button
                     onClick={() => handleRevokePermission(p.userId, OwnCapability.SEND_VIDEO, 'Camera')}
                     className="px-2 py-1 bg-slate-700/60 hover:bg-slate-700 text-slate-200 rounded-lg font-medium flex items-center justify-center gap-1 transition cursor-pointer"
-                    title="Disable student camera"
                   >
                     <VideoOff className="w-3 h-3 text-amber-400" />
                     <span>Disable Video</span>
@@ -378,7 +369,6 @@ function ParticipantsDrawer({
                   <button
                     onClick={() => handleGrantPermission(p.userId, OwnCapability.SCREENSHARE, 'Screen Sharing')}
                     className="px-2 py-1 bg-purple-900/40 hover:bg-purple-900/60 text-purple-200 border border-purple-700/40 rounded-lg font-medium flex items-center justify-center gap-1 transition cursor-pointer"
-                    title="Allow student to share screen"
                   >
                     <Monitor className="w-3 h-3 text-purple-400" />
                     <span>Allow Screen</span>
@@ -386,7 +376,6 @@ function ParticipantsDrawer({
                   <button
                     onClick={() => handleRevokePermission(p.userId, OwnCapability.SCREENSHARE, 'Screen Sharing')}
                     className="px-2 py-1 bg-slate-700/60 hover:bg-slate-700 text-slate-200 rounded-lg font-medium flex items-center justify-center gap-1 transition cursor-pointer"
-                    title="Disable student screen sharing"
                   >
                     <MonitorOff className="w-3 h-3 text-amber-400" />
                     <span>Disable Screen</span>
@@ -435,8 +424,8 @@ function VoiceControllerPopover({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="w-full max-w-sm bg-slate-900 border border-slate-700/80 rounded-3xl p-5 shadow-2xl text-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
+      <div className="w-full max-w-sm bg-slate-900 border border-slate-700/80 rounded-3xl p-4 sm:p-5 shadow-2xl text-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2">
             <SlidersHorizontal className="w-4 h-4 text-purple-400" />
@@ -631,8 +620,8 @@ function DeviceSettingsModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-5 sm:p-6 space-y-5 shadow-2xl text-slate-200">
+    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-4 sm:p-6 space-y-4 sm:space-y-5 shadow-2xl text-slate-200 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
           <div className="flex items-center gap-2">
             <Sliders className="w-5 h-5 text-purple-400" />
@@ -799,7 +788,6 @@ function StreamConnectedStage({
   toggleFullscreen,
 }) {
   const call = useCall();
-  const { isDark, toggleTheme } = useTheme();
   const {
     useParticipants,
     useIsCallRecordingInProgress,
@@ -813,10 +801,10 @@ function StreamConnectedStage({
 
   const participants = useParticipants() || [];
   const isRecording = useIsCallRecordingInProgress();
-  const { isMute: isMicMuted, hasBrowserPermission: hasMicPermission, devices: micDevices, selectedDevice: selectedMic } = useMicrophoneState() || {};
-  const { isMute: isCamMuted, hasBrowserPermission: hasCamPermission, devices: camDevices, selectedDevice: selectedCam } = useCameraState() || {};
+  const { isMute: isMicMuted, devices: micDevices, selectedDevice: selectedMic } = useMicrophoneState() || {};
+  const { isMute: isCamMuted, devices: camDevices, selectedDevice: selectedCam } = useCameraState() || {};
   const { devices: speakerDevices, selectedDevice: selectedSpeaker } = useSpeakerState ? useSpeakerState() : {};
-  const { screenShare, isEnabled: isScreenSharing } = useScreenShareState() || {};
+  const { isEnabled: isScreenSharing } = useScreenShareState() || {};
 
   // Permission hooks from Stream Video SDK
   const hasScreenSharePermission = useHasPermissions ? useHasPermissions(OwnCapability.SCREENSHARE) : true;
@@ -835,18 +823,18 @@ function StreamConnectedStage({
   const [participantVolumes, setParticipantVolumes] = useState({});
   const [micAudioLevel, setMicAudioLevel] = useState(0);
 
-  // Detect if ANY participant is sharing their screen (screenShareStream is set when active)
+  // Detect if ANY participant is sharing their screen
   const hasOngoingScreenShare = Array.isArray(participants) && participants.some(
     (p) => !!p.screenShareStream || (Array.isArray(p.publishedTracks) && p.publishedTracks.includes(3))
   );
   const callingState = useCallCallingState();
 
   const [layoutMode, setLayoutMode] = useState('grid'); // 'grid' | 'speaker'
-  const [manualLayout, setManualLayout] = useState(false); // true = user manually picked layout
+  const [manualLayout, setManualLayout] = useState(false);
   const [audioBlocked, setAudioBlocked] = useState(!isHost);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Audio autoplay unblocker — runs on mount and whenever a new participant joins
+  // Audio autoplay unblocker
   const doUnblockAudio = async (callRef) => {
     try {
       if (callRef?.resumeAudio) await callRef.resumeAudio();
@@ -945,7 +933,6 @@ function StreamConnectedStage({
   useEffect(() => {
     if (isHost) return;
 
-    // Screen sharing permission update
     if (prevScreenSharePerm.current !== hasScreenSharePermission) {
       if (hasScreenSharePermission) {
         toast.success('Instructor granted you screen sharing permission! 🖥️', { duration: 5000, icon: '🖥️' });
@@ -958,7 +945,6 @@ function StreamConnectedStage({
       prevScreenSharePerm.current = hasScreenSharePermission;
     }
 
-    // Audio permission update
     if (prevAudioPerm.current !== hasAudioPermission) {
       if (hasAudioPermission) {
         toast.success('Instructor enabled your microphone! 🎙️', { duration: 5000, icon: '🎙️' });
@@ -971,7 +957,6 @@ function StreamConnectedStage({
       prevAudioPerm.current = hasAudioPermission;
     }
 
-    // Video permission update
     if (prevVideoPerm.current !== hasVideoPermission) {
       if (hasVideoPermission) {
         toast.success('Instructor enabled your camera! 📹', { duration: 5000, icon: '📹' });
@@ -1065,7 +1050,7 @@ function StreamConnectedStage({
     };
   }, [call, currentUser, onLeaveOrEnd]);
 
-  // Auto-switch layout when screen share starts/stops (unless user manually picked)
+  // Auto-switch layout when screen share starts/stops
   useEffect(() => {
     if (manualLayout) return;
     if (hasOngoingScreenShare) {
@@ -1284,41 +1269,41 @@ function StreamConnectedStage({
       className="h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col font-[Inter,sans-serif] select-none"
       onClick={() => { if (audioBlocked) doUnblockAudio(call); }}
     >
-      {/* Top Header Bar */}
-      <header className="h-14 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/90 px-3 sm:px-5 flex items-center justify-between z-20 shrink-0">
-        <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
+      {/* Top Header Bar (Compact & Mobile-Optimized) */}
+      <header className="h-12 sm:h-14 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/90 px-2.5 sm:px-5 flex items-center justify-between z-20 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-3 overflow-hidden min-w-0">
           <button
             onClick={onLeaveOrEnd}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer shrink-0 border border-slate-700/60 shadow-xs"
+            className="p-1.5 sm:p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer shrink-0 border border-slate-700/60 shadow-xs"
             title="Exit live room"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
-          <div className="flex items-center gap-2 truncate">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shrink-0" />
-            <span className="text-xs font-black uppercase tracking-wider text-red-400 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 truncate">
+            <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-red-500 animate-pulse shrink-0" />
+            <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-red-400 shrink-0">
               LIVE
             </span>
-            <span className="text-slate-600 hidden sm:inline">|</span>
-            <h2 className="text-xs sm:text-sm font-bold truncate text-white">
+            <span className="text-slate-600 hidden xs:inline">|</span>
+            <h2 className="text-xs sm:text-sm font-bold truncate text-white max-w-[120px] xs:max-w-[180px] sm:max-w-xs md:max-w-md">
               {liveClass?.title || 'Live Interactive Class'}
             </h2>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           {/* Screen Share Active Indicator */}
           {hasOngoingScreenShare && !isHost && (
-            <div className="flex items-center gap-1.5 text-xs text-emerald-300 bg-emerald-900/40 border border-emerald-700/50 px-3 py-1 rounded-full animate-pulse">
-              <Monitor className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline font-semibold">Screen shared</span>
+            <div className="hidden sm:flex items-center gap-1 text-xs text-emerald-300 bg-emerald-900/40 border border-emerald-700/50 px-2.5 py-0.5 rounded-full animate-pulse">
+              <Monitor className="w-3 h-3" />
+              <span className="font-semibold text-[11px]">Screen shared</span>
             </div>
           )}
 
-          {/* Quick Voice / Volume Indicator & Opener */}
+          {/* Quick Voice / Volume Button */}
           <button
             onClick={() => setVoiceControllerOpen(true)}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-300 hover:text-white border border-slate-700/60 transition cursor-pointer shadow-xs flex items-center gap-1.5 text-xs font-bold"
+            className="p-1.5 sm:p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-300 hover:text-white border border-slate-700/60 transition cursor-pointer shadow-xs flex items-center gap-1 text-xs font-bold"
             title="Voice & Audio Controller"
           >
             {isMutedAll || masterVolume === 0 ? (
@@ -1336,17 +1321,17 @@ function StreamConnectedStage({
               setLayoutMode(next);
               setManualLayout(true);
             }}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition cursor-pointer shadow-xs"
+            className="p-1.5 sm:p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition cursor-pointer shadow-xs"
             title={layoutMode === 'grid' ? 'Switch to Spotlight view' : 'Switch to Gallery grid'}
           >
             {layoutMode === 'grid' ? <LayoutTemplate className="w-3.5 h-3.5" /> : <LayoutGrid className="w-3.5 h-3.5" />}
           </button>
 
-          {/* User Role Badge */}
-          <div className="flex items-center gap-1.5 text-xs text-slate-300 bg-slate-800/80 border border-slate-700/60 px-3 py-1 rounded-full shadow-xs">
+          {/* User Role Badge (Hidden on mobile to keep space clean) */}
+          <div className="hidden md:flex items-center gap-1.5 text-xs text-slate-300 bg-slate-800/80 border border-slate-700/60 px-3 py-1 rounded-full shadow-xs">
             <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-            <span className="hidden sm:inline text-slate-400">You:</span>
-            <span className="font-semibold text-white truncate max-w-[120px]">
+            <span className="text-slate-400">You:</span>
+            <span className="font-semibold text-white truncate max-w-[100px]">
               {currentUser?.fullName || 'User'}
             </span>
             <span className="text-[10px] uppercase font-bold text-purple-400 ml-0.5">
@@ -1357,12 +1342,12 @@ function StreamConnectedStage({
           {/* Participants Drawer Toggle Button */}
           <button
             onClick={() => setActiveSidebar(activeSidebar === 'participants' ? null : 'participants')}
-            className={`flex items-center gap-1.5 text-xs border px-3 py-1 rounded-full transition cursor-pointer shadow-xs ${
+            className={`flex items-center gap-1 text-xs border px-2 sm:px-3 py-1 rounded-full transition cursor-pointer shadow-xs ${
               activeSidebar === 'participants'
                 ? 'bg-purple-600 border-purple-500 text-white font-bold'
                 : 'text-slate-300 bg-slate-800/80 hover:bg-slate-700/80 border-slate-700/60'
             }`}
-            title="View Participants & Individual Voice Controls"
+            title="View Participants"
           >
             <Users className="w-3.5 h-3.5 text-purple-400" />
             <span>{participants?.length ?? 1}</span>
@@ -1372,15 +1357,15 @@ function StreamConnectedStage({
 
       {/* Main Workspace (Stage + Sidebars) */}
       <div className="flex-1 min-h-0 flex overflow-hidden relative">
-        {/* Stream Video Stage */}
-        <div className="flex-1 min-w-0 flex flex-col bg-slate-950 relative overflow-hidden p-2 sm:p-3">
-          <div className="flex-1 min-h-0 w-full relative rounded-2xl overflow-hidden bg-[#080c15] flex items-stretch justify-stretch">
+        {/* Stream Video Stage Container */}
+        <div className="flex-1 min-w-0 flex flex-col bg-slate-950 relative overflow-hidden p-1.5 sm:p-3">
+          <div className="flex-1 min-h-0 w-full relative rounded-xl sm:rounded-2xl overflow-hidden bg-[#080c15] flex items-stretch justify-stretch">
             {(!isJoined || isConnecting) ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-3">
-                <div className="w-16 h-16 rounded-3xl bg-slate-800/90 border border-slate-700/60 flex items-center justify-center shadow-lg">
-                  <Radio className="w-8 h-8 text-purple-400 animate-pulse" />
+              <div className="flex-1 flex flex-col items-center justify-center text-center p-6 sm:p-8 gap-3">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-3xl bg-slate-800/90 border border-slate-700/60 flex items-center justify-center shadow-lg">
+                  <Radio className="w-7 h-7 sm:w-8 sm:h-8 text-purple-400 animate-pulse" />
                 </div>
-                <p className="text-sm font-semibold text-slate-300">
+                <p className="text-xs sm:text-sm font-semibold text-slate-300">
                   {callingState === CallingState.JOINING ? 'Joining live room…' :
                    callingState === CallingState.RECONNECTING ? 'Reconnecting…' :
                    'Connecting to live classroom…'}
@@ -1396,7 +1381,7 @@ function StreamConnectedStage({
               </div>
             )}
 
-            {/* Audio Autoplay Unblock Banner — always show for students until they tap */}
+            {/* Audio Autoplay Unblock Banner */}
             {audioBlocked && (
               <button
                 onClick={(e) => {
@@ -1404,30 +1389,30 @@ function StreamConnectedStage({
                   doUnblockAudio(call);
                   toast.success('Audio enabled! 🔊');
                 }}
-                className="absolute top-4 left-1/2 -translate-x-1/2 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 px-5 py-2 rounded-full font-bold text-xs shadow-2xl flex items-center gap-2 animate-bounce z-30 cursor-pointer"
+                className="absolute top-3 left-1/2 -translate-x-1/2 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full font-bold text-[11px] sm:text-xs shadow-2xl flex items-center gap-1.5 animate-bounce z-30 cursor-pointer"
               >
-                <Volume2 className="w-4 h-4" />
-                <span>Tap to enable instructor audio</span>
+                <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span>Tap to enable audio</span>
               </button>
             )}
 
             {/* Fullscreen Button */}
             <button
               onClick={toggleFullscreen}
-              className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 transition cursor-pointer z-10 shadow-md backdrop-blur-md"
+              className="absolute top-2.5 right-2.5 sm:top-4 sm:right-4 p-1.5 sm:p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 transition cursor-pointer z-10 shadow-md backdrop-blur-md"
               title="Toggle Fullscreen"
             >
-              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              {isFullscreen ? <Minimize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
             </button>
           </div>
 
-          {/* Floating Controls Bar */}
-          <div className="h-16 pt-2 flex items-center justify-center z-20">
-            <div className="flex items-center gap-2 sm:gap-3 bg-slate-900/90 backdrop-blur-xl border border-slate-700/80 px-3 sm:px-4 py-2 rounded-2xl shadow-2xl flex-wrap justify-center">
+          {/* Floating Controls Bar (Mobile Single-Row Overflow Safe) */}
+          <div className="h-auto py-2 px-1 sm:px-4 flex items-center justify-center z-20 shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2.5 bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 px-2 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-3xl shadow-2xl overflow-x-auto max-w-full no-scrollbar">
               {/* Microphone Toggle */}
               <button
                 onClick={toggleMic}
-                className={`px-3 py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-sm ${
+                className={`p-2 sm:px-3 sm:py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-1.5 shrink-0 shadow-sm ${
                   !isHost && !hasAudioPermission
                     ? 'bg-slate-800/60 text-slate-500 border border-slate-800 cursor-not-allowed'
                     : !isMicMuted
@@ -1451,7 +1436,7 @@ function StreamConnectedStage({
               {/* Camera Toggle */}
               <button
                 onClick={toggleCamera}
-                className={`px-3 py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-sm ${
+                className={`p-2 sm:px-3 sm:py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-1.5 shrink-0 shadow-sm ${
                   !isHost && !hasVideoPermission
                     ? 'bg-slate-800/60 text-slate-500 border border-slate-800 cursor-not-allowed'
                     : !isCamMuted
@@ -1472,11 +1457,11 @@ function StreamConnectedStage({
                 </span>
               </button>
 
-              {/* Screen Share (Host OR Student with Granted Permission) */}
+              {/* Screen Share (Host OR Student with Permission) */}
               {canScreenShare && (
                 <button
                   onClick={toggleScreenShare}
-                  className={`px-3 py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-sm ${
+                  className={`p-2 sm:px-3 sm:py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-1.5 shrink-0 shadow-sm ${
                     isScreenSharing
                       ? 'bg-purple-600 text-white'
                       : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
@@ -1484,33 +1469,33 @@ function StreamConnectedStage({
                   title={isScreenSharing ? 'Stop Screen Share' : 'Share Screen'}
                 >
                   {isScreenSharing ? <MonitorOff className="w-4 h-4" /> : <Monitor className="w-4 h-4" />}
-                  <span className="hidden sm:inline">{isScreenSharing ? 'Stop Sharing' : 'Share Screen'}</span>
+                  <span className="hidden sm:inline">{isScreenSharing ? 'Sharing' : 'Share'}</span>
                 </button>
               )}
 
-              {/* Voice Controller Button (Master Volume & Mic Level Controller) */}
+              {/* Voice Controller Button */}
               <button
                 onClick={() => setVoiceControllerOpen(true)}
-                className={`px-3 py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-sm ${
+                className={`p-2 sm:px-3 sm:py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-1.5 shrink-0 shadow-sm ${
                   voiceControllerOpen
                     ? 'bg-purple-600 text-white'
                     : 'bg-slate-800 hover:bg-slate-700 text-purple-300 border border-slate-700'
                 }`}
-                title="Open Voice & Volume Controller"
+                title="Voice & Audio Controller"
               >
                 {isMutedAll || masterVolume === 0 ? (
                   <VolumeX className="w-4 h-4 text-red-400" />
                 ) : (
                   <Volume2 className="w-4 h-4 text-purple-400" />
                 )}
-                <span className="hidden sm:inline">Voice Control</span>
+                <span className="hidden sm:inline">Voice</span>
               </button>
 
               {/* Raise Hand (Students Only) */}
               {!isHost && (
                 <button
                   onClick={toggleRaiseHand}
-                  className={`px-3 py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-sm ${
+                  className={`p-2 sm:px-3 sm:py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-1.5 shrink-0 shadow-sm ${
                     handRaised
                       ? 'bg-amber-500 text-slate-950 font-bold'
                       : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
@@ -1518,22 +1503,22 @@ function StreamConnectedStage({
                   title="Raise Hand"
                 >
                   <Hand className="w-4 h-4" />
-                  <span className="hidden sm:inline">{handRaised ? 'Hand Raised' : 'Raise Hand'}</span>
+                  <span className="hidden sm:inline">{handRaised ? 'Raised' : 'Raise'}</span>
                 </button>
               )}
 
               {/* Participants Drawer Toggle */}
               <button
                 onClick={() => setActiveSidebar(activeSidebar === 'participants' ? null : 'participants')}
-                className={`px-3 py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-sm ${
+                className={`p-2 sm:px-3 sm:py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-1.5 shrink-0 shadow-sm ${
                   activeSidebar === 'participants'
                     ? 'bg-purple-600 text-white'
                     : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
                 }`}
-                title="View Participants & Permissions"
+                title="Participants"
               >
                 <Users className="w-4 h-4" />
-                <span className="hidden sm:inline">Participants</span>
+                <span className="hidden sm:inline">Users</span>
               </button>
 
               {/* Live Chat Toggle */}
@@ -1542,7 +1527,7 @@ function StreamConnectedStage({
                   setActiveSidebar(activeSidebar === 'chat' ? null : 'chat');
                   setUnreadCount(0);
                 }}
-                className={`px-3 py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-sm relative ${
+                className={`p-2 sm:px-3 sm:py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-1.5 shrink-0 shadow-sm relative ${
                   activeSidebar === 'chat'
                     ? 'bg-purple-600 text-white'
                     : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
@@ -1550,18 +1535,18 @@ function StreamConnectedStage({
                 title="Toggle Live Chat"
               >
                 <MessageSquare className="w-4 h-4" />
-                <span className="hidden sm:inline">Live Chat</span>
+                <span className="hidden sm:inline">Chat</span>
                 {unreadCount > 0 && (
-                  <span className="bg-red-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse shadow-md">
+                  <span className="bg-red-500 text-white text-[9px] font-extrabold px-1.5 py-0.2 rounded-full animate-pulse shadow-md">
                     {unreadCount}
                   </span>
                 )}
               </button>
 
-              {/* Device Settings (Mic/Camera Selector & Test) */}
+              {/* Device Settings */}
               <button
                 onClick={() => setSettingsOpen(true)}
-                className={`px-3 py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-sm ${
+                className={`p-2 sm:px-3 sm:py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-1.5 shrink-0 shadow-sm ${
                   settingsOpen
                     ? 'bg-purple-600 text-white'
                     : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
@@ -1572,17 +1557,26 @@ function StreamConnectedStage({
                 <span className="hidden sm:inline">Settings</span>
               </button>
 
-              {/* End / Leave Session */}
+              {/* End / Leave Session Button */}
               <button
                 onClick={onLeaveOrEnd}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 shadow-lg shadow-red-950/40 transition cursor-pointer"
+                className="p-2 sm:px-3.5 sm:py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shrink-0 shadow-lg shadow-red-950/40 transition cursor-pointer"
+                title={isHost ? 'End Session' : 'Leave Class'}
               >
                 <PhoneOff className="w-4 h-4" />
-                <span>{isHost ? 'End Session' : 'Leave Class'}</span>
+                <span className="hidden xs:inline">{isHost ? 'End' : 'Leave'}</span>
               </button>
             </div>
           </div>
         </div>
+
+        {/* Mobile Backdrop for Sidebars */}
+        {activeSidebar && (
+          <div
+            onClick={() => setActiveSidebar(null)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs z-30 lg:hidden"
+          />
+        )}
 
         {/* Live Chat Drawer */}
         {activeSidebar === 'chat' && (
@@ -1677,17 +1671,17 @@ function StandaloneLiveStage({
       ref={roomContainerRef}
       className="h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col font-[Inter,sans-serif] select-none"
     >
-      <header className="h-14 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/90 px-3 sm:px-5 flex items-center justify-between z-20 shrink-0">
-        <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
+      <header className="h-12 sm:h-14 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/90 px-2.5 sm:px-5 flex items-center justify-between z-20 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 overflow-hidden min-w-0">
           <button
             onClick={onLeaveOrEnd}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer shrink-0 border border-slate-700/60 shadow-xs"
+            className="p-1.5 sm:p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer shrink-0 border border-slate-700/60 shadow-xs"
             title="Exit live room"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div className="flex items-center gap-2 truncate">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
             <span className="text-xs font-black uppercase tracking-wider text-emerald-400 shrink-0">
               {liveClass?.status === 'live' ? 'LIVE NOW' : 'SCHEDULED'}
             </span>
@@ -1915,7 +1909,6 @@ export default function LiveClassRoom() {
             await callInstance.join({ create: hostMode });
 
             if (hostMode) {
-              // Auto-enable mic and camera independently so a missing webcam doesn't kill the mic
               callInstance.microphone.enable().catch((micErr) => {
                 console.warn('Instructor mic auto-enable info:', micErr?.message);
               });

@@ -815,6 +815,46 @@ html.dark .stitch-glass {
   border-radius: 0 0 0.875rem 0.875rem;
 }
 
+/* Stream Video Mobile Responsive Fixes */
+@media (max-width: 640px) {
+  .stream-stage-container .str-video__paginated-grid-layout__group.str-video__paginated-grid-layout--two-four {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.375rem !important;
+    height: 100% !important;
+    width: 100% !important;
+  }
+
+  .stream-stage-container .str-video__paginated-grid-layout__group.str-video__paginated-grid-layout--two-four .str-video__participant-view {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    border-radius: 0.75rem !important;
+    overflow: hidden !important;
+  }
+
+  .stream-stage-container .str-video__video {
+    object-fit: cover !important;
+    border-radius: 0.75rem !important;
+  }
+
+  .stream-stage-container .str-video__speaker-layout__participant-tile {
+    min-width: 76px !important;
+    height: 64px !important;
+    border-radius: 0.5rem !important;
+  }
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* ─────────────────────────────────────────────────────────── */
 /*  SHERYIANS-STYLE SMOOTH INFINITE MARQUEE                   */
 /* ─────────────────────────────────────────────────────────── */
