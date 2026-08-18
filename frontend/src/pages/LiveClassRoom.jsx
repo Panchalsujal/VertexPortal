@@ -185,9 +185,10 @@ function StreamConnectedStage({
   const doUnblockAudio = async (callRef) => {
     try {
       if (callRef?.resumeAudio) await callRef.resumeAudio();
-      document.querySelectorAll('audio, video').forEach((el) => {
+      document.querySelectorAll('audio').forEach((el) => {
+        el.muted = false;
+        el.volume = 1.0;
         if (el.paused) el.play().catch(() => {});
-        if (el.muted) el.muted = false;
       });
       setAudioBlocked(false);
     } catch (e) {
@@ -312,11 +313,11 @@ function StreamConnectedStage({
   const toggleCamera = async () => {
     try {
       if (!call) return;
-      await call.camera.toggle();
-      const isEnabled = call.camera?.state?.status === 'enabled';
-      if (isEnabled) {
+      if (isCamMuted) {
+        await call.camera.enable();
         toast.success('Camera turned on 📹');
       } else {
+        await call.camera.disable();
         toast('Camera turned off');
       }
     } catch (e) {
@@ -335,11 +336,11 @@ function StreamConnectedStage({
   const toggleMic = async () => {
     try {
       if (!call) return;
-      await call.microphone.toggle();
-      const isEnabled = call.microphone?.state?.status === 'enabled';
-      if (isEnabled) {
+      if (isMicMuted) {
+        await call.microphone.enable();
         toast.success('Microphone unmuted 🎙️');
       } else {
+        await call.microphone.disable();
         toast('Microphone muted');
       }
     } catch (e) {

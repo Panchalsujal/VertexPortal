@@ -10,14 +10,13 @@ import {
 } from "../controllers/adminOrder.controller.js";
 
 import { authMiddleware } from "../middlewares/auth.middleware.js";
-
 import { authorizeRoles } from "../middlewares/authorize.middleware.js";
+import { auditLogAction } from "../middlewares/auditLog.middleware.js";
 
 const router = Router();
 
 router.use(
   authMiddleware,
-
   authorizeRoles("admin"),
 );
 
@@ -34,12 +33,20 @@ router.get("/", getAdminOrdersController);
 /*
  * Cancel unpaid order
  */
-router.patch("/:orderId/cancel", cancelAdminOrderController);
+router.patch(
+  "/:orderId/cancel",
+  auditLogAction("ORDER_CANCELLED", "Order", (req) => req.params.orderId),
+  cancelAdminOrderController,
+);
 
 /*
  * Mark failed
  */
-router.patch("/:orderId/failed", markAdminOrderFailedController);
+router.patch(
+  "/:orderId/failed",
+  auditLogAction("ORDER_MARKED_FAILED", "Order", (req) => req.params.orderId),
+  markAdminOrderFailedController,
+);
 
 /*
  * Mark refunded.
@@ -47,7 +54,11 @@ router.patch("/:orderId/failed", markAdminOrderFailedController);
  * Ye Razorpay refund EXECUTE nahi karta.
  * Successful refund verification ke baad use karna.
  */
-router.patch("/:orderId/refunded", markAdminOrderRefundedController);
+router.patch(
+  "/:orderId/refunded",
+  auditLogAction("ORDER_REFUNDED", "Order", (req) => req.params.orderId),
+  markAdminOrderRefundedController,
+);
 
 /*
  * Single order

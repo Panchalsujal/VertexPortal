@@ -77,16 +77,31 @@ export async function getAuditLogs(query = {}) {
   const filter = {};
   const andConditions = [];
 
-  const searchFilter = buildSearchFilter(search, [
-    "action",
-    "resourceType",
-    "description",
-    "ipAddress",
-    "userAgent",
-  ]);
+  if (search?.trim()) {
+    const rawSearch = search.trim();
+    const searchRegex = new RegExp(rawSearch, "i");
 
-  if (searchFilter) {
-    andConditions.push({ $or: searchFilter });
+    const matchedUsers = await User.find({
+      $or: [{ fullName: searchRegex }, { email: searchRegex }],
+    })
+      .select("_id")
+      .lean();
+
+    const userIds = matchedUsers.map((u) => u._id);
+
+    const searchConditions = [
+      { action: searchRegex },
+      { resourceType: searchRegex },
+      { description: searchRegex },
+      { ipAddress: searchRegex },
+      { userAgent: searchRegex },
+    ];
+
+    if (userIds.length > 0) {
+      searchConditions.push({ actor: { $in: userIds } });
+    }
+
+    andConditions.push({ $or: searchConditions });
   }
 
   if (actor) {

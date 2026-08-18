@@ -37,7 +37,7 @@ export function auditLogAction(action, resourceType, getResourceId = null) {
       // Only audit successful mutations (2xx responses)
       if (res.statusCode >= 200 && res.statusCode < 300) {
         try {
-          const actor = req.user?._id;
+          const actor = req.user?._id || req.user?.id;
           if (!actor) {
             return originalJson(body);
           }
@@ -51,12 +51,16 @@ export function auditLogAction(action, resourceType, getResourceId = null) {
               req.params?.couponId ||
               req.params?.reviewId ||
               req.params?.studentId ||
+              req.params?.reportId ||
+              req.params?.noteId ||
+              req.params?.liveClassId ||
+              req.params?.certificateId ||
               null;
 
           await AuditLog.create({
             actor,
-            action: action.toUpperCase(),
-            resourceType,
+            action: action.toLowerCase(),
+            resourceType: resourceType.toLowerCase(),
             resourceId: resourceId || null,
             description: `${req.method} ${req.originalUrl}`,
             before: res.locals.auditBefore || null,

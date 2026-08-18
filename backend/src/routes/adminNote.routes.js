@@ -8,6 +8,7 @@ import {
 
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../middlewares/authorize.middleware.js";
+import { auditLogAction } from "../middlewares/auditLog.middleware.js";
 
 const router = Router();
 
@@ -26,6 +27,10 @@ router.get("/:noteId", getAdminNoteByIdController);
 /*
  * DELETE note (admin moderation)
  */
-router.delete("/:noteId", deleteAdminNoteController);
+router.delete(
+  "/:noteId",
+  auditLogAction("STUDENT_NOTE_DELETED", "StudentNote", (req) => req.params.noteId),
+  deleteAdminNoteController,
+);
 
 export default router;

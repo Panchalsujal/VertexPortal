@@ -1451,6 +1451,40 @@ export async function getStudentLiveClassById({
     now >= joinOpensAt &&
     now < joinClosesAt;
 
+  if (liveClass.provider === "getstream") {
+    try {
+      const studentUser = await User.findById(studentId)
+        .select("fullName avatarUrl email role")
+        .lean();
+      await upsertStreamUser({
+        userId: studentId,
+        name: studentUser?.fullName || "Student",
+        image: studentUser?.avatarUrl || "",
+        role: "admin",
+      });
+      const streamToken = generateStreamUserToken({
+        userId: studentId,
+        role: "admin",
+      });
+      liveClass.stream = {
+        apiKey: config.STREAM_API_KEY,
+        token: streamToken,
+        callId: liveClass.streamCallId,
+        callType: liveClass.streamCallType || "default",
+        user: {
+          id: String(studentId),
+          name: studentUser?.fullName || "Student",
+          image: studentUser?.avatarUrl || "",
+        },
+      };
+    } catch (e) {
+      console.error(
+        "Failed to generate student stream token in getStudentLiveClassById:",
+        e?.message || e,
+      );
+    }
+  }
+
   return {
     liveClass,
 
@@ -1610,13 +1644,13 @@ export async function joinStudentLiveClass({
         .lean();
       await upsertStreamUser({
         userId: studentId,
-        name: studentUser?.fullName || "User",
+        name: studentUser?.fullName || "Student",
         image: studentUser?.avatarUrl || "",
-        role: isPrivileged ? "admin" : "user",
+        role: "admin",
       });
       const streamToken = generateStreamUserToken({
         userId: studentId,
-        role: isPrivileged ? "admin" : "user",
+        role: "admin",
       });
       streamData = {
         apiKey: config.STREAM_API_KEY,
