@@ -46,6 +46,12 @@ import {
   Moon,
   LayoutGrid,
   LayoutTemplate,
+  Settings,
+  Check,
+  HelpCircle,
+  Headphones,
+  Sliders,
+  X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -133,7 +139,226 @@ function ChatDrawer({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. Stream Video Stage Component (Rendered inside <StreamCall>)
+// 2. Device Settings & Diagnostics Modal Component
+// ─────────────────────────────────────────────────────────────────────────────
+function DeviceSettingsModal({
+  isOpen,
+  onClose,
+  call,
+  micDevices = [],
+  selectedMic,
+  camDevices = [],
+  selectedCam,
+  speakerDevices = [],
+  selectedSpeaker,
+  isMicMuted,
+}) {
+  const [audioLevel, setAudioLevel] = useState(0);
+
+  useEffect(() => {
+    if (!isOpen || !call || isMicMuted) {
+      setAudioLevel(0);
+      return;
+    }
+    let animId;
+    let audioCtx;
+    let analyser;
+    let source;
+
+    const setupAudioMonitor = async () => {
+      try {
+        const stream = call.microphone?.mediaStream;
+        if (stream && stream.getAudioTracks().length > 0 && stream.getAudioTracks()[0].enabled) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) return;
+          audioCtx = new AudioContextClass();
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 256;
+          source = audioCtx.createMediaStreamSource(stream);
+          source.connect(analyser);
+
+          const dataArray = new Uint8Array(analyser.frequencyBinCount);
+          const update = () => {
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+              sum += dataArray[i];
+            }
+            const avg = sum / dataArray.length;
+            setAudioLevel(Math.min(100, Math.round((avg / 128) * 100)));
+            animId = requestAnimationFrame(update);
+          };
+          update();
+        }
+      } catch (e) {
+        console.warn('Audio monitor info:', e);
+      }
+    };
+
+    setupAudioMonitor();
+
+    return () => {
+      if (animId) cancelAnimationFrame(animId);
+      if (source) {
+        try { source.disconnect(); } catch (_e) {}
+      }
+      if (audioCtx) {
+        try { audioCtx.close(); } catch (_e) {}
+      }
+    };
+  }, [isOpen, call, isMicMuted]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-5 sm:p-6 space-y-5 shadow-2xl text-slate-200">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
+          <div className="flex items-center gap-2">
+            <Sliders className="w-5 h-5 text-purple-400" />
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Audio & Video Settings</h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Microphone Selection */}
+        <div className="space-y-2">
+          <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+            <Mic className="w-3.5 h-3.5 text-purple-400" />
+            <span>Select Microphone</span>
+          </label>
+          <select
+            value={selectedMic || ''}
+            onChange={async (e) => {
+              if (call?.microphone?.select) {
+                await call.microphone.select(e.target.value);
+                toast.success('Microphone changed');
+              }
+            }}
+            className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            {micDevices.length === 0 ? (
+              <option value="">Default Microphone</option>
+            ) : (
+              micDevices.map((d) => (
+                <option key={d.deviceId} value={d.deviceId}>
+                  {d.label || `Microphone (${d.deviceId.slice(0, 5)})`}
+                </option>
+              ))
+            )}
+          </select>
+
+          {/* Live Mic Test Level Bar */}
+          <div className="bg-slate-950/80 border border-slate-800/80 rounded-xl p-3 space-y-1.5">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-slate-400 font-medium">Mic Input Test:</span>
+              <span className={isMicMuted ? 'text-amber-400 font-bold' : audioLevel > 5 ? 'text-emerald-400 font-bold' : 'text-slate-400 font-medium'}>
+                {isMicMuted ? 'Mic is currently Muted' : audioLevel > 5 ? 'Detecting Voice 🎙️' : 'Speak into mic to test'}
+              </span>
+            </div>
+            <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all duration-75 rounded-full ${
+                  isMicMuted
+                    ? 'bg-amber-500/50'
+                    : audioLevel > 50
+                    ? 'bg-emerald-400'
+                    : 'bg-emerald-500'
+                }`}
+                style={{ width: isMicMuted ? '0%' : `${audioLevel}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Camera Selection */}
+        <div className="space-y-2">
+          <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+            <Video className="w-3.5 h-3.5 text-purple-400" />
+            <span>Select Camera</span>
+          </label>
+          <select
+            value={selectedCam || ''}
+            onChange={async (e) => {
+              if (call?.camera?.select) {
+                await call.camera.select(e.target.value);
+                toast.success('Camera changed');
+              }
+            }}
+            className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            {camDevices.length === 0 ? (
+              <option value="">Default Camera</option>
+            ) : (
+              camDevices.map((d) => (
+                <option key={d.deviceId} value={d.deviceId}>
+                  {d.label || `Camera (${d.deviceId.slice(0, 5)})`}
+                </option>
+              ))
+            )}
+          </select>
+        </div>
+
+        {/* Audio Output / Speaker Selection */}
+        {speakerDevices && speakerDevices.length > 0 && (
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+              <Headphones className="w-3.5 h-3.5 text-purple-400" />
+              <span>Select Speaker / Audio Output</span>
+            </label>
+            <select
+              value={selectedSpeaker || ''}
+              onChange={async (e) => {
+                if (call?.speaker?.select) {
+                  await call.speaker.select(e.target.value);
+                  toast.success('Speaker changed');
+                }
+              }}
+              className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              {speakerDevices.map((d) => (
+                <option key={d.deviceId} value={d.deviceId}>
+                  {d.label || `Speaker (${d.deviceId.slice(0, 5)})`}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Troubleshooting / Quick Help */}
+        <div className="bg-purple-950/40 border border-purple-800/40 rounded-2xl p-3.5 text-xs space-y-2">
+          <div className="flex items-center gap-1.5 font-bold text-purple-300">
+            <HelpCircle className="w-4 h-4 text-purple-400 shrink-0" />
+            <span>If other participants still cannot hear you:</span>
+          </div>
+          <ul className="list-disc list-inside space-y-1 text-slate-300 text-[11px] leading-relaxed">
+            <li>Check if your external headset or microphone is selected in the dropdown above instead of default.</li>
+            <li>In <strong>Brave Browser</strong>: Click the Lion Icon in the URL bar and turn <strong>Shields OFF</strong> for this website.</li>
+            <li>In <strong>Windows Settings</strong>: Go to <em>Privacy & Security &gt; Microphone</em> and ensure browser access is turned <strong>ON</strong>.</li>
+            <li>Close background apps like <strong>Zoom</strong>, <strong>Discord</strong>, or <strong>Microsoft Teams</strong> that may hold exclusive access to your mic.</li>
+          </ul>
+        </div>
+
+        <div className="flex justify-end pt-1">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3. Stream Video Stage Component (Rendered inside <StreamCall>)
 // ─────────────────────────────────────────────────────────────────────────────
 function StreamConnectedStage({
   liveClass,
@@ -161,14 +386,17 @@ function StreamConnectedStage({
     useScreenShareState,
     useMicrophoneState,
     useCameraState,
+    useSpeakerState,
     useCallCallingState,
   } = useCallStateHooks();
 
   const participants = useParticipants() || [];
   const isRecording = useIsCallRecordingInProgress();
-  const { isMute: isMicMuted, hasBrowserPermission: hasMicPermission } = useMicrophoneState({ optimisticUpdates: false }) || {};
-  const { isMute: isCamMuted, hasBrowserPermission: hasCamPermission } = useCameraState({ optimisticUpdates: false }) || {};
+  const { isMute: isMicMuted, hasBrowserPermission: hasMicPermission, devices: micDevices, selectedDevice: selectedMic } = useMicrophoneState() || {};
+  const { isMute: isCamMuted, hasBrowserPermission: hasCamPermission, devices: camDevices, selectedDevice: selectedCam } = useCameraState() || {};
+  const { devices: speakerDevices, selectedDevice: selectedSpeaker } = useSpeakerState ? useSpeakerState() : {};
   const { screenShare, isEnabled: isScreenSharing } = useScreenShareState() || {};
+  const [settingsOpen, setSettingsOpen] = useState(false);
   // Detect if ANY participant is sharing their screen (screenShareStream is set when active)
   const hasOngoingScreenShare = Array.isArray(participants) && participants.some(
     (p) => !!p.screenShareStream || (Array.isArray(p.publishedTracks) && p.publishedTracks.includes(3))
@@ -653,6 +881,20 @@ function StreamConnectedStage({
                 )}
               </button>
 
+              {/* Device Settings (Mic/Camera Selector & Test) */}
+              <button
+                onClick={() => setSettingsOpen(true)}
+                className={`px-3 py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-sm ${
+                  settingsOpen
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
+                }`}
+                title="Audio & Video Device Settings"
+              >
+                <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">Settings</span>
+              </button>
+
               {/* End / Leave Session */}
               <button
                 onClick={onLeaveOrEnd}
@@ -677,6 +919,20 @@ function StreamConnectedStage({
           />
         )}
       </div>
+
+      {/* Audio & Video Device Settings Modal */}
+      <DeviceSettingsModal
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        call={call}
+        micDevices={micDevices}
+        selectedMic={selectedMic}
+        camDevices={camDevices}
+        selectedCam={selectedCam}
+        speakerDevices={speakerDevices}
+        selectedSpeaker={selectedSpeaker}
+        isMicMuted={isMicMuted}
+      />
     </div>
   );
 }
