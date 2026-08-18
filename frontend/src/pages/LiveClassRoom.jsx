@@ -1800,7 +1800,7 @@ export default function LiveClassRoom() {
   const [messages, setMessages] = useState([
     {
       id: 'welcome',
-      senderName: 'Vertex Assistant',
+      senderName: 'NavGujarat Academy Assistant',
       senderRole: 'system',
       text: 'Welcome to the live session! You can participate in discussion below.',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),

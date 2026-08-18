@@ -1,4 +1,4 @@
-name: VertexPortal CI/CD Pipeline
+name: NavGujarat Academy CI/CD Pipeline
 
 on:
   push:
@@ -42,7 +42,7 @@ jobs:
       - name: Build Frontend Application
         run: npm run build
         env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://vertexportal.onrender.com' }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://your-backend-service.onrender.com' }}
 
       - name: Verify Build Output
         run: |
@@ -92,7 +92,7 @@ jobs:
       AUTO_VERIFY_EMAIL: "true"
       DISABLE_EMAIL_VERIFY: "false"
       RESEND_API_KEY: re_ci_mock_test_key_123456
-      EMAIL_FROM: "Vertex LMS <ci@vertexportal.com>"
+      EMAIL_FROM: "NavGujarat Academy <ci@navgujaratacademy.online>"
       IMAGEKIT_PUBLIC_KEY: ci_mock_public_key
       IMAGEKIT_PRIVATE_KEY: ci_mock_private_key
       IMAGEKIT_URL_ENDPOINT: https://ik.imagekit.io/ci_mock

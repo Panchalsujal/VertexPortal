@@ -41,23 +41,23 @@ export default function VerifyCertificate() {
   const recipientName = cert?.student?.fullName || cert?.user?.fullName || cert?.user?.name || '';
   const courseTitle = cert?.course?.title || '';
 
-  let seoTitle = 'Verify Certificate Authenticity — VertexPortal';
+  let seoTitle = 'Verify Certificate Authenticity — NavGujarat Academy';
   if (cert && recipientName && courseTitle) {
-    seoTitle = `Certificate: ${recipientName} (${courseTitle}) — VertexPortal`;
+    seoTitle = `Certificate: ${recipientName} (${courseTitle}) — NavGujarat Academy`;
   } else if (verificationCode) {
-    seoTitle = `Verify Certificate #${verificationCode} — VertexPortal`;
+    seoTitle = `Verify Certificate #${verificationCode} — NavGujarat Academy`;
   }
 
   let seoDescription =
-    'Verify the authenticity and tamper-evident cryptographic signature of VertexPortal course completion certificates.';
+    'Verify the authenticity and tamper-evident cryptographic signature of NavGujarat Academy course completion certificates.';
   if (cert && recipientName && courseTitle) {
-    seoDescription = `Official VertexPortal Certificate of Completion awarded to ${recipientName} for successfully mastering ${courseTitle}. Verified cryptographic record.`;
+    seoDescription = `Official NavGujarat Academy Certificate of Completion awarded to ${recipientName} for successfully mastering ${courseTitle}. Verified cryptographic record.`;
   }
 
   const canonicalUrl = verificationCode
-    ? `https://vertex-mu-eight.vercel.app/verify-certificate/${verificationCode}`
-    : 'https://vertex-mu-eight.vercel.app/verify-certificate';
-  const seoImage = 'https://vertex-mu-eight.vercel.app/og-image.png';
+    ? `https://navgujaratacademy.online/verify-certificate/${verificationCode}`
+    : 'https://navgujaratacademy.online/verify-certificate';
+  const seoImage = 'https://navgujaratacademy.online/og-image.png';
 
   const credentialStructuredData = cert
     ? {
@@ -67,8 +67,8 @@ export default function VerifyCertificate() {
         credentialCategory: 'Certificate',
         recognizedBy: {
           '@type': 'Organization',
-          name: 'VertexPortal',
-          url: 'https://vertex-mu-eight.vercel.app',
+          name: 'NavGujarat Academy',
+          url: 'https://navgujaratacademy.online',
         },
         about: {
           '@type': 'Course',
@@ -79,13 +79,13 @@ export default function VerifyCertificate() {
     : {
         '@context': 'https://schema.org',
         '@type': 'WebPage',
-        name: 'VertexPortal Certificate Verification',
+        name: 'NavGujarat Academy Certificate Verification',
         url: canonicalUrl,
         description: seoDescription,
         publisher: {
           '@type': 'Organization',
-          name: 'VertexPortal',
-          url: 'https://vertex-mu-eight.vercel.app',
+          name: 'NavGujarat Academy',
+          url: 'https://navgujaratacademy.online',
         },
       };
 
@@ -97,7 +97,7 @@ export default function VerifyCertificate() {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://vertex-mu-eight.vercel.app/',
+        item: 'https://navgujaratacademy.online/',
       },
       {
         '@type': 'ListItem',
@@ -119,7 +119,7 @@ export default function VerifyCertificate() {
         <meta name="robots" content="index, follow" />
         <meta
           name="keywords"
-          content="verify certificate, certificate validation, credential verification, vertexportal certificate, online course certificate"
+          content="verify certificate, certificate validation, credential verification, navgujaratacademy certificate, online course certificate"
         />
 
         {/* Canonical URL */}
@@ -127,12 +127,12 @@ export default function VerifyCertificate() {
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="VertexPortal" />
+        <meta property="og:site_name" content="NavGujarat Academy" />
         <meta property="og:title" content={seoTitle} />
         <meta property="og:description" content={seoDescription} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={seoImage} />
-        <meta property="og:image:alt" content="VertexPortal Certificate Verification" />
+        <meta property="og:image:alt" content="NavGujarat Academy Certificate Verification" />
 
         {/* Twitter Metadata */}
         <meta name="twitter:card" content="summary_large_image" />
@@ -180,7 +180,7 @@ export default function VerifyCertificate() {
             </div>
             <h2 className="text-lg font-bold text-gray-900 dark:text-white">Verify Certificate Credential</h2>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-md mx-auto">
-              Enter any VertexPortal certificate verification code or certificate number above to verify authenticity against the immutable database records.
+              Enter any NavGujarat Academy certificate verification code or certificate number above to verify authenticity against the immutable database records.
             </p>
           </div>
         )}
@@ -238,7 +238,7 @@ export default function VerifyCertificate() {
 
               {/* Brand Header */}
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-sky-600 dark:text-sky-400">VERTEXPORTAL</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-sky-600 dark:text-sky-400">NAVGUJARATACADEMY</p>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mt-1">
                   Certificate of Completion
                 </h1>
@@ -266,7 +266,7 @@ export default function VerifyCertificate() {
               <div className="pt-4 border-t border-gray-100 dark:border-gray-800 grid grid-cols-2 gap-4 max-w-md mx-auto text-xs">
                 <div>
                   <p className="font-bold text-gray-900 dark:text-white">Hitesh Choudhary</p>
-                  <p className="text-[11px] text-gray-400">Founder & CEO, VertexPortal</p>
+                  <p className="text-[11px] text-gray-400">Founder & CEO, NavGujarat Academy</p>
                 </div>
                 <div>
                   <p className="font-bold text-gray-900 dark:text-white">

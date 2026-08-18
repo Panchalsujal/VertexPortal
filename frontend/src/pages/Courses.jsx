@@ -102,14 +102,14 @@ export default function Courses() {
   const searchQuery = filters.search?.trim();
 
   const seoTitle = searchQuery
-    ? `${searchQuery} Courses | VertexPortal`
-    : 'Online Courses | VertexPortal LMS';
+    ? `${searchQuery} Courses | NavGujarat Academy`
+    : 'Online Courses | NavGujarat Academy';
 
   const seoDescription = searchQuery
-    ? `Explore ${searchQuery} courses on VertexPortal. Learn with structured lessons, interactive practice, AI tutor assistance, quizzes, and verified certificates.`
-    : 'Explore programming, web development, AI, cloud, frontend, backend and software engineering courses on VertexPortal. Learn with interactive practice, AI assistance and verified certificates.';
+    ? `Explore ${searchQuery} courses on NavGujarat Academy. Learn with structured lessons, interactive practice, AI tutor assistance, quizzes, and verified certificates.`
+    : 'Explore programming, web development, AI, cloud, frontend, backend and software engineering courses on NavGujarat Academy. Learn with interactive practice, AI assistance and verified certificates.';
 
-  const canonicalUrl = 'https://vertex-mu-eight.vercel.app/courses';
+  const canonicalUrl = 'https://navgujaratacademy.online/courses';
 
   return (
     <>
@@ -138,7 +138,7 @@ export default function Courses() {
 
         <meta
           property="og:site_name"
-          content="VertexPortal"
+          content="NavGujarat Academy"
         />
 
         <meta
@@ -158,12 +158,12 @@ export default function Courses() {
 
         <meta
           property="og:image"
-          content="https://vertex-mu-eight.vercel.app/og-image.png"
+          content="https://navgujaratacademy.online/og-image.png"
         />
 
         <meta
           property="og:image:alt"
-          content="VertexPortal Online Course Catalog"
+          content="NavGujarat Academy Online Course Catalog"
         />
 
         <meta
@@ -183,7 +183,7 @@ export default function Courses() {
 
         <meta
           name="twitter:image"
-          content="https://vertex-mu-eight.vercel.app/og-image.png"
+          content="https://navgujaratacademy.online/og-image.png"
         />
       </Helmet>
 

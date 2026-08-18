@@ -1,14 +1,14 @@
-# VertexPortal LMS — Comprehensive System Audit (Frontend & Backend)
+# NavGujarat Academy — Comprehensive System Audit (Frontend & Backend)
 
 **Audit Version:** 2.1.0  
 **Date:** 2026-08-16  
-**Audited Target:** VertexPortal LMS Monorepo (Node.js/Express Backend + React 19/Vite Frontend)
+**Audited Target:** NavGujarat Academy Monorepo (Node.js/Express Backend + React 19/Vite Frontend)
 
 ---
 
 ## 1. Executive Summary
 
-VertexPortal is a production-grade Learning Management System (LMS) with advanced multi-tenant capabilities, real-time live streaming classrooms (via Stream.io WebRTC SDK), AI-assisted tutoring and contextual RAG knowledge indexing (Mistral AI embeddings & LLM), gamified student learning, automated PDF certificate generation with QR verification, comprehensive e-commerce checkout (Razorpay), role-based access control (Student, Instructor, Admin), and deep administrative analytics and audit logging.
+NavGujarat Academy is a production-grade Learning Management System (LMS) with advanced multi-tenant capabilities, real-time live streaming classrooms (via Stream.io WebRTC SDK), AI-assisted tutoring and contextual RAG knowledge indexing (Mistral AI embeddings & LLM), gamified student learning, automated PDF certificate generation with QR verification, comprehensive e-commerce checkout (Razorpay), role-based access control (Student, Instructor, Admin), and deep administrative analytics and audit logging.
 
 This audit report conducts an exhaustive, step-by-step examination of every module, route, controller, service, middleware, database model, Redux slice, component, and page in the codebase.
 
@@ -18,7 +18,7 @@ This audit report conducts an exhaustive, step-by-step examination of every modu
 
 ```
 +-----------------------------------------------------------------------------+
-|                           VERTEXPORTAL LMS INVENTORY                        |
+|                           NAVGUJARATACADEMY LMS INVENTORY                        |
 +--------------------------+-----------------------+--------------------------+
 |  Backend Components      |  Count                |  Status                  |
 +--------------------------+-----------------------+--------------------------+

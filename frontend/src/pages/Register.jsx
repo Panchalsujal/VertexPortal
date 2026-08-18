@@ -57,7 +57,7 @@ export default function Register() {
         localStorage.setItem('token', res.data.data.token);
       }
       login(userData);
-      toast.success(`Welcome to VertexPortal, ${userData.fullName.split(' ')[0]}! 🎉`);
+      toast.success(`Welcome to NavGujarat Academy, ${userData.fullName.split(' ')[0]}! 🎉`);
       navigate('/dashboard');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Google sign-up failed');
@@ -131,22 +131,22 @@ export default function Register() {
   return (
     <>
       <Helmet>
-        <title>Create a Free Account — VertexPortal</title>
+        <title>Create a Free Account — NavGujarat Academy</title>
         <meta
           name="description"
-          content="Join VertexPortal to access interactive coding courses, 24/7 AI tutor assistance, real-time live classes, and verified certificates."
+          content="Join NavGujarat Academy to access interactive coding courses, 24/7 AI tutor assistance, real-time live classes, and verified certificates."
         />
         <meta name="robots" content="noindex, follow" />
-        <link rel="canonical" href="https://vertex-mu-eight.vercel.app/register" />
+        <link rel="canonical" href="https://navgujaratacademy.online/register" />
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="VertexPortal" />
-        <meta property="og:title" content="Create a Free Account — VertexPortal" />
+        <meta property="og:site_name" content="NavGujarat Academy" />
+        <meta property="og:title" content="Create a Free Account — NavGujarat Academy" />
         <meta
           property="og:description"
-          content="Join VertexPortal to access interactive coding courses, 24/7 AI tutor assistance, real-time live classes, and verified certificates."
+          content="Join NavGujarat Academy to access interactive coding courses, 24/7 AI tutor assistance, real-time live classes, and verified certificates."
         />
-        <meta property="og:url" content="https://vertex-mu-eight.vercel.app/register" />
-        <meta property="og:image" content="https://vertex-mu-eight.vercel.app/og-image.png" />
+        <meta property="og:url" content="https://navgujaratacademy.online/register" />
+        <meta property="og:image" content="https://navgujaratacademy.online/og-image.png" />
       </Helmet>
 
       <div className="min-h-screen grid lg:grid-cols-2 bg-slate-50 dark:bg-slate-950 font-[Inter,sans-serif] text-slate-900 dark:text-slate-100">
@@ -160,7 +160,7 @@ export default function Register() {
             </div>
             <div>
               <p className="text-base font-extrabold text-slate-900 dark:text-white leading-none font-['Plus_Jakarta_Sans',sans-serif]">
-                VertexPortal
+                NavGujarat Academy
               </p>
               <p className="text-[10px] font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400 mt-0.5">
                 LMS Platform
@@ -331,7 +331,7 @@ export default function Register() {
                       </span>
                       <input
                         type="text"
-                        placeholder="e.g. VERTEX2026"
+                        placeholder="e.g. ACADEMY2026"
                         value={form.referralCode}
                         onChange={(e) => setForm((f) => ({ ...f, referralCode: e.target.value.toUpperCase() }))}
                         className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/70 text-slate-900 dark:text-white placeholder-slate-400 uppercase font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition"
@@ -497,7 +497,7 @@ export default function Register() {
               ))}
             </div>
             <p className="text-xs text-purple-100 italic leading-relaxed">
-              "Creating an account on VertexPortal was the best decision for my software engineering prep. The live interactive classes make all the difference!"
+              "Creating an account on NavGujarat Academy was the best decision for my software engineering prep. The live interactive classes make all the difference!"
             </p>
             <div className="flex items-center gap-2 pt-1">
               <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold bg-indigo-500 shadow-xs">
@@ -513,7 +513,7 @@ export default function Register() {
 
         {/* Bottom Status Bar */}
         <div className="relative z-10 flex items-center justify-between text-[11px] text-purple-200/80 pt-4 border-t border-white/10">
-          <span>© 2026 VertexPortal Inc.</span>
+          <span>© 2026 NavGujarat Academy Inc.</span>
           <span>Terms & Privacy</span>
         </div>
       </div>

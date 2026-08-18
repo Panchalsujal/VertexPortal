@@ -3,22 +3,22 @@ import { Helmet } from 'react-helmet-async';
 import { FileText, ArrowLeft, CheckCircle2, Shield, Scale, Award, AlertCircle, Clock } from 'lucide-react';
 
 export default function TermsOfService() {
-  const seoTitle = 'Terms of Service & User Agreement — VertexPortal';
+  const seoTitle = 'Terms of Service & User Agreement — NavGujarat Academy';
   const seoDescription =
-    'Read the VertexPortal Terms of Service and user agreement. Understand course access licenses, verified certificate rules, community guidelines, and refund policy.';
-  const canonicalUrl = 'https://vertex-mu-eight.vercel.app/terms';
-  const seoImage = 'https://vertex-mu-eight.vercel.app/og-image.png';
+    'Read the NavGujarat Academy Terms of Service and user agreement. Understand course access licenses, verified certificate rules, community guidelines, and refund policy.';
+  const canonicalUrl = 'https://navgujaratacademy.online/terms';
+  const seoImage = 'https://navgujaratacademy.online/og-image.png';
 
   const termsStructuredData = {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
-    name: 'VertexPortal Terms of Service',
+    name: 'NavGujarat Academy Terms of Service',
     url: canonicalUrl,
     description: seoDescription,
     publisher: {
       '@type': 'Organization',
-      name: 'VertexPortal',
-      url: 'https://vertex-mu-eight.vercel.app',
+      name: 'NavGujarat Academy',
+      url: 'https://navgujaratacademy.online',
     },
   };
 
@@ -30,7 +30,7 @@ export default function TermsOfService() {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://vertex-mu-eight.vercel.app/',
+        item: 'https://navgujaratacademy.online/',
       },
       {
         '@type': 'ListItem',
@@ -52,7 +52,7 @@ export default function TermsOfService() {
         <meta name="robots" content="index, follow" />
         <meta
           name="keywords"
-          content="terms of service, user agreement, course license, vertexportal terms, refund policy"
+          content="terms of service, user agreement, course license, navgujaratacademy terms, refund policy"
         />
 
         {/* Canonical URL */}
@@ -60,12 +60,12 @@ export default function TermsOfService() {
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="VertexPortal" />
+        <meta property="og:site_name" content="NavGujarat Academy" />
         <meta property="og:title" content={seoTitle} />
         <meta property="og:description" content={seoDescription} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={seoImage} />
-        <meta property="og:image:alt" content="VertexPortal Terms of Service" />
+        <meta property="og:image:alt" content="NavGujarat Academy Terms of Service" />
 
         {/* Twitter Metadata */}
         <meta name="twitter:card" content="summary_large_image" />
@@ -113,7 +113,7 @@ export default function TermsOfService() {
               Terms of Service
             </h1>
             <p className="text-xs sm:text-sm md:text-base text-purple-100 dark:text-purple-200/90 leading-relaxed max-w-2xl">
-              Welcome to VertexPortal. These Terms govern your access to our interactive courses, live sessions, AI tutor assistance, and certificate credentials.
+              Welcome to NavGujarat Academy. These Terms govern your access to our interactive courses, live sessions, AI tutor assistance, and certificate credentials.
             </p>
           </div>
         </div>
@@ -127,7 +127,7 @@ export default function TermsOfService() {
               <span>1. Acceptance of Terms</span>
             </h2>
             <p className="text-gray-700 dark:text-slate-300">
-              By creating an account or accessing VertexPortal, you agree to comply with these terms, community guidelines, and applicable local and international copyright laws.
+              By creating an account or accessing NavGujarat Academy, you agree to comply with these terms, community guidelines, and applicable local and international copyright laws.
             </p>
           </section>
 
@@ -137,7 +137,7 @@ export default function TermsOfService() {
               <span>2. Course Access &amp; Lifetime License</span>
             </h2>
             <p className="text-gray-700 dark:text-slate-300">
-              When you enroll in a paid or free course, VertexPortal grants you a personal, non-exclusive, non-transferable license to access the lecture videos, source code repositories, and interactive exercises for continuous educational purposes.
+              When you enroll in a paid or free course, NavGujarat Academy grants you a personal, non-exclusive, non-transferable license to access the lecture videos, source code repositories, and interactive exercises for continuous educational purposes.
             </p>
           </section>
 

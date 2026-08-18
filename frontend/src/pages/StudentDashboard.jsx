@@ -241,7 +241,7 @@ export default function StudentDashboard() {
   return (
     <>
       <Helmet>
-        <title>Student Dashboard — VertexPortal</title>
+        <title>Student Dashboard — NavGujarat Academy</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
@@ -268,7 +268,7 @@ export default function StudentDashboard() {
               <BookOpen className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight">VertexPortal</p>
+              <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight">NavGujarat Academy</p>
               <p className="text-[10px] text-purple-500 font-medium">Learning Platform</p>
             </div>
           </div>
@@ -672,7 +672,7 @@ export default function StudentDashboard() {
                 {/* Badges List */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 pt-2.5 border-t border-orange-200/30 dark:border-orange-900/20">
                   {(gamification.badges.length > 0 ? gamification.badges : [
-                    { id: 'welcome', title: 'Welcome Scholar', description: 'Joined VertexPortal', icon: 'sparkles' },
+                    { id: 'welcome', title: 'Welcome Scholar', description: 'Joined NavGujarat Academy', icon: 'sparkles' },
                     { id: 'streak_3', title: '3-Day Streak', description: 'Study 3 days in a row', icon: 'flame' },
                   ]).map((b, idx) => (
                     <div key={b.id || idx} className="bg-white/80 dark:bg-gray-800/80 rounded-xl p-2.5 sm:p-3 border border-gray-100 dark:border-gray-700/60 flex items-center gap-2.5 shadow-2xs min-w-0">

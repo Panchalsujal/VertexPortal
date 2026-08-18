@@ -193,7 +193,7 @@ export class ServerRenderService {
     const subtitle = escapeHtml(course.subtitle || "");
     const description = escapeHtml(course.description || "");
     const categoryName = escapeHtml(course.category?.name || "General");
-    const instructorName = escapeHtml(course.instructor?.fullName || "Vertex Instructor");
+    const instructorName = escapeHtml(course.instructor?.fullName || "NavGujarat Academy Instructor");
     const level = escapeHtml(course.level || "All Levels");
     const language = escapeHtml(course.language || "English");
     const priceDisplay = course.price === 0 ? t.free : `$${course.price}`;
@@ -235,8 +235,8 @@ export class ServerRenderService {
       description: course.description,
       provider: {
         "@type": "Organization",
-        name: "VertexPortal",
-        sameAs: "https://vertex-mu-eight.vercel.app",
+        name: "NavGujarat Academy",
+        sameAs: "https://navgujaratacademy.online",
       },
       offers: {
         "@type": "Offer",
@@ -252,7 +252,7 @@ export class ServerRenderService {
     });
 
     const bodyHtml = `
-      <article class="vertex-course-view max-w-6xl mx-auto px-4 py-8 font-[Inter,sans-serif]" data-course-id="${courseId}" data-course-slug="${courseSlug}">
+      <article class="nga-course-view max-w-6xl mx-auto px-4 py-8 font-[Inter,sans-serif]" data-course-id="${courseId}" data-course-slug="${courseSlug}">
         <!-- Course Header -->
         <header class="bg-gradient-to-r from-gray-900 via-indigo-950 to-gray-900 text-white rounded-3xl p-6 sm:p-10 shadow-xl relative overflow-hidden mb-8">
           <div class="relative z-10 max-w-3xl space-y-4">
@@ -361,9 +361,9 @@ export class ServerRenderService {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title} | VertexPortal</title>
+  <title>${title} | NavGujarat Academy</title>
   <meta name="description" content="${subtitle || description.slice(0, 160)}">
-  <meta property="og:title" content="${title} | VertexPortal">
+  <meta property="og:title" content="${title} | NavGujarat Academy">
   <meta property="og:description" content="${subtitle || description.slice(0, 160)}">
   ${course.thumbnailUrl ? `<meta property="og:image" content="${escapeHtml(course.thumbnailUrl)}">` : ""}
   <script type="application/ld+json">${jsonLd}</script>
@@ -372,7 +372,7 @@ export class ServerRenderService {
 <body class="bg-gray-50 dark:bg-[#0b0f17] text-gray-900 dark:text-gray-100 min-h-screen">
   <!-- HOLE:USER_NAV -->
   <nav id="ssr-hole-nav" data-ssr-hydrate="user-nav" class="border-b border-gray-200 dark:border-gray-800 px-6 py-4 flex items-center justify-between bg-white dark:bg-gray-900">
-    <a href="/" class="text-lg font-black tracking-wider text-sky-600 dark:text-sky-400">VERTEXPORTAL</a>
+    <a href="/" class="text-lg font-black tracking-wider text-sky-600 dark:text-sky-400">NAVGUJARATACADEMY</a>
     <div class="flex items-center gap-3">
       <a href="/login" class="text-xs font-semibold px-4 py-2 rounded-lg bg-sky-600 text-white">${t.signIn}</a>
     </div>
@@ -439,7 +439,7 @@ export class ServerRenderService {
 
           <!-- Brand Header -->
           <div>
-            <p class="text-xs font-bold uppercase tracking-widest text-sky-600 dark:text-sky-400">VERTEXPORTAL</p>
+            <p class="text-xs font-bold uppercase tracking-widest text-sky-600 dark:text-sky-400">NAVGUJARATACADEMY</p>
             <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mt-1">
               ${t.certificateOfCompletion}
             </h1>
@@ -497,8 +497,8 @@ export class ServerRenderService {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Certificate: ${studentName} - ${courseTitle} | VertexPortal</title>
-  <meta name="description" content="Verified Certificate for ${studentName} issued by VertexPortal for completion of ${courseTitle}">
+  <title>Certificate: ${studentName} - ${courseTitle} | NavGujarat Academy</title>
+  <meta name="description" content="Verified Certificate for ${studentName} issued by NavGujarat Academy for completion of ${courseTitle}">
   <meta property="og:title" content="Verified Certificate: ${studentName}">
   <meta property="og:description" content="Verified Certificate of Completion for ${courseTitle}">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -554,7 +554,7 @@ export class ServerRenderService {
       .join("");
 
     return `
-      <section class="vertex-catalog-fragment space-y-6">
+      <section class="nga-catalog-fragment space-y-6">
         <div class="flex flex-wrap gap-2">${categoriesHtml}</div>
         <!-- HOLE:USER_SAVED_PREFERENCES -->
         <div id="ssr-hole-preferences" data-ssr-hydrate="user-catalog-prefs"></div>
@@ -595,7 +595,7 @@ export class ServerRenderService {
     if (userContext && userContext.user) {
       const userNavReplacement = `
         <nav id="ssr-hole-nav" class="border-b border-gray-200 dark:border-gray-800 px-6 py-4 flex items-center justify-between bg-white dark:bg-gray-900">
-          <a href="/" class="text-lg font-black tracking-wider text-sky-600 dark:text-sky-400">VERTEXPORTAL</a>
+          <a href="/" class="text-lg font-black tracking-wider text-sky-600 dark:text-sky-400">NAVGUJARATACADEMY</a>
           <div class="flex items-center gap-3">
             <span class="text-xs text-gray-500 font-medium">Hello, <strong class="text-gray-900 dark:text-white">${escapeHtml(userContext.user.fullName || userContext.user.name)}</strong></span>
             <a href="/my-learning" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200">My Learning</a>

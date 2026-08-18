@@ -1,4 +1,4 @@
-# VertexPortal LMS — Backend API Service
+# NavGujarat Academy — Backend API Service
 
 [![Node.js](https://img.shields.io/badge/Node.js-v20+-green.svg)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-v5.2.1-lightgrey.svg)](https://expressjs.com/)
@@ -6,7 +6,7 @@
 [![Mistral AI](https://img.shields.io/badge/Mistral_AI-2.6.1-purple.svg)](https://mistral.ai/)
 [![Stream.io](https://img.shields.io/badge/Stream.io_SDK-0.7.63-005fff.svg)](https://getstream.io/)
 
-The backend service for VertexPortal LMS is an enterprise-grade RESTful API built on **Node.js (ESM)** and **Express 5.2**, powered by **MongoDB / Mongoose 9**, featuring integrated **WebRTC Live Classrooms (Stream.io)**, **Multimodal AI & RAG Search (Mistral AI)**, **Payment Processing (Razorpay)**, and **Verifiable PDF Generation (PDFKit & QRCode)**.
+The backend service for NavGujarat Academy is an enterprise-grade RESTful API built on **Node.js (ESM)** and **Express 5.2**, powered by **MongoDB / Mongoose 9**, featuring integrated **WebRTC Live Classrooms (Stream.io)**, **Multimodal AI & RAG Search (Mistral AI)**, **Payment Processing (Razorpay)**, and **Verifiable PDF Generation (PDFKit & QRCode)**.
 
 ---
 
@@ -40,7 +40,7 @@ Create a `.env` file in the `backend/` directory:
 ```env
 PORT=3000
 NODE_ENV=development
-MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/vertexportal?retryWrites=true&w=majority
+MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/navgujaratacademy?retryWrites=true&w=majority
 FRONTEND_URL=http://localhost:5173
 
 # Authentication

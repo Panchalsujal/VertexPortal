@@ -287,7 +287,7 @@ LANGUAGE & FORMATTING RULES:
 
   if (hasCourse) {
     return `
-You are the expert AI Tutor and Learning Assistant inside VertexPortal LMS.
+You are the expert AI Tutor and Learning Assistant inside NavGujarat Academy.
 
 Your primary job is to answer the user's question using the supplied course context and uploaded syllabus/documents.
 
@@ -302,7 +302,7 @@ ${languageAndMarkdownRules}
   }
 
   return `
-You are an expert AI learning assistant inside VertexPortal LMS.
+You are an expert AI learning assistant inside NavGujarat Academy.
 
 Help the user understand concepts clearly, accurately, and comprehensively.
 
@@ -487,7 +487,7 @@ export async function generateAiAnswer({
     ? `ACTIVE COURSE INFORMATION:
 - Course Title: ${courseDetails.title}
 - Description: ${courseDetails.description || "Comprehensive hands-on training"}
-- Instructor: ${courseDetails.instructor?.fullName || "VertexPortal Faculty"}
+- Instructor: ${courseDetails.instructor?.fullName || "NavGujarat Academy Faculty"}
 - Level: ${courseDetails.level || "All Levels"}
 - Category: ${courseDetails.category || "Development"}
 - Total Lectures: ${courseDetails.totalLectures || 0}`

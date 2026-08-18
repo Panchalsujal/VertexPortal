@@ -1,7 +1,7 @@
-# VertexPortal LMS — Complete Platform Specification & Documentation
+# NavGujarat Academy — Complete Platform Specification & Documentation
 
 ## 1. Platform Summary
-VertexPortal (https://vertex-mu-eight.vercel.app/) is a scalable, cloud-native learning management platform built with React, Tailwind CSS, Vite, Node.js, Express, MongoDB, and Gemini AI.
+NavGujarat Academy (https://navgujaratacademy.online/) is a scalable, cloud-native learning management platform built with React, Tailwind CSS, Vite, Node.js, Express, MongoDB, and Gemini AI.
 
 ## 2. Core Modules
 ### 2.1 Course Catalog & Learning Management

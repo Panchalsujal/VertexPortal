@@ -131,7 +131,7 @@ function AdminLayoutInner({ children, title, subtitle, actions, showBack = false
               <GraduationCap className="w-4.5 h-4.5 text-white" />
             </div>
             <div>
-              <p className="text-sm font-extrabold text-gray-900 dark:text-white leading-tight">VertexPortal</p>
+              <p className="text-sm font-extrabold text-gray-900 dark:text-white leading-tight">NavGujarat Academy</p>
               <p className="text-[10px] text-purple-500 font-semibold">Admin Panel</p>
             </div>
           </Link>

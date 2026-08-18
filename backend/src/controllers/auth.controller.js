@@ -108,7 +108,7 @@ export const registerController = asyncHandler(async (req, res) => {
 
     const frontendBase = config.FRONTEND_URL
       ? config.FRONTEND_URL.split(",")[0].trim()
-      : "https://vertex-mu-eight.vercel.app";
+      : "https://navgujaratacademy.online";
     const verificationLink = `${frontendBase}/verify-email/${user._id}/${verificationToken}`;
 
     try {
@@ -475,7 +475,7 @@ export const resendVerificationController = asyncHandler(async (req, res) => {
 
     const frontendBase = config.FRONTEND_URL
       ? config.FRONTEND_URL.split(",")[0].trim()
-      : "https://vertex-mu-eight.vercel.app";
+      : "https://navgujaratacademy.online";
     const verificationLink = `${frontendBase}/verify-email/${user._id}/${verificationToken}`;
 
     await sendVerificationEmail({

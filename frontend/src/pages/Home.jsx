@@ -87,7 +87,7 @@ function HeroInteractiveWorkspace() {
             <span className="w-3 h-3 rounded-full bg-[#ffbd2e] inline-block shadow-2xs" />
             <span className="w-3 h-3 rounded-full bg-[#27c93f] inline-block shadow-2xs" />
             <span className="text-[11px] font-mono font-bold text-gray-600 dark:text-slate-400 ml-2">
-              VertexPortal • Studio Live
+              NavGujarat Academy • Studio Live
             </span>
           </div>
           <span className="text-[10px] font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1.5">
@@ -177,7 +177,7 @@ function CertificateSealVector() {
               <Award className="w-4 h-4 text-amber-950" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-300">VertexPortal</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-300">NavGujarat Academy</p>
               <p className="text-[9px] text-gray-500 dark:text-purple-300 font-medium">Digital Credential</p>
             </div>
           </div>
@@ -283,7 +283,7 @@ const FALLBACK_TESTIMONIALS = [
     name: 'Priya Sharma',
     role: 'Full-Stack Developer',
     company: 'TechCorp',
-    text: 'VertexPortal completely changed how I learn. The AI tutor explains complex topics instantly, and live classes feel genuinely interactive. Landed my full-stack role in 5 months.',
+    text: 'NavGujarat Academy completely changed how I learn. The AI tutor explains complex topics instantly, and live classes feel genuinely interactive. Landed my full-stack role in 5 months.',
     avatar: '',
     rating: 5,
   },
@@ -394,51 +394,51 @@ export default function Home() {
   return (
     <>
       <Helmet>
-        <title>VertexPortal LMS — Modern AI-Powered Learning Platform</title>
+        <title>NavGujarat Academy — Modern AI-Powered Learning Platform</title>
 
         <meta
           name="description"
-          content="Learn, teach and master in-demand skills with VertexPortal. AI tutor assistant, interactive quizzes, live video classes, browser coding playground, and verified certificates."
+          content="Learn, teach and master in-demand skills with NavGujarat Academy. AI tutor assistant, interactive quizzes, live video classes, browser coding playground, and verified certificates."
         />
 
         <link
           rel="canonical"
-          href="https://vertex-mu-eight.vercel.app/"
+          href="https://navgujaratacademy.online/"
         />
 
         <meta
           property="og:title"
-          content="VertexPortal LMS — Modern AI-Powered Learning Platform"
+          content="NavGujarat Academy — Modern AI-Powered Learning Platform"
         />
 
         <meta
           property="og:description"
-          content="Learn, teach and master in-demand skills with VertexPortal. AI tutor assistant, interactive quizzes, live video classes, browser coding playground, and verified certificates."
+          content="Learn, teach and master in-demand skills with NavGujarat Academy. AI tutor assistant, interactive quizzes, live video classes, browser coding playground, and verified certificates."
         />
 
         <meta
           property="og:url"
-          content="https://vertex-mu-eight.vercel.app/"
+          content="https://navgujaratacademy.online/"
         />
 
         <meta
           property="og:image"
-          content="https://vertex-mu-eight.vercel.app/og-image.png"
+          content="https://navgujaratacademy.online/og-image.png"
         />
 
         <meta
           name="twitter:title"
-          content="VertexPortal LMS — Modern AI-Powered Learning Platform"
+          content="NavGujarat Academy — Modern AI-Powered Learning Platform"
         />
 
         <meta
           name="twitter:description"
-          content="Learn, teach and master in-demand skills with VertexPortal. AI tutor assistant, interactive quizzes, live video classes, browser coding playground, and verified certificates."
+          content="Learn, teach and master in-demand skills with NavGujarat Academy. AI tutor assistant, interactive quizzes, live video classes, browser coding playground, and verified certificates."
         />
 
         <meta
           name="twitter:image"
-          content="https://vertex-mu-eight.vercel.app/og-image.png"
+          content="https://navgujaratacademy.online/og-image.png"
         />
       </Helmet>
 
@@ -644,7 +644,7 @@ export default function Home() {
               <Sparkles className="w-4 h-4" /> Explore Catalog
             </div>
             <h2 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white tracking-tight">
-              All Courses of VertexPortal
+              All Courses of NavGujarat Academy
             </h2>
             <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
               Curated, project-oriented courses taught by industry veterans.
@@ -820,7 +820,7 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════
-          WHY CHOOSE VERTEXPORTAL
+          WHY CHOOSE NAVGUJARATACADEMY
       ══════════════════════════════════════════════════════════ */}
       <section className="py-16 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-14 space-y-3">
@@ -891,7 +891,7 @@ export default function Home() {
               <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black leading-tight text-white">
                 Get Quality Skills Certificate From the{' '}
                 <span className="text-amber-200 dark:bg-gradient-to-r dark:from-purple-300 dark:via-indigo-200 dark:to-purple-200 dark:bg-clip-text dark:text-transparent">
-                  VertexPortal
+                  NavGujarat Academy
                 </span>
               </h3>
               <p className="text-sm sm:text-base text-purple-100 dark:text-purple-200/90 leading-relaxed max-w-xl mx-auto lg:mx-0 font-normal">
@@ -934,7 +934,7 @@ export default function Home() {
             Loved by Thousands of Developers
           </h2>
           <p className="text-sm text-gray-600 dark:text-slate-400">
-            Real outcomes from students who transformed their engineering careers with VertexPortal.
+            Real outcomes from students who transformed their engineering careers with NavGujarat Academy.
           </p>
         </div>
 

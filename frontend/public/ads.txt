@@ -1,4 +1,4 @@
-# VertexPortal Ads.txt
+# NavGujarat Academy Ads.txt
 # https://iabtechlab.com/ads-txt/
-# VertexPortal LMS is an educational platform and does not sell direct third-party ad inventory.
-contact=support@vertexportal.com
+# NavGujarat Academy is an educational platform and does not sell direct third-party ad inventory.
+contact=support@navgujaratacademy.online

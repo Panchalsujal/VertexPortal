@@ -121,10 +121,10 @@ export function Navbar() {
             </div>
             <div className="flex flex-col">
               <span className="text-lg font-black tracking-tight text-gray-900 dark:text-white leading-none font-sans">
-                Vertex<span className="text-purple-600 dark:text-purple-400">Portal</span>
+                NavGujarat<span className="text-purple-600 dark:text-purple-400">Academy</span>
               </span>
               <span className="text-[9px] font-extrabold uppercase tracking-widest text-purple-600 dark:text-purple-400 mt-0.5">
-                LMS Platform
+                Online Learning
               </span>
             </div>
           </Link>

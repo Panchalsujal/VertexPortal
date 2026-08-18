@@ -4,7 +4,7 @@ const DEFAULT_BADGES = [
   {
     id: "welcome_scholar",
     title: "Welcome Scholar",
-    description: "Joined VertexPortal and began the learning journey.",
+    description: "Joined NavGujarat Academy and began the learning journey.",
     icon: "sparkles",
   },
   {

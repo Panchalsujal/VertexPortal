@@ -1,7 +1,7 @@
-# VertexPortal LMS — Technical Requirements Document (TRD)
+# NavGujarat Academy — Technical Requirements Document (TRD)
 
 **Document Version:** 2.0.0  
-**Target System:** VertexPortal Micro-Monorepo Architecture  
+**Target System:** NavGujarat Academy Micro-Monorepo Architecture  
 **Owner:** Principal System Architect & Engineering Leads  
 **Status:** Approved for Production  
 
@@ -9,7 +9,7 @@
 
 ## 1. System Architecture Overview
 
-VertexPortal is designed as a decoupled client-server architecture with an asynchronous event-driven service layer and specialized edge integrations for video WebRTC and AI processing.
+NavGujarat Academy is designed as a decoupled client-server architecture with an asynchronous event-driven service layer and specialized edge integrations for video WebRTC and AI processing.
 
 ```
                                   +---------------------------------------+

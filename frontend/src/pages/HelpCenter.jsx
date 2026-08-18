@@ -42,7 +42,7 @@ const FAQS = [
     questions: [
       {
         q: 'What is the AI Tutor and how does it help?',
-        a: 'Vertex AI Tutor is an integrated LLM assistant that uses Retrieval-Augmented Generation (RAG) mapped directly to your course knowledge base. You can ask code doubts, request syntax debugging, or get step-by-step logic explanations 24/7.',
+        a: 'NavGujarat Academy AI Tutor is an integrated LLM assistant that uses Retrieval-Augmented Generation (RAG) mapped directly to your course knowledge base. You can ask code doubts, request syntax debugging, or get step-by-step logic explanations 24/7.',
       },
       {
         q: 'What languages are supported in the Code Playground?',
@@ -60,7 +60,7 @@ const FAQS = [
       },
       {
         q: 'How do employers verify my certificate?',
-        a: 'Every certificate comes with a unique tamper-evident verification ID and public URL (e.g. vertexportal.dev/verify-certificate/CODE). Anyone can verify the authenticity and issue timestamp in seconds.',
+        a: 'Every certificate comes with a unique tamper-evident verification ID and public URL (e.g. navgujaratacademy.online/verify-certificate/CODE). Anyone can verify the authenticity and issue timestamp in seconds.',
       },
     ],
   },
@@ -99,14 +99,14 @@ export default function HelpCenter() {
   })).filter(cat => cat.questions.length > 0);
 
   const seoTitle = search.trim()
-    ? `Search: "${search.trim()}" — Help Center & FAQs | VertexPortal`
-    : 'Help Center & FAQs — Knowledge Base | VertexPortal';
+    ? `Search: "${search.trim()}" — Help Center & FAQs | NavGujarat Academy`
+    : 'Help Center & FAQs — Knowledge Base | NavGujarat Academy';
 
   const seoDescription =
-    'Find answers to frequently asked questions about VertexPortal courses, AI tutor assistance, verified certificates, coding playground, live classes, and account support.';
+    'Find answers to frequently asked questions about NavGujarat Academy courses, AI tutor assistance, verified certificates, coding playground, live classes, and account support.';
 
-  const canonicalUrl = 'https://vertex-mu-eight.vercel.app/help';
-  const seoImage = 'https://vertex-mu-eight.vercel.app/og-image.png';
+  const canonicalUrl = 'https://navgujaratacademy.online/help';
+  const seoImage = 'https://navgujaratacademy.online/og-image.png';
 
   const faqStructuredData = {
     '@context': 'https://schema.org',
@@ -131,7 +131,7 @@ export default function HelpCenter() {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://vertex-mu-eight.vercel.app/',
+        item: 'https://navgujaratacademy.online/',
       },
       {
         '@type': 'ListItem',
@@ -153,7 +153,7 @@ export default function HelpCenter() {
         <meta name="robots" content="index, follow" />
         <meta
           name="keywords"
-          content="help center, support, FAQ, vertexportal help, AI tutor help, certificates verification, course enrollment help"
+          content="help center, support, FAQ, navgujaratacademy help, AI tutor help, certificates verification, course enrollment help"
         />
 
         {/* Canonical URL */}
@@ -161,12 +161,12 @@ export default function HelpCenter() {
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="VertexPortal" />
+        <meta property="og:site_name" content="NavGujarat Academy" />
         <meta property="og:title" content={seoTitle} />
         <meta property="og:description" content={seoDescription} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={seoImage} />
-        <meta property="og:image:alt" content="VertexPortal Help Center & Knowledge Base" />
+        <meta property="og:image:alt" content="NavGujarat Academy Help Center & Knowledge Base" />
 
         {/* Twitter Metadata */}
         <meta name="twitter:card" content="summary_large_image" />

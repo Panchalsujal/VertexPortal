@@ -1,8 +1,8 @@
-# VertexPortal LMS — Next-Generation Learning Management System
+# NavGujarat Academy — Next-Generation Learning Management System
 
 <div align="center">
 
-![VertexPortal Banner](https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop)
+![NavGujarat Academy Banner](https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop)
 
 [![Node.js](https://img.shields.io/badge/Node.js-v20+-green.svg)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-v5.2.1-lightgrey.svg)](https://expressjs.com/)
@@ -99,7 +99,7 @@ Complete technical and product documentation is available in the [`docs/`](./doc
 ```bash
 # Clone the repository
 git clone https://github.com/Panchalsujal/VertexPortal.git
-cd VertexPortal
+cd NavGujarat Academy
 
 # Configure Backend Environment
 cp backend/.env.example backend/.env
@@ -133,7 +133,7 @@ npm run dev
 ## 📁 Repository Structure
 
 ```
-VertexPortal/
+NavGujarat Academy/
 ├── docs/                      # Comprehensive Architecture & Project Docs
 │   ├── AUDIT.md               # Step-by-step System Audit
 │   ├── PRD.md                 # Product Requirements Document

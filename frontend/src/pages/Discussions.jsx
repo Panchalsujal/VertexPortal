@@ -324,28 +324,28 @@ export default function Discussions() {
 
   const selectedCourse = coursesList.find((c) => c._id === filterCourseId);
 
-  let seoTitle = 'Community Discussions & Student Q&A Forum — VertexPortal';
+  let seoTitle = 'Community Discussions & Student Q&A Forum — NavGujarat Academy';
   if (current?.title) {
-    seoTitle = `${current.title} — Community Discussion | VertexPortal`;
+    seoTitle = `${current.title} — Community Discussion | NavGujarat Academy`;
   } else if (selectedCourse?.title) {
-    seoTitle = `${selectedCourse.title} Q&A & Discussions | VertexPortal`;
+    seoTitle = `${selectedCourse.title} Q&A & Discussions | NavGujarat Academy`;
   }
 
   let seoDescription =
-    'Join the VertexPortal student and developer discussion community. Ask questions, share programming knowledge, solve coding problems, and collaborate with instructors.';
+    'Join the NavGujarat Academy student and developer discussion community. Ask questions, share programming knowledge, solve coding problems, and collaborate with instructors.';
   if (current?.title) {
     const rawContent = (current.content || current.body || '').replace(/\s+/g, ' ').trim();
     seoDescription = rawContent
       ? rawContent.length > 150
         ? `${rawContent.slice(0, 147)}...`
         : rawContent
-      : `Read and participate in the discussion "${current.title}" on the VertexPortal student community forum.`;
+      : `Read and participate in the discussion "${current.title}" on the NavGujarat Academy student community forum.`;
   } else if (selectedCourse?.title) {
-    seoDescription = `Explore questions, answers, and discussions related to ${selectedCourse.title} on the VertexPortal learning community.`;
+    seoDescription = `Explore questions, answers, and discussions related to ${selectedCourse.title} on the NavGujarat Academy learning community.`;
   }
 
-  const canonicalUrl = 'https://vertex-mu-eight.vercel.app/discussions';
-  const seoImage = 'https://vertex-mu-eight.vercel.app/og-image.png';
+  const canonicalUrl = 'https://navgujaratacademy.online/discussions';
+  const seoImage = 'https://navgujaratacademy.online/og-image.png';
 
   const forumStructuredData = current
     ? {
@@ -356,7 +356,7 @@ export default function Discussions() {
         url: canonicalUrl,
         author: {
           '@type': 'Person',
-          name: current.author?.fullName || current.user?.fullName || current.user?.name || 'VertexPortal Community Member',
+          name: current.author?.fullName || current.user?.fullName || current.user?.name || 'NavGujarat Academy Community Member',
         },
         interactionStatistic: [
           {
@@ -372,20 +372,20 @@ export default function Discussions() {
         ],
         publisher: {
           '@type': 'Organization',
-          name: 'VertexPortal',
-          url: 'https://vertex-mu-eight.vercel.app',
+          name: 'NavGujarat Academy',
+          url: 'https://navgujaratacademy.online',
         },
       }
     : {
         '@context': 'https://schema.org',
         '@type': 'DiscussionForumPosting',
-        headline: 'VertexPortal Student Community Discussions',
+        headline: 'NavGujarat Academy Student Community Discussions',
         description: seoDescription,
         url: canonicalUrl,
         publisher: {
           '@type': 'Organization',
-          name: 'VertexPortal',
-          url: 'https://vertex-mu-eight.vercel.app',
+          name: 'NavGujarat Academy',
+          url: 'https://navgujaratacademy.online',
         },
       };
 
@@ -397,7 +397,7 @@ export default function Discussions() {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://vertex-mu-eight.vercel.app/',
+        item: 'https://navgujaratacademy.online/',
       },
       {
         '@type': 'ListItem',
@@ -419,7 +419,7 @@ export default function Discussions() {
         <meta name="robots" content="index, follow" />
         <meta
           name="keywords"
-          content="student discussions, coding forum, programming Q&A, course questions, peer learning, developer community, VertexPortal"
+          content="student discussions, coding forum, programming Q&A, course questions, peer learning, developer community, NavGujarat Academy"
         />
 
         {/* Canonical URL */}
@@ -427,12 +427,12 @@ export default function Discussions() {
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content={current ? 'article' : 'website'} />
-        <meta property="og:site_name" content="VertexPortal" />
+        <meta property="og:site_name" content="NavGujarat Academy" />
         <meta property="og:title" content={seoTitle} />
         <meta property="og:description" content={seoDescription} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={seoImage} />
-        <meta property="og:image:alt" content="VertexPortal Community Discussions" />
+        <meta property="og:image:alt" content="NavGujarat Academy Community Discussions" />
 
         {/* Twitter Metadata */}
         <meta name="twitter:card" content="summary_large_image" />

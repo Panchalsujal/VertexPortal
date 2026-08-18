@@ -1,4 +1,4 @@
-# VertexPortal LMS — Application Flows & User Journeys
+# NavGujarat Academy — Application Flows & User Journeys
 
 **Document Version:** 2.0.0  
 **Target:** Visual & Architectural User Flows across All Roles  

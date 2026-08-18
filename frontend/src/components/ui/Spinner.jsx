@@ -332,7 +332,7 @@ export function SkeletonLiveRoom() {
  * Features:
  * • Obsidian & Glass Card with Multi-layered Ambient Radial Glows
  * • Dual Synchronized Glowing Orbit Rings
- * • Breathing Vertex Brand Badge with Radiant Center Beacon
+ * • Breathing Brand Badge with Radiant Center Beacon
  * • Indeterminate Sleek Gradient Progress Track
  * • Hardware-Accelerated 60fps Animations (Zero CPU Lag)
  */
@@ -390,7 +390,7 @@ export function PageLoader({ text = 'Preparing your learning space...' }) {
         <div className="space-y-2.5">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50/80 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-800/40 text-purple-700 dark:text-purple-300 text-xs font-bold shadow-2xs">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
-            <span>VertexPortal LMS</span>
+            <span>NavGujarat Academy</span>
           </div>
 
           <p className="text-xs font-medium text-gray-500 dark:text-slate-400 tracking-wide">

@@ -1,4 +1,4 @@
-# VertexPortal LMS — Backend Database Schema Reference (36 Models)
+# NavGujarat Academy — Backend Database Schema Reference (36 Models)
 
 **Document Version:** 2.1.0  
 **Database Engine:** MongoDB 7.0+ with Mongoose 9.8.0 ORM  

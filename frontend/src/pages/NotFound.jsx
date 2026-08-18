@@ -61,10 +61,10 @@ export default function NotFound() {
   return (
     <>
       <Helmet>
-        <title>404 — Page Not Found | VertexPortal</title>
+        <title>404 — Page Not Found | NavGujarat Academy</title>
         <meta
           name="description"
-          content="The page you are looking for does not exist or has been moved. Explore VertexPortal online courses, AI tutor, live classrooms, and coding playground."
+          content="The page you are looking for does not exist or has been moved. Explore NavGujarat Academy online courses, AI tutor, live classrooms, and coding playground."
         />
         <meta name="robots" content="noindex, follow" />
       </Helmet>

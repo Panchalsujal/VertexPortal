@@ -101,7 +101,7 @@ export const downloadMyCertificateController = asyncHandler(
       const rawFrontend =
         config.FRONTEND_URL ||
         process.env.FRONTEND_URL ||
-        "https://vertex-mu-eight.vercel.app";
+        "https://navgujaratacademy.online";
 
       const frontendBase = rawFrontend
         .split(",")[0]

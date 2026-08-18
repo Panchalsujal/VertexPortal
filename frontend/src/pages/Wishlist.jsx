@@ -25,7 +25,7 @@ export default function Wishlist() {
   return (
     <>
       <Helmet>
-        <title>My Saved Wishlist — VertexPortal</title>
+        <title>My Saved Wishlist — NavGujarat Academy</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 

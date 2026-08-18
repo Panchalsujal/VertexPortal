@@ -194,7 +194,7 @@ const HTML_SNIPPETS = [
 <body>
   <div class="card">
     <div class="icon">🚀</div>
-    <h2>VertexPortal</h2>
+    <h2>NavGujarat Academy</h2>
     <p>Empowering millions of students with interactive AI-powered learning.</p>
     <button class="btn">Explore Courses</button>
   </div>
@@ -439,21 +439,21 @@ export default function CodePlayground() {
   // Dynamic SEO metadata based on active language tab
   const seoTitle =
     lang === 'javascript'
-      ? 'Interactive JavaScript Playground & Sandbox — VertexPortal'
-      : 'Interactive HTML & Web Live Preview Playground — VertexPortal';
+      ? 'Interactive JavaScript Playground & Sandbox — NavGujarat Academy'
+      : 'Interactive HTML & Web Live Preview Playground — NavGujarat Academy';
 
   const seoDescription =
     lang === 'javascript'
-      ? 'Write, run, and debug modern JavaScript in your browser with VertexPortal Code Playground. Features instant sandbox execution, console logging, and code presets.'
-      : 'Live HTML & CSS code playground. Build, test, and preview responsive web components in real time with desktop, tablet, and mobile viewports on VertexPortal.';
+      ? 'Write, run, and debug modern JavaScript in your browser with NavGujarat Academy Code Playground. Features instant sandbox execution, console logging, and code presets.'
+      : 'Live HTML & CSS code playground. Build, test, and preview responsive web components in real time with desktop, tablet, and mobile viewports on NavGujarat Academy.';
 
-  const canonicalUrl = 'https://vertex-mu-eight.vercel.app/playground';
-  const seoImage = 'https://vertex-mu-eight.vercel.app/og-image.png';
+  const canonicalUrl = 'https://navgujaratacademy.online/playground';
+  const seoImage = 'https://navgujaratacademy.online/og-image.png';
 
   const playgroundStructuredData = {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
-    name: 'VertexPortal Code Playground',
+    name: 'NavGujarat Academy Code Playground',
     url: canonicalUrl,
     description:
       'Free in-browser interactive code playground and sandbox for experimenting with JavaScript and HTML/CSS web applications with live execution, console debugging, and responsive previews.',
@@ -467,8 +467,8 @@ export default function CodePlayground() {
     },
     author: {
       '@type': 'Organization',
-      name: 'VertexPortal',
-      url: 'https://vertex-mu-eight.vercel.app',
+      name: 'NavGujarat Academy',
+      url: 'https://navgujaratacademy.online',
     },
     featureList: [
       'Real-time JavaScript Sandbox Execution',
@@ -487,7 +487,7 @@ export default function CodePlayground() {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://vertex-mu-eight.vercel.app/',
+        item: 'https://navgujaratacademy.online/',
       },
       {
         '@type': 'ListItem',
@@ -513,7 +513,7 @@ export default function CodePlayground() {
         <meta name="robots" content="index, follow" />
         <meta
           name="keywords"
-          content="code playground, javascript sandbox, online javascript editor, html preview, html css playground, web sandbox, live code editor, VertexPortal"
+          content="code playground, javascript sandbox, online javascript editor, html preview, html css playground, web sandbox, live code editor, NavGujarat Academy"
         />
 
         {/* Canonical URL */}
@@ -521,12 +521,12 @@ export default function CodePlayground() {
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="VertexPortal" />
+        <meta property="og:site_name" content="NavGujarat Academy" />
         <meta property="og:title" content={seoTitle} />
         <meta property="og:description" content={seoDescription} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={seoImage} />
-        <meta property="og:image:alt" content="VertexPortal Interactive Code Playground" />
+        <meta property="og:image:alt" content="NavGujarat Academy Interactive Code Playground" />
 
         {/* Twitter Metadata */}
         <meta name="twitter:card" content="summary_large_image" />

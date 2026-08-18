@@ -1,13 +1,13 @@
 /* TEAM */
-  Platform: VertexPortal LMS
-  Creator: Panchal Sujal & VertexPortal Engineering Team
-  Contact: support@vertexportal.com
+  Platform: NavGujarat Academy
+  Creator: Panchal Sujal & NavGujarat Academy Team
+  Contact: support@navgujaratacademy.online
   From: Ahmedabad, Gujarat, India
 
 /* SITE */
-  Last update: 2026-08-17
+  Last update: 2026-08-19
   Standards: HTML5, CSS3, ES2024, SVG, JSON-LD
   Components: React 18, Vite, Tailwind CSS, Lucide Icons, Redux Toolkit
   Backend: Node.js, Express, MongoDB, Render
-  Hosting: Vercel
+  Hosting: Vercel / Custom Domain
   AI Engine: Google Gemini AI

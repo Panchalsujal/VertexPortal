@@ -1,4 +1,4 @@
-# VertexPortal LMS — Frontend Client Application
+# NavGujarat Academy — Frontend Client Application
 
 [![React](https://img.shields.io/badge/React-v19.2.8-blue.svg)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-v8.2.0-646CFF.svg)](https://vitejs.dev/)
@@ -6,7 +6,7 @@
 [![Redux Toolkit](https://img.shields.io/badge/Redux_Toolkit-v2.12.0-764ABC.svg)](https://redux-toolkit.js.org/)
 [![Stream Video SDK](https://img.shields.io/badge/Stream_Video_React-v1.40.2-005fff.svg)](https://getstream.io/video/)
 
-The frontend client for VertexPortal LMS is a modern Single Page Application (SPA) built on **React 19**, **Vite 8**, **TailwindCSS v4**, and **Redux Toolkit 2.12**, featuring interactive video learning, real-time WebRTC live classes, an in-browser code execution playground, and conversational AI tutoring.
+The frontend client for NavGujarat Academy is a modern Single Page Application (SPA) built on **React 19**, **Vite 8**, **TailwindCSS v4**, and **Redux Toolkit 2.12**, featuring interactive video learning, real-time WebRTC live classes, an in-browser code execution playground, and conversational AI tutoring.
 
 ---
 

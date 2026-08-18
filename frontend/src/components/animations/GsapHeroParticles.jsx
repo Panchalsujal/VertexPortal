@@ -16,7 +16,7 @@ export function GsapHeroParticles({ className = '', count = 16 }) {
     let timerId = null;
 
     const initAnimation = () => {
-      // Color palette matching VertexPortal brand
+      // Color palette matching NavGujarat Academy brand
       const colors = [
         '#8b5cf6', // Violet
         '#6366f1', // Indigo

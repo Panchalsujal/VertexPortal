@@ -1,4 +1,4 @@
-# VertexPortal LMS — API Documentation
+# NavGujarat Academy — API Documentation
 
 > **Base URL:** `http://localhost:<PORT>/api`
 > **Authentication:** Cookie-based JWT (`token` cookie set on login)
@@ -5351,5 +5351,5 @@
 
 ---
 
-*Last updated: August 2026 | VertexPortal LMS Backend*
+*Last updated: August 2026 | NavGujarat Academy Backend*
 

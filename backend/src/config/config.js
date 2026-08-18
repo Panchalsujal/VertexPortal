@@ -107,7 +107,7 @@ if (!isTestEnv) {
 }
 
 export const config = {
-  MONGO_URI: process.env.MONGO_URI || "mongodb://127.0.0.1:27017/test_vertex_db",
+  MONGO_URI: process.env.MONGO_URI || "mongodb://127.0.0.1:27017/test_nga_db",
   JWT_SECRET: process.env.JWT_SECRET || "ci_pipeline_jwt_secret_token_123456789_abcdef",
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "7d",
   EMAIL_USER: process.env.EMAIL_USER,
@@ -115,8 +115,8 @@ export const config = {
   EMAIL_FROM:
     process.env.EMAIL_FROM ||
     (process.env.EMAIL_USER
-      ? `"Vertex LMS" <${process.env.EMAIL_USER}>`
-      : "Vertex LMS <onboarding@resend.dev>"),
+      ? `"NavGujarat Academy" <${process.env.EMAIL_USER}>`
+      : "NavGujarat Academy <onboarding@resend.dev>"),
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
   GOOGLE_REFRESH_TOKEN: process.env.GOOGLE_REFRESH_TOKEN,

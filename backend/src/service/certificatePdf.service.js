@@ -31,9 +31,9 @@ export async function generateCertificatePdf({
         },
         info: {
           Title: `Certificate of Completion - ${studentName}`,
-          Author: "VertexPortal",
+          Author: "NavGujarat Academy",
           Subject: `Certificate for ${courseTitle}`,
-          Keywords: "certificate, completion, vertexportal",
+          Keywords: "certificate, completion, navgujaratacademy",
         },
       });
 
@@ -143,7 +143,7 @@ export async function generateCertificatePdf({
         .stroke();
 
       /*
-       * 5. Top Brand Header (Paper Plane + VERTEXPORTAL)
+       * 5. Top Brand Header (Paper Plane + NAVGUJARATACADEMY)
        */
       const logoY = 56;
       const midX = W / 2;
@@ -173,7 +173,7 @@ export async function generateCertificatePdf({
         .fillColor("#0284C7")
         .font("Helvetica-Bold")
         .fontSize(14)
-        .text("VERTEXPORTAL", 0, logoY + 22, {
+        .text("NAVGUJARATACADEMY", 0, logoY + 22, {
           align: "center",
           characterSpacing: 2,
         });
@@ -233,7 +233,7 @@ export async function generateCertificatePdf({
         .fillColor("#334155")
         .font("Helvetica")
         .fontSize(12)
-        .text("with outstanding performance through VertexPortal Learning System.", 0, 276, {
+        .text("with outstanding performance through NavGujarat Academy Learning System.", 0, 276, {
           align: "center",
         });
 
@@ -271,7 +271,7 @@ export async function generateCertificatePdf({
         .fillColor("#64748B")
         .font("Helvetica")
         .fontSize(9)
-        .text("Founder & CEO, VertexPortal", 0, sigY + 14, {
+        .text("Founder & CEO, NavGujarat Academy", 0, sigY + 14, {
           align: "center",
         });
 
@@ -322,7 +322,7 @@ export async function generateCertificatePdf({
         .font("Helvetica")
         .fontSize(7)
         .text(
-          `For certificate authentication please visit: ${verificationUrl || "https://vertex-mu-eight.vercel.app/certificates/verify"}`,
+          `For certificate authentication please visit: ${verificationUrl || "https://navgujaratacademy.online/certificates/verify"}`,
           0,
           514,
           {

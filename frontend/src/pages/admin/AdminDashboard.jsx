@@ -268,7 +268,7 @@ export default function AdminDashboard() {
               <GraduationCap className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="text-sm font-extrabold text-gray-900 dark:text-white leading-tight">VertexPortal</p>
+              <p className="text-sm font-extrabold text-gray-900 dark:text-white leading-tight">NavGujarat Academy</p>
               <p className="text-[10px] text-purple-600 dark:text-purple-400 font-bold uppercase tracking-wider">Admin Panel</p>
             </div>
           </Link>

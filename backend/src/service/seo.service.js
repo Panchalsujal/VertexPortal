@@ -2,7 +2,7 @@ import Course from "../models/course.model.js";
 
 const FRONTEND_URL =
   process.env.FRONTEND_URL?.split(",")[0]?.trim().replace(/\/$/, "") ||
-  "https://vertex-mu-eight.vercel.app";
+  "https://navgujaratacademy.online";
 
 const escapeXml = (value = "") => {
   return String(value)

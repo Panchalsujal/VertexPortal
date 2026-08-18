@@ -145,7 +145,7 @@ export async function issueCertificate({ studentId, courseId, enrollmentId }) {
     const rawFrontend =
       config.FRONTEND_URL ||
       process.env.FRONTEND_URL ||
-      "https://vertex-mu-eight.vercel.app";
+      "https://navgujaratacademy.online";
 
     const frontendBase = rawFrontend
       .split(",")[0]
@@ -1156,7 +1156,7 @@ export async function getCertificateDownload({
   const resolvedInstructorName =
     certificate.instructorName && certificate.instructorName.trim() !== ""
       ? certificate.instructorName.trim()
-      : certificate.course?.instructor?.fullName || "VertexPortal Academic Board";
+      : certificate.course?.instructor?.fullName || "NavGujarat Academy Academic Board";
 
   return {
     certificateId: certificate._id,
@@ -1187,7 +1187,7 @@ export async function regenerateCertificatePdf(certificateId) {
   const rawFrontend =
     config.FRONTEND_URL ||
     process.env.FRONTEND_URL ||
-    "https://vertex-mu-eight.vercel.app";
+    "https://navgujaratacademy.online";
 
   const frontendBase = rawFrontend
     .split(",")[0]

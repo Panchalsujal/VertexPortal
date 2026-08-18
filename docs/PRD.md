@@ -1,7 +1,7 @@
-# VertexPortal LMS — Product Requirements Document (PRD)
+# NavGujarat Academy — Product Requirements Document (PRD)
 
 **Document Version:** 2.0.0  
-**Target Product:** VertexPortal Next-Gen LMS Platform  
+**Target Product:** NavGujarat Academy Next-Gen LMS Platform  
 **Owner:** Product & Engineering Teams  
 **Status:** Approved for Production  
 
@@ -9,7 +9,7 @@
 
 ## 1. Product Overview & Vision
 
-VertexPortal is a modern, full-lifecycle Learning Management System (LMS) designed to deliver interactive, community-driven, and AI-powered education. Unlike traditional LMS platforms, VertexPortal bridges asynchronous recorded video courses, synchronous live WebRTC streaming classrooms, conversational AI tutoring backed by Retrieval-Augmented Generation (RAG), gamified progress tracking, and instant verifiable credentialing.
+NavGujarat Academy is a modern, full-lifecycle Learning Management System (LMS) designed to deliver interactive, community-driven, and AI-powered education. Unlike traditional LMS platforms, NavGujarat Academy bridges asynchronous recorded video courses, synchronous live WebRTC streaming classrooms, conversational AI tutoring backed by Retrieval-Augmented Generation (RAG), gamified progress tracking, and instant verifiable credentialing.
 
 ---
 

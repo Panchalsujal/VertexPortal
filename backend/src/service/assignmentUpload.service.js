@@ -34,7 +34,7 @@ export async function uploadAssignmentSubmissionFiles({
         imagekit.upload({
           file: file.buffer.toString("base64"),
           fileName,
-          folder: `/vertexportal/assignments/${assignmentId}/${studentId}/attempt-${attemptNumber}`,
+          folder: `/navgujaratacademy/assignments/${assignmentId}/${studentId}/attempt-${attemptNumber}`,
           useUniqueFileName: true,
           tags: [
             "assignment-submission",

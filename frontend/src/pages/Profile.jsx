@@ -110,7 +110,7 @@ export default function Profile() {
   return (
     <>
       <Helmet>
-        <title>Account Settings &amp; Profile — VertexPortal</title>
+        <title>Account Settings &amp; Profile — NavGujarat Academy</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 

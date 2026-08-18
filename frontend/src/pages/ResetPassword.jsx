@@ -115,19 +115,19 @@ export default function ResetPassword() {
   return (
     <>
       <Helmet>
-        <title>Reset Your Password — VertexPortal</title>
+        <title>Reset Your Password — NavGujarat Academy</title>
         <meta
           name="description"
-          content="Choose a new secure password for your VertexPortal account."
+          content="Choose a new secure password for your NavGujarat Academy account."
         />
         <meta name="robots" content="noindex, follow" />
-        <link rel="canonical" href="https://vertex-mu-eight.vercel.app/reset-password" />
+        <link rel="canonical" href="https://navgujaratacademy.online/reset-password" />
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="VertexPortal" />
-        <meta property="og:title" content="Reset Your Password — VertexPortal" />
-        <meta property="og:description" content="Choose a new secure password for your VertexPortal account." />
-        <meta property="og:url" content="https://vertex-mu-eight.vercel.app/reset-password" />
-        <meta property="og:image" content="https://vertex-mu-eight.vercel.app/og-image.png" />
+        <meta property="og:site_name" content="NavGujarat Academy" />
+        <meta property="og:title" content="Reset Your Password — NavGujarat Academy" />
+        <meta property="og:description" content="Choose a new secure password for your NavGujarat Academy account." />
+        <meta property="og:url" content="https://navgujaratacademy.online/reset-password" />
+        <meta property="og:image" content="https://navgujaratacademy.online/og-image.png" />
       </Helmet>
 
       <div className="min-h-[100dvh] w-full grid lg:grid-cols-2 bg-white dark:bg-slate-950 font-[Inter,sans-serif] text-slate-900 dark:text-slate-100 overflow-x-hidden">
@@ -143,7 +143,7 @@ export default function ResetPassword() {
             </div>
             <div>
               <p className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white leading-none font-['Plus_Jakarta_Sans',sans-serif]">
-                VertexPortal
+                NavGujarat Academy
               </p>
               <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400 mt-0.5">
                 LMS Platform
@@ -213,7 +213,7 @@ export default function ResetPassword() {
                   Password Updated! 🎉
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                  Your new password has been saved securely. You can now log into your VertexPortal account.
+                  Your new password has been saved securely. You can now log into your NavGujarat Academy account.
                 </p>
               </div>
               <div className="pt-1 sm:pt-2">
@@ -428,14 +428,14 @@ export default function ResetPassword() {
               <ShieldCheck className="w-4 h-4 text-emerald-300" />
             </div>
             <p className="text-xs text-purple-100 leading-relaxed">
-              Never share your reset link with anyone. VertexPortal staff will never ask for your password.
+              Never share your reset link with anyone. NavGujarat Academy staff will never ask for your password.
             </p>
           </div>
         </div>
 
         {/* Footer info */}
         <div className="relative z-10 flex items-center justify-between text-xs text-purple-200/80">
-          <span>© {new Date().getFullYear()} VertexPortal LMS</span>
+          <span>© {new Date().getFullYear()} NavGujarat Academy</span>
           <div className="flex gap-4">
             <Link to="/privacy" className="hover:text-white transition">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-white transition">Terms of Service</Link>

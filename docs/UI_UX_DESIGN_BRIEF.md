@@ -1,7 +1,7 @@
-# VertexPortal LMS — UI / UX Design Brief & Design System
+# NavGujarat Academy — UI / UX Design Brief & Design System
 
 **Document Version:** 2.0.0  
-**Design Standard:** LearnOVA / VertexPortal Design Language System (DLS)  
+**Design Standard:** LearnOVA / NavGujarat Academy Design Language System (DLS)  
 **Target:** Frontend Engineers & UI/UX Designers  
 **Status:** Approved for Production  
 
@@ -9,7 +9,7 @@
 
 ## 1. Design Philosophy & Brand Persona
 
-VertexPortal's visual identity balances **modern elegance, educational clarity, and high-performance immersion**. The interface eliminates visual clutter, prioritizes content readability, utilizes subtle glassmorphism for elevation, and maintains high-contrast typography to ensure prolonged focus during study sessions.
+NavGujarat Academy's visual identity balances **modern elegance, educational clarity, and high-performance immersion**. The interface eliminates visual clutter, prioritizes content readability, utilizes subtle glassmorphism for elevation, and maintains high-contrast typography to ensure prolonged focus during study sessions.
 
 ### Brand Keywords
 - **Intelligent:** Clean AI chat integration with rich Markdown, LaTeX, and code syntax rendering.

@@ -14,7 +14,7 @@ dotenv.config();
 const rawUrl = process.argv[2] || process.env.REDIS_URL;
 
 console.log("==================================================");
-console.log("🔴 VERTEX PORTAL — REDIS CONNECTIVITY & CACHE TEST");
+console.log("🔴 NAVGUJARAT ACADEMY — REDIS CONNECTIVITY & CACHE TEST");
 console.log("==================================================");
 
 if (!rawUrl) {
@@ -69,11 +69,11 @@ async function runRedisTests() {
 
     // 3. Key-Value Read/Write Test
     console.log(`\n3️⃣  Testing Data Read/Write (SET & GET with TTL):`);
-    const testKey = "vertex:diagnostic:test";
+    const testKey = "nga:diagnostic:test";
     const testData = JSON.stringify({
       status: "ok",
       timestamp: new Date().toISOString(),
-      service: "VertexPortal-LMS",
+      service: "NavGujarat Academy-LMS",
     });
 
     await client.set(testKey, testData, { EX: 60 });

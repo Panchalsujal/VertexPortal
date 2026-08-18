@@ -20,22 +20,22 @@ export default function PlatformStatus() {
     setTimeout(() => setRefreshing(false), 800);
   };
 
-  const seoTitle = 'Live Platform Status & System Health — VertexPortal';
+  const seoTitle = 'Live Platform Status & System Health — NavGujarat Academy';
   const seoDescription =
-    'Check real-time system status and uptime for VertexPortal LMS services, AI tutor engine, live streaming, certificate verification, and code sandbox.';
-  const canonicalUrl = 'https://vertex-mu-eight.vercel.app/status';
-  const seoImage = 'https://vertex-mu-eight.vercel.app/og-image.png';
+    'Check real-time system status and uptime for NavGujarat Academy services, AI tutor engine, live streaming, certificate verification, and code sandbox.';
+  const canonicalUrl = 'https://navgujaratacademy.online/status';
+  const seoImage = 'https://navgujaratacademy.online/og-image.png';
 
   const statusStructuredData = {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
-    name: 'VertexPortal Platform Status',
+    name: 'NavGujarat Academy Platform Status',
     url: canonicalUrl,
     description: seoDescription,
     publisher: {
       '@type': 'Organization',
-      name: 'VertexPortal',
-      url: 'https://vertex-mu-eight.vercel.app',
+      name: 'NavGujarat Academy',
+      url: 'https://navgujaratacademy.online',
     },
   };
 
@@ -47,7 +47,7 @@ export default function PlatformStatus() {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://vertex-mu-eight.vercel.app/',
+        item: 'https://navgujaratacademy.online/',
       },
       {
         '@type': 'ListItem',
@@ -69,7 +69,7 @@ export default function PlatformStatus() {
         <meta name="robots" content="index, follow" />
         <meta
           name="keywords"
-          content="platform status, system uptime, vertexportal status, service health, live streaming status"
+          content="platform status, system uptime, navgujaratacademy status, service health, live streaming status"
         />
 
         {/* Canonical URL */}
@@ -77,12 +77,12 @@ export default function PlatformStatus() {
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="VertexPortal" />
+        <meta property="og:site_name" content="NavGujarat Academy" />
         <meta property="og:title" content={seoTitle} />
         <meta property="og:description" content={seoDescription} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={seoImage} />
-        <meta property="og:image:alt" content="VertexPortal System Health & Status" />
+        <meta property="og:image:alt" content="NavGujarat Academy System Health & Status" />
 
         {/* Twitter Metadata */}
         <meta name="twitter:card" content="summary_large_image" />

@@ -23,7 +23,7 @@ export function Footer() {
     if (!email || !email.includes('@')) {
       return toast.error('Please enter a valid email address');
     }
-    toast.success('Subscribed to VertexPortal updates!');
+    toast.success('Subscribed to NavGujarat Academy updates!');
     setEmail('');
   };
 
@@ -43,10 +43,10 @@ export function Footer() {
               </div>
               <div>
                 <span className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-                  Vertex<span className="text-purple-600 dark:text-purple-400">Portal</span>
+                  NavGujarat<span className="text-purple-600 dark:text-purple-400">Academy</span>
                 </span>
                 <span className="block text-[10px] text-purple-600 dark:text-purple-400 font-bold uppercase tracking-widest">
-                  Next-Gen LMS
+                  Online Learning
                 </span>
               </div>
             </Link>
@@ -80,7 +80,7 @@ export function Footer() {
                 type="button"
                 onClick={() => {
                   navigator.clipboard.writeText(window.location.origin);
-                  toast.success('VertexPortal link copied to clipboard!');
+                  toast.success('NavGujarat Academy link copied to clipboard!');
                 }}
                 className="w-9 h-9 rounded-xl bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600/40 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-gray-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-300 flex items-center justify-center transition-all duration-200 cursor-pointer"
                 title="Share Portal"
@@ -221,7 +221,7 @@ export function Footer() {
         {/* Bottom Sub-footer Bar */}
         <div className="border-t border-gray-200/90 dark:border-slate-800/90 mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-500 dark:text-slate-400 gap-4 text-center sm:text-left">
           <div>
-            <p>© {new Date().getFullYear()} VertexPortal LMS. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} NavGujarat Academy. All rights reserved.</p>
           </div>
 
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4 sm:gap-6 font-medium">

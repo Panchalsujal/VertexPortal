@@ -3,22 +3,22 @@ import { Helmet } from 'react-helmet-async';
 import { ShieldCheck, ArrowLeft, Lock, Eye, Database, Globe, Clock, Sparkles } from 'lucide-react';
 
 export default function LegalPrivacy() {
-  const seoTitle = 'Privacy Policy & Data Protection — VertexPortal';
+  const seoTitle = 'Privacy Policy & Data Protection — NavGujarat Academy';
   const seoDescription =
-    'Read the VertexPortal Privacy Policy. Learn how we collect, protect, and isolate your personal data, code snippets, AI interactions, and verified credentials.';
-  const canonicalUrl = 'https://vertex-mu-eight.vercel.app/privacy';
-  const seoImage = 'https://vertex-mu-eight.vercel.app/og-image.png';
+    'Read the NavGujarat Academy Privacy Policy. Learn how we collect, protect, and isolate your personal data, code snippets, AI interactions, and verified credentials.';
+  const canonicalUrl = 'https://navgujaratacademy.online/privacy';
+  const seoImage = 'https://navgujaratacademy.online/og-image.png';
 
   const privacyStructuredData = {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
-    name: 'VertexPortal Privacy Policy',
+    name: 'NavGujarat Academy Privacy Policy',
     url: canonicalUrl,
     description: seoDescription,
     publisher: {
       '@type': 'Organization',
-      name: 'VertexPortal',
-      url: 'https://vertex-mu-eight.vercel.app',
+      name: 'NavGujarat Academy',
+      url: 'https://navgujaratacademy.online',
     },
   };
 
@@ -30,7 +30,7 @@ export default function LegalPrivacy() {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://vertex-mu-eight.vercel.app/',
+        item: 'https://navgujaratacademy.online/',
       },
       {
         '@type': 'ListItem',
@@ -52,7 +52,7 @@ export default function LegalPrivacy() {
         <meta name="robots" content="index, follow" />
         <meta
           name="keywords"
-          content="privacy policy, data protection, security, AI sandbox privacy, vertexportal privacy"
+          content="privacy policy, data protection, security, AI sandbox privacy, navgujaratacademy privacy"
         />
 
         {/* Canonical URL */}
@@ -60,12 +60,12 @@ export default function LegalPrivacy() {
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="VertexPortal" />
+        <meta property="og:site_name" content="NavGujarat Academy" />
         <meta property="og:title" content={seoTitle} />
         <meta property="og:description" content={seoDescription} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={seoImage} />
-        <meta property="og:image:alt" content="VertexPortal Privacy Policy" />
+        <meta property="og:image:alt" content="NavGujarat Academy Privacy Policy" />
 
         {/* Twitter Metadata */}
         <meta name="twitter:card" content="summary_large_image" />
@@ -110,7 +110,7 @@ export default function LegalPrivacy() {
               <span>Data Protection &amp; Privacy</span>
             </div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white break-words">
-              VertexPortal Privacy Policy
+              NavGujarat Academy Privacy Policy
             </h1>
             <p className="text-xs sm:text-sm md:text-base text-purple-100 dark:text-purple-200/90 leading-relaxed max-w-2xl">
               We value your trust and are dedicated to safeguarding your personal data, code snippets, and learning credentials with enterprise-grade encryption.
@@ -127,7 +127,7 @@ export default function LegalPrivacy() {
               <span>1. Information We Collect</span>
             </h2>
             <p className="text-gray-700 dark:text-slate-300">
-              When you use VertexPortal, we collect information you provide directly to us:
+              When you use NavGujarat Academy, we collect information you provide directly to us:
             </p>
             <ul className="list-disc pl-4 sm:pl-5 space-y-1.5 text-xs sm:text-sm text-gray-600 dark:text-slate-400">
               <li><strong className="text-gray-900 dark:text-slate-200">Account Profile:</strong> Full name, email address, avatar, role (Student, Instructor), and authentication credentials.</li>
@@ -181,7 +181,7 @@ export default function LegalPrivacy() {
                 Have privacy questions or need data export?
               </p>
               <p className="text-xs text-purple-700 dark:text-purple-300 break-all">
-                Contact our Data Protection Officer at <span className="font-medium underline">privacy@vertexportal.dev</span>
+                Contact our Data Protection Officer at <span className="font-medium underline">privacy@navgujaratacademy.online</span>
               </p>
             </div>
             <Link

@@ -79,7 +79,7 @@ export default function MyLearning() {
   return (
     <>
       <Helmet>
-        <title>My Learning & Enrolled Courses — VertexPortal</title>
+        <title>My Learning & Enrolled Courses — NavGujarat Academy</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 

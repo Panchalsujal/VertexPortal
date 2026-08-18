@@ -1,4 +1,4 @@
-# VertexPortal LMS — Master Implementation Plan & Engineering Roadmap
+# NavGujarat Academy — Master Implementation Plan & Engineering Roadmap
 
 **Document Version:** 2.0.0  
 **Target:** Engineering, QA, DevOps & Product Operations  
@@ -10,7 +10,7 @@
 
 ```mermaid
 gantt
-    title VertexPortal Production Execution Timeline
+    title NavGujarat Academy Production Execution Timeline
     dateFormat  YYYY-MM-DD
     section Phase 1: Core Foundation
     Database Schema & Auth Engine      :done,    p1_1, 2026-06-01, 2026-06-15

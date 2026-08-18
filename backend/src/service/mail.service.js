@@ -20,7 +20,7 @@ async function sendViaResend({ to, subject, text = "", html = "", replyTo = null
   }
 
   const { data, error } = await resend.emails.send({
-    from: config.EMAIL_FROM || "Vertex LMS <onboarding@resend.dev>",
+    from: config.EMAIL_FROM || "NavGujarat Academy <onboarding@resend.dev>",
     to: Array.isArray(to) ? to : [to],
     subject,
     text: text || undefined,
@@ -74,7 +74,7 @@ async function sendViaGmailRestApi({ to, subject, text = "", html = "", replyTo 
 
   const utf8Subject = `=?utf-8?B?${Buffer.from(subject, "utf-8").toString("base64")}?=`;
   const messageParts = [
-    `From: ${config.EMAIL_FROM || `"Vertex LMS" <${config.EMAIL_USER}>`}`,
+    `From: ${config.EMAIL_FROM || `"NavGujarat Academy" <${config.EMAIL_USER}>`}`,
     `To: ${to}`,
     `Subject: ${utf8Subject}`,
     `MIME-Version: 1.0`,
@@ -205,7 +205,7 @@ export async function sendEmail({
       if (fallbackTransporter) {
         try {
           const info = await fallbackTransporter.sendMail({
-            from: config.EMAIL_FROM || `"Vertex LMS" <${config.EMAIL_USER}>`,
+            from: config.EMAIL_FROM || `"NavGujarat Academy" <${config.EMAIL_USER}>`,
             to,
             subject,
             text: text || undefined,
@@ -509,7 +509,7 @@ export async function sendVerificationEmail({
  * Send password reset email
  */
 export async function sendPasswordResetEmail({ user, resetLink }) {
-  const subject = "Reset your Vertex password";
+  const subject = "Reset your NavGujarat Academy password";
   const text = `Hi ${user.fullName || "there"}, you requested to reset your password. Open this link to create a new password: ${resetLink}. This link will expire in 1 hour. If you did not request this, please ignore this email.`;
 
   const html = `
@@ -527,7 +527,7 @@ export async function sendPasswordResetEmail({ user, resetLink }) {
               <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:560px;background:#1e293b;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.3);border:1px solid #334155;">
                 <tr>
                   <td align="center" style="background:linear-gradient(135deg, #7c3aed, #4f46e5);padding:35px 20px;">
-                    <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:800;letter-spacing:-0.5px;">VERTEX</h1>
+                    <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:800;letter-spacing:-0.5px;">NAVGUJARAT ACADEMY</h1>
                     <p style="margin:6px 0 0;color:#e0e7ff;font-size:13px;letter-spacing:0.5px;">SECURE PASSWORD RECOVERY</p>
                   </td>
                 </tr>
@@ -538,7 +538,7 @@ export async function sendPasswordResetEmail({ user, resetLink }) {
                       Hi <strong>${user.fullName || "there"}</strong>,
                     </p>
                     <p style="margin:0 0 24px;color:#94a3b8;line-height:1.6;font-size:14px;">
-                      We received a request to reset your password for your Vertex account. Click the button below to choose a new password.
+                      We received a request to reset your password for your NavGujarat Academy account. Click the button below to choose a new password.
                     </p>
                     <div style="text-align:center;margin:32px 0;">
                       <a href="${resetLink}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:linear-gradient(135deg, #7c3aed, #6366f1);color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:10px;font-size:15px;font-weight:700;box-shadow:0 4px 14px rgba(124,58,237,0.4);">
@@ -556,7 +556,7 @@ export async function sendPasswordResetEmail({ user, resetLink }) {
                 </tr>
                 <tr>
                   <td align="center" style="padding:20px;background:#0f172a;border-top:1px solid #334155;">
-                    <p style="margin:0;color:#64748b;font-size:12px;">© ${new Date().getFullYear()} Vertex Portal. All rights reserved.</p>
+                    <p style="margin:0;color:#64748b;font-size:12px;">© ${new Date().getFullYear()} NavGujarat Academy. All rights reserved.</p>
                   </td>
                 </tr>
               </table>
@@ -584,7 +584,7 @@ export default fallbackTransporter;
  * Fires when an elevated account logs in from an unrecognised IP address.
  */
 export async function sendAdminLoginAlertEmail({ user, ip, userAgent, loginAt }) {
-  const subject = "⚠️ New Login Detected — Vertex Admin/Instructor Account";
+  const subject = "⚠️ New Login Detected — NavGujarat Academy Admin/Instructor Account";
   const time = loginAt ? new Date(loginAt).toUTCString() : new Date().toUTCString();
 
   const text = `Security Alert: Your admin/instructor account (${user.email}) logged in from a new IP address (${ip}) at ${time}. If this was you, no action needed. If this was NOT you, please reset your password immediately and contact support.`;
@@ -607,7 +607,7 @@ export async function sendAdminLoginAlertEmail({ user, ip, userAgent, loginAt })
 
                 <tr>
                   <td align="center" style="background:linear-gradient(135deg,#dc2626,#b91c1c);padding:30px 20px;">
-                    <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;">🔒 VERTEX SECURITY ALERT</h1>
+                    <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;">🔒 NAVGUJARAT ACADEMY SECURITY ALERT</h1>
                     <p style="margin:6px 0 0;color:#fecaca;font-size:13px;">Privileged Account Login Detected</p>
                   </td>
                 </tr>
@@ -658,7 +658,7 @@ export async function sendAdminLoginAlertEmail({ user, ip, userAgent, loginAt })
 
                 <tr>
                   <td align="center" style="padding:16px;background:#0f172a;border-top:1px solid #334155;">
-                    <p style="margin:0;color:#64748b;font-size:11px;">© ${new Date().getFullYear()} Vertex Portal — Security System</p>
+                    <p style="margin:0;color:#64748b;font-size:11px;">© ${new Date().getFullYear()} NavGujarat Academy — Security System</p>
                   </td>
                 </tr>
 

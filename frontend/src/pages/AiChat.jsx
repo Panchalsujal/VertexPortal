@@ -507,8 +507,8 @@ export default function AiChat() {
       <Helmet>
         <title>
           {current?.title
-            ? `${current.title} — AI Tutor | VertexPortal`
-            : 'Vertex AI Tutor & Study Assistant — VertexPortal'}
+            ? `${current.title} — AI Tutor | NavGujarat Academy`
+            : 'NavGujarat Academy AI Tutor & Study Assistant — NavGujarat Academy'}
         </title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
@@ -537,7 +537,7 @@ export default function AiChat() {
               </div>
               <div>
                 <h1 className="text-sm font-extrabold text-gray-900 dark:text-white flex items-center gap-1.5 leading-none">
-                  Vertex AI Tutor <SparklesIcon size={13} color="#f59e0b" />
+                  NavGujarat Academy AI Tutor <SparklesIcon size={13} color="#f59e0b" />
                 </h1>
                 <p className="text-[10px] text-gray-400 mt-0.5">RAG Semantic Assistant</p>
               </div>
@@ -683,7 +683,7 @@ export default function AiChat() {
 
             <div className="min-w-0">
               <h2 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white truncate">
-                {current?.title || 'Vertex AI Tutor'}
+                {current?.title || 'NavGujarat Academy AI Tutor'}
               </h2>
               <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] text-gray-400 truncate">
                 <span>Mistral Large Engine</span>
@@ -847,7 +847,7 @@ export default function AiChat() {
             </form>
             <div className="flex items-center justify-between px-2 pt-1 text-[10px] text-gray-400">
               <span className="hidden sm:inline">Press <kbd className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded font-mono text-[9px]">Enter</kbd> to send</span>
-              <span className="ml-auto text-[9px] sm:text-[10px]">Vertex AI Tutor • Mistral Large</span>
+              <span className="ml-auto text-[9px] sm:text-[10px]">NavGujarat Academy AI Tutor • Mistral Large</span>
             </div>
           </div>
         </footer>

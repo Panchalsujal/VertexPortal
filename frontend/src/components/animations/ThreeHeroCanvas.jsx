@@ -44,7 +44,7 @@ export function ThreeHeroCanvas({ className = '' }) {
     // Store original coordinate positions for smooth sinusoidal animation
     const originalPositions = Float32Array.from(planeGeo.attributes.position.array);
 
-    // Vertex Colors for vibrant violet -> indigo -> cyan gradient
+    // Geometry Colors for vibrant violet -> indigo -> cyan gradient
     const count = planeGeo.attributes.position.count;
     const colors = new Float32Array(count * 3);
 

@@ -1,9 +1,9 @@
-# VertexPortal LMS
+# NavGujarat Academy
 
-> VertexPortal is a next-generation Learning Management System (LMS) designed for modern online education, interactive quizzes, live classrooms, code playground, and AI tutor assistance.
+> NavGujarat Academy is a next-generation Learning Management System (LMS) designed for modern online education, interactive quizzes, live classrooms, code playground, and AI tutor assistance.
 
 ## Overview
-VertexPortal provides comprehensive educational tools for students, instructors, and administrators:
+NavGujarat Academy provides comprehensive educational tools for students, instructors, and administrators:
 - **Course Catalog**: Expert-led video & article courses covering Web Development, Cloud Computing, AI & Machine Learning, Data Science, and Design.
 - **Interactive Code Playground**: Multi-language browser-based code execution sandbox for Python, JavaScript, HTML/CSS, C++, and Java.
 - **AI Tutor Assistant**: Gemini-powered conversational AI study partner capable of explaining concepts, debugging code, generating flashcards, and summarizing lectures.
@@ -12,13 +12,13 @@ VertexPortal provides comprehensive educational tools for students, instructors,
 - **Verified Certificates**: Cryptographically verifiable course completion credentials.
 
 ## Key Public URLs
-- [Home Page](https://vertex-mu-eight.vercel.app/): Portal overview, featured courses, testimonials, and statistics.
-- [Course Catalog](https://vertex-mu-eight.vercel.app/courses): Searchable and filterable catalogue of all public courses.
-- [Code Playground](https://vertex-mu-eight.vercel.app/playground): In-browser interactive code editor and runtime.
-- [Help Center](https://vertex-mu-eight.vercel.app/help): Student guides, FAQ, and technical support.
-- [Platform Status](https://vertex-mu-eight.vercel.app/status): Real-time system health and uptime.
-- [Privacy Policy](https://vertex-mu-eight.vercel.app/privacy): User privacy and data protection terms.
-- [Terms of Service](https://vertex-mu-eight.vercel.app/terms): Platform usage and content licensing policies.
+- [Home Page](https://navgujaratacademy.online/): Portal overview, featured courses, testimonials, and statistics.
+- [Course Catalog](https://navgujaratacademy.online/courses): Searchable and filterable catalogue of all public courses.
+- [Code Playground](https://navgujaratacademy.online/playground): In-browser interactive code editor and runtime.
+- [Help Center](https://navgujaratacademy.online/help): Student guides, FAQ, and technical support.
+- [Platform Status](https://navgujaratacademy.online/status): Real-time system health and uptime.
+- [Privacy Policy](https://navgujaratacademy.online/privacy): User privacy and data protection terms.
+- [Terms of Service](https://navgujaratacademy.online/terms): Platform usage and content licensing policies.
 
 ## Optional Full Documentation
-- [Full LLM Context](https://vertex-mu-eight.vercel.app/llms-full.txt): Detailed structural documentation of VertexPortal LMS.
+- [Full LLM Context](https://navgujaratacademy.online/llms-full.txt): Detailed structural documentation of NavGujarat Academy.

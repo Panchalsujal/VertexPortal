@@ -102,6 +102,8 @@ const staticAllowedOrigins = [
   "http://127.0.0.1:5173",
   "http://127.0.0.1:3000",
   "http://127.0.0.1:4000",
+  "https://navgujaratacademy.online",
+  "https://www.navgujaratacademy.online",
   "https://vertex-mu-eight.vercel.app",
 ];
 
@@ -213,7 +215,7 @@ app.get("/health/circuit-breakers", getCircuitBreakersHealthHandler);
 app.get("/api/health/circuit-breakers", getCircuitBreakersHealthHandler);
 
 app.get("/", (req, res) => {
-  res.status(200).json({ message: "Welcome to the Vertex LMS API" });
+  res.status(200).json({ message: "Welcome to the NavGujarat Academy API" });
 });
 
 // ============================================

@@ -141,7 +141,7 @@ export default function Cart() {
         key: rzpData.keyId,
         amount: rzpData.amount,
         currency: rzpData.currency,
-        name: 'Vertex Portal',
+        name: 'NavGujarat Academy',
         description: 'Course Purchase',
         order_id: rzpData.orderId,
         handler: async function (response) {
@@ -203,7 +203,7 @@ export default function Cart() {
   return (
     <>
       <Helmet>
-        <title>Shopping Cart &amp; Checkout — VertexPortal</title>
+        <title>Shopping Cart &amp; Checkout — NavGujarat Academy</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 

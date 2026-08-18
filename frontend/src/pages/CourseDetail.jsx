@@ -259,13 +259,13 @@ export default function CourseDetail() {
   const discountPercent = hasDiscount ? Math.round(((course.price - course.discountPrice) / course.price) * 100) : 0;
 
   // SEO
-  const siteUrl = 'https://vertex-mu-eight.vercel.app';
+  const siteUrl = 'https://navgujaratacademy.online';
   const canonicalUrl = `${siteUrl}/courses/${encodeURIComponent(slug)}`;
-  const seoTitle = `${course.title} | VertexPortal`;
+  const seoTitle = `${course.title} | NavGujarat Academy`;
   const rawDescription =
     course.subtitle ||
     course.description ||
-    `Learn ${course.title} on VertexPortal with structured lessons, practical learning, AI assistance, and a verified certificate.`;
+    `Learn ${course.title} on NavGujarat Academy with structured lessons, practical learning, AI assistance, and a verified certificate.`;
   const seoDescription =
     rawDescription.length > 160
       ? `${rawDescription.slice(0, 157).trim()}...`
@@ -274,7 +274,7 @@ export default function CourseDetail() {
   const instructorName =
     course.instructor?.fullName ||
     course.instructor?.name ||
-    'VertexPortal Instructor';
+    'NavGujarat Academy Instructor';
 
   const courseStructuredData = {
     '@context': 'https://schema.org',
@@ -285,7 +285,7 @@ export default function CourseDetail() {
     image: seoImage,
     provider: {
       '@type': 'Organization',
-      name: 'VertexPortal',
+      name: 'NavGujarat Academy',
       sameAs: `${siteUrl}/`,
     },
     author: {
@@ -305,7 +305,7 @@ export default function CourseDetail() {
         <link rel="canonical" href={canonicalUrl} />
 
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="VertexPortal" />
+        <meta property="og:site_name" content="NavGujarat Academy" />
         <meta property="og:title" content={seoTitle} />
         <meta property="og:description" content={seoDescription} />
         <meta property="og:url" content={canonicalUrl} />

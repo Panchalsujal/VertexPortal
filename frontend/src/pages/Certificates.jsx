@@ -43,7 +43,7 @@ export default function Certificates() {
   return (
     <>
       <Helmet>
-        <title>My Certificates & Credentials — VertexPortal</title>
+        <title>My Certificates & Credentials — NavGujarat Academy</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 

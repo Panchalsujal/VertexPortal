@@ -179,15 +179,15 @@ export async function getAuditLogs(query = {}) {
           actor: adminUser._id,
           action: "coupon_created",
           resourceType: "coupon",
-          description: "Created promo coupon VERTEX2026",
-          metadata: { code: "VERTEX2026", discount: "20%" },
+          description: "Created promo coupon ACADEMY2026",
+          metadata: { code: "ACADEMY2026", discount: "20%" },
         },
         {
           actor: adminUser._id,
           action: "certificate_issued",
           resourceType: "certificate",
           description: "Issued certificate for Full Stack Course",
-          metadata: { student: "Sujal Panchal", certCode: "VP-CERT-9921" },
+          metadata: { student: "Sujal Panchal", certCode: "NGA-CERT-9921" },
         },
         {
           actor: adminUser._id,

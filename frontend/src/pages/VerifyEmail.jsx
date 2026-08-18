@@ -29,8 +29,8 @@ export default function VerifyEmail() {
   return (
     <>
       <Helmet>
-        <title>Verify Email Address — VertexPortal</title>
-        <meta name="description" content="Verify your email address to activate your VertexPortal account." />
+        <title>Verify Email Address — NavGujarat Academy</title>
+        <meta name="description" content="Verify your email address to activate your NavGujarat Academy account." />
         <meta name="robots" content="noindex, follow" />
       </Helmet>
 

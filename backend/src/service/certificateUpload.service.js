@@ -16,7 +16,7 @@ export async function uploadCertificatePdf({ pdfBuffer, certificateNumber }) {
       imagekit.upload({
         file: pdfBuffer.toString("base64"),
         fileName,
-        folder: "/vertexportal/certificates",
+        folder: "/navgujaratacademy/certificates",
         useUniqueFileName: false,
         overwriteFile: true,
         tags: ["certificate", "course-completion"],

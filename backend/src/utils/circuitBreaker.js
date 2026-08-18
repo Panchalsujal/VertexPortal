@@ -307,7 +307,7 @@ class CircuitBreakerRegistry {
 export const circuitBreakerRegistry = new CircuitBreakerRegistry();
 
 /**
- * Preconfigured Breakers for All External Dependencies in VertexPortal
+ * Preconfigured Breakers for All External Dependencies in NavGujarat Academy
  */
 export const circuitBreakers = {
   // Mistral AI (Chat, Teaching Assistant, Quiz Generation)

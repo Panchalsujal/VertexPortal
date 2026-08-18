@@ -66,4 +66,4 @@ User-agent: Google-Extended
 Allow: /
 
 # Sitemap
-Sitemap: https://vertex-mu-eight.vercel.app/sitemap.xml
+Sitemap: https://navgujaratacademy.online/sitemap.xml

@@ -85,22 +85,22 @@ export default function Login() {
   return (
     <>
       <Helmet>
-        <title>Sign In to Your Account — VertexPortal</title>
+        <title>Sign In to Your Account — NavGujarat Academy</title>
         <meta
           name="description"
-          content="Log in to VertexPortal to continue learning, access your courses, interact with the AI tutor, join live classes, and track your certificates."
+          content="Log in to NavGujarat Academy to continue learning, access your courses, interact with the AI tutor, join live classes, and track your certificates."
         />
         <meta name="robots" content="noindex, follow" />
-        <link rel="canonical" href="https://vertex-mu-eight.vercel.app/login" />
+        <link rel="canonical" href="https://navgujaratacademy.online/login" />
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="VertexPortal" />
-        <meta property="og:title" content="Sign In to Your Account — VertexPortal" />
+        <meta property="og:site_name" content="NavGujarat Academy" />
+        <meta property="og:title" content="Sign In to Your Account — NavGujarat Academy" />
         <meta
           property="og:description"
-          content="Log in to VertexPortal to continue learning, access your courses, interact with the AI tutor, and join live classes."
+          content="Log in to NavGujarat Academy to continue learning, access your courses, interact with the AI tutor, and join live classes."
         />
-        <meta property="og:url" content="https://vertex-mu-eight.vercel.app/login" />
-        <meta property="og:image" content="https://vertex-mu-eight.vercel.app/og-image.png" />
+        <meta property="og:url" content="https://navgujaratacademy.online/login" />
+        <meta property="og:image" content="https://navgujaratacademy.online/og-image.png" />
       </Helmet>
 
       <div className="min-h-screen grid lg:grid-cols-2 bg-slate-50 dark:bg-slate-950 font-[Inter,sans-serif] text-slate-900 dark:text-slate-100">
@@ -114,7 +114,7 @@ export default function Login() {
             </div>
             <div>
               <p className="text-base font-extrabold text-slate-900 dark:text-white leading-none font-['Plus_Jakarta_Sans',sans-serif]">
-                VertexPortal
+                NavGujarat Academy
               </p>
               <p className="text-[10px] font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400 mt-0.5">
                 LMS Platform
@@ -357,7 +357,7 @@ export default function Login() {
               ))}
             </div>
             <p className="text-xs text-purple-100 italic leading-relaxed">
-              "VertexPortal's interactive live streams and AI quizzes helped me master full-stack engineering and transition into my dream role!"
+              "NavGujarat Academy's interactive live streams and AI quizzes helped me master full-stack engineering and transition into my dream role!"
             </p>
             <div className="flex items-center gap-2 pt-1">
               <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold bg-emerald-500 shadow-xs">
@@ -373,7 +373,7 @@ export default function Login() {
 
         {/* Bottom Status Bar */}
         <div className="relative z-10 flex items-center justify-between text-[11px] text-purple-200/80 pt-4 border-t border-white/10">
-          <span>© 2026 VertexPortal Inc.</span>
+          <span>© 2026 NavGujarat Academy Inc.</span>
           <span>Terms & Privacy</span>
         </div>
       </div>
