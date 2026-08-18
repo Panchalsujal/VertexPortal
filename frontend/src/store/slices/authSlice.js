@@ -48,8 +48,12 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // fetchMe
-      .addCase(fetchMe.pending,    (state) => { state.loading = true; })
+      // fetchMe - only set loading=true on initial boot when user is not yet loaded
+      .addCase(fetchMe.pending, (state) => {
+        if (!state.user) {
+          state.loading = true;
+        }
+      })
       .addCase(fetchMe.fulfilled,  (state, action) => { state.loading = false; state.user = action.payload; })
       .addCase(fetchMe.rejected,   (state) => { state.loading = false; state.user = null; })
       // logout
