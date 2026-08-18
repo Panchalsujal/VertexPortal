@@ -28,12 +28,20 @@ import {
   Award, Download, RefreshCw, XCircle, RotateCcw, Send, Star
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
+// Layer 7: Server-side admin guard | Layer 9: Inactivity auto-logout
+import { useAdminGuard } from '../../hooks/useAdminGuard';
+import { useInactivityLogout } from '../../hooks/useInactivityLogout';
 
 export default function AdminPanel() {
   const dispatch = useAppDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabFromUrl = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState(tabFromUrl || 'categories');
+
+  // ── Layer 7: Server-side admin role re-verification ──────────
+  useAdminGuard();
+  // ── Layer 9: 30-min idle auto-logout ─────────────────────────
+  useInactivityLogout();
 
   useEffect(() => {
     if (tabFromUrl && ['categories', 'coupons', 'certificates', 'reviews'].includes(tabFromUrl)) {

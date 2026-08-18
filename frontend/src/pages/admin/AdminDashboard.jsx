@@ -12,6 +12,9 @@ import { selectUser, logoutUser } from '../../store/slices/authSlice';
 import { getAdminDashboardStats } from '../../api/adminDashboard.api';
 import CustomSelect from '../../components/ui/CustomSelect';
 import toast from 'react-hot-toast';
+// Layer 7: Server-side admin role verification | Layer 9: Inactivity auto-logout
+import { useAdminGuard } from '../../hooks/useAdminGuard';
+import { useInactivityLogout } from '../../hooks/useInactivityLogout';
 
 // ── Sidebar Navigation Sections ──────────────────────────────
 const sidebarSections = [
@@ -178,6 +181,19 @@ export default function AdminDashboard() {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod]   = useState('30d');
+
+  // ── Layer 7: Server-side admin role re-verification ────────
+  useAdminGuard();
+
+  // ── Layer 9: Auto-logout after 30 minutes of inactivity ────
+  useInactivityLogout({
+    onWarning: (secondsLeft) => {
+      toast(`⚠️ Admin session expires in ${Math.floor(secondsLeft / 60)} min due to inactivity`, {
+        icon: '🔒',
+        duration: 10000,
+      });
+    },
+  });
 
   const firstName = user?.fullName?.split(' ')[0] || 'Admin';
 

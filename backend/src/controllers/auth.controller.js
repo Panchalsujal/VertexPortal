@@ -1,12 +1,50 @@
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
-import { randomBytes, createHash } from "node:crypto";
+import { randomBytes, createHash, timingSafeEqual } from "node:crypto";
 import User from "../models/user.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { generateToken } from "../utils/generateToken.js";
-import { sendVerificationEmail, sendPasswordResetEmail } from "../service/mail.service.js";
+import { generateToken, generateElevatedToken } from "../utils/generateToken.js";
+import { sendVerificationEmail, sendPasswordResetEmail, sendAdminLoginAlertEmail } from "../service/mail.service.js";
 import { config } from "../config/config.js";
 import imagekit from "../service/imagekit.js";
+
+// ─── Security Constants ────────────────────────────────────────────────────────
+const MAX_LOGIN_ATTEMPTS = 5;       // Layer 1: Account lockout after N failures
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+const PASSWORD_HISTORY_LIMIT = 5;   // Layer 10: Prevent reuse of last 5 passwords
+const MAX_KNOWN_IPS = 10;           // Layer 3: Max IPs stored per user
+
+/**
+ * Helper: returns the real client IP respecting proxy headers.
+ */
+function getClientIP(req) {
+  return (
+    req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+    req.headers["x-real-ip"] ||
+    req.socket?.remoteAddress ||
+    "unknown"
+  );
+}
+
+/**
+ * Helper: build the cookie options object once.
+ */
+function buildCookieOptions(req, maxAgeMs) {
+  const isSecureCookie =
+    process.env.NODE_ENV === "production" ||
+    req.secure ||
+    req.headers["x-forwarded-proto"] === "https" ||
+    (req.headers.origin && req.headers.origin.startsWith("https://"));
+
+  return {
+    httpOnly: true,
+    secure: isSecureCookie,
+    sameSite: isSecureCookie ? "none" : "lax",
+    maxAge: maxAgeMs,
+  };
+}
+
+// ─── REGISTER ─────────────────────────────────────────────────────────────────
 
 export const registerController = asyncHandler(async (req, res) => {
   try {
@@ -59,6 +97,7 @@ export const registerController = asyncHandler(async (req, res) => {
       referredBy: referrer ? referrer._id : null,
       emailVerificationToken: hashedVerificationToken,
       emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      passwordHistory: [hashedPassword], // Layer 10: initialize history
     });
 
     if (referrer) {
@@ -109,6 +148,8 @@ export const registerController = asyncHandler(async (req, res) => {
   }
 });
 
+// ─── LOGIN ────────────────────────────────────────────────────────────────────
+
 export const loginController = asyncHandler(async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -122,23 +163,51 @@ export const loginController = asyncHandler(async (req, res) => {
 
     const normalizedEmail = email.toLowerCase().trim();
 
+    // ── Layer 1: Fetch lockout + login attempt fields ──────────────────────
     const user = await User.findOne({
       email: normalizedEmail,
-    }).select("+password");
+    }).select("+password +loginAttempts +lockoutUntil +knownIPs +passwordHistory");
 
     if (!user) {
+      // Generic response — don't reveal whether email exists
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
       });
     }
 
+    // ── Layer 1: Account lockout check ────────────────────────────────────
+    if (user.lockoutUntil && user.lockoutUntil > new Date()) {
+      const minutesLeft = Math.ceil((user.lockoutUntil - Date.now()) / 60000);
+      return res.status(423).json({
+        success: false,
+        message: `Account temporarily locked due to too many failed attempts. Try again in ${minutesLeft} minute(s).`,
+        code: "ACCOUNT_LOCKED",
+        retryAfter: user.lockoutUntil,
+      });
+    }
+
     const isPasswordMatched = await bcrypt.compare(password, user.password);
 
     if (!isPasswordMatched) {
+      // ── Layer 1: Increment failed attempts & possibly lock account ───────
+      const newAttempts = (user.loginAttempts || 0) + 1;
+      const updateData = { loginAttempts: newAttempts };
+
+      if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
+        updateData.lockoutUntil = new Date(Date.now() + LOCKOUT_DURATION_MS);
+        updateData.loginAttempts = 0;
+        console.warn(`[SECURITY] Account LOCKED: ${user.email} after ${newAttempts} failed attempts`);
+      }
+
+      await User.findByIdAndUpdate(user._id, updateData);
+
+      const attemptsLeft = MAX_LOGIN_ATTEMPTS - newAttempts;
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password",
+        message: newAttempts >= MAX_LOGIN_ATTEMPTS
+          ? "Account temporarily locked after too many failed attempts. Try again in 15 minutes."
+          : `Invalid email or password. ${attemptsLeft > 0 ? `${attemptsLeft} attempt(s) remaining before lockout.` : ""}`,
       });
     }
 
@@ -156,25 +225,62 @@ export const loginController = asyncHandler(async (req, res) => {
       });
     }
 
-    user.lastLoginAt = new Date();
-    await user.save();
+    // ── Layer 1: Reset lockout on successful login ─────────────────────────
+    const clientIP = getClientIP(req);
 
-    const token = generateToken({
-      id: user._id,
-    });
+    // ── Layer 3: IP Anomaly Detection ─────────────────────────────────────
+    const isKnownIP = user.knownIPs?.includes(clientIP);
+    const knownIPs = user.knownIPs || [];
 
-    const isSecureCookie =
-      process.env.NODE_ENV === "production" ||
-      req.secure ||
-      req.headers["x-forwarded-proto"] === "https" ||
-      (req.headers.origin && req.headers.origin.startsWith("https://"));
+    if (!isKnownIP) {
+      // Store new IP (cap to MAX_KNOWN_IPS)
+      const updatedIPs = [clientIP, ...knownIPs].slice(0, MAX_KNOWN_IPS);
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: isSecureCookie,
-      sameSite: isSecureCookie ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+      if (["admin", "instructor"].includes(user.role)) {
+        // Fire alert email for privileged accounts from unknown IPs (non-blocking)
+        sendAdminLoginAlertEmail({
+          user,
+          ip: clientIP,
+          userAgent: req.headers["user-agent"],
+          loginAt: new Date(),
+        }).catch((err) => console.error("[SECURITY] IP alert email failed:", err.message));
+
+        console.warn(
+          `[SECURITY] Admin/Instructor ${user.email} logged in from NEW IP: ${clientIP}`
+        );
+      }
+
+      await User.findByIdAndUpdate(user._id, {
+        $set: {
+          loginAttempts: 0,
+          lockoutUntil: null,
+          lastLoginAt: new Date(),
+          lastLoginIP: clientIP,
+          knownIPs: updatedIPs,
+        },
+      });
+    } else {
+      await User.findByIdAndUpdate(user._id, {
+        $set: {
+          loginAttempts: 0,
+          lockoutUntil: null,
+          lastLoginAt: new Date(),
+          lastLoginIP: clientIP,
+        },
+      });
+    }
+
+    // ── Standard token (7 days) ────────────────────────────────────────────
+    const token = generateToken({ id: user._id });
+    const cookieOpts7d = buildCookieOptions(req, 7 * 24 * 60 * 60 * 1000);
+    res.cookie("token", token, cookieOpts7d);
+
+    // ── Layer 2: Elevated session token (1h) for admin/instructor ──────────
+    if (["admin", "instructor"].includes(user.role)) {
+      const elevatedToken = generateElevatedToken({ id: user._id, role: user.role });
+      const elevatedOpts = buildCookieOptions(req, 60 * 60 * 1000); // 1 hour
+      res.cookie("admin_session", elevatedToken, elevatedOpts);
+    }
 
     return res.status(200).json({
       success: true,
@@ -190,6 +296,7 @@ export const loginController = asyncHandler(async (req, res) => {
           isEmailVerified: user.isEmailVerified,
           isActive: user.isActive,
           lastLoginAt: user.lastLoginAt,
+          lastLoginIP: clientIP,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
           avatarUrl: user.avatarUrl,
@@ -206,6 +313,8 @@ export const loginController = asyncHandler(async (req, res) => {
   }
 });
 
+// ─── GET ME ───────────────────────────────────────────────────────────────────
+
 export const getMeController = asyncHandler(async (req, res) => {
   return res.status(200).json({
     success: true,
@@ -221,12 +330,15 @@ export const getMeController = asyncHandler(async (req, res) => {
         isEmailVerified: req.user.isEmailVerified,
         isActive: req.user.isActive,
         lastLoginAt: req.user.lastLoginAt,
+        lastLoginIP: req.user.lastLoginIP,
         createdAt: req.user.createdAt,
         updatedAt: req.user.updatedAt,
       },
     },
   });
 });
+
+// ─── LOGOUT ───────────────────────────────────────────────────────────────────
 
 export const logoutController = asyncHandler(async (req, res) => {
   const isSecureCookie =
@@ -235,17 +347,22 @@ export const logoutController = asyncHandler(async (req, res) => {
     req.headers["x-forwarded-proto"] === "https" ||
     (req.headers.origin && req.headers.origin.startsWith("https://"));
 
-  res.clearCookie("token", {
+  const clearOpts = {
     httpOnly: true,
     secure: isSecureCookie,
     sameSite: isSecureCookie ? "none" : "lax",
-  });
+  };
+
+  res.clearCookie("token", clearOpts);
+  res.clearCookie("admin_session", clearOpts); // Layer 2: clear elevated session
 
   return res.status(200).json({
     success: true,
     message: "Logout successful",
   });
 });
+
+// ─── VERIFY EMAIL ─────────────────────────────────────────────────────────────
 
 export const verifyEmailController = asyncHandler(async (req, res) => {
   try {
@@ -317,6 +434,8 @@ export const verifyEmailController = asyncHandler(async (req, res) => {
   }
 });
 
+// ─── RESEND VERIFICATION ──────────────────────────────────────────────────────
+
 export const resendVerificationController = asyncHandler(async (req, res) => {
   try {
     const { email } = req.body;
@@ -376,6 +495,8 @@ export const resendVerificationController = asyncHandler(async (req, res) => {
     });
   }
 });
+
+// ─── GOOGLE AUTH ──────────────────────────────────────────────────────────────
 
 export const googleAuthController = asyncHandler(async (req, res) => {
   try {
@@ -446,7 +567,7 @@ export const googleAuthController = asyncHandler(async (req, res) => {
 
     let user = await User.findOne({
       $or: [{ googleId }, { email }],
-    });
+    }).select("+knownIPs");
 
     if (user) {
       if (!user.googleId) user.googleId = googleId;
@@ -455,6 +576,26 @@ export const googleAuthController = asyncHandler(async (req, res) => {
         user.avatarUrl = avatarUrl;
       }
       user.lastLoginAt = new Date();
+
+      // ── Layer 3: Google OAuth IP tracking ─────────────────────────────
+      const clientIP = getClientIP(req);
+      const isKnownIP = user.knownIPs?.includes(clientIP);
+      if (!isKnownIP) {
+        user.knownIPs = [clientIP, ...(user.knownIPs || [])].slice(0, MAX_KNOWN_IPS);
+        user.lastLoginIP = clientIP;
+
+        if (["admin", "instructor"].includes(user.role)) {
+          sendAdminLoginAlertEmail({
+            user,
+            ip: clientIP,
+            userAgent: req.headers["user-agent"],
+            loginAt: new Date(),
+          }).catch((err) => console.error("[SECURITY] Google OAuth IP alert failed:", err.message));
+        }
+      } else {
+        user.lastLoginIP = clientIP;
+      }
+
       await user.save();
     } else {
       const generatedReferralCode = "VP-" + randomBytes(3).toString("hex").toUpperCase();
@@ -464,6 +605,8 @@ export const googleAuthController = asyncHandler(async (req, res) => {
         const code = refCode.toString().trim().toUpperCase();
         referrer = await User.findOne({ referralCode: code });
       }
+
+      const clientIP = getClientIP(req);
 
       user = await User.create({
         fullName,
@@ -477,6 +620,8 @@ export const googleAuthController = asyncHandler(async (req, res) => {
         referralCode: generatedReferralCode,
         referredBy: referrer ? referrer._id : null,
         lastLoginAt: new Date(),
+        lastLoginIP: clientIP,
+        knownIPs: [clientIP],
       });
 
       if (referrer) {
@@ -494,19 +639,15 @@ export const googleAuthController = asyncHandler(async (req, res) => {
     }
 
     const token = generateToken({ id: user._id });
+    const cookieOpts7d = buildCookieOptions(req, 7 * 24 * 60 * 60 * 1000);
+    res.cookie("token", token, cookieOpts7d);
 
-    const isSecureCookie =
-      process.env.NODE_ENV === "production" ||
-      req.secure ||
-      req.headers["x-forwarded-proto"] === "https" ||
-      (req.headers.origin && req.headers.origin.startsWith("https://"));
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: isSecureCookie,
-      sameSite: isSecureCookie ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    // ── Layer 2: Elevated session for admin/instructor via Google OAuth ────
+    if (["admin", "instructor"].includes(user.role)) {
+      const elevatedToken = generateElevatedToken({ id: user._id, role: user.role });
+      const elevatedOpts = buildCookieOptions(req, 60 * 60 * 1000);
+      res.cookie("admin_session", elevatedToken, elevatedOpts);
+    }
 
     return res.status(200).json({
       success: true,
@@ -535,6 +676,8 @@ export const googleAuthController = asyncHandler(async (req, res) => {
     });
   }
 });
+
+// ─── FORGOT PASSWORD ──────────────────────────────────────────────────────────
 
 export const forgotPasswordController = asyncHandler(async (req, res) => {
   try {
@@ -590,6 +733,8 @@ export const forgotPasswordController = asyncHandler(async (req, res) => {
   }
 });
 
+// ─── VERIFY RESET TOKEN ───────────────────────────────────────────────────────
+
 export const verifyResetTokenController = asyncHandler(async (req, res) => {
   try {
     const { userId, token } = req.params;
@@ -631,6 +776,8 @@ export const verifyResetTokenController = asyncHandler(async (req, res) => {
   }
 });
 
+// ─── RESET PASSWORD ───────────────────────────────────────────────────────────
+
 export const resetPasswordController = asyncHandler(async (req, res) => {
   try {
     const { userId, token } = req.params;
@@ -669,7 +816,7 @@ export const resetPasswordController = asyncHandler(async (req, res) => {
       _id: userId,
       passwordResetToken: hashedToken,
       passwordResetExpires: { $gt: new Date() },
-    }).select("+passwordResetToken +passwordResetExpires +password");
+    }).select("+passwordResetToken +passwordResetExpires +password +passwordHistory");
 
     if (!user) {
       return res.status(400).json({
@@ -678,9 +825,34 @@ export const resetPasswordController = asyncHandler(async (req, res) => {
       });
     }
 
-    user.password = await bcrypt.hash(newPassword, 12);
+    // ── Layer 10: Password history check for admin/instructor ─────────────
+    if (["admin", "instructor"].includes(user.role) && user.passwordHistory?.length) {
+      for (const oldHash of user.passwordHistory) {
+        const isReused = await bcrypt.compare(newPassword, oldHash);
+        if (isReused) {
+          return res.status(400).json({
+            success: false,
+            message: `Password cannot be one of your last ${PASSWORD_HISTORY_LIMIT} passwords. Please choose a different password.`,
+          });
+        }
+      }
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 12);
+
+    // ── Layer 10: Update password history ─────────────────────────────────
+    const updatedHistory = [newHash, ...(user.passwordHistory || [])].slice(
+      0,
+      PASSWORD_HISTORY_LIMIT
+    );
+
+    user.password = newHash;
+    user.passwordHistory = updatedHistory;
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
+    // ── Layer 1: Also clear any active lockout on password reset ──────────
+    user.loginAttempts = 0;
+    user.lockoutUntil = null;
     await user.save();
 
     return res.status(200).json({
@@ -695,5 +867,3 @@ export const resetPasswordController = asyncHandler(async (req, res) => {
     });
   }
 });
-
-

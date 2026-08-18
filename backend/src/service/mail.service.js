@@ -578,3 +578,99 @@ export async function sendPasswordResetEmail({ user, resetLink }) {
 }
 
 export default fallbackTransporter;
+
+/**
+ * Layer 3: Admin / Instructor Login Alert Email
+ * Fires when an elevated account logs in from an unrecognised IP address.
+ */
+export async function sendAdminLoginAlertEmail({ user, ip, userAgent, loginAt }) {
+  const subject = "⚠️ New Login Detected — Vertex Admin/Instructor Account";
+  const time = loginAt ? new Date(loginAt).toUTCString() : new Date().toUTCString();
+
+  const text = `Security Alert: Your admin/instructor account (${user.email}) logged in from a new IP address (${ip}) at ${time}. If this was you, no action needed. If this was NOT you, please reset your password immediately and contact support.`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Security Alert</title>
+      </head>
+      <body style="margin:0;padding:0;background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="padding:40px 15px;background:#0f172a;">
+          <tr>
+            <td align="center">
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation"
+                style="max-width:560px;background:#1e293b;border-radius:16px;overflow:hidden;
+                       box-shadow:0 10px 30px rgba(0,0,0,0.4);border:1px solid #ef4444;">
+
+                <tr>
+                  <td align="center" style="background:linear-gradient(135deg,#dc2626,#b91c1c);padding:30px 20px;">
+                    <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;">🔒 VERTEX SECURITY ALERT</h1>
+                    <p style="margin:6px 0 0;color:#fecaca;font-size:13px;">Privileged Account Login Detected</p>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="padding:32px 28px;color:#f1f5f9;">
+                    <h2 style="margin:0 0 16px;color:#ffffff;font-size:18px;">New Sign-In From Unknown IP</h2>
+                    <p style="margin:0 0 20px;color:#cbd5e1;line-height:1.6;font-size:14px;">
+                      Hi <strong>${user.fullName || "there"}</strong>,<br><br>
+                      We detected a login to your <strong>${user.role?.toUpperCase() || "ADMIN"}</strong> account
+                      from a location we haven't seen before.
+                    </p>
+
+                    <div style="background:#0f172a;border-radius:10px;padding:16px 20px;border:1px solid #334155;margin-bottom:24px;">
+                      <table width="100%" cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td style="color:#94a3b8;font-size:12px;padding:4px 0;">IP Address</td>
+                          <td style="color:#f1f5f9;font-size:13px;font-weight:600;text-align:right;">${ip}</td>
+                        </tr>
+                        <tr>
+                          <td style="color:#94a3b8;font-size:12px;padding:4px 0;">Account</td>
+                          <td style="color:#f1f5f9;font-size:13px;text-align:right;">${user.email}</td>
+                        </tr>
+                        <tr>
+                          <td style="color:#94a3b8;font-size:12px;padding:4px 0;">Time</td>
+                          <td style="color:#f1f5f9;font-size:13px;text-align:right;">${time}</td>
+                        </tr>
+                        <tr>
+                          <td style="color:#94a3b8;font-size:12px;padding:4px 0;">Device</td>
+                          <td style="color:#f1f5f9;font-size:11px;text-align:right;word-break:break-all;">${(userAgent || "Unknown").substring(0, 80)}</td>
+                        </tr>
+                      </table>
+                    </div>
+
+                    <p style="margin:0 0 8px;color:#fca5a5;font-size:13px;font-weight:600;">
+                      ⚠️ If this was NOT you:
+                    </p>
+                    <p style="margin:0 0 20px;color:#94a3b8;font-size:13px;line-height:1.6;">
+                      Reset your password immediately and notify your system administrator.
+                      Your account may be compromised.
+                    </p>
+
+                    <p style="margin:0;color:#64748b;font-size:12px;">
+                      If this was you logging in, you can safely ignore this email.
+                    </p>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td align="center" style="padding:16px;background:#0f172a;border-top:1px solid #334155;">
+                    <p style="margin:0;color:#64748b;font-size:11px;">© ${new Date().getFullYear()} Vertex Portal — Security System</p>
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+
+  console.log(`[SECURITY-ALERT] Admin login alert dispatched to ${user.email} (IP: ${ip})`);
+
+  return sendEmail({ to: user.email, subject, text, html });
+}

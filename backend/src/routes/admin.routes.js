@@ -1,7 +1,14 @@
 import { Router } from "express";
 
 import { authMiddleware } from "../middlewares/auth.middleware.js";
+import { requireElevatedSession } from "../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../middlewares/authorize.middleware.js";
+import { validateCsrfToken } from "../middlewares/csrf.middleware.js";
+import { auditLogAction } from "../middlewares/auditLog.middleware.js";
+import {
+  requireActionSignature,
+  generateActionSignatureController,
+} from "../middlewares/actionSignature.middleware.js";
 import {
   getDashboardSummaryController,
   getOrdersController,
@@ -20,6 +27,15 @@ import {
 
 const router = Router();
 
+// ─── Shared security middleware stack for all admin routes ────────────────────
+// Layer 2: Elevated session  |  Layer 4: Audit log  |  Layer 5: CSRF
+const adminGuard = [
+  authMiddleware,
+  requireElevatedSession,
+  authorizeRoles("admin"),
+  validateCsrfToken,
+];
+
 // Middleware to skip route if parameter is not a 24-character hex Mongo ObjectId
 const requireObjectId = (paramName) => (req, res, next) => {
   const val = req.params[paramName];
@@ -29,106 +45,111 @@ const requireObjectId = (paramName) => (req, res, next) => {
   next();
 };
 
+// ─── Layer 6: Action Signature endpoint ──────────────────────────────────────
+// Frontend must call this BEFORE performing any dangerous mutation.
+router.post(
+  "/sign-action",
+  authMiddleware,
+  requireElevatedSession,
+  authorizeRoles("admin"),
+  generateActionSignatureController
+);
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
 router.get(
   "/dashboard",
-  authMiddleware,
-  authorizeRoles("admin"),
+  ...adminGuard,
   getDashboardSummaryController,
 );
 
-// Orders Routes
+// ─── Orders Routes ────────────────────────────────────────────────────────────
 router.get(
   "/orders",
-  authMiddleware,
-  authorizeRoles("admin"),
+  ...adminGuard,
   getOrdersController,
 );
 
 router.get(
   "/orders/:orderId",
-  authMiddleware,
-  authorizeRoles("admin"),
+  ...adminGuard,
   requireObjectId("orderId"),
   getOrderByIdController,
 );
 
-// Students Routes
+// ─── Students Routes ──────────────────────────────────────────────────────────
 router.get(
   "/students",
-  authMiddleware,
-  authorizeRoles("admin"),
+  ...adminGuard,
   getStudentsController,
 );
 
 router.get(
   "/students/:studentId",
-  authMiddleware,
-  authorizeRoles("admin"),
+  ...adminGuard,
   requireObjectId("studentId"),
   getStudentByIdController,
 );
 
 router.patch(
   "/students/:studentId/status",
-  authMiddleware,
-  authorizeRoles("admin"),
+  ...adminGuard,
   requireObjectId("studentId"),
+  auditLogAction("STUDENT_STATUS_CHANGE", "User", (req) => req.params.studentId),
   updateStudentStatusController,
 );
 
-// Courses Routes
+// ─── Courses Routes ───────────────────────────────────────────────────────────
 router.get(
   "/courses",
-  authMiddleware,
-  authorizeRoles("admin"),
+  ...adminGuard,
   getCoursesController,
 );
 
 router.get(
   "/courses/:courseId",
-  authMiddleware,
-  authorizeRoles("admin"),
+  ...adminGuard,
   requireObjectId("courseId"),
   getCourseByIdController,
 );
 
 router.patch(
   "/courses/:courseId/status",
-  authMiddleware,
-  authorizeRoles("admin"),
+  ...adminGuard,
   requireObjectId("courseId"),
+  auditLogAction("COURSE_STATUS_CHANGE", "Course", (req) => req.params.courseId),
   updateCourseStatusController,
 );
 
+// Layer 6: Course DELETE requires pre-flight action signature
 router.delete(
   "/courses/:courseId",
-  authMiddleware,
-  authorizeRoles("admin"),
+  ...adminGuard,
   requireObjectId("courseId"),
+  requireActionSignature("COURSE_DELETE"),
+  auditLogAction("COURSE_DELETED", "Course", (req) => req.params.courseId),
   deleteCourseController,
 );
 
 router.patch(
   "/courses/:courseId/restore",
-  authMiddleware,
-  authorizeRoles("admin"),
+  ...adminGuard,
   requireObjectId("courseId"),
+  auditLogAction("COURSE_RESTORED", "Course", (req) => req.params.courseId),
   restoreCourseController,
 );
 
-// Reviews Routes
+// ─── Reviews Routes ───────────────────────────────────────────────────────────
 router.get(
   "/reviews",
-  authMiddleware,
-  authorizeRoles("admin"),
+  ...adminGuard,
   getReviewsController,
 );
 
 router.patch(
   "/reviews/:reviewId/status",
-  authMiddleware,
-  authorizeRoles("admin"),
+  ...adminGuard,
   requireObjectId("reviewId"),
+  auditLogAction("REVIEW_STATUS_CHANGE", "CourseReview", (req) => req.params.reviewId),
   updateReviewStatusController,
 );
 

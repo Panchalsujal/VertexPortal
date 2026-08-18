@@ -60,3 +60,60 @@ export async function optionalAuthMiddleware(req, res, next) {
 
   next();
 }
+
+/**
+ * Layer 2: Elevated Session Guard — Admin & Instructor panels only.
+ * Validates the short-lived `admin_session` cookie (1h expiry, sessionType=elevated).
+ * Must be used AFTER authMiddleware so req.user is already set.
+ */
+export async function requireElevatedSession(req, res, next) {
+  try {
+    const elevatedToken = req.cookies?.admin_session;
+
+    if (!elevatedToken) {
+      return res.status(403).json({
+        success: false,
+        message: "Elevated session required. Please log in again to access this panel.",
+        code: "ELEVATED_SESSION_REQUIRED",
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(elevatedToken, config.JWT_SECRET);
+    } catch (err) {
+      // Clear the stale cookie so the frontend redirects properly
+      res.clearCookie("admin_session", { httpOnly: true, secure: true, sameSite: "none" });
+      return res.status(403).json({
+        success: false,
+        message: "Elevated session expired. Please log in again.",
+        code: "ELEVATED_SESSION_EXPIRED",
+      });
+    }
+
+    // Validate the sessionType claim
+    if (decoded.sessionType !== "elevated") {
+      return res.status(403).json({
+        success: false,
+        message: "Invalid session type for this panel.",
+        code: "INVALID_SESSION_TYPE",
+      });
+    }
+
+    // Ensure the elevated token belongs to the same user as the auth token
+    if (req.user && decoded.id !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Session mismatch detected.",
+        code: "SESSION_MISMATCH",
+      });
+    }
+
+    next();
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Session validation error",
+    });
+  }
+}

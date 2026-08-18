@@ -101,6 +101,38 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
+    // ─── Layer 1: Brute-Force Account Lockout ───────────────────────────────
+    loginAttempts: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
+
+    lockoutUntil: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+
+    // ─── Layer 3: IP Anomaly Detection ──────────────────────────────────────
+    lastLoginIP: {
+      type: String,
+      default: null,
+    },
+
+    knownIPs: {
+      type: [String],
+      default: [],
+      select: false,
+    },
+
+    // ─── Layer 10: Password History (Admin/Instructor reuse prevention) ──────
+    passwordHistory: {
+      type: [String],
+      default: [],
+      select: false,
+    },
+
     learningStreak: {
       currentStreak: { type: Number, default: 1 },
       longestStreak: { type: Number, default: 1 },

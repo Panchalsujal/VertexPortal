@@ -62,3 +62,46 @@ export const loginValidator = [
 
   validation,
 ];
+
+/**
+ * Layer 10: Strict password validator for Admin/Instructor accounts.
+ * - Minimum 12 characters
+ * - Must contain: uppercase, lowercase, digit, special character
+ * Used on admin-promoted user password resets and profile updates.
+ */
+export function validateStrongPassword(password) {
+  if (!password || password.length < 12) {
+    return { valid: false, message: "Admin/Instructor password must be at least 12 characters long." };
+  }
+  if (!/[A-Z]/.test(password)) {
+    return { valid: false, message: "Password must contain at least one uppercase letter." };
+  }
+  if (!/[a-z]/.test(password)) {
+    return { valid: false, message: "Password must contain at least one lowercase letter." };
+  }
+  if (!/[0-9]/.test(password)) {
+    return { valid: false, message: "Password must contain at least one number." };
+  }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    return { valid: false, message: "Password must contain at least one special character (!@#$%^&* etc.)." };
+  }
+  return { valid: true };
+}
+
+export const adminPasswordValidator = [
+  body("newPassword")
+    .notEmpty()
+    .withMessage("Password is required")
+    .isLength({ min: 12 })
+    .withMessage("Admin/Instructor password must be at least 12 characters long")
+    .matches(/[A-Z]/)
+    .withMessage("Password must contain at least one uppercase letter")
+    .matches(/[a-z]/)
+    .withMessage("Password must contain at least one lowercase letter")
+    .matches(/[0-9]/)
+    .withMessage("Password must contain at least one number")
+    .matches(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/)
+    .withMessage("Password must contain at least one special character"),
+
+  validation,
+];

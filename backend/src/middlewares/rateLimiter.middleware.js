@@ -36,6 +36,21 @@ export const authLimiter = rateLimit({
 });
 
 /**
+ * Layer 1: Ultra-strict rate limiter for Admin/Instructor login attempts
+ * Only 5 requests per 15 minutes per IP — admins should never be brute-forced
+ */
+export const adminAuthLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: false,
+  handler: rateLimitHandler(
+    "Too many admin login attempts from this IP. Access is temporarily blocked. Please try again after 15 minutes."
+  ),
+});
+
+/**
  * AI Endpoints rate limiter
  * Protects against expensive LLM API abuse
  * 40 requests per 1 minute per IP

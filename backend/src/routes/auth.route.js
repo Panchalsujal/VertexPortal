@@ -17,6 +17,7 @@ import {
 } from "../validators/user.validatore.js";
 
 import { authMiddleware } from "../middlewares/auth.middleware.js";
+import { setCsrfToken } from "../middlewares/csrf.middleware.js";
 
 const router = Router();
 /**
@@ -42,10 +43,11 @@ router.post("/google", googleAuthController);
 
 /**
  *  @access Private
- *  @desc Get the currently logged-in user
+ *  @desc Get the currently logged-in user (also sets CSRF token cookie — Layer 5)
  *  @Api /api/auth/me
  */
-router.get("/me", authMiddleware, getMeController);
+router.get("/me", authMiddleware, setCsrfToken, getMeController);
+
 
 /**
  *  @access Private

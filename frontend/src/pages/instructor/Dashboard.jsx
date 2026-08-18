@@ -27,11 +27,17 @@ import {
   TrendingUp,
   BarChart3,
   ExternalLink,
-  Zap,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useInstructorGuard } from '../../hooks/useInstructorGuard';
+import { useInactivityLogout } from '../../hooks/useInactivityLogout';
 
 export default function InstructorDashboard() {
+  // ── Layer 7: Server-side instructor role re-verification ──────
+  useInstructorGuard();
+  // ── Layer 9: 30-min idle auto-logout ─────────────────────────
+  useInactivityLogout();
+
   const { user } = useAuth();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
