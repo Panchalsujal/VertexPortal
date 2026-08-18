@@ -55,6 +55,7 @@ const AdminCourses = lazy(() => import('./pages/admin/AdminCourses'));
 const AdminAuditLogs = lazy(() => import('./pages/admin/AdminAuditLogs'));
 const AdminReviews = lazy(() => import('./pages/admin/AdminReviews'));
 const AdminNotes = lazy(() => import('./pages/admin/AdminNotes'));
+const AdminDiscussionReports = lazy(() => import('./pages/admin/AdminDiscussionReports'));
 const AdminLiveAttendance = lazy(() => import('./pages/admin/AdminLiveAttendance'));
 const CodePlayground = lazy(() => import('./pages/CodePlayground'));
 const LegalPrivacy = lazy(() => import('./pages/LegalPrivacy'));
@@ -199,6 +200,7 @@ function AppRoot() {
             <Route path="/admin/audit" element={<ProtectedRoute allowedRoles={['admin']}><AdminAuditLogs /></ProtectedRoute>} />
             <Route path="/admin/reviews" element={<ProtectedRoute allowedRoles={['admin']}><AdminReviews /></ProtectedRoute>} />
             <Route path="/admin/discussions" element={<ProtectedRoute allowedRoles={['admin']}><Discussions /></ProtectedRoute>} />
+            <Route path="/admin/discussion-reports" element={<ProtectedRoute allowedRoles={['admin']}><AdminDiscussionReports /></ProtectedRoute>} />
             <Route path="/admin/notes" element={<ProtectedRoute allowedRoles={['admin']}><AdminNotes /></ProtectedRoute>} />
             <Route path="/admin/live-attendance" element={<ProtectedRoute allowedRoles={['admin', 'instructor']}><AdminLiveAttendance /></ProtectedRoute>} />
 

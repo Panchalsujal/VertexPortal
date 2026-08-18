@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, BookOpen, Tag, UserCog, Video, ClipboardList,
   Star, FileText, Bell, ShoppingBag, Tag as CouponTag, BarChart2,
   Settings, Globe, LogOut, ArrowUpRight, Menu, ChevronDown,
-  GraduationCap, DollarSign, Zap, ArrowLeft, User, MessageSquare
+  GraduationCap, DollarSign, Zap, ArrowLeft, User, MessageSquare, Flag
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { selectUser, logoutUser } from '../../store/slices/authSlice';
@@ -53,6 +53,7 @@ const sidebarSections = [
     label: 'REPORTS & AUDIT',
     items: [
       { to: '/admin/audit',            icon: BarChart2,       label: 'Audit Logs' },
+      { to: '/admin/discussion-reports', icon: Flag,          label: 'Discussion Reports' },
       { to: '/admin/live-attendance',  icon: Video,           label: 'Live Attendance' },
     ],
   },

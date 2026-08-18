@@ -5,7 +5,7 @@ import {
   Star, FileText, Bell, ShoppingBag, Tag as CouponTag, BarChart2,
   Settings, FileCode, Globe, LogOut, Menu, X, TrendingUp,
   TrendingDown, ArrowUpRight, Award,
-  Activity, Zap, DollarSign, GraduationCap, MessageSquare, ShieldCheck
+  Activity, Zap, DollarSign, GraduationCap, MessageSquare, ShieldCheck, Flag
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { selectUser, logoutUser } from '../../store/slices/authSlice';
@@ -51,6 +51,7 @@ const sidebarSections = [
     label: 'REPORTS & AUDIT',
     items: [
       { to: '/admin/audit',            icon: BarChart2,       label: 'Audit Logs' },
+      { to: '/admin/discussion-reports', icon: Flag,          label: 'Discussion Reports' },
       { to: '/admin/live-attendance',  icon: Video,           label: 'Live Attendance' },
     ],
   },
