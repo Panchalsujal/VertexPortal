@@ -16,6 +16,7 @@ import {
   useCallStateHooks,
   useCall,
   CallingState,
+  OwnCapability,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import {
@@ -23,8 +24,11 @@ import {
   VideoOff,
   Mic,
   MicOff,
+  Volume,
+  Volume1,
   Volume2,
   VolumeX,
+  SlidersHorizontal,
   Monitor,
   MonitorOff,
   PhoneOff,
@@ -35,23 +39,22 @@ import {
   Hand,
   Maximize2,
   Minimize2,
-  Sparkles,
   ArrowLeft,
-  Calendar,
-  Clock,
-  ExternalLink,
   AlertCircle,
   RefreshCw,
-  Sun,
-  Moon,
   LayoutGrid,
   LayoutTemplate,
   Settings,
-  Check,
   HelpCircle,
   Headphones,
   Sliders,
   X,
+  Shield,
+  ShieldAlert,
+  Pin,
+  UserX,
+  CheckCircle2,
+  Lock,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -83,7 +86,7 @@ function ChatDrawer({
           {onClose && (
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded hover:bg-slate-800"
+              className="text-slate-400 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded hover:bg-slate-800 cursor-pointer"
             >
               ✕
             </button>
@@ -139,7 +142,424 @@ function ChatDrawer({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. Device Settings & Diagnostics Modal Component
+// 2. Participants & Voice Control Drawer Component
+// ─────────────────────────────────────────────────────────────────────────────
+function ParticipantsDrawer({
+  participants = [],
+  currentUser,
+  isHost,
+  call,
+  participantVolumes,
+  onSetParticipantVolume,
+  onClose,
+}) {
+  const currentUserId = String(currentUser?._id || currentUser?.id || 'me');
+
+  const handleGrantPermission = async (userId, permission, permName) => {
+    if (!call) return;
+    try {
+      await call.updateUserPermissions({
+        user_id: String(userId),
+        grant_permissions: [permission],
+      });
+      toast.success(`Granted ${permName} permission`);
+    } catch (e) {
+      toast.error(`Failed to grant permission: ${e?.message || 'Error'}`);
+    }
+  };
+
+  const handleRevokePermission = async (userId, permission, permName) => {
+    if (!call) return;
+    try {
+      await call.updateUserPermissions({
+        user_id: String(userId),
+        revoke_permissions: [permission],
+      });
+      toast(`Revoked ${permName} permission`);
+    } catch (e) {
+      toast.error(`Failed to revoke permission: ${e?.message || 'Error'}`);
+    }
+  };
+
+  const handleMuteUser = async (userId) => {
+    if (!call) return;
+    try {
+      await call.muteUser(String(userId), 'audio');
+      toast.success('Participant muted');
+    } catch (e) {
+      toast.error(`Failed to mute: ${e?.message || 'Error'}`);
+    }
+  };
+
+  const handleTurnOffVideo = async (userId) => {
+    if (!call) return;
+    try {
+      await call.muteUser(String(userId), 'video');
+      toast('Participant camera turned off');
+    } catch (e) {
+      toast.error(`Failed: ${e?.message || 'Error'}`);
+    }
+  };
+
+  const handleKick = async (userId) => {
+    if (!call) return;
+    if (window.confirm('Are you sure you want to remove this participant from the room?')) {
+      try {
+        await call.kickUser({ user_id: String(userId) });
+        toast.success('Participant removed');
+      } catch (e) {
+        toast.error(`Failed to remove: ${e?.message || 'Error'}`);
+      }
+    }
+  };
+
+  return (
+    <div className="w-full lg:w-96 sm:w-96 bg-slate-900/95 backdrop-blur-xl border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col h-80 lg:h-full z-30 transition-all shadow-2xl">
+      <div className="p-3.5 border-b border-slate-800 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Users className="w-4 h-4 text-purple-400" />
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+            Participants ({participants.length})
+          </h3>
+        </div>
+        <div className="flex items-center gap-2">
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded hover:bg-slate-800 cursor-pointer"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-3.5 space-y-3 bg-slate-950/60">
+        {participants.map((p) => {
+          const isMe = String(p.userId) === currentUserId;
+          const isParticipantHost = p.role === 'admin' || p.role === 'host' || p.role === 'instructor' || p.custom?.role === 'instructor';
+          const pVolume = participantVolumes[p.sessionId] ?? 100;
+          const isSpeaking = p.isSpeaking;
+
+          return (
+            <div
+              key={p.sessionId || p.userId}
+              className="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-3 space-y-2.5 shadow-sm transition hover:border-slate-600/80"
+            >
+              {/* Participant Header Info */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="relative">
+                    {p.image ? (
+                      <img
+                        src={p.image}
+                        alt={p.name}
+                        className="w-8 h-8 rounded-full object-cover border border-purple-500/40"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500/40 flex items-center justify-center font-bold text-xs text-purple-200">
+                        {(p.name || 'U').charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    {isSpeaking && (
+                      <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-slate-900 rounded-full animate-ping" />
+                    )}
+                  </div>
+                  <div className="truncate">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-white truncate">{p.name || 'User'}</span>
+                      {isMe && (
+                        <span className="text-[9px] bg-slate-700 text-slate-300 px-1.5 py-0.2 rounded font-bold">
+                          You
+                        </span>
+                      )}
+                      {isParticipantHost && (
+                        <span className="text-[9px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.2 rounded font-bold uppercase">
+                          Instructor
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                      <span className="flex items-center gap-1">
+                        {p.audioStream ? (
+                          <Mic className="w-3 h-3 text-emerald-400" />
+                        ) : (
+                          <MicOff className="w-3 h-3 text-red-400" />
+                        )}
+                        {p.audioStream ? 'Mic On' : 'Mic Off'}
+                      </span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1">
+                        {p.videoStream ? (
+                          <Video className="w-3 h-3 text-emerald-400" />
+                        ) : (
+                          <VideoOff className="w-3 h-3 text-slate-500" />
+                        )}
+                        {p.videoStream ? 'Cam On' : 'Cam Off'}
+                      </span>
+                      {p.screenShareStream && (
+                        <>
+                          <span>•</span>
+                          <span className="flex items-center gap-1 text-emerald-400 font-medium">
+                            <Monitor className="w-3 h-3" /> Sharing
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Individual Voice Controller (For all users & participants) */}
+              {!isMe && (
+                <div className="bg-slate-900/80 rounded-xl p-2 border border-slate-800 space-y-1">
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-slate-400 font-medium flex items-center gap-1">
+                      <Volume2 className="w-3 h-3 text-purple-400" />
+                      <span>Voice Volume</span>
+                    </span>
+                    <span className="text-purple-300 font-bold">{pVolume}%</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => onSetParticipantVolume(p.sessionId, pVolume === 0 ? 100 : 0)}
+                      className="p-1 text-slate-400 hover:text-white rounded hover:bg-slate-800 transition cursor-pointer"
+                      title={pVolume === 0 ? 'Unmute participant' : 'Mute participant'}
+                    >
+                      {pVolume === 0 ? <VolumeX className="w-3.5 h-3.5 text-red-400" /> : <Volume2 className="w-3.5 h-3.5" />}
+                    </button>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={pVolume}
+                      onChange={(e) => onSetParticipantVolume(p.sessionId, Number(e.target.value))}
+                      className="flex-1 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Host/Admin Direct Permission & Moderation Controls */}
+              {isHost && !isMe && (
+                <div className="pt-1 border-t border-slate-700/40 grid grid-cols-2 gap-1.5 text-[10px]">
+                  <button
+                    onClick={() => handleGrantPermission(p.userId, OwnCapability.SEND_AUDIO, 'Microphone')}
+                    className="px-2 py-1 bg-slate-700/60 hover:bg-slate-700 text-slate-200 rounded-lg font-medium flex items-center justify-center gap-1 transition cursor-pointer"
+                    title="Allow student to speak"
+                  >
+                    <Mic className="w-3 h-3 text-emerald-400" />
+                    <span>Allow Audio</span>
+                  </button>
+                  <button
+                    onClick={() => handleRevokePermission(p.userId, OwnCapability.SEND_AUDIO, 'Microphone')}
+                    className="px-2 py-1 bg-slate-700/60 hover:bg-slate-700 text-slate-200 rounded-lg font-medium flex items-center justify-center gap-1 transition cursor-pointer"
+                    title="Disable student microphone"
+                  >
+                    <MicOff className="w-3 h-3 text-amber-400" />
+                    <span>Disable Audio</span>
+                  </button>
+                  <button
+                    onClick={() => handleGrantPermission(p.userId, OwnCapability.SEND_VIDEO, 'Camera')}
+                    className="px-2 py-1 bg-slate-700/60 hover:bg-slate-700 text-slate-200 rounded-lg font-medium flex items-center justify-center gap-1 transition cursor-pointer"
+                    title="Allow student to enable video"
+                  >
+                    <Video className="w-3 h-3 text-emerald-400" />
+                    <span>Allow Video</span>
+                  </button>
+                  <button
+                    onClick={() => handleRevokePermission(p.userId, OwnCapability.SEND_VIDEO, 'Camera')}
+                    className="px-2 py-1 bg-slate-700/60 hover:bg-slate-700 text-slate-200 rounded-lg font-medium flex items-center justify-center gap-1 transition cursor-pointer"
+                    title="Disable student camera"
+                  >
+                    <VideoOff className="w-3 h-3 text-amber-400" />
+                    <span>Disable Video</span>
+                  </button>
+                  <button
+                    onClick={() => handleGrantPermission(p.userId, OwnCapability.SCREENSHARE, 'Screen Sharing')}
+                    className="px-2 py-1 bg-purple-900/40 hover:bg-purple-900/60 text-purple-200 border border-purple-700/40 rounded-lg font-medium flex items-center justify-center gap-1 transition cursor-pointer"
+                    title="Allow student to share screen"
+                  >
+                    <Monitor className="w-3 h-3 text-purple-400" />
+                    <span>Allow Screen</span>
+                  </button>
+                  <button
+                    onClick={() => handleRevokePermission(p.userId, OwnCapability.SCREENSHARE, 'Screen Sharing')}
+                    className="px-2 py-1 bg-slate-700/60 hover:bg-slate-700 text-slate-200 rounded-lg font-medium flex items-center justify-center gap-1 transition cursor-pointer"
+                    title="Disable student screen sharing"
+                  >
+                    <MonitorOff className="w-3 h-3 text-amber-400" />
+                    <span>Disable Screen</span>
+                  </button>
+                  <button
+                    onClick={() => handleMuteUser(p.userId)}
+                    className="px-2 py-1 bg-slate-700/60 hover:bg-slate-700 text-slate-200 rounded-lg font-medium flex items-center justify-center gap-1 transition cursor-pointer"
+                  >
+                    <VolumeX className="w-3 h-3 text-amber-400" />
+                    <span>Mute User</span>
+                  </button>
+                  <button
+                    onClick={() => handleKick(p.userId)}
+                    className="px-2 py-1 bg-red-950/50 hover:bg-red-900/70 text-red-200 border border-red-800/40 rounded-lg font-medium flex items-center justify-center gap-1 transition cursor-pointer"
+                  >
+                    <UserX className="w-3 h-3 text-red-400" />
+                    <span>Kick</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3. Voice & Audio Controller Popover / Modal
+// ─────────────────────────────────────────────────────────────────────────────
+function VoiceControllerPopover({
+  isOpen,
+  onClose,
+  masterVolume,
+  onMasterVolumeChange,
+  isMutedAll,
+  onToggleMuteAll,
+  audioLevel,
+  isMicMuted,
+  onOpenSettings,
+  speakerDevices = [],
+  selectedSpeaker,
+  onSelectSpeaker,
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+      <div className="w-full max-w-sm bg-slate-900 border border-slate-700/80 rounded-3xl p-5 shadow-2xl text-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="w-4 h-4 text-purple-400" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-white">Voice & Audio Controller</h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Master Output Volume */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-semibold text-slate-300 flex items-center gap-1.5">
+              {isMutedAll || masterVolume === 0 ? (
+                <VolumeX className="w-4 h-4 text-red-400" />
+              ) : masterVolume < 50 ? (
+                <Volume1 className="w-4 h-4 text-purple-400" />
+              ) : (
+                <Volume2 className="w-4 h-4 text-purple-400" />
+              )}
+              <span>Room Master Audio</span>
+            </span>
+            <span className="font-bold text-purple-300">{isMutedAll ? 'Muted (0%)' : `${masterVolume}%`}</span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onToggleMuteAll}
+              className={`p-2 rounded-xl border transition cursor-pointer ${
+                isMutedAll
+                  ? 'bg-red-600 border-red-500 text-white'
+                  : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
+              }`}
+              title={isMutedAll ? 'Unmute Room Audio' : 'Mute Room Audio'}
+            >
+              {isMutedAll ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            </button>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={isMutedAll ? 0 : masterVolume}
+              onChange={(e) => onMasterVolumeChange(Number(e.target.value))}
+              className="flex-1 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+            />
+          </div>
+        </div>
+
+        {/* Microphone Voice Input Meter */}
+        <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-3 space-y-2">
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="font-semibold text-slate-300 flex items-center gap-1.5">
+              <Mic className="w-3.5 h-3.5 text-purple-400" />
+              <span>My Voice Input:</span>
+            </span>
+            <span className={isMicMuted ? 'text-amber-400 font-bold' : audioLevel > 5 ? 'text-emerald-400 font-bold' : 'text-slate-400 font-medium'}>
+              {isMicMuted ? 'Mic Muted' : audioLevel > 5 ? 'Speaking 🎙️' : 'Ready'}
+            </span>
+          </div>
+          <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+            <div
+              className={`h-full transition-all duration-75 rounded-full ${
+                isMicMuted
+                  ? 'bg-amber-500/40'
+                  : audioLevel > 50
+                  ? 'bg-emerald-400'
+                  : 'bg-emerald-500'
+              }`}
+              style={{ width: isMicMuted ? '0%' : `${audioLevel}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Quick Speaker Selector */}
+        {speakerDevices && speakerDevices.length > 0 && (
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
+              <Headphones className="w-3.5 h-3.5 text-purple-400" />
+              <span>Audio Output Device</span>
+            </label>
+            <select
+              value={selectedSpeaker || ''}
+              onChange={(e) => onSelectSpeaker && onSelectSpeaker(e.target.value)}
+              className="w-full bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              {speakerDevices.map((d) => (
+                <option key={d.deviceId} value={d.deviceId}>
+                  {d.label || `Speaker (${d.deviceId.slice(0, 5)})`}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div className="pt-1 flex items-center justify-between border-t border-slate-800">
+          <button
+            onClick={() => {
+              onClose();
+              onOpenSettings();
+            }}
+            className="text-xs font-semibold text-purple-400 hover:text-purple-300 flex items-center gap-1 transition cursor-pointer"
+          >
+            <Settings className="w-3.5 h-3.5" />
+            <span>More Audio Devices</span>
+          </button>
+          <button
+            onClick={onClose}
+            className="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. Device Settings & Diagnostics Modal Component
 // ─────────────────────────────────────────────────────────────────────────────
 function DeviceSettingsModal({
   isOpen,
@@ -220,7 +640,7 @@ function DeviceSettingsModal({
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition"
+            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -358,7 +778,7 @@ function DeviceSettingsModal({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. Stream Video Stage Component (Rendered inside <StreamCall>)
+// 5. Stream Video Stage Component (Rendered inside <StreamCall>)
 // ─────────────────────────────────────────────────────────────────────────────
 function StreamConnectedStage({
   liveClass,
@@ -388,6 +808,7 @@ function StreamConnectedStage({
     useCameraState,
     useSpeakerState,
     useCallCallingState,
+    useHasPermissions,
   } = useCallStateHooks();
 
   const participants = useParticipants() || [];
@@ -396,7 +817,24 @@ function StreamConnectedStage({
   const { isMute: isCamMuted, hasBrowserPermission: hasCamPermission, devices: camDevices, selectedDevice: selectedCam } = useCameraState() || {};
   const { devices: speakerDevices, selectedDevice: selectedSpeaker } = useSpeakerState ? useSpeakerState() : {};
   const { screenShare, isEnabled: isScreenSharing } = useScreenShareState() || {};
+
+  // Permission hooks from Stream Video SDK
+  const hasScreenSharePermission = useHasPermissions ? useHasPermissions(OwnCapability.SCREENSHARE) : true;
+  const hasAudioPermission = useHasPermissions ? useHasPermissions(OwnCapability.SEND_AUDIO) : true;
+  const hasVideoPermission = useHasPermissions ? useHasPermissions(OwnCapability.SEND_VIDEO) : true;
+
+  // Track previous permissions to notify students when admin toggles them
+  const prevScreenSharePerm = useRef(hasScreenSharePermission);
+  const prevAudioPerm = useRef(hasAudioPermission);
+  const prevVideoPerm = useRef(hasVideoPermission);
+
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [voiceControllerOpen, setVoiceControllerOpen] = useState(false);
+  const [masterVolume, setMasterVolume] = useState(100);
+  const [isMutedAll, setIsMutedAll] = useState(false);
+  const [participantVolumes, setParticipantVolumes] = useState({});
+  const [micAudioLevel, setMicAudioLevel] = useState(0);
+
   // Detect if ANY participant is sharing their screen (screenShareStream is set when active)
   const hasOngoingScreenShare = Array.isArray(participants) && participants.some(
     (p) => !!p.screenShareStream || (Array.isArray(p.publishedTracks) && p.publishedTracks.includes(3))
@@ -405,7 +843,6 @@ function StreamConnectedStage({
 
   const [layoutMode, setLayoutMode] = useState('grid'); // 'grid' | 'speaker'
   const [manualLayout, setManualLayout] = useState(false); // true = user manually picked layout
-  // Start as true so we always show the banner until user taps; browser will unblock then
   const [audioBlocked, setAudioBlocked] = useState(!isHost);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -414,8 +851,8 @@ function StreamConnectedStage({
     try {
       if (callRef?.resumeAudio) await callRef.resumeAudio();
       document.querySelectorAll('audio').forEach((el) => {
-        el.muted = false;
-        el.volume = 1.0;
+        el.muted = isMutedAll;
+        el.volume = isMutedAll ? 0 : masterVolume / 100;
         if (el.paused) el.play().catch(() => {});
       });
       setAudioBlocked(false);
@@ -424,13 +861,137 @@ function StreamConnectedStage({
     }
   };
 
+  // Sync Master Volume & Participant Volume to audio streams & SDK SpeakerManager
+  useEffect(() => {
+    const vol = isMutedAll ? 0 : masterVolume / 100;
+    if (call?.speaker?.setVolume) {
+      try {
+        call.speaker.setVolume(vol);
+      } catch (_e) {}
+    }
+    document.querySelectorAll('audio').forEach((audio) => {
+      try {
+        audio.muted = isMutedAll;
+        audio.volume = vol;
+      } catch (_e) {}
+    });
+  }, [masterVolume, isMutedAll, call]);
+
+  // Set individual participant volume
+  const handleSetParticipantVolume = (sessionId, volumePercent) => {
+    setParticipantVolumes((prev) => ({ ...prev, [sessionId]: volumePercent }));
+    if (call?.speaker?.setParticipantVolume) {
+      try {
+        call.speaker.setParticipantVolume(sessionId, volumePercent / 100);
+      } catch (_e) {}
+    }
+  };
+
+  // Real-time Mic Activity Level Monitor
+  useEffect(() => {
+    if (!call || isMicMuted) {
+      setMicAudioLevel(0);
+      return;
+    }
+    let animId;
+    let audioCtx;
+    let analyser;
+    let source;
+
+    const setupMicMonitor = async () => {
+      try {
+        const stream = call.microphone?.mediaStream;
+        if (stream && stream.getAudioTracks().length > 0 && stream.getAudioTracks()[0].enabled) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) return;
+          audioCtx = new AudioContextClass();
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 256;
+          source = audioCtx.createMediaStreamSource(stream);
+          source.connect(analyser);
+
+          const dataArray = new Uint8Array(analyser.frequencyBinCount);
+          const update = () => {
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+              sum += dataArray[i];
+            }
+            const avg = sum / dataArray.length;
+            setMicAudioLevel(Math.min(100, Math.round((avg / 128) * 100)));
+            animId = requestAnimationFrame(update);
+          };
+          update();
+        }
+      } catch (e) {
+        console.warn('Mic monitor:', e);
+      }
+    };
+
+    setupMicMonitor();
+
+    return () => {
+      if (animId) cancelAnimationFrame(animId);
+      if (source) {
+        try { source.disconnect(); } catch (_e) {}
+      }
+      if (audioCtx) {
+        try { audioCtx.close(); } catch (_e) {}
+      }
+    };
+  }, [call, isMicMuted]);
+
+  // Listen and notify when admin grants/revokes permissions for students
+  useEffect(() => {
+    if (isHost) return;
+
+    // Screen sharing permission update
+    if (prevScreenSharePerm.current !== hasScreenSharePermission) {
+      if (hasScreenSharePermission) {
+        toast.success('Instructor granted you screen sharing permission! 🖥️', { duration: 5000, icon: '🖥️' });
+      } else {
+        toast('Screen sharing disabled by instructor.', { icon: '🔒' });
+        if (isScreenSharing && call?.screenShare) {
+          call.screenShare.disable().catch(() => {});
+        }
+      }
+      prevScreenSharePerm.current = hasScreenSharePermission;
+    }
+
+    // Audio permission update
+    if (prevAudioPerm.current !== hasAudioPermission) {
+      if (hasAudioPermission) {
+        toast.success('Instructor enabled your microphone! 🎙️', { duration: 5000, icon: '🎙️' });
+      } else {
+        toast('Microphone disabled by instructor.', { icon: '🔒' });
+        if (!isMicMuted && call?.microphone) {
+          call.microphone.disable().catch(() => {});
+        }
+      }
+      prevAudioPerm.current = hasAudioPermission;
+    }
+
+    // Video permission update
+    if (prevVideoPerm.current !== hasVideoPermission) {
+      if (hasVideoPermission) {
+        toast.success('Instructor enabled your camera! 📹', { duration: 5000, icon: '📹' });
+      } else {
+        toast('Camera disabled by instructor.', { icon: '🔒' });
+        if (!isCamMuted && call?.camera) {
+          call.camera.disable().catch(() => {});
+        }
+      }
+      prevVideoPerm.current = hasVideoPermission;
+    }
+  }, [hasScreenSharePermission, hasAudioPermission, hasVideoPermission, isHost, isScreenSharing, isMicMuted, isCamMuted, call]);
+
   // Continuously unblock and monitor all remote audio elements
   useEffect(() => {
     const playAllAudio = () => {
       document.querySelectorAll('audio').forEach((audio) => {
         try {
-          audio.muted = false;
-          audio.volume = 1.0;
+          audio.muted = isMutedAll;
+          audio.volume = isMutedAll ? 0 : masterVolume / 100;
           if (audio.paused) {
             audio.play().catch(() => {});
           }
@@ -450,30 +1011,59 @@ function StreamConnectedStage({
       window.removeEventListener('keydown', playAllAudio);
       window.removeEventListener('touchstart', playAllAudio);
     };
-  }, []);
+  }, [isMutedAll, masterVolume]);
 
   useEffect(() => {
     if (!call) return;
 
-    // Try immediately on mount (works in desktop where autoplay allowed)
     doUnblockAudio(call);
 
-    // Re-try every time a participant joins (catches instructor joining late)
     const unsub = call.on('call.session_participant_joined', () => {
       doUnblockAudio(call);
     });
 
-    // Also re-try on ANY call event once (belt-and-suspenders for mobile)
     const unsubAll = call.on('all', () => {
       doUnblockAudio(call);
       if (typeof unsubAll === 'function') unsubAll();
     });
 
+    // Handle being muted by instructor
+    const unsubUserMuted = call.on('call.user_muted', (e) => {
+      const currentUserId = String(currentUser?._id || currentUser?.id || 'student');
+      if (e?.user_id === currentUserId || e?.userId === currentUserId) {
+        toast('You have been muted by the instructor.', { icon: '🔇' });
+      }
+    });
+
+    // Handle being kicked / removed by instructor
+    const unsubKicked = call.on('call.kicked', (e) => {
+      const currentUserId = String(currentUser?._id || currentUser?.id || 'student');
+      if (e?.user_id === currentUserId || e?.userId === currentUserId) {
+        toast.error('You were removed from this live class by the instructor.', { duration: 6000 });
+        setTimeout(() => {
+          onLeaveOrEnd();
+        }, 1200);
+      }
+    });
+
+    const unsubBlocked = call.on('call.blocked_user', (e) => {
+      const currentUserId = String(currentUser?._id || currentUser?.id || 'student');
+      if (e?.user_id === currentUserId || e?.userId === currentUserId) {
+        toast.error('You were blocked from this live room.', { duration: 6000 });
+        setTimeout(() => {
+          onLeaveOrEnd();
+        }, 1200);
+      }
+    });
+
     return () => {
       if (typeof unsub === 'function') unsub();
       if (typeof unsubAll === 'function') unsubAll();
+      if (typeof unsubUserMuted === 'function') unsubUserMuted();
+      if (typeof unsubKicked === 'function') unsubKicked();
+      if (typeof unsubBlocked === 'function') unsubBlocked();
     };
-  }, [call]);
+  }, [call, currentUser, onLeaveOrEnd]);
 
   // Auto-switch layout when screen share starts/stops (unless user manually picked)
   useEffect(() => {
@@ -541,6 +1131,10 @@ function StreamConnectedStage({
   const toggleCamera = async () => {
     try {
       if (!call) return;
+      if (!isHost && !hasVideoPermission) {
+        toast.error('Camera permission is disabled by the instructor for students.', { icon: '🔒' });
+        return;
+      }
       if (isCamMuted) {
         await call.camera.enable();
         toast.success('Camera turned on 📹');
@@ -564,6 +1158,10 @@ function StreamConnectedStage({
   const toggleMic = async () => {
     try {
       if (!call) return;
+      if (!isHost && !hasAudioPermission) {
+        toast.error('Microphone permission is disabled by the instructor for students.', { icon: '🔒' });
+        return;
+      }
       if (isMicMuted) {
         await call.microphone.enable();
         toast.success('Microphone unmuted 🎙️');
@@ -598,6 +1196,10 @@ function StreamConnectedStage({
 
   const toggleScreenShare = async () => {
     if (!call) return;
+    if (!isHost && !hasScreenSharePermission) {
+      toast.error('Screen sharing permission has not been granted by the instructor.', { icon: '🔒' });
+      return;
+    }
     try {
       if (isScreenSharing) {
         await call.screenShare.disable();
@@ -674,6 +1276,7 @@ function StreamConnectedStage({
     callingState === CallingState.LEFT;
 
   const isJoined = callingState === CallingState.JOINED;
+  const canScreenShare = isHost || hasScreenSharePermission;
 
   return (
     <div
@@ -712,6 +1315,20 @@ function StreamConnectedStage({
             </div>
           )}
 
+          {/* Quick Voice / Volume Indicator & Opener */}
+          <button
+            onClick={() => setVoiceControllerOpen(true)}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-300 hover:text-white border border-slate-700/60 transition cursor-pointer shadow-xs flex items-center gap-1.5 text-xs font-bold"
+            title="Voice & Audio Controller"
+          >
+            {isMutedAll || masterVolume === 0 ? (
+              <VolumeX className="w-3.5 h-3.5 text-red-400" />
+            ) : (
+              <Volume2 className="w-3.5 h-3.5 text-purple-400" />
+            )}
+            <span className="hidden md:inline text-[11px]">{isMutedAll ? 'Muted' : `${masterVolume}%`}</span>
+          </button>
+
           {/* Layout Grid / Speaker Switcher */}
           <button
             onClick={() => {
@@ -737,15 +1354,23 @@ function StreamConnectedStage({
             </span>
           </div>
 
-          {/* Participants Counter */}
-          <div className="flex items-center gap-1.5 text-xs text-slate-300 bg-slate-800/80 border border-slate-700/60 px-3 py-1 rounded-full shadow-xs">
+          {/* Participants Drawer Toggle Button */}
+          <button
+            onClick={() => setActiveSidebar(activeSidebar === 'participants' ? null : 'participants')}
+            className={`flex items-center gap-1.5 text-xs border px-3 py-1 rounded-full transition cursor-pointer shadow-xs ${
+              activeSidebar === 'participants'
+                ? 'bg-purple-600 border-purple-500 text-white font-bold'
+                : 'text-slate-300 bg-slate-800/80 hover:bg-slate-700/80 border-slate-700/60'
+            }`}
+            title="View Participants & Individual Voice Controls"
+          >
             <Users className="w-3.5 h-3.5 text-purple-400" />
             <span>{participants?.length ?? 1}</span>
-          </div>
+          </button>
         </div>
       </header>
 
-      {/* Main Workspace (Stage + Chat) */}
+      {/* Main Workspace (Stage + Sidebars) */}
       <div className="flex-1 min-h-0 flex overflow-hidden relative">
         {/* Stream Video Stage */}
         <div className="flex-1 min-w-0 flex flex-col bg-slate-950 relative overflow-hidden p-2 sm:p-3">
@@ -798,37 +1423,57 @@ function StreamConnectedStage({
 
           {/* Floating Controls Bar */}
           <div className="h-16 pt-2 flex items-center justify-center z-20">
-            <div className="flex items-center gap-2 sm:gap-3 bg-slate-900/90 backdrop-blur-xl border border-slate-700/80 px-3 sm:px-4 py-2 rounded-2xl shadow-2xl">
+            <div className="flex items-center gap-2 sm:gap-3 bg-slate-900/90 backdrop-blur-xl border border-slate-700/80 px-3 sm:px-4 py-2 rounded-2xl shadow-2xl flex-wrap justify-center">
               {/* Microphone Toggle */}
               <button
                 onClick={toggleMic}
                 className={`px-3 py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-sm ${
-                  !isMicMuted
+                  !isHost && !hasAudioPermission
+                    ? 'bg-slate-800/60 text-slate-500 border border-slate-800 cursor-not-allowed'
+                    : !isMicMuted
                     ? 'bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700'
                     : 'bg-red-600 hover:bg-red-700 text-white'
                 }`}
-                title={!isMicMuted ? 'Mute Microphone' : 'Unmute Microphone'}
+                title={!isHost && !hasAudioPermission ? 'Microphone locked by instructor' : !isMicMuted ? 'Mute Microphone' : 'Unmute Microphone'}
               >
-                {!isMicMuted ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
-                <span className="hidden sm:inline">{!isMicMuted ? 'Mic On' : 'Mic Muted'}</span>
+                {!isHost && !hasAudioPermission ? (
+                  <Lock className="w-4 h-4 text-slate-500" />
+                ) : !isMicMuted ? (
+                  <Mic className="w-4 h-4" />
+                ) : (
+                  <MicOff className="w-4 h-4" />
+                )}
+                <span className="hidden sm:inline">
+                  {!isHost && !hasAudioPermission ? 'Mic Locked' : !isMicMuted ? 'Mic On' : 'Mic Muted'}
+                </span>
               </button>
 
               {/* Camera Toggle */}
               <button
                 onClick={toggleCamera}
                 className={`px-3 py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-sm ${
-                  !isCamMuted
+                  !isHost && !hasVideoPermission
+                    ? 'bg-slate-800/60 text-slate-500 border border-slate-800 cursor-not-allowed'
+                    : !isCamMuted
                     ? 'bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700'
                     : 'bg-red-600 hover:bg-red-700 text-white'
                 }`}
-                title={!isCamMuted ? 'Turn Off Camera' : 'Turn On Camera'}
+                title={!isHost && !hasVideoPermission ? 'Camera locked by instructor' : !isCamMuted ? 'Turn Off Camera' : 'Turn On Camera'}
               >
-                {!isCamMuted ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
-                <span className="hidden sm:inline">{!isCamMuted ? 'Cam On' : 'Cam Off'}</span>
+                {!isHost && !hasVideoPermission ? (
+                  <Lock className="w-4 h-4 text-slate-500" />
+                ) : !isCamMuted ? (
+                  <Video className="w-4 h-4" />
+                ) : (
+                  <VideoOff className="w-4 h-4" />
+                )}
+                <span className="hidden sm:inline">
+                  {!isHost && !hasVideoPermission ? 'Cam Locked' : !isCamMuted ? 'Cam On' : 'Cam Off'}
+                </span>
               </button>
 
-              {/* Screen Share (Host Only) */}
-              {isHost && (
+              {/* Screen Share (Host OR Student with Granted Permission) */}
+              {canScreenShare && (
                 <button
                   onClick={toggleScreenShare}
                   className={`px-3 py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-sm ${
@@ -839,9 +1484,27 @@ function StreamConnectedStage({
                   title={isScreenSharing ? 'Stop Screen Share' : 'Share Screen'}
                 >
                   {isScreenSharing ? <MonitorOff className="w-4 h-4" /> : <Monitor className="w-4 h-4" />}
-                  <span className="hidden sm:inline">{isScreenSharing ? 'Sharing' : 'Share'}</span>
+                  <span className="hidden sm:inline">{isScreenSharing ? 'Stop Sharing' : 'Share Screen'}</span>
                 </button>
               )}
+
+              {/* Voice Controller Button (Master Volume & Mic Level Controller) */}
+              <button
+                onClick={() => setVoiceControllerOpen(true)}
+                className={`px-3 py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-sm ${
+                  voiceControllerOpen
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-slate-800 hover:bg-slate-700 text-purple-300 border border-slate-700'
+                }`}
+                title="Open Voice & Volume Controller"
+              >
+                {isMutedAll || masterVolume === 0 ? (
+                  <VolumeX className="w-4 h-4 text-red-400" />
+                ) : (
+                  <Volume2 className="w-4 h-4 text-purple-400" />
+                )}
+                <span className="hidden sm:inline">Voice Control</span>
+              </button>
 
               {/* Raise Hand (Students Only) */}
               {!isHost && (
@@ -858,6 +1521,20 @@ function StreamConnectedStage({
                   <span className="hidden sm:inline">{handRaised ? 'Hand Raised' : 'Raise Hand'}</span>
                 </button>
               )}
+
+              {/* Participants Drawer Toggle */}
+              <button
+                onClick={() => setActiveSidebar(activeSidebar === 'participants' ? null : 'participants')}
+                className={`px-3 py-2 rounded-xl transition cursor-pointer font-bold text-xs flex items-center gap-2 shadow-sm ${
+                  activeSidebar === 'participants'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
+                }`}
+                title="View Participants & Permissions"
+              >
+                <Users className="w-4 h-4" />
+                <span className="hidden sm:inline">Participants</span>
+              </button>
 
               {/* Live Chat Toggle */}
               <button
@@ -908,7 +1585,7 @@ function StreamConnectedStage({
         </div>
 
         {/* Live Chat Drawer */}
-        {activeSidebar && (
+        {activeSidebar === 'chat' && (
           <ChatDrawer
             messages={messages}
             inputText={inputText}
@@ -918,7 +1595,44 @@ function StreamConnectedStage({
             onClose={() => setActiveSidebar(null)}
           />
         )}
+
+        {/* Participants & Voice Control Drawer */}
+        {activeSidebar === 'participants' && (
+          <ParticipantsDrawer
+            participants={participants}
+            currentUser={currentUser}
+            isHost={isHost}
+            call={call}
+            participantVolumes={participantVolumes}
+            onSetParticipantVolume={handleSetParticipantVolume}
+            onClose={() => setActiveSidebar(null)}
+          />
+        )}
       </div>
+
+      {/* Voice & Master Volume Controller Popover */}
+      <VoiceControllerPopover
+        isOpen={voiceControllerOpen}
+        onClose={() => setVoiceControllerOpen(false)}
+        masterVolume={masterVolume}
+        onMasterVolumeChange={(vol) => {
+          setMasterVolume(vol);
+          if (isMutedAll && vol > 0) setIsMutedAll(false);
+        }}
+        isMutedAll={isMutedAll}
+        onToggleMuteAll={() => setIsMutedAll(!isMutedAll)}
+        audioLevel={micAudioLevel}
+        isMicMuted={isMicMuted}
+        onOpenSettings={() => setSettingsOpen(true)}
+        speakerDevices={speakerDevices}
+        selectedSpeaker={selectedSpeaker}
+        onSelectSpeaker={async (deviceId) => {
+          if (call?.speaker?.select) {
+            await call.speaker.select(deviceId);
+            toast.success('Speaker output changed');
+          }
+        }}
+      />
 
       {/* Audio & Video Device Settings Modal */}
       <DeviceSettingsModal
@@ -938,7 +1652,7 @@ function StreamConnectedStage({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. Standalone / External Stage
+// 6. Standalone / External Stage
 // ─────────────────────────────────────────────────────────────────────────────
 function StandaloneLiveStage({
   liveClass,
@@ -1014,7 +1728,6 @@ function StandaloneLiveStage({
                   rel="noopener noreferrer"
                   className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-purple-950/40 transition cursor-pointer text-sm"
                 >
-                  <ExternalLink className="w-4 h-4" />
                   <span>Launch Meeting Link</span>
                 </a>
                 <p className="text-[11px] text-slate-500 mt-2">Opens in external meeting app</p>
@@ -1074,7 +1787,7 @@ function StandaloneLiveStage({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 4. Main LiveClassRoom Page Container
+// 7. Main LiveClassRoom Page Container
 // ─────────────────────────────────────────────────────────────────────────────
 export default function LiveClassRoom() {
   const { liveClassId } = useParams();
@@ -1287,7 +2000,6 @@ export default function LiveClassRoom() {
   if (loading) {
     return <SkeletonLiveRoom />;
   }
-
 
   // Friendly error card instead of blank screen
   if (errorMsg) {
