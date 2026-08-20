@@ -81,6 +81,12 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173,
       proxy: {
+        '/sitemap.xml': {
+          target: backendTarget,
+          changeOrigin: true,
+          secure: false,
+          rewrite: () => '/api/seo/sitemap.xml',
+        },
         '/api': {
           target: backendTarget,
           changeOrigin: true,

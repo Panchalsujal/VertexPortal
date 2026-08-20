@@ -124,16 +124,16 @@ const corsOptions = {
 
     const normalizedOrigin = origin.replace(/\/$/, "");
 
-    // Check whitelist or authorized vercel.app deployments
+    // Check whitelist or authorized Vertex project Vercel deployments
     const isAllowed =
       allowedOrigins.includes(normalizedOrigin) ||
-      /^https:\/\/([a-zA-Z0-9-]+\.)?vercel\.app$/.test(normalizedOrigin);
+      /^https:\/\/vertex(-[a-zA-Z0-9-]+)?\.vercel\.app$/.test(normalizedOrigin);
 
     if (isAllowed) {
       return callback(null, true);
     }
 
-    return callback(new Error("CORS policy violation: Access not allowed from this origin"));
+    return callback(null, false);
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
@@ -145,7 +145,7 @@ const corsOptions = {
     "Origin",
     "Range",
   ],
-  exposedHeaders: ["Set-Cookie"],
+  exposedHeaders: ["Content-Range", "X-Total-Count"],
 };
 
 // CORS Middleware
