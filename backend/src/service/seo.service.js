@@ -9,17 +9,18 @@ const getCanonicalFrontendUrl = () => {
     .map((u) => u.trim().replace(/\/$/, ""))
     .filter(Boolean);
 
-  // 1. Prioritize custom production domain
+  // 1. Prioritize custom production domain if present in FRONTEND_URL
   const customDomain = origins.find((u) => u.includes("navgujaratacademy.online"));
   if (customDomain) return customDomain;
 
-  // 2. Prioritize non-vercel, non-local domain
+  // 2. Prioritize other custom non-vercel, non-local domain
   const nonVercelDomain = origins.find(
     (u) => !u.includes("localhost") && !u.includes("127.0.0.1") && !u.includes("vercel.app")
   );
   if (nonVercelDomain) return nonVercelDomain;
 
-  return origins[0] || "https://navgujaratacademy.online";
+  // 3. Always default to official primary domain
+  return "https://navgujaratacademy.online";
 };
 
 const FRONTEND_URL = getCanonicalFrontendUrl();
