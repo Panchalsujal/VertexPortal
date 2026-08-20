@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
+
 Disallow: /admin/
 Disallow: /student/
 Disallow: /instructor/
@@ -9,11 +10,25 @@ Disallow: /wishlist
 Disallow: /notifications
 Disallow: /profile
 
-# Google Search crawler
+Disallow: /api/auth/
+Disallow: /api/admin/
+Disallow: /api/users/
+
+# Google
 User-agent: Googlebot
 Allow: /
+Allow: /courses
 Allow: /api/courses
 Allow: /api/categories
+
+Disallow: /admin/
+Disallow: /student/
+Disallow: /instructor/
+Disallow: /learn/
+Disallow: /cart
+Disallow: /wishlist
+Disallow: /notifications
+Disallow: /profile
 Disallow: /api/auth/
 Disallow: /api/admin/
 Disallow: /api/users/
@@ -21,13 +36,23 @@ Disallow: /api/users/
 # Bing
 User-agent: Bingbot
 Allow: /
+Allow: /courses
 Allow: /api/courses
 Allow: /api/categories
+
+Disallow: /admin/
+Disallow: /student/
+Disallow: /instructor/
+Disallow: /learn/
+Disallow: /cart
+Disallow: /wishlist
+Disallow: /notifications
+Disallow: /profile
 Disallow: /api/auth/
 Disallow: /api/admin/
 Disallow: /api/users/
 
-# OpenAI crawlers
+# OpenAI
 User-agent: GPTBot
 Allow: /
 Allow: /courses
@@ -35,9 +60,30 @@ Allow: /playground
 Allow: /api/courses
 Allow: /api/categories
 Disallow: /admin/
+Disallow: /student/
+Disallow: /instructor/
+Disallow: /learn/
+Disallow: /cart
+Disallow: /wishlist
+Disallow: /notifications
+Disallow: /profile/
+Disallow: /api/auth/
+Disallow: /api/admin/
+Disallow: /api/users/
 
 User-agent: ChatGPT-User
 Allow: /
+Disallow: /admin/
+Disallow: /student/
+Disallow: /instructor/
+Disallow: /learn/
+Disallow: /cart
+Disallow: /wishlist
+Disallow: /notifications
+Disallow: /profile/
+Disallow: /api/auth/
+Disallow: /api/admin/
+Disallow: /api/users/
 
 # Anthropic
 User-agent: ClaudeBot
@@ -46,6 +92,16 @@ Allow: /courses
 Allow: /api/courses
 Allow: /api/categories
 Disallow: /admin/
+Disallow: /student/
+Disallow: /instructor/
+Disallow: /learn/
+Disallow: /cart
+Disallow: /wishlist
+Disallow: /notifications
+Disallow: /profile/
+Disallow: /api/auth/
+Disallow: /api/admin/
+Disallow: /api/users/
 
 # Perplexity
 User-agent: PerplexityBot
@@ -53,6 +109,16 @@ Allow: /
 Allow: /api/courses
 Allow: /api/categories
 Disallow: /admin/
+Disallow: /student/
+Disallow: /instructor/
+Disallow: /learn/
+Disallow: /cart
+Disallow: /wishlist
+Disallow: /notifications
+Disallow: /profile/
+Disallow: /api/auth/
+Disallow: /api/admin/
+Disallow: /api/users/
 
 # Apple
 User-agent: Applebot
@@ -60,8 +126,18 @@ Allow: /
 Allow: /api/courses
 Allow: /api/categories
 Disallow: /admin/
+Disallow: /student/
+Disallow: /instructor/
+Disallow: /learn/
+Disallow: /cart
+Disallow: /wishlist
+Disallow: /notifications
+Disallow: /profile/
+Disallow: /api/auth/
+Disallow: /api/admin/
+Disallow: /api/users/
 
-# Google AI training controls
+# Google AI
 User-agent: Google-Extended
 Allow: /
 
