@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FRONTEND_ROUTES.md</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; }
+        h1, h2, h3, h4, h5, h6 { color: #2c3e50; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; border: 1px solid #e9ecef; }
+        code { background: #f8f9fa; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace; font-size: 0.9em; border: 1px solid #e9ecef; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        img { max-width: 100%; height: auto; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        blockquote { border-left: 4px solid #007bff; padding-left: 15px; color: #6c757d; margin-left: 0; font-style: italic; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<h1 id="navgujarat-academy-frontend-routes-structure">NavGujarat Academy — Frontend Routes &amp; Structure</h1>
+<p>This document outlines the React-based frontend architecture, including the routing configuration, component structure, and state management strategies used across the application.</p>
+<hr />
+<h2 id="1-core-architecture">1. Core Architecture</h2>
+<p>The frontend is built using <strong>Vite + React 19</strong> with <strong>Tailwind CSS</strong> for styling.</p>
+<ul>
+<li><strong>Routing:</strong> Handled by <code>react-router-dom</code> using <code>BrowserRouter</code>.</li>
+<li><strong>State Management:</strong> <strong>Redux Toolkit</strong> is used for global state (e.g., Auth state, Cart), while local state is managed via React hooks (<code>useState</code>, <code>useReducer</code>).</li>
+<li><strong>Code Splitting:</strong> All major page components are lazily loaded using <code>React.lazy()</code> and wrapped in a <code>&lt;Suspense&gt;</code> boundary with a <code>&lt;PageLoader /&gt;</code> fallback to minimize the initial JS payload.</li>
+<li><strong>Animations:</strong> Powered by <strong>GSAP</strong> and <strong>Framer Motion</strong> for smooth transitions and scroll effects.</li>
+</ul>
+<hr />
+<h2 id="2-route-configuration-srcappjsx">2. Route Configuration (<code>src/App.jsx</code>)</h2>
+<p>The application routes are wrapped in a shared <code>&lt;Layout /&gt;</code> component that conditionally renders the <code>&lt;Navbar /&gt;</code> and <code>&lt;Footer /&gt;</code> based on the current path (e.g., hiding navigation in the Course Player or Login screens).</p>
+<h3 id="21-public-routes">2.1 Public Routes</h3>
+<p>Accessible to unauthenticated visitors.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Path</th>
+<th style="text-align: left;">Component</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>/</code></td>
+<td style="text-align: left;"><code>Home</code></td>
+<td style="text-align: left;">Landing page (Pre-fetched immediately).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/courses</code></td>
+<td style="text-align: left;"><code>Courses</code></td>
+<td style="text-align: left;">Public course catalog with filtering.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/courses/:slug</code></td>
+<td style="text-align: left;"><code>CourseDetail</code></td>
+<td style="text-align: left;">Detailed landing page for a specific course.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/playground</code></td>
+<td style="text-align: left;"><code>CodePlayground</code></td>
+<td style="text-align: left;">Public/Interactive code playground.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/privacy</code>, <code>/terms</code>, <code>/help</code></td>
+<td style="text-align: left;"><code>LegalPrivacy</code>, etc.</td>
+<td style="text-align: left;">Static content and support pages.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/status</code></td>
+<td style="text-align: left;"><code>PlatformStatus</code></td>
+<td style="text-align: left;">System uptime and health status.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22-authentication-routes">2.2 Authentication Routes</h3>
+<p>Handled publicly, but redirects authenticated users away from them if already logged in.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Path</th>
+<th style="text-align: left;">Component</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>/login</code></td>
+<td style="text-align: left;"><code>Login</code></td>
+<td style="text-align: left;">Email/Password and Google OAuth login.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/register</code></td>
+<td style="text-align: left;"><code>Register</code></td>
+<td style="text-align: left;">New account creation.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/forgot-password</code></td>
+<td style="text-align: left;"><code>ForgotPassword</code></td>
+<td style="text-align: left;">Request password reset email.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/reset-password/:userId/:token</code></td>
+<td style="text-align: left;"><code>ResetPassword</code></td>
+<td style="text-align: left;">Set new password.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/verify-email/:userId/:token</code></td>
+<td style="text-align: left;"><code>VerifyEmail</code></td>
+<td style="text-align: left;">Account verification via email link.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="23-general-protected-routes">2.3 General Protected Routes</h3>
+<p>Require a valid JWT session. Accessible via the <code>&lt;ProtectedRoute&gt;</code> wrapper.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Path</th>
+<th style="text-align: left;">Component</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>/profile</code></td>
+<td style="text-align: left;"><code>Profile</code></td>
+<td style="text-align: left;">User account settings and avatar upload.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/discussions</code></td>
+<td style="text-align: left;"><code>Discussions</code></td>
+<td style="text-align: left;">Community forum.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/ai-chat</code></td>
+<td style="text-align: left;"><code>AiChat</code></td>
+<td style="text-align: left;">RAG-powered AI Assistant UI.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/notifications</code></td>
+<td style="text-align: left;"><code>Notifications</code></td>
+<td style="text-align: left;">In-app notification center.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="24-student-specific-routes">2.4 Student-Specific Routes</h3>
+<p>Requires the <code>student</code> role (or higher).</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Path</th>
+<th style="text-align: left;">Component</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>/dashboard</code></td>
+<td style="text-align: left;"><code>StudentDashboard</code></td>
+<td style="text-align: left;">Overview of progress and upcoming classes.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/my-learning</code></td>
+<td style="text-align: left;"><code>MyLearning</code></td>
+<td style="text-align: left;">Enrolled courses grid.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/learn/:courseId</code></td>
+<td style="text-align: left;"><code>CoursePlayer</code></td>
+<td style="text-align: left;">Core video playback and module navigation.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/cart</code> / <code>/wishlist</code></td>
+<td style="text-align: left;"><code>Cart</code>, <code>Wishlist</code></td>
+<td style="text-align: left;">E-commerce purchasing workflows.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/student/quizzes</code></td>
+<td style="text-align: left;"><code>StudentQuizzes</code></td>
+<td style="text-align: left;">Active and past quiz attempts.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/student/assignments</code></td>
+<td style="text-align: left;"><code>StudentAssignments</code></td>
+<td style="text-align: left;">Submissions and grades.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/live-class/:liveClassId</code></td>
+<td style="text-align: left;"><code>LiveClassRoom</code></td>
+<td style="text-align: left;">WebRTC participant view via Stream.io.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/student/notes</code></td>
+<td style="text-align: left;"><code>StudentNotes</code></td>
+<td style="text-align: left;">Time-stamped video notes.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="25-instructor-routes">2.5 Instructor Routes</h3>
+<p>Requires the <code>instructor</code> or <code>admin</code> role.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Path</th>
+<th style="text-align: left;">Component</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>/instructor/dashboard</code></td>
+<td style="text-align: left;"><code>InstructorDashboard</code></td>
+<td style="text-align: left;">Revenue, enrollment analytics.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/instructor/courses/new</code></td>
+<td style="text-align: left;"><code>CourseForm</code></td>
+<td style="text-align: left;">Draft a new course.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/instructor/courses/:courseId/edit</code></td>
+<td style="text-align: left;"><code>CourseForm</code></td>
+<td style="text-align: left;">Update course metadata.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/instructor/courses/:courseId/curriculum</code></td>
+<td style="text-align: left;"><code>Curriculum</code></td>
+<td style="text-align: left;">Build modules and upload lecture videos.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/instructor/live-classes</code></td>
+<td style="text-align: left;"><code>InstructorLiveClasses</code></td>
+<td style="text-align: left;">Schedule and host WebRTC sessions.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/instructor/quizzes</code></td>
+<td style="text-align: left;"><code>InstructorQuizzes</code></td>
+<td style="text-align: left;">Author assessments.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/instructor/assignments</code></td>
+<td style="text-align: left;"><code>InstructorAssignments</code></td>
+<td style="text-align: left;">Grade student submissions.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="26-admin-routes">2.6 Admin Routes</h3>
+<p>Requires the <code>admin</code> role. Most admin routes load within a shared dashboard shell (<code>AdminPanel</code>).</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Path</th>
+<th style="text-align: left;">Internal View / Component</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>/admin</code></td>
+<td style="text-align: left;"><code>AdminDashboard</code></td>
+<td style="text-align: left;">Platform-wide analytics and metrics.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/admin/users</code></td>
+<td style="text-align: left;"><code>AdminUsers</code></td>
+<td style="text-align: left;">User management and ban/suspend controls.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/admin/orders</code></td>
+<td style="text-align: left;"><code>AdminOrders</code></td>
+<td style="text-align: left;">Financial transactions and refunds.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/admin/courses</code></td>
+<td style="text-align: left;"><code>AdminCourses</code></td>
+<td style="text-align: left;">Approve/Reject instructor courses.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/admin/audit</code></td>
+<td style="text-align: left;"><code>AdminAuditLogs</code></td>
+<td style="text-align: left;">System activity monitoring.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/admin/discussion-reports</code></td>
+<td style="text-align: left;"><code>AdminDiscussionReports</code></td>
+<td style="text-align: left;">Moderation queue for flagged content.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-global-state-api-integration">3. Global State &amp; API Integration</h2>
+<h3 id="31-redux-store-srcstore">3.1 Redux Store (<code>src/store</code>)</h3>
+<ul>
+<li><strong><code>authSlice</code></strong>: Stores the current authenticated user's profile (<code>selectUser</code>), session loading state (<code>selectAuthLoading</code>), and handles asynchronous thunks like <code>fetchMe()</code>.</li>
+</ul>
+<h3 id="32-api-layer-srcapi">3.2 API Layer (<code>src/api</code>)</h3>
+<ul>
+<li>All backend HTTP requests are centralized in the <code>src/api/</code> directory (e.g., <code>auth.api.js</code>, <code>course.api.js</code>).</li>
+<li>Uses <code>axios</code> with an interceptor (<code>axios.js</code>) configured to automatically attach credentials (cookies) and handle global error responses (like 401 Unauthorized redirecting to <code>/login</code>).</li>
+</ul>
+<h3 id="33-ui-components-srccomponents">3.3 UI Components (<code>src/components</code>)</h3>
+<ul>
+<li><strong><code>ui/</code></strong>: Reusable base components (Buttons, Inputs, Modals, Spinners, Toast).</li>
+<li><strong><code>layout/</code></strong>: <code>Navbar</code>, <code>Footer</code>, Sidebar menus.</li>
+<li><strong><code>common/</code></strong>: <code>PrivacyBanner</code>, Error boundaries.</li>
+</ul>
+</body>
+</html>

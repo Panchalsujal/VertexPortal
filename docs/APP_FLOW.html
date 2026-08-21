@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APP_FLOW.md</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; }
+        h1, h2, h3, h4, h5, h6 { color: #2c3e50; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; border: 1px solid #e9ecef; }
+        code { background: #f8f9fa; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace; font-size: 0.9em; border: 1px solid #e9ecef; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        img { max-width: 100%; height: auto; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        blockquote { border-left: 4px solid #007bff; padding-left: 15px; color: #6c757d; margin-left: 0; font-style: italic; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<h1 id="navgujarat-academy-application-flows-user-journeys">NavGujarat Academy — Application Flows &amp; User Journeys</h1>
+<p><strong>Document Version:</strong> 2.0.0<br />
+<strong>Target:</strong> Visual &amp; Architectural User Flows across All Roles<br />
+<strong>Status:</strong> Approved for Production  </p>
+<hr />
+<h2 id="1-overall-system-architecture-role-navigation-map">1. Overall System Architecture &amp; Role Navigation Map</h2>
+<pre class="codehilite"><code class="language-mermaid">flowchart TD
+    User([Visitor / User]) --&gt; AuthDecision{Authenticated?}
+
+    AuthDecision -- No --&gt; PublicPages[Public Catalog / Course Details / Landing Page]
+    PublicPages --&gt; AuthModal[Register / Login / Verify Email]
+
+    AuthDecision -- Yes --&gt; RoleCheck{User Role}
+
+    RoleCheck -- Student --&gt; StudentHub[Student Dashboard]
+    StudentHub --&gt; EnrolledCourses[My Learning / Course Player]
+    StudentHub --&gt; LiveClasses[Live WebRTC Classes]
+    StudentHub --&gt; AIPlayground[AI Tutor &amp; Code Playground]
+    StudentHub --&gt; Assessments[Quizzes &amp; Assignments]
+    StudentHub --&gt; Certs[My Certificates / Verification]
+    StudentHub --&gt; Discussions[Community Discussions]
+    StudentHub --&gt; Notes[Timestamped Notes]
+
+    RoleCheck -- Instructor --&gt; InstructorHub[Instructor Dashboard]
+    InstructorHub --&gt; CourseBuilder[Create / Edit Course &amp; Curriculum]
+    InstructorHub --&gt; HostLive[Schedule &amp; Host Live Class]
+    InstructorHub --&gt; QuizBuilder[Author &amp; Review Quizzes]
+    InstructorHub --&gt; GradeAssignments[Grade Student Submissions]
+    InstructorHub --&gt; Broadcasts[Course Announcements]
+
+    RoleCheck -- Admin --&gt; AdminHub[Admin Command Center]
+    AdminHub --&gt; UserManagement[Manage Users &amp; Roles]
+    AdminHub --&gt; FinancialAnalytics[Orders, Revenue &amp; Coupons]
+    AdminHub --&gt; CourseModeration[Course Approvals &amp; Categories]
+    AdminHub --&gt; AuditLogs[System Audit Trail]
+    AdminHub --&gt; DiscussionModeration[Handle Reports &amp; Flagged Posts]
+</code></pre>
+
+<hr />
+<h2 id="2-authentication-email-verification-journey">2. Authentication &amp; Email Verification Journey</h2>
+<pre class="codehilite"><code class="language-mermaid">sequenceDiagram
+    autonumber
+    actor User as User (Student/Instructor)
+    participant Client as React Client
+    participant API as Express Auth API
+    participant DB as MongoDB
+    participant Mailer as Google OAuth Mailer
+
+    User-&gt;&gt;Client: Enters Name, Email, Password, Role
+    Client-&gt;&gt;API: POST /api/auth/register
+    API-&gt;&gt;DB: Check if email exists
+    DB--&gt;&gt;API: Email available
+    API-&gt;&gt;API: Hash password (Bcrypt) + Generate Verification Token
+    API-&gt;&gt;DB: Save User (isActive=true, isEmailVerified=false)
+    API-&gt;&gt;Mailer: Send Verification Email with Link
+    API--&gt;&gt;Client: 201 Created (&quot;Please verify your email&quot;)
+
+    User-&gt;&gt;User: Opens Email &amp; Clicks Verification Link
+    User-&gt;&gt;Client: Navigates to /verify-email/:userId/:token
+    Client-&gt;&gt;API: POST /api/auth/verify-email
+    API-&gt;&gt;DB: Find user &amp; validate token
+    API-&gt;&gt;DB: Update isEmailVerified = true
+    API--&gt;&gt;Client: 200 Success
+
+    User-&gt;&gt;Client: Submits Login Credentials
+    Client-&gt;&gt;API: POST /api/auth/login
+    API-&gt;&gt;DB: Verify credentials &amp; role status
+    API-&gt;&gt;API: Generate JWT Token
+    API--&gt;&gt;Client: Sets HttpOnly `token` cookie + Returns User Profile
+    Client-&gt;&gt;Client: Dispatches `fetchMe` &amp; redirects to role dashboard
+</code></pre>
+
+<hr />
+<h2 id="3-course-enrollment-coupon-razorpay-checkout-flow">3. Course Enrollment, Coupon &amp; Razorpay Checkout Flow</h2>
+<pre class="codehilite"><code class="language-mermaid">sequenceDiagram
+    autonumber
+    actor Student as Student
+    participant Client as React Client (Cart/Checkout)
+    participant API as Express Order API
+    participant Razorpay as Razorpay Gateway
+    participant DB as MongoDB
+
+    Student-&gt;&gt;Client: Adds Course to Cart &amp; Proceeds to Checkout
+    Student-&gt;&gt;Client: Enters Coupon Code (Optional)
+    Client-&gt;&gt;API: POST /api/coupons/validate
+    API-&gt;&gt;DB: Check coupon validity, min spend, expiry, usage limit
+    API--&gt;&gt;Client: Coupon applied with discounted total
+
+    Client-&gt;&gt;API: POST /api/checkout/create-order
+    API-&gt;&gt;DB: Calculate final pricing
+    API-&gt;&gt;Razorpay: razorpay.orders.create({ amount, currency: &quot;INR&quot; })
+    Razorpay--&gt;&gt;API: Returns Razorpay Order ID
+    API-&gt;&gt;DB: Create Pending Order Record
+    API--&gt;&gt;Client: Returns Order ID, Amount, Key ID
+
+    Client-&gt;&gt;Student: Opens Razorpay Checkout Modal
+    Student-&gt;&gt;Razorpay: Completes Payment (UPI / Card / NetBanking)
+    Razorpay--&gt;&gt;Client: Returns payment_id, order_id, signature
+
+    Client-&gt;&gt;API: POST /api/checkout/verify-payment
+    API-&gt;&gt;API: Verify HMAC SHA-256 Signature
+    API-&gt;&gt;DB: Update Order (status: &quot;completed&quot;)
+    API-&gt;&gt;DB: Create/Update Enrollment records
+    API-&gt;&gt;DB: Record Coupon Usage (if applied)
+    API--&gt;&gt;Client: 200 Payment Verified
+    Client-&gt;&gt;Student: Redirects to /my-learning with enrolled course unlocked
+</code></pre>
+
+<hr />
+<h2 id="4-course-player-granular-progress-certificate-issuance">4. Course Player, Granular Progress &amp; Certificate Issuance</h2>
+<pre class="codehilite"><code class="language-mermaid">sequenceDiagram
+    autonumber
+    actor Student as Student
+    participant Player as React CoursePlayer
+    participant API as Express API
+    participant DB as MongoDB
+    participant CertService as PDFKit &amp; QR Engine
+
+    Student-&gt;&gt;Player: Plays Video Lecture
+    Player-&gt;&gt;Player: Periodic heartbeat (every 10s of playback)
+    Player-&gt;&gt;API: POST /api/lecture-progress/update
+    API-&gt;&gt;DB: Upsert LectureProgress (watchTime, isCompleted)
+
+    Player-&gt;&gt;Player: Video reaches 90% or completes
+    Player-&gt;&gt;API: POST /api/lecture-progress/complete
+    API-&gt;&gt;DB: Mark lecture completed
+    API-&gt;&gt;API: Recalculate Course Enrollment Completion %
+
+    alt Course Progress Reaches 100%
+        API-&gt;&gt;DB: Mark Enrollment as Completed
+        API-&gt;&gt;CertService: Generate Certificate PDF with QR Code
+        CertService-&gt;&gt;DB: Save Certificate (Unique verificationCode, pdfUrl)
+        API-&gt;&gt;DB: Send in-app Notification (&quot;Certificate Issued!&quot;)
+        API--&gt;&gt;Player: Return updated progress + Certificate Available
+        Player-&gt;&gt;Student: Confetti animation + &quot;Download Certificate&quot; banner
+    end
+</code></pre>
+
+<hr />
+<h2 id="5-multimodal-ai-assistant-rag-knowledge-search">5. Multimodal AI Assistant &amp; RAG Knowledge Search</h2>
+<pre class="codehilite"><code class="language-mermaid">flowchart TD
+    subgraph Ingestion [Background Ingestion Pipeline]
+        Upload[Instructor Uploads Video/PDF] --&gt; Transcribe[FFmpeg extracts audio -&gt; Mistral Voxtral transcribes]
+        Upload --&gt; ParsePDF[Unpdf extracts text pages]
+        Transcribe &amp; ParsePDF --&gt; Chunker[Segment into 500-token chunks with 50-token overlap]
+        Chunker --&gt; Embedder[Mistral Embeddings API: mistral-embed]
+        Embedder --&gt; VectorDB[(MongoDB: ragchunks collection)]
+    end
+
+    subgraph Query [Student Query Flow]
+        StudentPrompt[Student types query in AI Chat / Course Player] --&gt; PromptEmbed[Generate Vector for Prompt]
+        PromptEmbed --&gt; VectorSearch[Cosine Similarity Search against Course RAG Chunks]
+        VectorDB --&gt; VectorSearch
+        VectorSearch --&gt; TopChunks[Retrieve Top-5 Relevant Chunks + Timestamps]
+        TopChunks --&gt; PromptConstructor[Assemble System Prompt + Context Chunks + Conversation History]
+        PromptConstructor --&gt; MistralLLM[Mistral Large Latest Model]
+        MistralLLM --&gt; StreamResponse[Stream Markdown Response to Student UI with Citations &amp; Timestamp Links]
+    end
+</code></pre>
+
+<hr />
+<h2 id="6-real-time-live-webrtc-classroom-flow">6. Real-Time Live WebRTC Classroom Flow</h2>
+<pre class="codehilite"><code class="language-mermaid">sequenceDiagram
+    autonumber
+    actor Instructor as Instructor (Host)
+    actor Student as Student (Participant)
+    participant Client as React Client (@stream-io/video-react-sdk)
+    participant API as Express Live Class API
+    participant Stream as Stream.io Edge Video Network
+    participant DB as MongoDB
+
+    Instructor-&gt;&gt;API: POST /api/instructor/live-classes (Title, Course, StartTime)
+    API-&gt;&gt;Stream: Create Call Channel (type: 'default', callId: roomId)
+    API-&gt;&gt;DB: Save LiveClass (status: 'scheduled')
+
+    Note over API: Cron Job runs every minute -&gt; Sends email reminders 15m prior
+
+    Instructor-&gt;&gt;Client: Enters /live-class/:id (Starts Class)
+    Client-&gt;&gt;API: GET /api/live-classes/:id/join-token
+    API-&gt;&gt;Stream: Generate Host Token with Admin permissions
+    API--&gt;&gt;Client: Returns Stream Token &amp; Call Config
+    Client-&gt;&gt;Stream: Join Call &amp; Start Publishing Video/Audio
+
+    Student-&gt;&gt;Client: Enters /live-class/:id
+    Client-&gt;&gt;API: GET /api/live-classes/:id/join-token
+    API-&gt;&gt;Stream: Generate Participant Token
+    API-&gt;&gt;DB: Record LiveClassAttendance (joinedAt: now)
+    API--&gt;&gt;Client: Returns Stream Token
+    Client-&gt;&gt;Stream: Join Call as Viewer/Participant
+
+    Instructor-&gt;&gt;Client: Ends Call
+    Client-&gt;&gt;API: POST /api/instructor/live-classes/:id/end
+    API-&gt;&gt;Stream: Terminate Call Session
+    API-&gt;&gt;DB: Update LiveClass (status: 'completed', endedAt: now)
+    API-&gt;&gt;DB: Calculate duration for all attendance records
+</code></pre>
+
+<hr />
+<h2 id="7-assessment-engine-grading-lifecycle">7. Assessment Engine &amp; Grading Lifecycle</h2>
+<pre class="codehilite"><code class="language-mermaid">flowchart TD
+    Start([Instructor Creates Assessment]) --&gt; TypeDecision{Assessment Type}
+
+    TypeDecision -- Quiz --&gt; QuizConfig[Set Questions, Multiple Choices, Pass Score, Timer]
+    QuizConfig --&gt; AIQuizOpt{Use AI Quiz Gen?}
+    AIQuizOpt -- Yes --&gt; AIQuizService[Mistral AI reads lecture transcripts &amp; creates 10 questions]
+    AIQuizOpt -- No --&gt; ManualQuiz[Manual question authoring]
+    AIQuizService &amp; ManualQuiz --&gt; PublishQuiz[Publish Quiz to Course Module]
+
+    PublishQuiz --&gt; StudentAttempt[Student starts Quiz Attempt]
+    StudentAttempt --&gt; TimedSession[Timer countdown runs in client]
+    TimedSession --&gt; SubmitAnswers[Student Submits Answers]
+    SubmitAnswers --&gt; AutoGrade[Backend compares answers with answer keys]
+    AutoGrade --&gt; PassCheck{Score &gt;= Passing Score?}
+    PassCheck -- Yes --&gt; PassOutcome[Quiz Marked Passed + Progress Updated]
+    PassCheck -- No --&gt; FailOutcome[Quiz Marked Failed + Retake Allowed if attempts remain]
+
+    TypeDecision -- Assignment --&gt; AssignConfig[Define Task, Rubrics, Due Date &amp; Attachments]
+    AssignConfig --&gt; PublishAssign[Publish Assignment]
+    PublishAssign --&gt; StudentSubmit[Student uploads submission file: PDF/ZIP]
+    StudentSubmit --&gt; InstructorReview[Instructor reviews submission file in Dashboard]
+    InstructorReview --&gt; EnterGrade[Instructor provides Grade &amp; Feedback]
+    EnterGrade --&gt; NotifyStudent[Student receives Grade Notification]
+</code></pre>
+</body>
+</html>

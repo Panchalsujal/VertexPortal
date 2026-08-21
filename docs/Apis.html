@@ -1,0 +1,3966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apis.md</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; }
+        h1, h2, h3, h4, h5, h6 { color: #2c3e50; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; border: 1px solid #e9ecef; }
+        code { background: #f8f9fa; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace; font-size: 0.9em; border: 1px solid #e9ecef; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        img { max-width: 100%; height: auto; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        blockquote { border-left: 4px solid #007bff; padding-left: 15px; color: #6c757d; margin-left: 0; font-style: italic; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<h1 id="navgujarat-academy-api-documentation">NavGujarat Academy — API Documentation</h1>
+<blockquote>
+<p><strong>Base URL:</strong> <code>http://localhost:&lt;PORT&gt;/api</code>
+<strong>Authentication:</strong> Cookie-based JWT (<code>token</code> cookie set on login)
+<strong>Workflow Documentation:</strong> See <a href="./docs/API_WORKFLOW.md">docs/API_WORKFLOW.md</a> for detailed data flows and internal pipelines.</p>
+</blockquote>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#1-auth-apis">Auth APIs</a></li>
+<li><a href="#2-user-apis">User APIs</a></li>
+<li><a href="#3-category-apis">Category APIs</a></li>
+<li><a href="#4-course-apis">Course APIs</a></li>
+<li><a href="#5-module-apis">Module APIs</a></li>
+<li><a href="#6-lecture-apis">Lecture APIs</a></li>
+<li><a href="#7-enrollment-apis">Enrollment APIs</a></li>
+<li><a href="#8-lecture-progress-apis">Lecture Progress APIs</a></li>
+<li><a href="#9-review-apis">Review APIs</a></li>
+<li><a href="#10-wishlist-apis">Wishlist APIs</a></li>
+<li><a href="#11-cart-apis">Cart APIs</a></li>
+<li><a href="#12-coupon-apis-student-facing">Coupon APIs (Student-facing)</a></li>
+<li><a href="#13-checkout-apis">Checkout APIs</a></li>
+<li><a href="#14-order-apis">Order APIs</a></li>
+<li><a href="#15-student-apis">Student APIs</a></li>
+<li><a href="#16-certificate-apis-student">Certificate APIs (Student)</a></li>
+<li><a href="#17-notification-apis">Notification APIs</a></li>
+<li><a href="#18-student-quiz-apis">Student Quiz APIs</a></li>
+<li><a href="#19-student-assignment-apis">Student Assignment APIs</a></li>
+<li><a href="#20-student-announcement-apis">Student Announcement APIs</a></li>
+<li><a href="#21-student-live-class-apis">Student Live Class APIs</a></li>
+<li><a href="#22-instructor-quiz-apis">Instructor Quiz APIs</a></li>
+<li><a href="#23-instructor-assignment-apis">Instructor Assignment APIs</a></li>
+<li><a href="#24-instructor-announcement-apis">Instructor Announcement APIs</a></li>
+<li><a href="#25-instructor-live-class-apis">Instructor Live Class APIs</a></li>
+<li><a href="#26-admin--general-apis">Admin — General APIs</a></li>
+<li><a href="#27-admin--coupon-apis">Admin — Coupon APIs</a></li>
+<li><a href="#28-admin--analytics-apis">Admin — Analytics APIs</a></li>
+<li><a href="#29-admin--audit-log-apis">Admin — Audit Log APIs</a></li>
+<li><a href="#30-admin--certificate-apis">Admin — Certificate APIs</a></li>
+<li><a href="#31-admin--live-class-apis">Admin — Live Class APIs</a></li>
+<li><a href="#32-discussion-apis">Discussion APIs</a></li>
+<li><a href="#33-discussion-report-apis">Discussion Report APIs</a></li>
+<li><a href="#34-admin--discussion-report-apis">Admin — Discussion Report APIs</a></li>
+<li><a href="#35-student-notes-apis">Student Notes APIs</a></li>
+<li><a href="#36-instructor-dashboard-apis">Instructor Dashboard APIs</a></li>
+<li><a href="#37-admin-dashboard-apis">Admin Dashboard APIs</a></li>
+<li><a href="#38-admin--users-apis">Admin — Users APIs</a></li>
+<li><a href="#39-admin--orders-apis">Admin — Orders APIs</a></li>
+<li><a href="#40-admin--courses-apis">Admin — Courses APIs</a></li>
+<li><a href="#41-ai-assistant-apis">AI Assistant APIs</a></li>
+<li><a href="#42-rag--knowledge-search-apis">RAG — Knowledge Search APIs</a></li>
+<li><a href="#43-rag--indexing-apis">RAG — Indexing APIs</a></li>
+</ol>
+<hr />
+<h2 id="1-auth-apis">1. Auth APIs</h2>
+<blockquote>
+<p>Base: <code>/api/auth</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apiauthregister">POST <code>/api/auth/register</code></h3>
+<p><strong>Access:</strong> Public</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;fullName&quot;: &quot;string (required)&quot;,
+  &quot;email&quot;: &quot;string (required)&quot;,
+  &quot;password&quot;: &quot;string (required)&quot;,
+  &quot;role&quot;: &quot;student | instructor | admin (optional, default: student)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Registration successful. Please verify your email.&quot;,
+  &quot;data&quot;: {
+    &quot;user&quot;: {
+      &quot;id&quot;: &quot;string&quot;,
+      &quot;fullName&quot;: &quot;string&quot;,
+      &quot;email&quot;: &quot;string&quot;,
+      &quot;role&quot;: &quot;string&quot;,
+      &quot;avatarUrl&quot;: &quot;string | null&quot;,
+      &quot;status&quot;: &quot;string&quot;,
+      &quot;isActive&quot;: true,
+      &quot;isEmailVerified&quot;: false,
+      &quot;createdAt&quot;: &quot;ISO date&quot;
+    }
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apiauthlogin">POST <code>/api/auth/login</code></h3>
+<p><strong>Access:</strong> Public</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;email&quot;: &quot;string (required)&quot;,
+  &quot;password&quot;: &quot;string (required)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong> Sets <code>token</code> cookie.</p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Login successful&quot;,
+  &quot;data&quot;: {
+    &quot;user&quot;: {
+      &quot;id&quot;: &quot;string&quot;,
+      &quot;fullName&quot;: &quot;string&quot;,
+      &quot;email&quot;: &quot;string&quot;,
+      &quot;role&quot;: &quot;string&quot;,
+      &quot;status&quot;: &quot;string&quot;,
+      &quot;isEmailVerified&quot;: true,
+      &quot;isActive&quot;: true,
+      &quot;lastLoginAt&quot;: &quot;ISO date&quot;,
+      &quot;createdAt&quot;: &quot;ISO date&quot;,
+      &quot;updatedAt&quot;: &quot;ISO date&quot;,
+      &quot;avatarUrl&quot;: &quot;string | null&quot;
+    }
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiauthme">GET <code>/api/auth/me</code></h3>
+<p><strong>Access:</strong> Private (any authenticated user)</p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;User fetched successfully&quot;,
+  &quot;data&quot;: {
+    &quot;user&quot;: {
+      &quot;id&quot;: &quot;string&quot;,
+      &quot;fullName&quot;: &quot;string&quot;,
+      &quot;email&quot;: &quot;string&quot;,
+      &quot;role&quot;: &quot;string&quot;,
+      &quot;status&quot;: &quot;string&quot;,
+      &quot;avatarUrl&quot;: &quot;string | null&quot;,
+      &quot;isEmailVerified&quot;: true,
+      &quot;isActive&quot;: true,
+      &quot;lastLoginAt&quot;: &quot;ISO date&quot;,
+      &quot;createdAt&quot;: &quot;ISO date&quot;,
+      &quot;updatedAt&quot;: &quot;ISO date&quot;
+    }
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apiauthlogout">POST <code>/api/auth/logout</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong> Clears <code>token</code> cookie.</p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Logout successful&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiauthverify-emailuseridtoken">GET <code>/api/auth/verify-email/:userId/:token</code></h3>
+<p><strong>Access:</strong> Public (link sent via email)</p>
+<p><strong>URL Params:</strong> <code>userId</code>, <code>token</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Email verified successfully&quot;,
+  &quot;data&quot;: {
+    &quot;user&quot;: {
+      &quot;id&quot;: &quot;string&quot;,
+      &quot;fullName&quot;: &quot;string&quot;,
+      &quot;email&quot;: &quot;string&quot;,
+      &quot;isEmailVerified&quot;: true
+    }
+  }
+}
+</code></pre>
+
+<hr />
+<h2 id="2-user-apis">2. User APIs</h2>
+<blockquote>
+<p>Base: <code>/api/users</code></p>
+</blockquote>
+<hr />
+<h3 id="patch-apiusersme">PATCH <code>/api/users/me</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;fullName&quot;: &quot;string (required)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Profile updated successfully&quot;,
+  &quot;user&quot;: { &quot;...full user object (no password)...&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiusersmepassword">PATCH <code>/api/users/me/password</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;oldPassword&quot;: &quot;string (required)&quot;,
+  &quot;newPassword&quot;: &quot;string (required, min 8 chars)&quot;,
+  &quot;confirmPassword&quot;: &quot;string (required)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Password updated successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiusersmeavatar">PATCH <code>/api/users/me/avatar</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>Request:</strong> <code>multipart/form-data</code> — field name: <code>avatar</code> (image file)</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Profile image updated successfully&quot;,
+  &quot;avatar&quot;: {
+    &quot;url&quot;: &quot;string&quot;,
+    &quot;fileId&quot;: &quot;string&quot;
+  }
+}
+</code></pre>
+
+<hr />
+<h2 id="3-category-apis">3. Category APIs</h2>
+<blockquote>
+<p>Base: <code>/api/categories</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apicategories">POST <code>/api/categories</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;name&quot;: &quot;string (required)&quot;,
+  &quot;description&quot;: &quot;string (optional)&quot;,
+  &quot;icon&quot;: &quot;string (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Category created successfully&quot;,
+  &quot;data&quot;: { &quot;category&quot;: { &quot;...category object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apicategories">GET <code>/api/categories</code></h3>
+<p><strong>Access:</strong> Public</p>
+<p><strong>Query Params (optional):</strong> <code>search</code>, <code>page</code>, <code>limit</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;categories&quot;: [ { &quot;...category objects...&quot; } ]
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apicategoriesslug">GET <code>/api/categories/:slug</code></h3>
+<p><strong>Access:</strong> Public</p>
+<p><strong>URL Params:</strong> <code>slug</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;category&quot;: { &quot;...category object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apicategoriescategoryid">PATCH <code>/api/categories/:categoryId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>categoryId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;name&quot;: &quot;string (optional)&quot;,
+  &quot;description&quot;: &quot;string (optional)&quot;,
+  &quot;icon&quot;: &quot;string (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Category updated successfully&quot;,
+  &quot;data&quot;: { &quot;category&quot;: { &quot;...category object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apicategoriescategoryid">DELETE <code>/api/categories/:categoryId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>categoryId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Category deleted successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h2 id="4-course-apis">4. Course APIs</h2>
+<blockquote>
+<p>Base: <code>/api/courses</code></p>
+</blockquote>
+<hr />
+<h3 id="get-apicourses">GET <code>/api/courses</code></h3>
+<p><strong>Access:</strong> Public</p>
+<p><strong>Query Params (optional):</strong> <code>page</code>, <code>limit</code>, <code>search</code>, <code>category</code>, <code>level</code>, <code>sort</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;courses&quot;: [ { &quot;...course objects...&quot; } ],
+    &quot;total&quot;: 0,
+    &quot;page&quot;: 1,
+    &quot;pages&quot;: 1
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apicourses">POST <code>/api/courses</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;title&quot;: &quot;string (required)&quot;,
+  &quot;description&quot;: &quot;string (optional)&quot;,
+  &quot;category&quot;: &quot;categoryId (required)&quot;,
+  &quot;level&quot;: &quot;beginner | intermediate | advanced&quot;,
+  &quot;price&quot;: &quot;number&quot;,
+  &quot;language&quot;: &quot;string&quot;,
+  &quot;tags&quot;: [&quot;string&quot;]
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Course created successfully&quot;,
+  &quot;data&quot;: { &quot;course&quot;: { &quot;...course object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apicoursesslug">GET <code>/api/courses/:slug</code></h3>
+<p><strong>Access:</strong> Public</p>
+<p><strong>URL Params:</strong> <code>slug</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;course&quot;: { &quot;...full course object with reviews, modules...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apicoursescourseid">PATCH <code>/api/courses/:courseId</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Request Body:</strong> Any updatable course fields (title, description, price, level, etc.)</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Course updated successfully&quot;,
+  &quot;data&quot;: { &quot;course&quot;: { &quot;...updated course object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apicoursescourseidpublish">PATCH <code>/api/courses/:courseId/publish</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Course published successfully&quot;,
+  &quot;data&quot;: { &quot;course&quot;: { &quot;...course object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apicoursescourseidthumbnail">PATCH <code>/api/courses/:courseId/thumbnail</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Request:</strong> <code>multipart/form-data</code> — field name: <code>thumbnail</code> (image file)</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Course thumbnail updated successfully&quot;,
+  &quot;data&quot;: { &quot;course&quot;: { &quot;...course object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apicoursescourseid">DELETE <code>/api/courses/:courseId</code></h3>
+<p><strong>Access:</strong> Admin, Instructor (owner)</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Course archived successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h2 id="5-module-apis">5. Module APIs</h2>
+<blockquote>
+<p>Base: <code>/api/modules</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apimodulescourseidmodules">POST <code>/api/modules/:courseId/modules</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;title&quot;: &quot;string (required)&quot;,
+  &quot;description&quot;: &quot;string (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Module created successfully&quot;,
+  &quot;data&quot;: { &quot;module&quot;: { &quot;...module object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apimodulescourseidmodules">GET <code>/api/modules/:courseId/modules</code></h3>
+<p><strong>Access:</strong> Public / Enrolled students (locked content differs)</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;modules&quot;: [ { &quot;...module objects...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apimodulescourseidmodulesmanage">GET <code>/api/modules/:courseId/modules/manage</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;modules&quot;: [ { &quot;...all modules including unpublished...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apimodulesupdatemodulemoduleid">PATCH <code>/api/modules/updatemodule/:moduleId</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>URL Params:</strong> <code>moduleId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;title&quot;: &quot;string (optional)&quot;,
+  &quot;description&quot;: &quot;string (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Module updated successfully&quot;,
+  &quot;data&quot;: { &quot;module&quot;: { &quot;...updated module object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apimodulesmoduleidpublish">PATCH <code>/api/modules/:moduleId/publish</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>URL Params:</strong> <code>moduleId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Module published successfully&quot;,
+  &quot;data&quot;: { &quot;module&quot;: { &quot;...module object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apimodulesmoduleidreorder">PATCH <code>/api/modules/:moduleId/reorder</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>URL Params:</strong> <code>moduleId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;newOrder&quot;: &quot;number (required)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Module reordered successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apimodulesdeletemodulemoduleid">DELETE <code>/api/modules/deletemodule/:moduleId</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>URL Params:</strong> <code>moduleId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Module archived successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h2 id="6-lecture-apis">6. Lecture APIs</h2>
+<blockquote>
+<p>Base: <code>/api/lectures</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apilecturesmoduleidcreate-lecture">POST <code>/api/lectures/:moduleId/create-lecture</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>URL Params:</strong> <code>moduleId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;title&quot;: &quot;string (required)&quot;,
+  &quot;description&quot;: &quot;string (optional)&quot;,
+  &quot;content&quot;: &quot;string (optional)&quot;,
+  &quot;isPublished&quot;: &quot;boolean (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Lecture created successfully&quot;,
+  &quot;data&quot;: { &quot;lecture&quot;: { &quot;...lecture object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apilecturesmoduleidlectures">GET <code>/api/lectures/:moduleId/lectures</code></h3>
+<p><strong>Access:</strong> Public / Enrolled students</p>
+<p><strong>URL Params:</strong> <code>moduleId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;lectures&quot;: [ { &quot;...lecture objects...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apilecturesmoduleidmanage">GET <code>/api/lectures/:moduleId/manage</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>URL Params:</strong> <code>moduleId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;lectures&quot;: [ { &quot;...all lectures including unpublished...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apilectureslectureidupdate-lecture">PATCH <code>/api/lectures/:lectureId/update-lecture</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>URL Params:</strong> <code>lectureId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;title&quot;: &quot;string (optional)&quot;,
+  &quot;description&quot;: &quot;string (optional)&quot;,
+  &quot;content&quot;: &quot;string (optional)&quot;,
+  &quot;isPublished&quot;: &quot;boolean (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Lecture updated successfully&quot;,
+  &quot;data&quot;: { &quot;lecture&quot;: { &quot;...updated lecture object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apilectureslectureidpublish">PATCH <code>/api/lectures/:lectureId/publish</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>URL Params:</strong> <code>lectureId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Lecture published successfully&quot;,
+  &quot;data&quot;: { &quot;lecture&quot;: { &quot;...lecture object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apilectureslectureidupload-video">PATCH <code>/api/lectures/:lectureId/upload-video</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>URL Params:</strong> <code>lectureId</code></p>
+<p><strong>Request:</strong> <code>multipart/form-data</code> — field name: <code>video</code> (video file)</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Video uploaded successfully&quot;,
+  &quot;data&quot;: { &quot;lecture&quot;: { &quot;...lecture object with videoUrl...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apilectureslectureidupload-document">PATCH <code>/api/lectures/:lectureId/upload-document</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>URL Params:</strong> <code>lectureId</code></p>
+<p><strong>Request:</strong> <code>multipart/form-data</code> — field name: <code>document</code> (file)</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Document uploaded successfully&quot;,
+  &quot;data&quot;: { &quot;lecture&quot;: { &quot;...lecture object with documentUrl...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apilectureslectureidupdate-media-url">PATCH <code>/api/lectures/:lectureId/update-media-url</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>URL Params:</strong> <code>lectureId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;mediaUrl&quot;: &quot;string (CDN URL from ImageKit)&quot;,
+  &quot;fileId&quot;: &quot;string (ImageKit fileId)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Media URL updated successfully&quot;,
+  &quot;data&quot;: { &quot;lecture&quot;: { &quot;...lecture object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apilectureslectureidreorder">PATCH <code>/api/lectures/:lectureId/reorder</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>URL Params:</strong> <code>lectureId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;newOrder&quot;: &quot;number (required)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Lecture reordered successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apilectureslectureid">DELETE <code>/api/lectures/:lectureId</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>URL Params:</strong> <code>lectureId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Lecture archived successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apilecturesmediatypefilename">GET <code>/api/lectures/media/:type/:filename</code></h3>
+<p><strong>Access:</strong> Public / Enrolled (optional auth)</p>
+<p><strong>URL Params:</strong> <code>type</code> (video | document), <code>filename</code></p>
+<p><strong>Response:</strong> Streams the media file directly.</p>
+<hr />
+<h3 id="get-apilecturesupload-auth-token">GET <code>/api/lectures/upload-auth-token</code></h3>
+<p><strong>Access:</strong> Admin, Instructor</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;token&quot;: &quot;string&quot;,
+    &quot;expire&quot;: &quot;number&quot;,
+    &quot;signature&quot;: &quot;string&quot;,
+    &quot;publicKey&quot;: &quot;string&quot;
+  }
+}
+</code></pre>
+
+<hr />
+<h2 id="7-enrollment-apis">7. Enrollment APIs</h2>
+<blockquote>
+<p>Base: <code>/api/enrollments</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apienrollmentscourseid">POST <code>/api/enrollments/:courseId</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Request:</strong> No body required (free enrollment).</p>
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Enrolled successfully&quot;,
+  &quot;data&quot;: { &quot;enrollment&quot;: { &quot;...enrollment object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apienrollmentsme">GET <code>/api/enrollments/me</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;enrollments&quot;: [ { &quot;...enrollment objects with course details...&quot; } ]
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apienrollmentscourseid">GET <code>/api/enrollments/:courseId</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;enrollment&quot;: { &quot;...enrollment object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h2 id="8-lecture-progress-apis">8. Lecture Progress APIs</h2>
+<blockquote>
+<p>Base: <code>/api</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apilectureslectureidcomplete">POST <code>/api/lectures/:lectureId/complete</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>lectureId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Lecture marked as completed&quot;,
+  &quot;data&quot;: { &quot;lectureProgress&quot;: { &quot;...progress object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apicoursescourseidprogress">GET <code>/api/courses/:courseId/progress</code></h3>
+<p><strong>Access:</strong> Private (any authenticated user)</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;courseProgress&quot;: {
+      &quot;completedLectures&quot;: [&quot;lectureId&quot;],
+      &quot;totalLectures&quot;: 10,
+      &quot;progressPercentage&quot;: 50
+    }
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apilectureslectureidwatch-time">PATCH <code>/api/lectures/:lectureId/watch-time</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>lectureId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;watchedDurationInSeconds&quot;: &quot;number (required)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Watch time updated&quot;,
+  &quot;data&quot;: { &quot;lectureProgress&quot;: { &quot;...progress object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apimecontinue-learning">GET <code>/api/me/continue-learning</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;continueLearning&quot;: [ { &quot;...course with last watched lecture...&quot; } ]
+  }
+}
+</code></pre>
+
+<hr />
+<h2 id="9-review-apis">9. Review APIs</h2>
+<blockquote>
+<p>Base: <code>/api</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apicoursescourseidreviews">POST <code>/api/courses/:courseId/reviews</code></h3>
+<p><strong>Access:</strong> Private (enrolled student)</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;rating&quot;: &quot;number (1-5, required)&quot;,
+  &quot;comment&quot;: &quot;string (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Review created successfully&quot;,
+  &quot;data&quot;: { &quot;review&quot;: { &quot;...review object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apicoursescourseidreviews">GET <code>/api/courses/:courseId/reviews</code></h3>
+<p><strong>Access:</strong> Public</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;reviews&quot;: [ { &quot;...review objects...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apicoursescourseidmy-review">GET <code>/api/courses/:courseId/my-review</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;review&quot;: { &quot;...user's own review...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apireviewsreviewid">PATCH <code>/api/reviews/:reviewId</code></h3>
+<p><strong>Access:</strong> Private (review owner)</p>
+<p><strong>URL Params:</strong> <code>reviewId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;rating&quot;: &quot;number (1-5, optional)&quot;,
+  &quot;comment&quot;: &quot;string (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Review updated successfully&quot;,
+  &quot;data&quot;: { &quot;review&quot;: { &quot;...updated review object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apireviewsreviewid">DELETE <code>/api/reviews/:reviewId</code></h3>
+<p><strong>Access:</strong> Private (review owner or admin)</p>
+<p><strong>URL Params:</strong> <code>reviewId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Review deleted successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h2 id="10-wishlist-apis">10. Wishlist APIs</h2>
+<blockquote>
+<p>Base: <code>/api</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apiwishlistcourseid">POST <code>/api/wishlist/:courseId</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Course added to wishlist&quot;,
+  &quot;data&quot;: { &quot;wishlist&quot;: [&quot;courseId&quot;] }
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apiwishlistcourseid">DELETE <code>/api/wishlist/:courseId</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Course removed from wishlist&quot;,
+  &quot;data&quot;: { &quot;wishlist&quot;: [&quot;courseId&quot;] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiwishlist">GET <code>/api/wishlist</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;wishlist&quot;: [ { &quot;...course objects...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiwishlistcourseidstatus">GET <code>/api/wishlist/:courseId/status</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;isInWishlist&quot;: true }
+}
+</code></pre>
+
+<hr />
+<h2 id="11-cart-apis">11. Cart APIs</h2>
+<blockquote>
+<p>Base: <code>/api/cart</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apicartcourseid">POST <code>/api/cart/:courseId</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Course added to cart&quot;,
+  &quot;data&quot;: { &quot;cart&quot;: { &quot;...cart object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apicartget-cart">GET <code>/api/cart/get-cart</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;cart&quot;: { &quot;items&quot;: [ { &quot;...course objects...&quot; } ], &quot;total&quot;: 0 } }
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apicartcartcourseid">DELETE <code>/api/cart/cart/:courseId</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Course removed from cart&quot;,
+  &quot;data&quot;: { &quot;cart&quot;: { &quot;...cart object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apicartcartcourseidstatus">GET <code>/api/cart/cart/:courseId/status</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;isInCart&quot;: true }
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apicartcart">DELETE <code>/api/cart/cart</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Cart cleared successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h2 id="12-coupon-apis-student-facing">12. Coupon APIs (Student-facing)</h2>
+<blockquote>
+<p>Base: <code>/api</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apiadmincoupons">POST <code>/api/admin/coupons</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;code&quot;: &quot;string (required)&quot;,
+  &quot;discountType&quot;: &quot;percentage | flat&quot;,
+  &quot;discountValue&quot;: &quot;number (required)&quot;,
+  &quot;maxUses&quot;: &quot;number&quot;,
+  &quot;expiresAt&quot;: &quot;ISO date&quot;,
+  &quot;minOrderAmount&quot;: &quot;number&quot;,
+  &quot;applicableCourses&quot;: [&quot;courseId&quot;]
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Coupon created successfully&quot;,
+  &quot;data&quot;: { &quot;coupon&quot;: { &quot;...coupon object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadmincoupons">GET <code>/api/admin/coupons</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Query Params (optional):</strong> <code>page</code>, <code>limit</code>, <code>search</code>, <code>status</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;coupons&quot;: [ { &quot;...coupon objects...&quot; } ], &quot;total&quot;: 0 }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadmincouponscouponid">GET <code>/api/admin/coupons/:couponId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>couponId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;coupon&quot;: { &quot;...coupon object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadmincouponscouponid">PATCH <code>/api/admin/coupons/:couponId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>couponId</code></p>
+<p><strong>Request Body:</strong> Any updatable coupon fields.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Coupon updated successfully&quot;,
+  &quot;data&quot;: { &quot;coupon&quot;: { &quot;...updated coupon object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadmincouponscouponidstatus">PATCH <code>/api/admin/coupons/:couponId/status</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>couponId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Coupon status toggled&quot;,
+  &quot;data&quot;: { &quot;coupon&quot;: { &quot;...coupon object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apiadmincouponscouponid">DELETE <code>/api/admin/coupons/:couponId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>couponId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Coupon deleted successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h2 id="13-checkout-apis">13. Checkout APIs</h2>
+<blockquote>
+<p>Base: <code>/api</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apicheckoutpreview">POST <code>/api/checkout/preview</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;courseIds&quot;: [&quot;courseId&quot;],
+  &quot;couponCode&quot;: &quot;string (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;items&quot;: [ { &quot;courseId&quot;: &quot;string&quot;, &quot;title&quot;: &quot;string&quot;, &quot;price&quot;: 0 } ],
+    &quot;subtotal&quot;: 0,
+    &quot;discount&quot;: 0,
+    &quot;total&quot;: 0,
+    &quot;coupon&quot;: { &quot;...coupon object if applied...&quot; }
+  }
+}
+</code></pre>
+
+<hr />
+<h2 id="14-order-apis">14. Order APIs</h2>
+<blockquote>
+<p>Base: <code>/api/orders</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apiorderscreate">POST <code>/api/orders/create</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;courseIds&quot;: [&quot;courseId&quot;],
+  &quot;couponCode&quot;: &quot;string (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;orderId&quot;: &quot;string (Razorpay order ID)&quot;,
+    &quot;amount&quot;: 0,
+    &quot;currency&quot;: &quot;INR&quot;,
+    &quot;key&quot;: &quot;string (Razorpay public key)&quot;
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apiordersverify">POST <code>/api/orders/verify</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;razorpay_order_id&quot;: &quot;string (required)&quot;,
+  &quot;razorpay_payment_id&quot;: &quot;string (required)&quot;,
+  &quot;razorpay_signature&quot;: &quot;string (required)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Payment verified and order confirmed&quot;,
+  &quot;data&quot;: { &quot;order&quot;: { &quot;...order object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h2 id="15-student-apis">15. Student APIs</h2>
+<blockquote>
+<p>Base: <code>/api/student</code></p>
+</blockquote>
+<hr />
+<h3 id="get-apistudentmy-courses">GET <code>/api/student/my-courses</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Courses fetched successfully&quot;,
+  &quot;count&quot;: 3,
+  &quot;data&quot;: { &quot;courses&quot;: [ { &quot;...enrolled course objects...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apistudentcontinue-learning">GET <code>/api/student/continue-learning</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;count&quot;: 2,
+  &quot;data&quot;: { &quot;courses&quot;: [ { &quot;...course with progress info...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apistudentcoursecourseidresume">GET <code>/api/student/course/:courseId/resume</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;resume&quot;: {
+      &quot;lastWatchedLecture&quot;: { &quot;...lecture object...&quot; },
+      &quot;progressPercentage&quot;: 50
+    }
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apistudentcoursecourseidplayer">GET <code>/api/student/course/:courseId/player</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;course&quot;: { &quot;...course details...&quot; },
+    &quot;modules&quot;: [ { &quot;...modules with lectures...&quot; } ],
+    &quot;progress&quot;: { &quot;...progress object...&quot; }
+  }
+}
+</code></pre>
+
+<hr />
+<h2 id="16-certificate-apis-student">16. Certificate APIs (Student)</h2>
+<blockquote>
+<p>Base: <code>/api/certificates</code></p>
+</blockquote>
+<hr />
+<h3 id="get-apicertificatesverifyverificationcode">GET <code>/api/certificates/verify/:verificationCode</code></h3>
+<p><strong>Access:</strong> Public</p>
+<p><strong>URL Params:</strong> <code>verificationCode</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;certificate&quot;: { &quot;...certificate object with student and course info...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apicertificatesme">GET <code>/api/certificates/me</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;certificates&quot;: [ { &quot;...certificate objects...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apicertificatesmecertificateid">GET <code>/api/certificates/me/:certificateId</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>certificateId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;certificate&quot;: { &quot;...certificate object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apicertificatesmecertificateiddownload">GET <code>/api/certificates/me/:certificateId/download</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>certificateId</code></p>
+<p><strong>Response:</strong> PDF file stream (<code>application/pdf</code>).</p>
+<hr />
+<h2 id="17-notification-apis">17. Notification APIs</h2>
+<blockquote>
+<p>Base: <code>/api/notifications</code></p>
+</blockquote>
+<hr />
+<h3 id="get-apinotifications">GET <code>/api/notifications</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>Query Params (optional):</strong> <code>page</code>, <code>limit</code>, <code>status</code> (read | unread | archived)</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;notifications&quot;: [ { &quot;...notification objects...&quot; } ],
+    &quot;unreadCount&quot;: 5
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apinotificationspreferences">GET <code>/api/notifications/preferences</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;preferences&quot;: { &quot;email&quot;: true, &quot;push&quot;: true } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apinotificationspreferences">PATCH <code>/api/notifications/preferences</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;email&quot;: &quot;boolean&quot;,
+  &quot;push&quot;: &quot;boolean&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Preferences updated&quot;,
+  &quot;data&quot;: { &quot;preferences&quot;: { &quot;...updated preferences...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apinotificationsread-all">PATCH <code>/api/notifications/read-all</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;All notifications marked as read&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apinotificationsnotificationidread">PATCH <code>/api/notifications/:notificationId/read</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>URL Params:</strong> <code>notificationId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Notification marked as read&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apinotificationsnotificationidarchive">PATCH <code>/api/notifications/:notificationId/archive</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>URL Params:</strong> <code>notificationId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Notification archived&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apinotificationsnotificationidrestore">PATCH <code>/api/notifications/:notificationId/restore</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>URL Params:</strong> <code>notificationId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Notification restored&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apinotificationsnotificationid">DELETE <code>/api/notifications/:notificationId</code></h3>
+<p><strong>Access:</strong> Private</p>
+<p><strong>URL Params:</strong> <code>notificationId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Notification deleted&quot;
+}
+</code></pre>
+
+<hr />
+<h2 id="18-student-quiz-apis">18. Student Quiz APIs</h2>
+<blockquote>
+<p>Base: <code>/api/student/quizzes</code></p>
+</blockquote>
+<hr />
+<h3 id="get-apistudentquizzes">GET <code>/api/student/quizzes</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;quizzes&quot;: [ { &quot;...quiz objects...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apistudentquizzesquizid">GET <code>/api/student/quizzes/:quizId</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>quizId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;quiz&quot;: { &quot;...quiz with questions (no correct answers exposed)...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apistudentquizzesquizidattemptsstart">POST <code>/api/student/quizzes/:quizId/attempts/start</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>quizId</code></p>
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;attempt&quot;: { &quot;attemptId&quot;: &quot;string&quot;, &quot;startedAt&quot;: &quot;ISO date&quot;, &quot;timeLimit&quot;: 30 } }
+}
+</code></pre>
+
+<hr />
+<h3 id="put-apistudentquizzesquizidattemptsattemptidanswersquestionid">PUT <code>/api/student/quizzes/:quizId/attempts/:attemptId/answers/:questionId</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>quizId</code>, <code>attemptId</code>, <code>questionId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;selectedOption&quot;: &quot;string | number&quot;,
+  &quot;textAnswer&quot;: &quot;string (for text questions)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Answer saved&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apistudentquizzesquizidattemptsattemptidsubmit">POST <code>/api/student/quizzes/:quizId/attempts/:attemptId/submit</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>quizId</code>, <code>attemptId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Quiz submitted&quot;,
+  &quot;data&quot;: { &quot;result&quot;: { &quot;score&quot;: 8, &quot;total&quot;: 10, &quot;passed&quot;: true } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apistudentquizzesquizidattempts">GET <code>/api/student/quizzes/:quizId/attempts</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>quizId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;attempts&quot;: [ { &quot;...attempt objects...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apistudentquizzesquizidattemptsattemptid">GET <code>/api/student/quizzes/:quizId/attempts/:attemptId</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>quizId</code>, <code>attemptId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;attempt&quot;: { &quot;...attempt details with answers...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apistudentquizzesquizidattemptsattemptidresult">GET <code>/api/student/quizzes/:quizId/attempts/:attemptId/result</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>quizId</code>, <code>attemptId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;result&quot;: {
+      &quot;score&quot;: 8,
+      &quot;total&quot;: 10,
+      &quot;percentage&quot;: 80,
+      &quot;passed&quot;: true,
+      &quot;answers&quot;: [ { &quot;...answer details with correctness...&quot; } ]
+    }
+  }
+}
+</code></pre>
+
+<hr />
+<h2 id="19-student-assignment-apis">19. Student Assignment APIs</h2>
+<blockquote>
+<p>Base: <code>/api/student/assignments</code></p>
+</blockquote>
+<hr />
+<h3 id="get-apistudentassignments">GET <code>/api/student/assignments</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;assignments&quot;: [ { &quot;...assignment objects...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apistudentassignmentsassignmentid">GET <code>/api/student/assignments/:assignmentId</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>assignmentId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;assignment&quot;: { &quot;...assignment details...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apistudentassignmentsassignmentidsubmissions">POST <code>/api/student/assignments/:assignmentId/submissions</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>assignmentId</code></p>
+<p><strong>Request:</strong> <code>multipart/form-data</code> — field name: <code>files</code> (up to 5 files) + optional:</p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;notes&quot;: &quot;string (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Assignment submitted successfully&quot;,
+  &quot;data&quot;: { &quot;submission&quot;: { &quot;...submission object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apistudentassignmentsassignmentidsubmissions">GET <code>/api/student/assignments/:assignmentId/submissions</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>assignmentId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;submissions&quot;: [ { &quot;...submission objects...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apistudentassignmentsassignmentidsubmissionssubmissionid">GET <code>/api/student/assignments/:assignmentId/submissions/:submissionId</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>assignmentId</code>, <code>submissionId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;submission&quot;: { &quot;...submission details with grade...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h2 id="20-student-announcement-apis">20. Student Announcement APIs</h2>
+<blockquote>
+<p>Base: <code>/api/student/announcements</code></p>
+</blockquote>
+<hr />
+<h3 id="get-apistudentannouncements">GET <code>/api/student/announcements</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;announcements&quot;: [ { &quot;...announcement objects...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apistudentannouncementsannouncementid">GET <code>/api/student/announcements/:announcementId</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>announcementId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;announcement&quot;: { &quot;...announcement details...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apistudentannouncementsread-all">PATCH <code>/api/student/announcements/read-all</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;All announcements marked as read&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apistudentannouncementsannouncementidread">PATCH <code>/api/student/announcements/:announcementId/read</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>announcementId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Announcement marked as read&quot;
+}
+</code></pre>
+
+<hr />
+<h2 id="21-student-live-class-apis">21. Student Live Class APIs</h2>
+<blockquote>
+<p>Base: <code>/api/student/live-classes</code></p>
+</blockquote>
+<hr />
+<h3 id="get-apistudentlive-classes">GET <code>/api/student/live-classes</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;liveClasses&quot;: [ { &quot;...live class objects...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apistudentlive-classesliveclassid">GET <code>/api/student/live-classes/:liveClassId</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>liveClassId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;liveClass&quot;: { &quot;...live class details...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apistudentlive-classesliveclassidjoin">POST <code>/api/student/live-classes/:liveClassId/join</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>liveClassId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;joinUrl&quot;: &quot;string&quot;, &quot;token&quot;: &quot;string&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apistudentlive-classesliveclassidleave">POST <code>/api/student/live-classes/:liveClassId/leave</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>liveClassId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Left live class successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apistudentlive-classesliveclassidresources">GET <code>/api/student/live-classes/:liveClassId/resources</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>liveClassId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;resources&quot;: [ { &quot;title&quot;: &quot;string&quot;, &quot;url&quot;: &quot;string&quot;, &quot;type&quot;: &quot;string&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apistudentlive-classesattendancehistory">GET <code>/api/student/live-classes/attendance/history</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;history&quot;: [ { &quot;liveClassId&quot;: &quot;string&quot;, &quot;joinedAt&quot;: &quot;ISO date&quot;, &quot;leftAt&quot;: &quot;ISO date&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h2 id="22-instructor-quiz-apis">22. Instructor Quiz APIs</h2>
+<blockquote>
+<p>Base: <code>/api/instructor/quizzes</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apiinstructorquizzes">POST <code>/api/instructor/quizzes</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;title&quot;: &quot;string (required)&quot;,
+  &quot;courseId&quot;: &quot;string (required)&quot;,
+  &quot;moduleId&quot;: &quot;string (optional)&quot;,
+  &quot;description&quot;: &quot;string (optional)&quot;,
+  &quot;timeLimit&quot;: &quot;number (minutes)&quot;,
+  &quot;passingScore&quot;: &quot;number&quot;,
+  &quot;maxAttempts&quot;: &quot;number&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;quiz&quot;: { &quot;...quiz object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructorquizzes">GET <code>/api/instructor/quizzes</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;quizzes&quot;: [ { &quot;...quiz objects...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructorquizzesquizid">GET <code>/api/instructor/quizzes/:quizId</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>quizId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;quiz&quot;: { &quot;...quiz with all questions and answers...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiinstructorquizzesquizid">PATCH <code>/api/instructor/quizzes/:quizId</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>quizId</code></p>
+<p><strong>Request Body:</strong> Any updatable quiz fields.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;quiz&quot;: { &quot;...updated quiz...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiinstructorquizzesquizidstatus">PATCH <code>/api/instructor/quizzes/:quizId/status</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>quizId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;status&quot;: &quot;draft | published | archived&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Quiz status updated&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apiinstructorquizzesquizid">DELETE <code>/api/instructor/quizzes/:quizId</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>quizId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Quiz deleted&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiinstructorquizzesquizidrestore">PATCH <code>/api/instructor/quizzes/:quizId/restore</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>quizId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Quiz restored&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apiinstructorquizzesquizidquestions">POST <code>/api/instructor/quizzes/:quizId/questions</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>quizId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;questionText&quot;: &quot;string (required)&quot;,
+  &quot;questionType&quot;: &quot;mcq | true-false | short-answer&quot;,
+  &quot;options&quot;: [ { &quot;text&quot;: &quot;string&quot;, &quot;isCorrect&quot;: true } ],
+  &quot;marks&quot;: &quot;number&quot;,
+  &quot;explanation&quot;: &quot;string (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;question&quot;: { &quot;...question object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiinstructorquizzesquizidquestionsquestionid">PATCH <code>/api/instructor/quizzes/:quizId/questions/:questionId</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>quizId</code>, <code>questionId</code></p>
+<p><strong>Request Body:</strong> Any updatable question fields.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;question&quot;: { &quot;...updated question...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apiinstructorquizzesquizidquestionsquestionid">DELETE <code>/api/instructor/quizzes/:quizId/questions/:questionId</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>quizId</code>, <code>questionId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Question deleted&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiinstructorquizzesquizidquestionsquestionidrestore">PATCH <code>/api/instructor/quizzes/:quizId/questions/:questionId/restore</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>quizId</code>, <code>questionId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Question restored&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructorquizzesquizidattempts">GET <code>/api/instructor/quizzes/:quizId/attempts</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>quizId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;attempts&quot;: [ { &quot;...student attempt objects...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructorquizzesquizidattemptsattemptid">GET <code>/api/instructor/quizzes/:quizId/attempts/:attemptId</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>quizId</code>, <code>attemptId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;attempt&quot;: { &quot;...full attempt with student answers...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiinstructorquizzesquizidattemptsattemptidanswersansweridevaluate">PATCH <code>/api/instructor/quizzes/:quizId/attempts/:attemptId/answers/:answerId/evaluate</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>quizId</code>, <code>attemptId</code>, <code>answerId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;marksAwarded&quot;: &quot;number&quot;,
+  &quot;feedback&quot;: &quot;string (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Answer evaluated&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apiinstructorquizzesquizidattemptsattemptidsubmit">POST <code>/api/instructor/quizzes/:quizId/attempts/:attemptId/submit</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>quizId</code>, <code>attemptId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Attempt submitted by instructor&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiinstructorquizzesquizidresultssettings">PATCH <code>/api/instructor/quizzes/:quizId/results/settings</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>quizId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;showResultsImmediately&quot;: &quot;boolean&quot;,
+  &quot;showCorrectAnswers&quot;: &quot;boolean&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Result settings updated&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructorquizzesquizidanalytics">GET <code>/api/instructor/quizzes/:quizId/analytics</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>quizId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;totalAttempts&quot;: 50,
+    &quot;averageScore&quot;: 75,
+    &quot;passRate&quot;: 80,
+    &quot;questionBreakdown&quot;: [ { &quot;...per question stats...&quot; } ]
+  }
+}
+</code></pre>
+
+<hr />
+<h2 id="23-instructor-assignment-apis">23. Instructor Assignment APIs</h2>
+<blockquote>
+<p>Base: <code>/api/instructor/assignments</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apiinstructorassignments">POST <code>/api/instructor/assignments</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;title&quot;: &quot;string (required)&quot;,
+  &quot;courseId&quot;: &quot;string (required)&quot;,
+  &quot;description&quot;: &quot;string (optional)&quot;,
+  &quot;dueDate&quot;: &quot;ISO date (optional)&quot;,
+  &quot;maxMarks&quot;: &quot;number&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;assignment&quot;: { &quot;...assignment object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructorassignments">GET <code>/api/instructor/assignments</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;assignments&quot;: [ { &quot;...assignment objects...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructorassignmentsassignmentid">GET <code>/api/instructor/assignments/:assignmentId</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>URL Params:</strong> <code>assignmentId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;assignment&quot;: { &quot;...assignment details...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiinstructorassignmentsassignmentid">PATCH <code>/api/instructor/assignments/:assignmentId</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>URL Params:</strong> <code>assignmentId</code></p>
+<p><strong>Request Body:</strong> Any updatable assignment fields.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;assignment&quot;: { &quot;...updated assignment...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiinstructorassignmentsassignmentidstatus">PATCH <code>/api/instructor/assignments/:assignmentId/status</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>URL Params:</strong> <code>assignmentId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;status&quot;: &quot;draft | published | closed&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Assignment status updated&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apiinstructorassignmentsassignmentid">DELETE <code>/api/instructor/assignments/:assignmentId</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>URL Params:</strong> <code>assignmentId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Assignment deleted&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiinstructorassignmentsassignmentidrestore">PATCH <code>/api/instructor/assignments/:assignmentId/restore</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>URL Params:</strong> <code>assignmentId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Assignment restored&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructorassignmentsassignmentidsubmissions">GET <code>/api/instructor/assignments/:assignmentId/submissions</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>URL Params:</strong> <code>assignmentId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;submissions&quot;: [ { &quot;...student submission objects...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructorassignmentsassignmentidsubmissionssubmissionid">GET <code>/api/instructor/assignments/:assignmentId/submissions/:submissionId</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>URL Params:</strong> <code>assignmentId</code>, <code>submissionId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;submission&quot;: { &quot;...submission with files and student info...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiinstructorassignmentsassignmentidsubmissionssubmissionidgrade">PATCH <code>/api/instructor/assignments/:assignmentId/submissions/:submissionId/grade</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>URL Params:</strong> <code>assignmentId</code>, <code>submissionId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;grade&quot;: &quot;number (required)&quot;,
+  &quot;feedback&quot;: &quot;string (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Submission graded successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiinstructorassignmentsassignmentidsubmissionssubmissionidreturn">PATCH <code>/api/instructor/assignments/:assignmentId/submissions/:submissionId/return</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>URL Params:</strong> <code>assignmentId</code>, <code>submissionId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;returnNote&quot;: &quot;string (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Submission returned to student&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructorassignmentsassignmentidanalytics">GET <code>/api/instructor/assignments/:assignmentId/analytics</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>URL Params:</strong> <code>assignmentId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;totalSubmissions&quot;: 30,
+    &quot;gradedCount&quot;: 20,
+    &quot;averageGrade&quot;: 75,
+    &quot;pendingGrade&quot;: 10
+  }
+}
+</code></pre>
+
+<hr />
+<h2 id="24-instructor-announcement-apis">24. Instructor Announcement APIs</h2>
+<blockquote>
+<p>Base: <code>/api/instructor/announcements</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apiinstructorannouncements">POST <code>/api/instructor/announcements</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;title&quot;: &quot;string (required)&quot;,
+  &quot;content&quot;: &quot;string (required)&quot;,
+  &quot;courseId&quot;: &quot;string (required)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;announcement&quot;: { &quot;...announcement object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructorannouncements">GET <code>/api/instructor/announcements</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;announcements&quot;: [ { &quot;...announcement objects...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructorannouncementsannouncementid">GET <code>/api/instructor/announcements/:announcementId</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>URL Params:</strong> <code>announcementId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;announcement&quot;: { &quot;...announcement details...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiinstructorannouncementsannouncementid">PATCH <code>/api/instructor/announcements/:announcementId</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>URL Params:</strong> <code>announcementId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;title&quot;: &quot;string (optional)&quot;,
+  &quot;content&quot;: &quot;string (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;announcement&quot;: { &quot;...updated announcement...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiinstructorannouncementsannouncementidstatus">PATCH <code>/api/instructor/announcements/:announcementId/status</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>URL Params:</strong> <code>announcementId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;status&quot;: &quot;draft | published | archived&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Announcement status updated&quot;
+}
+</code></pre>
+
+<hr />
+<h2 id="25-instructor-live-class-apis">25. Instructor Live Class APIs</h2>
+<blockquote>
+<p>Base: <code>/api/instructor/live-classes</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apiinstructorlive-classes">POST <code>/api/instructor/live-classes</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;title&quot;: &quot;string (required)&quot;,
+  &quot;courseId&quot;: &quot;string (required)&quot;,
+  &quot;scheduledAt&quot;: &quot;ISO date (required)&quot;,
+  &quot;duration&quot;: &quot;number (minutes)&quot;,
+  &quot;meetingLink&quot;: &quot;string (optional)&quot;,
+  &quot;description&quot;: &quot;string (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;liveClass&quot;: { &quot;...live class object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructorlive-classes">GET <code>/api/instructor/live-classes</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;liveClasses&quot;: [ { &quot;...live class objects...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructorlive-classesliveclassid">GET <code>/api/instructor/live-classes/:liveClassId</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>liveClassId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;liveClass&quot;: { &quot;...live class details...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiinstructorlive-classesliveclassid">PATCH <code>/api/instructor/live-classes/:liveClassId</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>liveClassId</code></p>
+<p><strong>Request Body:</strong> Any updatable live class fields.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;liveClass&quot;: { &quot;...updated live class...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiinstructorlive-classesliveclassidstatus">PATCH <code>/api/instructor/live-classes/:liveClassId/status</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>liveClassId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;status&quot;: &quot;scheduled | live | completed | cancelled&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Live class status updated&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiinstructorlive-classesliveclassidcancel">PATCH <code>/api/instructor/live-classes/:liveClassId/cancel</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>liveClassId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Live class cancelled&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructorlive-classesliveclassidanalytics">GET <code>/api/instructor/live-classes/:liveClassId/analytics</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>liveClassId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;totalAttendees&quot;: 0,
+    &quot;avgDuration&quot;: 0,
+    &quot;peakConcurrentUsers&quot;: 0
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructorlive-classesliveclassidattendance">GET <code>/api/instructor/live-classes/:liveClassId/attendance</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>liveClassId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;attendance&quot;: [
+      { &quot;studentId&quot;: &quot;string&quot;, &quot;studentName&quot;: &quot;string&quot;, &quot;joinedAt&quot;: &quot;ISO date&quot;, &quot;leftAt&quot;: &quot;ISO date&quot; }
+    ]
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructorlive-classesliveclassidattendanceanalytics">GET <code>/api/instructor/live-classes/:liveClassId/attendance/analytics</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>liveClassId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;totalJoined&quot;: 0,
+    &quot;avgSessionDuration&quot;: 0,
+    &quot;dropOffRate&quot;: 0
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiinstructorlive-classesliveclassidresources">PATCH <code>/api/instructor/live-classes/:liveClassId/resources</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>liveClassId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;resources&quot;: [
+    { &quot;title&quot;: &quot;string (required)&quot;, &quot;url&quot;: &quot;string (required)&quot;, &quot;type&quot;: &quot;string (optional)&quot; }
+  ]
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Resources updated successfully&quot;,
+  &quot;liveClass&quot;: { &quot;...updated live class with resources...&quot; }
+}
+</code></pre>
+
+<hr />
+<h2 id="26-admin-general-apis">26. Admin — General APIs</h2>
+<blockquote>
+<p>Base: <code>/api/admin</code></p>
+</blockquote>
+<hr />
+<h3 id="get-apiadmindashboard">GET <code>/api/admin/dashboard</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;totalStudents&quot;: 0,
+    &quot;totalCourses&quot;: 0,
+    &quot;totalRevenue&quot;: 0,
+    &quot;totalOrders&quot;: 0,
+    &quot;recentOrders&quot;: [],
+    &quot;recentStudents&quot;: []
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadminorders">GET <code>/api/admin/orders</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Query Params (optional):</strong> <code>page</code>, <code>limit</code>, <code>status</code>, <code>search</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;orders&quot;: [ { &quot;...order objects...&quot; } ], &quot;total&quot;: 0 }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadminordersorderid">GET <code>/api/admin/orders/:orderId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>orderId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;order&quot;: { &quot;...full order with student and course info...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadminstudents">GET <code>/api/admin/students</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Query Params (optional):</strong> <code>page</code>, <code>limit</code>, <code>search</code>, <code>status</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;students&quot;: [ { &quot;...student objects...&quot; } ], &quot;total&quot;: 0 }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadminstudentsstudentid">GET <code>/api/admin/students/:studentId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>studentId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;student&quot;: { &quot;...full student profile with enrollments...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadminstudentsstudentidstatus">PATCH <code>/api/admin/students/:studentId/status</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>studentId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;status&quot;: &quot;active | suspended | banned&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Student status updated&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadmincourses">GET <code>/api/admin/courses</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Query Params (optional):</strong> <code>page</code>, <code>limit</code>, <code>search</code>, <code>status</code>, <code>category</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;courses&quot;: [ { &quot;...course objects...&quot; } ], &quot;total&quot;: 0 }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadmincoursescourseid">GET <code>/api/admin/courses/:courseId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;course&quot;: { &quot;...full course details...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadmincoursescourseidstatus">PATCH <code>/api/admin/courses/:courseId/status</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;status&quot;: &quot;draft | published | archived&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Course status updated&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apiadmincoursescourseid">DELETE <code>/api/admin/courses/:courseId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Course deleted&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadmincoursescourseidrestore">PATCH <code>/api/admin/courses/:courseId/restore</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Course restored&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadminreviews">GET <code>/api/admin/reviews</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Query Params (optional):</strong> <code>page</code>, <code>limit</code>, <code>status</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;reviews&quot;: [ { &quot;...review objects...&quot; } ], &quot;total&quot;: 0 }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadminreviewsreviewidstatus">PATCH <code>/api/admin/reviews/:reviewId/status</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>reviewId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;status&quot;: &quot;approved | rejected | pending&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Review status updated&quot;
+}
+</code></pre>
+
+<hr />
+<h2 id="27-admin-coupon-apis">27. Admin — Coupon APIs</h2>
+<blockquote>
+<p>Base: <code>/api/admin/coupons</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apiadmincoupons_1">POST <code>/api/admin/coupons</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;code&quot;: &quot;string (required)&quot;,
+  &quot;discountType&quot;: &quot;percentage | flat&quot;,
+  &quot;discountValue&quot;: &quot;number (required)&quot;,
+  &quot;maxUses&quot;: &quot;number&quot;,
+  &quot;expiresAt&quot;: &quot;ISO date&quot;,
+  &quot;minOrderAmount&quot;: &quot;number&quot;,
+  &quot;applicableCourses&quot;: [&quot;courseId&quot;]
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;coupon&quot;: { &quot;...coupon object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadmincoupons_1">GET <code>/api/admin/coupons</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Query Params (optional):</strong> <code>page</code>, <code>limit</code>, <code>status</code>, <code>search</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;coupons&quot;: [ { &quot;...coupon objects...&quot; } ], &quot;total&quot;: 0 }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadmincouponscouponid_1">GET <code>/api/admin/coupons/:couponId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>couponId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;coupon&quot;: { &quot;...coupon details...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadmincouponscouponid_1">PATCH <code>/api/admin/coupons/:couponId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>couponId</code></p>
+<p><strong>Request Body:</strong> Any updatable coupon fields.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;coupon&quot;: { &quot;...updated coupon...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadmincouponscouponidstatus_1">PATCH <code>/api/admin/coupons/:couponId/status</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>couponId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Coupon status toggled&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apiadmincouponscouponid_1">DELETE <code>/api/admin/coupons/:couponId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>couponId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Coupon deleted&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadmincouponscouponidrestore">PATCH <code>/api/admin/coupons/:couponId/restore</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>couponId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Coupon restored&quot;
+}
+</code></pre>
+
+<hr />
+<h2 id="28-admin-analytics-apis">28. Admin — Analytics APIs</h2>
+<blockquote>
+<p>Base: <code>/api/admin/analytics</code></p>
+</blockquote>
+<hr />
+<h3 id="get-apiadminanalyticsoverview">GET <code>/api/admin/analytics/overview</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;totalRevenue&quot;: 0,
+    &quot;totalStudents&quot;: 0,
+    &quot;totalCourses&quot;: 0,
+    &quot;totalOrders&quot;: 0,
+    &quot;totalReviews&quot;: 0
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadminanalyticsrevenue">GET <code>/api/admin/analytics/revenue</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Query Params (optional):</strong> <code>period</code> (daily | weekly | monthly | yearly)</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;revenue&quot;: [ { &quot;date&quot;: &quot;string&quot;, &quot;amount&quot;: 0 } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadminanalyticsstudents">GET <code>/api/admin/analytics/students</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;totalStudents&quot;: 0,
+    &quot;newStudentsThisMonth&quot;: 0,
+    &quot;activeStudents&quot;: 0
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadminanalyticsorders">GET <code>/api/admin/analytics/orders</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;orders&quot;: [ { &quot;...order analytics data...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadminanalyticscourses">GET <code>/api/admin/analytics/courses</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;courses&quot;: [ { &quot;...course performance data...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadminanalyticsreviews">GET <code>/api/admin/analytics/reviews</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;averageRating&quot;: 4.5, &quot;totalReviews&quot;: 100, &quot;ratingDistribution&quot;: {} }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadminanalyticslive-classes">GET <code>/api/admin/analytics/live-classes</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;liveClasses&quot;: [ { &quot;...live class analytics...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadminanalyticscoupons">GET <code>/api/admin/analytics/coupons</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;totalCouponsUsed&quot;: 0,
+    &quot;totalDiscount&quot;: 0,
+    &quot;topCoupons&quot;: [ { &quot;...coupon usage stats...&quot; } ]
+  }
+}
+</code></pre>
+
+<hr />
+<h2 id="29-admin-audit-log-apis">29. Admin — Audit Log APIs</h2>
+<blockquote>
+<p>Base: <code>/api/admin/audit-logs</code></p>
+</blockquote>
+<hr />
+<h3 id="get-apiadminaudit-logs">GET <code>/api/admin/audit-logs</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Query Params (optional):</strong> <code>page</code>, <code>limit</code>, <code>action</code>, <code>userId</code>, <code>from</code>, <code>to</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;logs&quot;: [ { &quot;action&quot;: &quot;string&quot;, &quot;userId&quot;: &quot;string&quot;, &quot;details&quot;: {}, &quot;createdAt&quot;: &quot;ISO date&quot; } ],
+    &quot;total&quot;: 0
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadminaudit-logsauditlogid">GET <code>/api/admin/audit-logs/:auditLogId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>auditLogId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;log&quot;: { &quot;...full audit log entry...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h2 id="30-admin-certificate-apis">30. Admin — Certificate APIs</h2>
+<blockquote>
+<p>Base: <code>/api/admin/certificates</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apiadmincertificatesissue">POST <code>/api/admin/certificates/issue</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;enrollmentId&quot;: &quot;string (required)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Certificate issued successfully&quot;,
+  &quot;data&quot;: { &quot;certificate&quot;: { &quot;...certificate object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadmincertificates">GET <code>/api/admin/certificates</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Query Params (optional):</strong> <code>page</code>, <code>limit</code>, <code>status</code>, <code>search</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;certificates&quot;: [ { &quot;...certificate objects...&quot; } ], &quot;total&quot;: 0 }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadmincertificatesissue-queue">GET <code>/api/admin/certificates/issue-queue</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;queue&quot;: [ { &quot;...failed/pending certificate issue items...&quot; } ] }
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apiadmincertificatesretryenrollmentid">POST <code>/api/admin/certificates/retry/:enrollmentId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>enrollmentId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Certificate issue retried&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apiadmincertificatesretry-bulk">POST <code>/api/admin/certificates/retry-bulk</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Bulk certificate retry initiated&quot;,
+  &quot;data&quot;: { &quot;retriedCount&quot;: 5 }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadmincertificatescertificateiddownload">GET <code>/api/admin/certificates/:certificateId/download</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>certificateId</code></p>
+<p><strong>Response:</strong> PDF file stream (<code>application/pdf</code>).</p>
+<hr />
+<h3 id="patch-apiadmincertificatescertificateidrevoke">PATCH <code>/api/admin/certificates/:certificateId/revoke</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>certificateId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;reason&quot;: &quot;string (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Certificate revoked&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadmincertificatescertificateidrestore">PATCH <code>/api/admin/certificates/:certificateId/restore</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>certificateId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Certificate restored&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apiadmincertificatescertificateidregenerate-pdf">POST <code>/api/admin/certificates/:certificateId/regenerate-pdf</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>certificateId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Certificate PDF regenerated&quot;,
+  &quot;data&quot;: { &quot;certificate&quot;: { &quot;...updated certificate object...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h2 id="31-admin-live-class-apis">31. Admin — Live Class APIs</h2>
+<blockquote>
+<p>Base: <code>/api/admin/live-classes</code></p>
+</blockquote>
+<hr />
+<h3 id="get-apiadminlive-classes">GET <code>/api/admin/live-classes</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Query Params (optional):</strong> <code>page</code>, <code>limit</code>, <code>status</code>, <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;liveClasses&quot;: [ { &quot;...live class objects...&quot; } ], &quot;total&quot;: 0 }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadminlive-classesliveclassid">GET <code>/api/admin/live-classes/:liveClassId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>liveClassId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;liveClass&quot;: { &quot;...full live class details...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadminlive-classesliveclassidstatus">PATCH <code>/api/admin/live-classes/:liveClassId/status</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>liveClassId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;status&quot;: &quot;scheduled | live | completed | cancelled&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Live class status updated&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apiadminlive-classesliveclassid">DELETE <code>/api/admin/live-classes/:liveClassId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>liveClassId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Live class cancelled/deleted&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadminlive-classesliveclassidrestore">PATCH <code>/api/admin/live-classes/:liveClassId/restore</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>liveClassId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Live class restored&quot;
+}
+</code></pre>
+
+<hr />
+<h2 id="32-discussion-apis">32. Discussion APIs</h2>
+<blockquote>
+<p>Base: <code>/api/discussions</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apidiscussions">POST <code>/api/discussions</code></h3>
+<p><strong>Access:</strong> Student, Instructor, Admin</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;title&quot;: &quot;string (required)&quot;,
+  &quot;body&quot;: &quot;string (required)&quot;,
+  &quot;courseId&quot;: &quot;string (required)&quot;,
+  &quot;lectureId&quot;: &quot;string (optional)&quot;,
+  &quot;tags&quot;: [&quot;string (optional)&quot;]
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Discussion created successfully&quot;,
+  &quot;discussion&quot;: { &quot;...discussion object...&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apidiscussions">GET <code>/api/discussions</code></h3>
+<p><strong>Access:</strong> Student, Instructor, Admin</p>
+<p><strong>Query Params (optional):</strong> <code>courseId</code>, <code>lectureId</code>, <code>page</code>, <code>limit</code>, <code>search</code>, <code>tag</code>, <code>resolved</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Discussions fetched successfully&quot;,
+  &quot;discussions&quot;: [ { &quot;...discussion objects...&quot; } ],
+  &quot;pagination&quot;: { &quot;page&quot;: 1, &quot;limit&quot;: 20, &quot;total&quot;: 0, &quot;pages&quot;: 1 }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apidiscussionsdiscussionid">GET <code>/api/discussions/:discussionId</code></h3>
+<p><strong>Access:</strong> Student, Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>discussionId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Discussion fetched successfully&quot;,
+  &quot;discussion&quot;: { &quot;...discussion object with replies...&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apidiscussionsdiscussionid">PATCH <code>/api/discussions/:discussionId</code></h3>
+<p><strong>Access:</strong> Discussion owner, Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>discussionId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;title&quot;: &quot;string (optional)&quot;,
+  &quot;body&quot;: &quot;string (optional)&quot;,
+  &quot;tags&quot;: [&quot;string (optional)&quot;]
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Discussion updated successfully&quot;,
+  &quot;discussion&quot;: { &quot;...updated discussion object...&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apidiscussionsdiscussionid">DELETE <code>/api/discussions/:discussionId</code></h3>
+<p><strong>Access:</strong> Discussion owner, Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>discussionId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Discussion deleted successfully&quot;,
+  &quot;discussionId&quot;: &quot;string&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apidiscussionsdiscussionidreplies">POST <code>/api/discussions/:discussionId/replies</code></h3>
+<p><strong>Access:</strong> Student, Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>discussionId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;content&quot;: &quot;string (required)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Reply created successfully&quot;,
+  &quot;reply&quot;: { &quot;...reply object...&quot; },
+  &quot;discussion&quot;: { &quot;...updated discussion...&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apidiscussionsdiscussionidrepliesreplyid">PATCH <code>/api/discussions/:discussionId/replies/:replyId</code></h3>
+<p><strong>Access:</strong> Reply owner, Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>discussionId</code>, <code>replyId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;content&quot;: &quot;string (required)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Reply updated successfully&quot;,
+  &quot;reply&quot;: { &quot;...updated reply object...&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apidiscussionsdiscussionidrepliesreplyid">DELETE <code>/api/discussions/:discussionId/replies/:replyId</code></h3>
+<p><strong>Access:</strong> Reply owner, Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>discussionId</code>, <code>replyId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Reply deleted successfully&quot;,
+  &quot;replyId&quot;: &quot;string&quot;,
+  &quot;discussion&quot;: { &quot;...updated discussion...&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apidiscussionsdiscussionidrepliesreplyidaccept">PATCH <code>/api/discussions/:discussionId/replies/:replyId/accept</code></h3>
+<p><strong>Access:</strong> Discussion owner, Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>discussionId</code>, <code>replyId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Answer accepted successfully&quot;,
+  &quot;changed&quot;: true,
+  &quot;reply&quot;: { &quot;...reply object...&quot; },
+  &quot;discussion&quot;: { &quot;...updated discussion...&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apidiscussionsdiscussionidresolved">PATCH <code>/api/discussions/:discussionId/resolved</code></h3>
+<p><strong>Access:</strong> Discussion owner, Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>discussionId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;isResolved&quot;: &quot;boolean (required)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Discussion status updated&quot;,
+  &quot;discussion&quot;: { &quot;...updated discussion...&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apidiscussionsdiscussionidmoderation">PATCH <code>/api/discussions/:discussionId/moderation</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>discussionId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;isPinned&quot;: &quot;boolean (optional)&quot;,
+  &quot;isLocked&quot;: &quot;boolean (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Discussion moderation updated&quot;,
+  &quot;discussion&quot;: { &quot;...updated discussion...&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apidiscussionsdiscussionidupvote">POST <code>/api/discussions/:discussionId/upvote</code></h3>
+<p><strong>Access:</strong> Student, Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>discussionId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Vote toggled&quot;,
+  &quot;upvoted&quot;: true,
+  &quot;upvoteCount&quot;: 5
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apidiscussionsdiscussionidrepliesreplyidupvote">POST <code>/api/discussions/:discussionId/replies/:replyId/upvote</code></h3>
+<p><strong>Access:</strong> Student, Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>discussionId</code>, <code>replyId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Vote toggled&quot;,
+  &quot;upvoted&quot;: true,
+  &quot;upvoteCount&quot;: 3
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apidiscussionsdiscussionidvotes">GET <code>/api/discussions/:discussionId/votes</code></h3>
+<p><strong>Access:</strong> Student, Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>discussionId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;discussionUpvoted&quot;: true,
+  &quot;replyVotes&quot;: { &quot;replyId&quot;: true }
+}
+</code></pre>
+
+<hr />
+<h2 id="33-discussion-report-apis">33. Discussion Report APIs</h2>
+<blockquote>
+<p>Base: <code>/api/discussion-reports</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apidiscussion-reports">POST <code>/api/discussion-reports</code></h3>
+<p><strong>Access:</strong> Student, Instructor, Admin</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;discussionId&quot;: &quot;string (required, OR replyId)&quot;,
+  &quot;replyId&quot;: &quot;string (optional)&quot;,
+  &quot;reason&quot;: &quot;spam | harassment | inappropriate | misinformation | other (required)&quot;,
+  &quot;details&quot;: &quot;string (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Report submitted successfully&quot;,
+  &quot;report&quot;: { &quot;...report object...&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apidiscussion-reportsmy">GET <code>/api/discussion-reports/my</code></h3>
+<p><strong>Access:</strong> Student, Instructor, Admin</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;reports&quot;: [ { &quot;...report objects submitted by current user...&quot; } ]
+}
+</code></pre>
+
+<hr />
+<h2 id="34-admin-discussion-report-apis">34. Admin — Discussion Report APIs</h2>
+<blockquote>
+<p>Base: <code>/api/admin/discussion-reports</code></p>
+</blockquote>
+<hr />
+<h3 id="get-apiadmindiscussion-reports">GET <code>/api/admin/discussion-reports</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Query Params (optional):</strong> <code>page</code>, <code>limit</code>, <code>status</code> (pending | reviewing | resolved | rejected)</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;reports&quot;: [ { &quot;...all report objects...&quot; } ],
+  &quot;pagination&quot;: { &quot;page&quot;: 1, &quot;limit&quot;: 20, &quot;total&quot;: 0 }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadmindiscussion-reportsreportid">GET <code>/api/admin/discussion-reports/:reportId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>reportId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;report&quot;: { &quot;...full report with discussion/reply and reporter info...&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadmindiscussion-reportsreportidreview">PATCH <code>/api/admin/discussion-reports/:reportId/review</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>reportId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Report review started&quot;,
+  &quot;report&quot;: { &quot;...updated report...&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadmindiscussion-reportsreportidresolve">PATCH <code>/api/admin/discussion-reports/:reportId/resolve</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>reportId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;resolution&quot;: &quot;resolved | rejected (required)&quot;,
+  &quot;adminNote&quot;: &quot;string (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Report resolved successfully&quot;,
+  &quot;report&quot;: { &quot;...updated report...&quot; }
+}
+</code></pre>
+
+<hr />
+<h2 id="35-student-notes-apis">35. Student Notes APIs</h2>
+<blockquote>
+<p>Base: <code>/api/notes</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apinotes">POST <code>/api/notes</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;lectureId&quot;: &quot;string (required)&quot;,
+  &quot;title&quot;: &quot;string (optional)&quot;,
+  &quot;content&quot;: &quot;string (required)&quot;,
+  &quot;isPinned&quot;: &quot;boolean (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Note created successfully&quot;,
+  &quot;note&quot;: { &quot;...note object...&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apinotescoursecourseid">GET <code>/api/notes/course/:courseId</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Query Params (optional):</strong> <code>page</code>, <code>limit</code>, <code>lectureId</code>, <code>moduleId</code>, <code>pinned</code>, <code>search</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;notes&quot;: [ { &quot;...note objects for the course...&quot; } ],
+  &quot;pagination&quot;: { &quot;page&quot;: 1, &quot;limit&quot;: 20, &quot;total&quot;: 0 }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apinoteslecturelectureid">GET <code>/api/notes/lecture/:lectureId</code></h3>
+<p><strong>Access:</strong> Student</p>
+<p><strong>URL Params:</strong> <code>lectureId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;notes&quot;: [ { &quot;...note objects for the lecture...&quot; } ]
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apinotesnoteid">GET <code>/api/notes/:noteId</code></h3>
+<p><strong>Access:</strong> Student (note owner)</p>
+<p><strong>URL Params:</strong> <code>noteId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;note&quot;: { &quot;...note object...&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apinotesnoteid">PATCH <code>/api/notes/:noteId</code></h3>
+<p><strong>Access:</strong> Student (note owner)</p>
+<p><strong>URL Params:</strong> <code>noteId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;title&quot;: &quot;string (optional)&quot;,
+  &quot;content&quot;: &quot;string (optional)&quot;,
+  &quot;isPinned&quot;: &quot;boolean (optional)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Note updated successfully&quot;,
+  &quot;note&quot;: { &quot;...updated note object...&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apinotesnoteid">DELETE <code>/api/notes/:noteId</code></h3>
+<p><strong>Access:</strong> Student (note owner)</p>
+<p><strong>URL Params:</strong> <code>noteId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Note deleted successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h2 id="36-instructor-dashboard-apis">36. Instructor Dashboard APIs</h2>
+<blockquote>
+<p>Base: <code>/api/instructor/dashboard</code></p>
+</blockquote>
+<hr />
+<h3 id="get-apiinstructordashboard">GET <code>/api/instructor/dashboard</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;totalCourses&quot;: 5,
+    &quot;totalStudents&quot;: 120,
+    &quot;totalRevenue&quot;: 50000,
+    &quot;avgRating&quot;: 4.5,
+    &quot;recentEnrollments&quot;: [ { &quot;...enrollment objects...&quot; } ]
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructordashboardcourses">GET <code>/api/instructor/dashboard/courses</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;courses&quot;: [
+      {
+        &quot;courseId&quot;: &quot;string&quot;,
+        &quot;title&quot;: &quot;string&quot;,
+        &quot;enrollments&quot;: 50,
+        &quot;revenue&quot;: 10000,
+        &quot;avgRating&quot;: 4.3
+      }
+    ]
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructordashboardrevenue">GET <code>/api/instructor/dashboard/revenue</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>Query Params (optional):</strong> <code>days</code> (default: 30)</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;revenue&quot;: [ { &quot;date&quot;: &quot;string&quot;, &quot;amount&quot;: 0 } ],
+    &quot;total&quot;: 0,
+    &quot;period&quot;: &quot;30 days&quot;
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiinstructordashboardlive-classes">GET <code>/api/instructor/dashboard/live-classes</code></h3>
+<p><strong>Access:</strong> Instructor</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;upcoming&quot;: [ { &quot;...live class objects...&quot; } ],
+    &quot;past&quot;: [ { &quot;...live class objects...&quot; } ]
+  }
+}
+</code></pre>
+
+<hr />
+<h2 id="37-admin-dashboard-apis">37. Admin Dashboard APIs</h2>
+<blockquote>
+<p>Base: <code>/api/admin/dashboard</code></p>
+</blockquote>
+<hr />
+<h3 id="get-apiadmindashboard_1">GET <code>/api/admin/dashboard</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;totalStudents&quot;: 0,
+    &quot;totalCourses&quot;: 0,
+    &quot;totalRevenue&quot;: 0,
+    &quot;totalOrders&quot;: 0,
+    &quot;recentOrders&quot;: [],
+    &quot;recentStudents&quot;: []
+  }
+}
+</code></pre>
+
+<hr />
+<h2 id="38-admin-users-apis">38. Admin — Users APIs</h2>
+<blockquote>
+<p>Base: <code>/api/admin/users</code></p>
+</blockquote>
+<hr />
+<h3 id="get-apiadminusersanalytics">GET <code>/api/admin/users/analytics</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;totalUsers&quot;: 0,
+    &quot;activeUsers&quot;: 0,
+    &quot;suspendedUsers&quot;: 0,
+    &quot;newUsersThisMonth&quot;: 0,
+    &quot;roleBreakdown&quot;: { &quot;student&quot;: 0, &quot;instructor&quot;: 0, &quot;admin&quot;: 0 }
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadminusers">GET <code>/api/admin/users</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Query Params (optional):</strong> <code>page</code>, <code>limit</code>, <code>search</code>, <code>role</code>, <code>status</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;users&quot;: [ { &quot;...user objects...&quot; } ], &quot;total&quot;: 0 }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadminusersuserid">GET <code>/api/admin/users/:userId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>userId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;user&quot;: { &quot;...full user profile...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadminusersuseridactivate">PATCH <code>/api/admin/users/:userId/activate</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>userId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;User activated successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadminusersuseriddeactivate">PATCH <code>/api/admin/users/:userId/deactivate</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>userId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;User deactivated successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadminusersuseridsuspend">PATCH <code>/api/admin/users/:userId/suspend</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>userId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;User suspended successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadminusersuseridstatus">PATCH <code>/api/admin/users/:userId/status</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>userId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;status&quot;: &quot;active | inactive | suspended | banned (required)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;User status updated&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadminusersuseridrole">PATCH <code>/api/admin/users/:userId/role</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>userId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;role&quot;: &quot;student | instructor | admin (required)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;User role updated&quot;
+}
+</code></pre>
+
+<hr />
+<h2 id="39-admin-orders-apis">39. Admin — Orders APIs</h2>
+<blockquote>
+<p>Base: <code>/api/admin/orders</code></p>
+</blockquote>
+<hr />
+<h3 id="get-apiadminordersanalytics">GET <code>/api/admin/orders/analytics</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;totalOrders&quot;: 0,
+    &quot;totalRevenue&quot;: 0,
+    &quot;pendingOrders&quot;: 0,
+    &quot;refundedOrders&quot;: 0
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadminorders_1">GET <code>/api/admin/orders</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Query Params (optional):</strong> <code>page</code>, <code>limit</code>, <code>status</code>, <code>search</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;orders&quot;: [ { &quot;...order objects...&quot; } ], &quot;total&quot;: 0 }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadminordersorderid_1">GET <code>/api/admin/orders/:orderId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>orderId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;order&quot;: { &quot;...full order with student and course info...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadminordersorderidcancel">PATCH <code>/api/admin/orders/:orderId/cancel</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>orderId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Order cancelled successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadminordersorderidfailed">PATCH <code>/api/admin/orders/:orderId/failed</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>orderId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Order marked as failed&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadminordersorderidrefunded">PATCH <code>/api/admin/orders/:orderId/refunded</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<blockquote>
+<p><strong>Note:</strong> This does NOT execute a Razorpay refund. Use after a successful refund verification.</p>
+</blockquote>
+<p><strong>URL Params:</strong> <code>orderId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Order marked as refunded&quot;
+}
+</code></pre>
+
+<hr />
+<h2 id="40-admin-courses-apis">40. Admin — Courses APIs</h2>
+<blockquote>
+<p>Base: <code>/api/admin/courses</code></p>
+</blockquote>
+<hr />
+<h3 id="get-apiadmincoursesanalytics">GET <code>/api/admin/courses/analytics</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;totalCourses&quot;: 0,
+    &quot;publishedCourses&quot;: 0,
+    &quot;draftCourses&quot;: 0,
+    &quot;archivedCourses&quot;: 0,
+    &quot;topCourses&quot;: [ { &quot;...course with enrollment count...&quot; } ]
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadmincourses_1">GET <code>/api/admin/courses</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>Query Params (optional):</strong> <code>page</code>, <code>limit</code>, <code>search</code>, <code>status</code>, <code>category</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;courses&quot;: [ { &quot;...course objects...&quot; } ], &quot;total&quot;: 0 }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiadmincoursescourseid_1">GET <code>/api/admin/courses/:courseId</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { &quot;course&quot;: { &quot;...full course details...&quot; } }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadmincoursescourseidpublish">PATCH <code>/api/admin/courses/:courseId/publish</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Course published successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadmincoursescourseidunpublish">PATCH <code>/api/admin/courses/:courseId/unpublish</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Course unpublished successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadmincoursescourseidactivate">PATCH <code>/api/admin/courses/:courseId/activate</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Course activated successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadmincoursescourseiddeactivate">PATCH <code>/api/admin/courses/:courseId/deactivate</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Course deactivated successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiadmincoursescourseidarchive">PATCH <code>/api/admin/courses/:courseId/archive</code></h3>
+<p><strong>Access:</strong> Admin</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Course archived successfully&quot;
+}
+</code></pre>
+
+<hr />
+<h2 id="41-ai-assistant-apis">41. AI Assistant APIs</h2>
+<blockquote>
+<p>Base: <code>/api/ai</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apiaiconversations">POST <code>/api/ai/conversations</code></h3>
+<p><strong>Access:</strong> Student, Instructor, Admin</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;title&quot;: &quot;string (optional)&quot;,
+  &quot;courseId&quot;: &quot;string (optional — scopes conversation to a course)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;AI conversation created successfully&quot;,
+  &quot;conversation&quot;: {
+    &quot;id&quot;: &quot;string&quot;,
+    &quot;title&quot;: &quot;string&quot;,
+    &quot;courseId&quot;: &quot;string | null&quot;,
+    &quot;createdAt&quot;: &quot;ISO date&quot;
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiaiconversations">GET <code>/api/ai/conversations</code></h3>
+<p><strong>Access:</strong> Student, Instructor, Admin</p>
+<p><strong>Query Params (optional):</strong> <code>page</code>, <code>limit</code>, <code>archived</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;AI conversations fetched successfully&quot;,
+  &quot;conversations&quot;: [ { &quot;...conversation objects...&quot; } ],
+  &quot;pagination&quot;: { &quot;page&quot;: 1, &quot;limit&quot;: 20, &quot;total&quot;: 0 }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiaiconversationsconversationid">GET <code>/api/ai/conversations/:conversationId</code></h3>
+<p><strong>Access:</strong> Student, Instructor, Admin (conversation owner)</p>
+<p><strong>URL Params:</strong> <code>conversationId</code></p>
+<p><strong>Query Params (optional):</strong> <code>page</code>, <code>limit</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;AI conversation fetched successfully&quot;,
+  &quot;conversation&quot;: { &quot;...conversation object...&quot; },
+  &quot;messages&quot;: [ { &quot;role&quot;: &quot;user | assistant&quot;, &quot;content&quot;: &quot;string&quot;, &quot;createdAt&quot;: &quot;ISO date&quot; } ],
+  &quot;pagination&quot;: { &quot;page&quot;: 1, &quot;limit&quot;: 50, &quot;total&quot;: 0 }
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apiaiconversationsconversationidmessages">POST <code>/api/ai/conversations/:conversationId/messages</code></h3>
+<p><strong>Access:</strong> Student, Instructor, Admin (conversation owner)</p>
+<p><strong>URL Params:</strong> <code>conversationId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;message&quot;: &quot;string (required)&quot;,
+  &quot;lectureId&quot;: &quot;string (optional — provides context)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;AI response generated&quot;,
+  &quot;userMessage&quot;: { &quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;string&quot; },
+  &quot;aiMessage&quot;: { &quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: &quot;string&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiaiconversationsconversationidtitle">PATCH <code>/api/ai/conversations/:conversationId/title</code></h3>
+<p><strong>Access:</strong> Student, Instructor, Admin (conversation owner)</p>
+<p><strong>URL Params:</strong> <code>conversationId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;title&quot;: &quot;string (required)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;AI conversation renamed successfully&quot;,
+  &quot;conversation&quot;: { &quot;...updated conversation...&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="patch-apiaiconversationsconversationidarchive">PATCH <code>/api/ai/conversations/:conversationId/archive</code></h3>
+<p><strong>Access:</strong> Student, Instructor, Admin (conversation owner)</p>
+<p><strong>URL Params:</strong> <code>conversationId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;isArchived&quot;: &quot;boolean (required)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;AI conversation archived/restored successfully&quot;,
+  &quot;conversation&quot;: { &quot;...updated conversation...&quot; }
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apiaiconversationsconversationid">DELETE <code>/api/ai/conversations/:conversationId</code></h3>
+<p><strong>Access:</strong> Student, Instructor, Admin (conversation owner)</p>
+<p><strong>URL Params:</strong> <code>conversationId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;AI conversation deleted&quot;,
+  &quot;conversationId&quot;: &quot;string&quot;
+}
+</code></pre>
+
+<hr />
+<h2 id="42-rag-knowledge-search-apis">42. RAG — Knowledge Search APIs</h2>
+<blockquote>
+<p>Base: <code>/api/ai/rag</code></p>
+</blockquote>
+<hr />
+<h3 id="post-apiairagcoursescourseidsearch">POST <code>/api/ai/rag/courses/:courseId/search</code></h3>
+<p><strong>Access:</strong> Student, Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;query&quot;: &quot;string (required)&quot;,
+  &quot;topK&quot;: &quot;number (optional, default: 5)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;results&quot;: [
+    {
+      &quot;score&quot;: 0.95,
+      &quot;text&quot;: &quot;string&quot;,
+      &quot;metadata&quot;: { &quot;lectureId&quot;: &quot;string&quot;, &quot;moduleId&quot;: &quot;string&quot; }
+    }
+  ]
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiairagcoursescourseidchunks">GET <code>/api/ai/rag/courses/:courseId/chunks</code></h3>
+<p><strong>Access:</strong> Student, Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;chunks&quot;: [ { &quot;id&quot;: &quot;string&quot;, &quot;text&quot;: &quot;string&quot;, &quot;metadata&quot;: {} } ],
+  &quot;total&quot;: 0
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apiairagresources">POST <code>/api/ai/rag/resources</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;resourceType&quot;: &quot;lecture | module | course (required)&quot;,
+  &quot;resourceId&quot;: &quot;string (required)&quot;,
+  &quot;content&quot;: &quot;string (required)&quot;
+}
+</code></pre>
+
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Resource ingested into RAG index&quot;,
+  &quot;jobId&quot;: &quot;string&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apiairagcoursescourseidindex">POST <code>/api/ai/rag/courses/:courseId/index</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Course indexing started&quot;,
+  &quot;jobId&quot;: &quot;string&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apiairagmodulesmoduleidindex">POST <code>/api/ai/rag/modules/:moduleId/index</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>moduleId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Module indexing started&quot;,
+  &quot;jobId&quot;: &quot;string&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apiairaglectureslectureidindex">POST <code>/api/ai/rag/lectures/:lectureId/index</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>lectureId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>201</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Lecture indexing started&quot;,
+  &quot;jobId&quot;: &quot;string&quot;
+}
+</code></pre>
+
+<hr />
+<h3 id="delete-apiairagcoursescourseidresourcesresourcetyperesourceid">DELETE <code>/api/ai/rag/courses/:courseId/resources/:resourceType/:resourceId</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>courseId</code>, <code>resourceType</code> (lecture | module | course), <code>resourceId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Resource removed from RAG index&quot;
+}
+</code></pre>
+
+<hr />
+<h2 id="43-rag-indexing-apis">43. RAG — Indexing APIs</h2>
+<blockquote>
+<p>Base: <code>/api/ai/indexing</code></p>
+</blockquote>
+<hr />
+<h3 id="get-apiaiindexingcoursecourseid">GET <code>/api/ai/indexing/course/:courseId</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>courseId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;jobs&quot;: [
+    {
+      &quot;jobId&quot;: &quot;string&quot;,
+      &quot;resourceType&quot;: &quot;string&quot;,
+      &quot;resourceId&quot;: &quot;string&quot;,
+      &quot;status&quot;: &quot;pending | processing | completed | failed&quot;,
+      &quot;createdAt&quot;: &quot;ISO date&quot;
+    }
+  ]
+}
+</code></pre>
+
+<hr />
+<h3 id="get-apiaiindexingjobid">GET <code>/api/ai/indexing/:jobId</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>jobId</code></p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;job&quot;: {
+    &quot;jobId&quot;: &quot;string&quot;,
+    &quot;status&quot;: &quot;pending | processing | completed | failed&quot;,
+    &quot;error&quot;: &quot;string | null&quot;,
+    &quot;completedAt&quot;: &quot;ISO date | null&quot;
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="post-apiaiindexingjobidretry">POST <code>/api/ai/indexing/:jobId/retry</code></h3>
+<p><strong>Access:</strong> Instructor, Admin</p>
+<p><strong>URL Params:</strong> <code>jobId</code></p>
+<p><strong>Request:</strong> No body required.</p>
+<p><strong>Response <code>200</code>:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Indexing job retried&quot;,
+  &quot;job&quot;: { &quot;...updated job object...&quot; }
+}
+</code></pre>
+
+<hr />
+<p><em>Last updated: August 2026 | NavGujarat Academy Backend</em></p>
+</body>
+</html>

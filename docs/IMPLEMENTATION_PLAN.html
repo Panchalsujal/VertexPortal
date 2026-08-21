@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMPLEMENTATION_PLAN.md</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; }
+        h1, h2, h3, h4, h5, h6 { color: #2c3e50; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; border: 1px solid #e9ecef; }
+        code { background: #f8f9fa; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace; font-size: 0.9em; border: 1px solid #e9ecef; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        img { max-width: 100%; height: auto; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        blockquote { border-left: 4px solid #007bff; padding-left: 15px; color: #6c757d; margin-left: 0; font-style: italic; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<h1 id="navgujarat-academy-master-implementation-plan-engineering-roadmap">NavGujarat Academy — Master Implementation Plan &amp; Engineering Roadmap</h1>
+<p><strong>Document Version:</strong> 2.0.0<br />
+<strong>Target:</strong> Engineering, QA, DevOps &amp; Product Operations<br />
+<strong>Status:</strong> Approved for Execution  </p>
+<hr />
+<h2 id="1-phased-milestone-execution-roadmap">1. Phased Milestone Execution Roadmap</h2>
+<pre class="codehilite"><code class="language-mermaid">gantt
+    title NavGujarat Academy Production Execution Timeline
+    dateFormat  YYYY-MM-DD
+    section Phase 1: Core Foundation
+    Database Schema &amp; Auth Engine      :done,    p1_1, 2026-06-01, 2026-06-15
+    Course Catalog &amp; Player Engine    :done,    p1_2, 2026-06-16, 2026-06-30
+    section Phase 2: AI &amp; Real-time
+    Stream WebRTC Video Classroom     :done,    p2_1, 2026-07-01, 2026-07-15
+    Mistral Voxtral &amp; RAG Indexer     :done,    p2_2, 2026-07-16, 2026-07-31
+    section Phase 3: Commerce &amp; Growth
+    Razorpay Checkout &amp; Coupons       :done,    p3_1, 2026-08-01, 2026-08-07
+    Automated PDF Cert &amp; QR Engine    :done,    p3_2, 2026-08-08, 2026-08-14
+    section Phase 4: Production Hardening
+    End-to-End Audit &amp; Documentation  :active,  p4_1, 2026-08-15, 2026-08-20
+    Load Testing &amp; Security Audits    :         p4_2, 2026-08-21, 2026-08-28
+    Global Deployment &amp; Launch        :         p4_3, 2026-08-29, 2026-09-01
+</code></pre>
+
+<hr />
+<h2 id="2-detailed-work-breakdown-structure-wbs">2. Detailed Work Breakdown Structure (WBS)</h2>
+<h3 id="21-backend-engineering-streams">2.1 Backend Engineering Streams</h3>
+<ul>
+<li><strong>Stream A (Auth &amp; Identity):</strong></li>
+<li>Robust JWT cookie authentication with token rotation.</li>
+<li>Google OAuth SMTP transactional emailer with HTML templates for verification and password reset.</li>
+<li>Rate limiting tiers (<code>authLimiter</code>, <code>globalLimiter</code>, <code>orderLimiter</code>, <code>aiLimiter</code>).</li>
+<li><strong>Stream B (Content &amp; Curriculum Delivery):</strong></li>
+<li>Course, Module, and Lecture CRUD with nested reordering logic.</li>
+<li>Video stream optimization with ImageKit CDN.</li>
+<li>Lecture progress tracking with heartbeat sync and auto-completion recalculations.</li>
+<li><strong>Stream C (Assessments &amp; Live Streaming):</strong></li>
+<li>Assessment engine: Quizzes (automated scoring) &amp; Assignments (rubric submissions).</li>
+<li>Stream.io WebRTC token provisioning, room orchestration, and attendance tracking.</li>
+<li>Live class background reminder cron job (<code>liveClassReminder.job.js</code>).</li>
+<li><strong>Stream D (AI &amp; RAG Multimodal Pipeline):</strong></li>
+<li>FFmpeg audio isolation and Mistral Voxtral transcription engine.</li>
+<li>PDF document text extraction via <code>unpdf</code>.</li>
+<li>500-token chunking, Mistral embeddings generation, and MongoDB vector indexing.</li>
+<li>Cosine similarity vector search and multi-turn conversational AI tutor.</li>
+<li><strong>Stream E (Commerce, Certifications &amp; Governance):</strong></li>
+<li>Razorpay order lifecycle with cryptographic signature verification.</li>
+<li>Dynamic coupon validation and usage limit tracking.</li>
+<li>Vector PDF certificate generator with embedded QR verification links.</li>
+<li>Admin audit logger capturing state diffs and IP addresses.</li>
+</ul>
+<h3 id="22-frontend-engineering-streams">2.2 Frontend Engineering Streams</h3>
+<ul>
+<li><strong>Stream F (UI/UX Design System):</strong></li>
+<li>Centralized CSS tokens (<code>--vp-primary</code>, <code>--vp-surface</code>, <code>--vp-bg</code>, etc.).</li>
+<li>Responsive layouts with desktop sidebars and mobile bottom sheets.</li>
+<li>Smooth micro-interactions, toast notifications (<code>react-hot-toast</code>), and loaders.</li>
+<li><strong>Stream G (Student Experience):</strong></li>
+<li>Distraction-free Course Player with collapsible curriculum and tabbed panels.</li>
+<li>Interactive Code Playground with multi-language execution.</li>
+<li>Real-time AI chat drawer with Markdown rendering and video seeking links.</li>
+<li>Community Q&amp;A forum with upvoting, accepted answer badges, and reporting.</li>
+<li><strong>Stream H (Instructor &amp; Admin Portals):</strong></li>
+<li>Intuitive Course &amp; Curriculum Builder with drag-and-drop hierarchy.</li>
+<li>Live class host dashboard with participant management.</li>
+<li>Admin Command Center with revenue metrics, user governance, and audit trails.</li>
+</ul>
+<hr />
+<h2 id="3-quality-assurance-testing-strategy">3. Quality Assurance &amp; Testing Strategy</h2>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Scope</th>
+<th>Framework / Tools</th>
+<th>Target Coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Unit Testing</strong></td>
+<td>Services, Validators, Helpers, Redux Reducers</td>
+<td>Jest / Vitest</td>
+<td><code>&gt;= 85%</code> statement coverage</td>
+</tr>
+<tr>
+<td><strong>Integration Testing</strong></td>
+<td>API Routes, Middlewares, Database Transactions</td>
+<td>Supertest + MongoMemoryServer</td>
+<td>All critical business flows</td>
+</tr>
+<tr>
+<td><strong>End-to-End (E2E)</strong></td>
+<td>User Signup -&gt; Purchase -&gt; Player -&gt; Cert Issuance</td>
+<td>Playwright / Cypress</td>
+<td>100% critical user paths</td>
+</tr>
+<tr>
+<td><strong>Security Testing</strong></td>
+<td>Dependency vulnerabilities, NoSQL Injection, XSS</td>
+<td><code>npm audit</code>, OWASP ZAP, Snyk</td>
+<td>Zero High/Critical CVEs</td>
+</tr>
+<tr>
+<td><strong>Performance &amp; Load</strong></td>
+<td>API latency under 5,000 concurrent students</td>
+<td>k6 / Artillery</td>
+<td>P95 latency <code>&lt; 250ms</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-deployment-cicd-infrastructure-topology">4. Deployment, CI/CD &amp; Infrastructure Topology</h2>
+<pre class="codehilite"><code>+-------------------------------------------------------------------------+
+|                                CI/CD Pipeline                           |
+|  GitHub Push -&gt; Lint &amp; Typecheck -&gt; Automated Tests -&gt; Docker Image Build|
++------------------------------------+------------------------------------+
+                                     |
+                +--------------------+--------------------+
+                |                                         |
++---------------v---------------+         +---------------v---------------+
+|        Frontend Hosting       |         |        Backend Hosting        |
+|    Vercel Edge Global CDN     |         |  Render / AWS ECS Cluster     |
+|   (SPA + Static Asset Caching)|         | (Node.js Cluster Auto-scaled) |
++-------------------------------+         +---------------+---------------+
+                                                          |
+                                          +---------------+---------------+
+                                          |                               |
+                                  +-------v-------+               +-------v-------+
+                                  | MongoDB Atlas |               | ImageKit CDN  |
+                                  | (Replica Set) |               | Media Storage |
+                                  +---------------+               +---------------+
+</code></pre>
+
+<hr />
+<h2 id="5-rollout-checklist-launch-readiness">5. Rollout Checklist &amp; Launch Readiness</h2>
+<ul>
+<li>[x] All 36 database models indexed with compound unique keys.</li>
+<li>[x] All 44 API route groups secured behind rate limiters and auth middlewares.</li>
+<li>[x] Environment variable validator configured in <code>backend/src/config/config.js</code>.</li>
+<li>[x] WebRTC live class token exchange verified with Stream.io.</li>
+<li>[x] Multimodal RAG audio extraction and embedding pipelines verified.</li>
+<li>[x] Razorpay payment signature verification and webhook listeners tested.</li>
+<li>[x] PDFKit certificate generator with QR codes tested across screen sizes.</li>
+<li>[x] Cross-origin CORS policies locked down for production domains.</li>
+</ul>
+</body>
+</html>

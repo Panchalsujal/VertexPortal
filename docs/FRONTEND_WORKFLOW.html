@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FRONTEND_WORKFLOW.md</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; }
+        h1, h2, h3, h4, h5, h6 { color: #2c3e50; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; border: 1px solid #e9ecef; }
+        code { background: #f8f9fa; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace; font-size: 0.9em; border: 1px solid #e9ecef; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        img { max-width: 100%; height: auto; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        blockquote { border-left: 4px solid #007bff; padding-left: 15px; color: #6c757d; margin-left: 0; font-style: italic; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<h1 id="navgujarat-academy-frontend-client-workflows">NavGujarat Academy — Frontend Client Workflows</h1>
+<p>This document outlines the core client-side logic, React component lifecycles, and data-flow for major features in the NavGujarat Academy frontend. It acts as the frontend counterpart to <code>API_WORKFLOW.md</code>.</p>
+<hr />
+<h2 id="1-authentication-session-management">1. Authentication &amp; Session Management</h2>
+<h3 id="11-initial-app-load-session-restoration">1.1 Initial App Load &amp; Session Restoration</h3>
+<p><strong>Workflow:</strong>
+1. <strong>App Mount:</strong> The <code>AppRoot</code> component mounts.
+2. <strong>Global Hook:</strong> A <code>useEffect</code> inside <code>AppRoot</code> dispatches the <code>fetchMe()</code> Redux thunk.
+3. <strong>API Call:</strong> The Axios instance makes a <code>GET /api/auth/me</code> request. The browser automatically attaches the <code>token</code> HTTP-Only cookie.
+4. <strong>State Update:</strong> 
+   - If successful, the <code>authSlice</code> is populated with the user profile (<code>user</code> object), and <code>loading</code> is set to <code>false</code>.
+   - If it fails (401 Unauthorized), the <code>authSlice</code> clears the user state.
+5. <strong>Route Protection:</strong> Components wrapped in <code>&lt;ProtectedRoute&gt;</code> observe the <code>authSlice</code>. If <code>loading</code> is false and no user exists, they trigger a <code>&lt;Navigate&gt;</code> redirect to <code>/login</code>, preserving the attempted URL in the router's <code>state.from</code> property.</p>
+<h3 id="12-login-execution">1.2 Login Execution</h3>
+<p><strong>Workflow:</strong>
+1. <strong>Form Submission:</strong> User submits credentials in the <code>Login.jsx</code> component.
+2. <strong>API Call:</strong> An Axios <code>POST</code> request is sent to <code>/api/auth/login</code>.
+3. <strong>Success Handling:</strong>
+   - The API returns a 200 OK and sets the cookie natively via the HTTP response headers.
+   - The frontend dispatches <code>fetchMe()</code> immediately to fetch and store the new user profile in Redux.
+   - Using React Router's <code>useNavigate</code>, the user is redirected to either their intended destination (<code>state.from</code>) or their role-specific dashboard (e.g., <code>/dashboard</code> for students).</p>
+<hr />
+<h2 id="2-e-commerce-checkout-flow">2. E-Commerce &amp; Checkout Flow</h2>
+<h3 id="21-cart-management-cartjsx">2.1 Cart Management (<code>Cart.jsx</code>)</h3>
+<p><strong>Workflow:</strong>
+1. <strong>Local vs API State:</strong> The cart is strictly synced with the backend. When a user clicks "Add to Cart", an API call is made. 
+2. <strong>Coupon Application:</strong> Users can enter a coupon code in the Cart UI. This triggers a validation API call. If valid, the discounted total is stored in the component's local state to update the UI instantly.</p>
+<h3 id="22-razorpay-integration-flow">2.2 Razorpay Integration Flow</h3>
+<p><strong>Workflow:</strong>
+1. <strong>Initiate Checkout:</strong> User clicks "Checkout". The frontend calls <code>POST /api/checkout/create-order</code>.
+2. <strong>API Response:</strong> Receives a Razorpay <code>order_id</code> and the total <code>amount</code>.
+3. <strong>Load SDK:</strong> The frontend dynamically injects the Razorpay checkout script (<code>checkout.js</code>) into the DOM if it isn't already loaded.
+4. <strong>Open Modal:</strong> The <code>Razorpay</code> object is initialized with the backend <code>order_id</code>, API Key, and a <code>handler</code> callback function, opening the Razorpay UI overlay.
+5. <strong>Payment Completion:</strong> Upon successful payment, Razorpay invokes the frontend <code>handler</code> with a <code>payment_id</code> and <code>signature</code>.
+6. <strong>Verification:</strong> The frontend immediately sends these details to <code>POST /api/checkout/verify-payment</code>.
+7. <strong>Success:</strong> Upon HTTP 200, a success Toast (<code>react-hot-toast</code>) is shown, and the user is redirected to <code>/my-learning</code>.</p>
+<hr />
+<h2 id="3-course-player-progress-tracking-courseplayerjsx">3. Course Player &amp; Progress Tracking (<code>CoursePlayer.jsx</code>)</h2>
+<h3 id="31-layout-content-rendering">3.1 Layout &amp; Content Rendering</h3>
+<p><strong>Workflow:</strong>
+1. <strong>Initialization:</strong> Component mounts and reads the <code>courseId</code> from the URL parameters.
+2. <strong>Data Fetching:</strong> Fetches the complete course hierarchy (modules and nested lectures) and stores it in local component state.
+3. <strong>UI Split:</strong> 
+   - <strong>Left Pane:</strong> Video player (rendering HTML5 <code>&lt;video&gt;</code> or iframe depending on the source).
+   - <strong>Right Pane:</strong> Accordion menu listing modules and lectures.</p>
+<h3 id="32-progress-heartbeat">3.2 Progress Heartbeat</h3>
+<p><strong>Workflow:</strong>
+1. <strong>Video Event Listeners:</strong> The video player attaches listeners to the <code>timeupdate</code> and <code>ended</code> events.
+2. <strong>Throttled Updates:</strong> As the user watches, a debounced/throttled API call (<code>POST /api/lecture-progress/update</code>) is fired (e.g., every 10-15 seconds) to persist watch time.
+3. <strong>Lecture Completion:</strong> When the video reaches the end (or &gt; 90% watched), a <code>complete</code> API call is fired. 
+4. <strong>UI Update:</strong> The checkmark next to the lecture in the right pane turns green. If the course overall progress reaches 100%, a modal or banner is triggered allowing the student to view/download their certificate.</p>
+<hr />
+<h2 id="4-ai-assistant-chat-aichatjsx">4. AI Assistant Chat (<code>AiChat.jsx</code>)</h2>
+<h3 id="41-chat-interface-streaming">4.1 Chat Interface &amp; Streaming</h3>
+<p><strong>Workflow:</strong>
+1. <strong>UI Layout:</strong> A standard chat interface with a message history array stored in local state (<code>useState</code>).
+2. <strong>Prompt Submission:</strong> User sends a query. The message is immediately appended to the UI with a "user" role. A temporary "AI typing..." placeholder is added.
+3. <strong>API Request (RAG):</strong> The frontend sends the query and the current <code>courseId</code> context to <code>POST /api/ai/rag/query</code>.
+4. <strong>Response Parsing:</strong> 
+   - If the backend uses Server-Sent Events (SSE) or chunked streaming, the frontend reads the stream via the Fetch API <code>ReadableStream</code> interface.
+   - It incrementally updates the "AI typing..." message state in real-time as chunks arrive.
+5. <strong>Markdown Rendering:</strong> The final AI response string is passed into the <code>react-markdown</code> component, which parses the markdown and renders HTML, properly formatting code blocks (<code>remark-gfm</code>), bold text, and lists.</p>
+<hr />
+<h2 id="5-live-classes-via-webrtc-liveclassroomjsx">5. Live Classes via WebRTC (<code>LiveClassRoom.jsx</code>)</h2>
+<h3 id="51-streamio-video-react-sdk-integration">5.1 Stream.io Video React SDK Integration</h3>
+<p><strong>Workflow:</strong>
+1. <strong>Entry Point:</strong> Instructor or Student navigates to <code>/live-class/:liveClassId</code>.
+2. <strong>Token Fetching:</strong> A <code>useEffect</code> hook requests a join token from the backend (<code>GET /api/.../live-classes/:id/join-token</code>).
+3. <strong>Client Initialization:</strong> The frontend initializes a <code>StreamVideoClient</code> instance using the returned token and the application's Stream API Key.
+4. <strong>Call Joining:</strong> The <code>client.call('default', callId).join()</code> method is invoked.
+5. <strong>UI Rendering:</strong> 
+   - The component is wrapped in <code>&lt;StreamVideo client={client}&gt;</code> and <code>&lt;StreamCall call={call}&gt;</code> context providers.
+   - Pre-built UI components from <code>@stream-io/video-react-sdk</code> (like <code>&lt;SpeakerLayout /&gt;</code>, <code>&lt;CallControls /&gt;</code>) are rendered to handle the complex video grid, screen sharing, and audio/video toggles natively.
+6. <strong>Cleanup:</strong> When the component unmounts (user leaves the page), <code>call.leave()</code> is triggered to safely disconnect from the WebRTC mesh.</p>
+</body>
+</html>

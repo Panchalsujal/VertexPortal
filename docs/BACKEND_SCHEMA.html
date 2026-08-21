@@ -1,0 +1,2091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BACKEND_SCHEMA.md</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; }
+        h1, h2, h3, h4, h5, h6 { color: #2c3e50; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; border: 1px solid #e9ecef; }
+        code { background: #f8f9fa; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace; font-size: 0.9em; border: 1px solid #e9ecef; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        img { max-width: 100%; height: auto; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        blockquote { border-left: 4px solid #007bff; padding-left: 15px; color: #6c757d; margin-left: 0; font-style: italic; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<h1 id="navgujarat-academy-backend-database-schema-reference-36-models">NavGujarat Academy — Backend Database Schema Reference (36 Models)</h1>
+<p><strong>Document Version:</strong> 2.1.0<br />
+<strong>Database Engine:</strong> MongoDB 7.0+ with Mongoose 9.8.0 ORM<br />
+<strong>Total Registered Collections/Models:</strong> 36<br />
+<strong>Status:</strong> Approved for Production  </p>
+<hr />
+<h2 id="1-complete-entity-relationship-diagram-erd">1. Complete Entity Relationship Diagram (ERD)</h2>
+<pre class="codehilite"><code class="language-mermaid">erDiagram
+    USER ||--o{ ENROLLMENT : enrolls
+    USER ||--o{ ORDER : places
+    USER ||--o{ COURSE_REVIEW : writes
+    USER ||--o{ STUDENT_NOTE : creates
+    USER ||--o{ CERTIFICATE : earns
+    USER ||--o{ QUIZ_ATTEMPT : attempts
+    USER ||--o{ ASSIGNMENT_SUBMISSION : submits
+    USER ||--o{ DISCUSSION : authors
+    USER ||--o{ DISCUSSION_REPLY : replies
+    USER ||--o{ DISCUSSION_VOTE : votes
+    USER ||--o{ DISCUSSION_REPORT : reports
+    USER ||--o{ LIVE_CLASS_ATTENDANCE : logs
+    USER ||--o{ NOTIFICATION : receives
+    USER ||--o{ NOTIFICATION_PREFERENCE : configures
+    USER ||--o{ CART_ITEM : adds
+    USER ||--o{ WISHLIST : saves
+    USER ||--o{ AI_CONVERSATION : chats
+    USER ||--o{ AUDIT_LOG : triggers
+
+    CATEGORY ||--o{ COURSE : categorizes
+    USER ||--o{ COURSE : instructs
+
+    COURSE ||--o{ COURSE_MODULE : contains
+    COURSE_MODULE ||--o{ LECTURE : contains
+    LECTURE ||--o{ LECTURE_PROGRESS : tracks
+    LECTURE ||--o{ RAG_CHUNK : indexes
+    LECTURE ||--o{ RAG_INDEXING_JOB : monitors
+
+    COURSE ||--o{ QUIZ : assesses
+    QUIZ ||--o{ QUIZ_QUESTION : contains
+    QUIZ ||--o{ QUIZ_ATTEMPT : evaluated_in
+    QUIZ_ATTEMPT ||--o{ QUIZ_ANSWER : includes
+
+    COURSE ||--o{ ASSIGNMENT : assigns
+    ASSIGNMENT ||--o{ ASSIGNMENT_SUBMISSION : receives
+
+    COURSE ||--o{ LIVE_CLASS : schedules
+    LIVE_CLASS ||--o{ LIVE_CLASS_ATTENDANCE : tracks
+
+    COURSE ||--o{ ANNOUNCEMENT : broadcasts
+    ANNOUNCEMENT ||--o{ ANNOUNCEMENT_READ : receipts
+
+    COUPON ||--o{ COUPON_USAGE : tracks
+    ORDER ||--o{ COUPON_USAGE : applies
+    AI_CONVERSATION ||--o{ AI_MESSAGE : messages
+</code></pre>
+
+<hr />
+<h2 id="2-exhaustive-schema-specifications-for-all-36-models">2. Exhaustive Schema Specifications for All 36 Models</h2>
+<hr />
+<h3 id="group-1-identity-users-preferences-2-models">Group 1: Identity, Users &amp; Preferences (2 Models)</h3>
+<h4 id="1-user-users">1. <code>User</code> (<code>users</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>_id</code></td>
+<td>ObjectId</td>
+<td>Primary Key</td>
+<td>Unique user identifier</td>
+</tr>
+<tr>
+<td><code>fullName</code></td>
+<td>String</td>
+<td>required, trim, maxLength: 100</td>
+<td>Legal/Display name</td>
+</tr>
+<tr>
+<td><code>email</code></td>
+<td>String</td>
+<td>required, unique, lowercase, index</td>
+<td>Normalized email</td>
+</tr>
+<tr>
+<td><code>password</code></td>
+<td>String</td>
+<td>required</td>
+<td>Bcrypt hashed password</td>
+</tr>
+<tr>
+<td><code>role</code></td>
+<td>String</td>
+<td>enum: <code>['student', 'instructor', 'admin']</code>, default: <code>'student'</code></td>
+<td>Access privilege level</td>
+</tr>
+<tr>
+<td><code>avatarUrl</code></td>
+<td>String</td>
+<td>default: <code>null</code></td>
+<td>ImageKit URL for profile image</td>
+</tr>
+<tr>
+<td><code>bio</code></td>
+<td>String</td>
+<td>default: <code>""</code>, maxLength: 1000</td>
+<td>User biography</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>String</td>
+<td>enum: <code>['active', 'suspended', 'inactive']</code>, default: <code>'active'</code></td>
+<td>Account state</td>
+</tr>
+<tr>
+<td><code>isActive</code></td>
+<td>Boolean</td>
+<td>default: <code>true</code>, index</td>
+<td>Active toggle</td>
+</tr>
+<tr>
+<td><code>isEmailVerified</code></td>
+<td>Boolean</td>
+<td>default: <code>false</code></td>
+<td>Email verification flag</td>
+</tr>
+<tr>
+<td><code>verificationToken</code></td>
+<td>String</td>
+<td>default: <code>null</code></td>
+<td>Expiring verification token</td>
+</tr>
+<tr>
+<td><code>resetPasswordToken</code></td>
+<td>String</td>
+<td>default: <code>null</code></td>
+<td>Password reset hash</td>
+</tr>
+<tr>
+<td><code>resetPasswordExpires</code></td>
+<td>Date</td>
+<td>default: <code>null</code></td>
+<td>Password reset expiration</td>
+</tr>
+<tr>
+<td><code>timestamps</code></td>
+<td>Date</td>
+<td><code>createdAt</code>, <code>updatedAt</code></td>
+<td>Automatic Mongoose timestamps</td>
+</tr>
+</tbody>
+</table>
+<h4 id="2-notificationpreference-notificationpreferences">2. <code>NotificationPreference</code> (<code>notificationpreferences</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>user</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, unique: true, index</td>
+<td>Preference owner</td>
+</tr>
+<tr>
+<td><code>inApp.announcement</code></td>
+<td>Boolean</td>
+<td>default: <code>true</code></td>
+<td>In-app announcement alerts</td>
+</tr>
+<tr>
+<td><code>inApp.assignment</code></td>
+<td>Boolean</td>
+<td>default: <code>true</code></td>
+<td>In-app assignment alerts</td>
+</tr>
+<tr>
+<td><code>inApp.assignment_graded</code></td>
+<td>Boolean</td>
+<td>default: <code>true</code></td>
+<td>In-app grading alerts</td>
+</tr>
+<tr>
+<td><code>inApp.quiz</code></td>
+<td>Boolean</td>
+<td>default: <code>true</code></td>
+<td>In-app quiz alerts</td>
+</tr>
+<tr>
+<td><code>inApp.quiz_result</code></td>
+<td>Boolean</td>
+<td>default: <code>true</code></td>
+<td>In-app quiz score alerts</td>
+</tr>
+<tr>
+<td><code>inApp.certificate</code></td>
+<td>Boolean</td>
+<td>default: <code>true</code></td>
+<td>In-app certificate award alerts</td>
+</tr>
+<tr>
+<td><code>inApp.live_class</code></td>
+<td>Boolean</td>
+<td>default: <code>true</code></td>
+<td>In-app live class alerts</td>
+</tr>
+<tr>
+<td><code>inApp.course_update</code></td>
+<td>Boolean</td>
+<td>default: <code>true</code></td>
+<td>In-app curriculum change alerts</td>
+</tr>
+<tr>
+<td><code>inApp.discussion</code></td>
+<td>Boolean</td>
+<td>default: <code>true</code></td>
+<td>In-app discussion thread alerts</td>
+</tr>
+<tr>
+<td><code>inApp.discussion_reply</code></td>
+<td>Boolean</td>
+<td>default: <code>true</code></td>
+<td>In-app reply alerts</td>
+</tr>
+<tr>
+<td><code>inApp.answer_accepted</code></td>
+<td>Boolean</td>
+<td>default: <code>true</code></td>
+<td>In-app answer accepted alerts</td>
+</tr>
+<tr>
+<td><code>inApp.system</code></td>
+<td>Boolean</td>
+<td>default: <code>true</code></td>
+<td>In-app system alerts</td>
+</tr>
+<tr>
+<td><code>email.*</code></td>
+<td>Boolean</td>
+<td>(Mirrors inApp categories, customizable)</td>
+<td>Email delivery toggles</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="group-2-course-content-hierarchy-4-models">Group 2: Course &amp; Content Hierarchy (4 Models)</h3>
+<h4 id="3-category-categories">3. <code>Category</code> (<code>categories</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>String</td>
+<td>required, unique, trim</td>
+<td>Category display name</td>
+</tr>
+<tr>
+<td><code>slug</code></td>
+<td>String</td>
+<td>required, unique, lowercase</td>
+<td>URL slug</td>
+</tr>
+<tr>
+<td><code>icon</code></td>
+<td>String</td>
+<td>default: <code>null</code></td>
+<td>Lucide icon identifier</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>String</td>
+<td>default: <code>""</code></td>
+<td>Category summary</td>
+</tr>
+</tbody>
+</table>
+<h4 id="4-course-courses">4. <code>Course</code> (<code>courses</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>title</code></td>
+<td>String</td>
+<td>required, trim, maxLength: 200</td>
+<td>Course title</td>
+</tr>
+<tr>
+<td><code>slug</code></td>
+<td>String</td>
+<td>required, unique, lowercase</td>
+<td>URL slug</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>String</td>
+<td>required</td>
+<td>Full markdown course description</td>
+</tr>
+<tr>
+<td><code>instructor</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Course author</td>
+</tr>
+<tr>
+<td><code>category</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Category</code>, required, index</td>
+<td>Primary category</td>
+</tr>
+<tr>
+<td><code>price</code></td>
+<td>Number</td>
+<td>required, min: 0</td>
+<td>Course retail price in INR</td>
+</tr>
+<tr>
+<td><code>discountPrice</code></td>
+<td>Number</td>
+<td>default: 0, min: 0</td>
+<td>Promotional discounted price</td>
+</tr>
+<tr>
+<td><code>thumbnail</code></td>
+<td>String</td>
+<td>required</td>
+<td>ImageKit CDN image URL</td>
+</tr>
+<tr>
+<td><code>level</code></td>
+<td>String</td>
+<td>enum: <code>['beginner', 'intermediate', 'advanced', 'all']</code></td>
+<td>Course level</td>
+</tr>
+<tr>
+<td><code>language</code></td>
+<td>String</td>
+<td>default: <code>'English'</code></td>
+<td>Spoken language</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>String</td>
+<td>enum: <code>['draft', 'published', 'archived']</code>, default: <code>'draft'</code></td>
+<td>Publication lifecycle</td>
+</tr>
+<tr>
+<td><code>averageRating</code></td>
+<td>Number</td>
+<td>default: 0, min: 0, max: 5</td>
+<td>Aggregate average rating</td>
+</tr>
+<tr>
+<td><code>totalRatings</code></td>
+<td>Number</td>
+<td>default: 0</td>
+<td>Total review count</td>
+</tr>
+<tr>
+<td><code>totalStudents</code></td>
+<td>Number</td>
+<td>default: 0</td>
+<td>Total student enrollment count</td>
+</tr>
+<tr>
+<td><code>tags</code></td>
+<td>[String]</td>
+<td>default: <code>[]</code></td>
+<td>Search index tags</td>
+</tr>
+</tbody>
+</table>
+<h4 id="5-coursemodule-coursemodules">5. <code>CourseModule</code> (<code>coursemodules</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>course</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Course</code>, required, index</td>
+<td>Parent course</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td>String</td>
+<td>required, trim</td>
+<td>Section title</td>
+</tr>
+<tr>
+<td><code>order</code></td>
+<td>Number</td>
+<td>required, default: 0</td>
+<td>Display sequence order</td>
+</tr>
+</tbody>
+</table>
+<h4 id="6-lecture-lectures">6. <code>Lecture</code> (<code>lectures</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>module</code></td>
+<td>ObjectId</td>
+<td>ref: <code>CourseModule</code>, required, index</td>
+<td>Parent module</td>
+</tr>
+<tr>
+<td><code>course</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Course</code>, required, index</td>
+<td>Parent course</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td>String</td>
+<td>required, trim</td>
+<td>Lecture name</td>
+</tr>
+<tr>
+<td><code>videoUrl</code></td>
+<td>String</td>
+<td>default: <code>null</code></td>
+<td>CDN video stream URL</td>
+</tr>
+<tr>
+<td><code>duration</code></td>
+<td>Number</td>
+<td>default: 0 (seconds)</td>
+<td>Lecture length in seconds</td>
+</tr>
+<tr>
+<td><code>order</code></td>
+<td>Number</td>
+<td>required, default: 0</td>
+<td>Display order</td>
+</tr>
+<tr>
+<td><code>isPreview</code></td>
+<td>Boolean</td>
+<td>default: <code>false</code></td>
+<td>Unlocked trial access flag</td>
+</tr>
+<tr>
+<td><code>documentUrl</code></td>
+<td>String</td>
+<td>default: <code>null</code></td>
+<td>Supplementary PDF/doc URL</td>
+</tr>
+<tr>
+<td><code>transcript</code></td>
+<td>String</td>
+<td>default: <code>""</code></td>
+<td>Voxtral transcript text</td>
+</tr>
+<tr>
+<td><code>isIndexed</code></td>
+<td>Boolean</td>
+<td>default: <code>false</code></td>
+<td>RAG vector status flag</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="group-3-progression-reviews-notes-4-models">Group 3: Progression, Reviews &amp; Notes (4 Models)</h3>
+<h4 id="7-enrollment-enrollments">7. <code>Enrollment</code> (<code>enrollments</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>student</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Enrolled user</td>
+</tr>
+<tr>
+<td><code>course</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Course</code>, required, index</td>
+<td>Target course</td>
+</tr>
+<tr>
+<td><code>progress</code></td>
+<td>Number</td>
+<td>default: 0, min: 0, max: 100</td>
+<td>Percentage progress</td>
+</tr>
+<tr>
+<td><code>isCompleted</code></td>
+<td>Boolean</td>
+<td>default: <code>false</code></td>
+<td>Completion status</td>
+</tr>
+<tr>
+<td><code>completedAt</code></td>
+<td>Date</td>
+<td>default: <code>null</code></td>
+<td>Completion date</td>
+</tr>
+<tr>
+<td><code>certificateIssued</code></td>
+<td>Boolean</td>
+<td>default: <code>false</code></td>
+<td>Certificate generated flag</td>
+</tr>
+<tr>
+<td><strong>Index</strong></td>
+<td>Compound</td>
+<td><code>{ student: 1, course: 1 }</code> (unique: true)</td>
+<td>Unique enrollment record</td>
+</tr>
+</tbody>
+</table>
+<h4 id="8-lectureprogress-lectureprogresses">8. <code>LectureProgress</code> (<code>lectureprogresses</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>student</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Student</td>
+</tr>
+<tr>
+<td><code>lecture</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Lecture</code>, required, index</td>
+<td>Target lecture</td>
+</tr>
+<tr>
+<td><code>course</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Course</code>, required, index</td>
+<td>Parent course</td>
+</tr>
+<tr>
+<td><code>watchTime</code></td>
+<td>Number</td>
+<td>default: 0 (seconds)</td>
+<td>Total seconds watched</td>
+</tr>
+<tr>
+<td><code>isCompleted</code></td>
+<td>Boolean</td>
+<td>default: <code>false</code></td>
+<td>Lecture completion flag</td>
+</tr>
+<tr>
+<td><strong>Index</strong></td>
+<td>Compound</td>
+<td><code>{ student: 1, lecture: 1 }</code> (unique: true)</td>
+<td>Single progress per lecture</td>
+</tr>
+</tbody>
+</table>
+<h4 id="9-coursereview-coursereviews">9. <code>CourseReview</code> (<code>coursereviews</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>course</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Course</code>, required, index</td>
+<td>Target course</td>
+</tr>
+<tr>
+<td><code>student</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Reviewing student</td>
+</tr>
+<tr>
+<td><code>rating</code></td>
+<td>Number</td>
+<td>required, min: 1, max: 5</td>
+<td>Star score</td>
+</tr>
+<tr>
+<td><code>comment</code></td>
+<td>String</td>
+<td>required, trim, maxLength: 2000</td>
+<td>Feedback text</td>
+</tr>
+<tr>
+<td><strong>Index</strong></td>
+<td>Compound</td>
+<td><code>{ course: 1, student: 1 }</code> (unique: true)</td>
+<td>One review per course per student</td>
+</tr>
+</tbody>
+</table>
+<h4 id="10-studentnote-studentnotes">10. <code>StudentNote</code> (<code>studentnotes</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>student</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Author student</td>
+</tr>
+<tr>
+<td><code>lecture</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Lecture</code>, required, index</td>
+<td>Target lecture</td>
+</tr>
+<tr>
+<td><code>course</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Course</code>, required, index</td>
+<td>Target course</td>
+</tr>
+<tr>
+<td><code>timestamp</code></td>
+<td>Number</td>
+<td>default: 0 (seconds)</td>
+<td>Playback timestamp</td>
+</tr>
+<tr>
+<td><code>content</code></td>
+<td>String</td>
+<td>required, trim</td>
+<td>Markdown note body</td>
+</tr>
+<tr>
+<td><code>tags</code></td>
+<td>[String]</td>
+<td>default: <code>[]</code></td>
+<td>Category tags</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="group-4-assessments-quizzes-assignments-6-models">Group 4: Assessments — Quizzes &amp; Assignments (6 Models)</h3>
+<h4 id="11-quiz-quizzes">11. <code>Quiz</code> (<code>quizzes</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>course</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Course</code>, required, index</td>
+<td>Parent course</td>
+</tr>
+<tr>
+<td><code>module</code></td>
+<td>ObjectId</td>
+<td>ref: <code>CourseModule</code>, default: <code>null</code></td>
+<td>Associated module</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td>String</td>
+<td>required, trim</td>
+<td>Quiz title</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>String</td>
+<td>default: <code>""</code></td>
+<td>Instructions</td>
+</tr>
+<tr>
+<td><code>timeLimitMinutes</code></td>
+<td>Number</td>
+<td>default: 30, min: 1</td>
+<td>Time limit in minutes</td>
+</tr>
+<tr>
+<td><code>passingScorePercentage</code></td>
+<td>Number</td>
+<td>default: 70, min: 0, max: 100</td>
+<td>Pass threshold</td>
+</tr>
+<tr>
+<td><code>totalQuestions</code></td>
+<td>Number</td>
+<td>default: 0</td>
+<td>Number of questions</td>
+</tr>
+<tr>
+<td><code>maxAttempts</code></td>
+<td>Number</td>
+<td>default: 3</td>
+<td>Maximum allowed attempts</td>
+</tr>
+<tr>
+<td><code>isPublished</code></td>
+<td>Boolean</td>
+<td>default: <code>false</code></td>
+<td>Visibility flag</td>
+</tr>
+</tbody>
+</table>
+<h4 id="12-quizquestion-quizquestions">12. <code>QuizQuestion</code> (<code>quizquestions</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>quiz</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Quiz</code>, required, index</td>
+<td>Parent quiz</td>
+</tr>
+<tr>
+<td><code>questionText</code></td>
+<td>String</td>
+<td>required, trim</td>
+<td>Question prompt</td>
+</tr>
+<tr>
+<td><code>questionType</code></td>
+<td>String</td>
+<td>enum: <code>['single', 'multiple', 'boolean']</code>, default: <code>'single'</code></td>
+<td>Answer format</td>
+</tr>
+<tr>
+<td><code>options</code></td>
+<td>Array</td>
+<td><code>[{ text: String, isCorrect: Boolean }]</code></td>
+<td>Choices</td>
+</tr>
+<tr>
+<td><code>explanation</code></td>
+<td>String</td>
+<td>default: <code>""</code></td>
+<td>Post-submission explanation</td>
+</tr>
+<tr>
+<td><code>points</code></td>
+<td>Number</td>
+<td>default: 1, min: 1</td>
+<td>Question weight</td>
+</tr>
+</tbody>
+</table>
+<h4 id="13-quizattempt-quizattempts">13. <code>QuizAttempt</code> (<code>quizattempts</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>quiz</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Quiz</code>, required, index</td>
+<td>Target quiz</td>
+</tr>
+<tr>
+<td><code>student</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Attempting student</td>
+</tr>
+<tr>
+<td><code>course</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Course</code>, required, index</td>
+<td>Parent course</td>
+</tr>
+<tr>
+<td><code>scorePercentage</code></td>
+<td>Number</td>
+<td>default: 0</td>
+<td>Final percentage</td>
+</tr>
+<tr>
+<td><code>totalPointsEarned</code></td>
+<td>Number</td>
+<td>default: 0</td>
+<td>Earned score</td>
+</tr>
+<tr>
+<td><code>passed</code></td>
+<td>Boolean</td>
+<td>default: <code>false</code></td>
+<td>Passed status</td>
+</tr>
+<tr>
+<td><code>startedAt</code></td>
+<td>Date</td>
+<td>default: <code>Date.now</code></td>
+<td>Attempt start time</td>
+</tr>
+<tr>
+<td><code>submittedAt</code></td>
+<td>Date</td>
+<td>default: <code>null</code></td>
+<td>Attempt submission time</td>
+</tr>
+</tbody>
+</table>
+<h4 id="14-quizanswer-quizanswers">14. <code>QuizAnswer</code> (<code>quizanswers</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>attempt</code></td>
+<td>ObjectId</td>
+<td>ref: <code>QuizAttempt</code>, required, index</td>
+<td>Parent attempt</td>
+</tr>
+<tr>
+<td><code>question</code></td>
+<td>ObjectId</td>
+<td>ref: <code>QuizQuestion</code>, required, index</td>
+<td>Target question</td>
+</tr>
+<tr>
+<td><code>selectedOptionIndices</code></td>
+<td>[Number]</td>
+<td>default: <code>[]</code></td>
+<td>Chosen answers</td>
+</tr>
+<tr>
+<td><code>isCorrect</code></td>
+<td>Boolean</td>
+<td>default: <code>false</code></td>
+<td>Evaluation flag</td>
+</tr>
+<tr>
+<td><code>pointsAwarded</code></td>
+<td>Number</td>
+<td>default: 0</td>
+<td>Earned points</td>
+</tr>
+</tbody>
+</table>
+<h4 id="15-assignment-assignments">15. <code>Assignment</code> (<code>assignments</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>course</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Course</code>, required, index</td>
+<td>Parent course</td>
+</tr>
+<tr>
+<td><code>instructor</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Author instructor</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td>String</td>
+<td>required, trim</td>
+<td>Assignment topic</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>String</td>
+<td>required</td>
+<td>Detailed instructions</td>
+</tr>
+<tr>
+<td><code>rubric</code></td>
+<td>String</td>
+<td>default: <code>""</code></td>
+<td>Grading criteria</td>
+</tr>
+<tr>
+<td><code>attachmentUrl</code></td>
+<td>String</td>
+<td>default: <code>null</code></td>
+<td>Template/resource file</td>
+</tr>
+<tr>
+<td><code>dueDate</code></td>
+<td>Date</td>
+<td>required</td>
+<td>Submission deadline</td>
+</tr>
+<tr>
+<td><code>maxScore</code></td>
+<td>Number</td>
+<td>default: 100, min: 1</td>
+<td>Maximum score</td>
+</tr>
+</tbody>
+</table>
+<h4 id="16-assignmentsubmission-assignmentsubmissions">16. <code>AssignmentSubmission</code> (<code>assignmentsubmissions</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>assignment</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Assignment</code>, required, index</td>
+<td>Parent task</td>
+</tr>
+<tr>
+<td><code>student</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Submitting student</td>
+</tr>
+<tr>
+<td><code>fileUrl</code></td>
+<td>String</td>
+<td>required</td>
+<td>Uploaded work (PDF/ZIP)</td>
+</tr>
+<tr>
+<td><code>fileName</code></td>
+<td>String</td>
+<td>default: <code>""</code></td>
+<td>File name</td>
+</tr>
+<tr>
+<td><code>submittedAt</code></td>
+<td>Date</td>
+<td>default: <code>Date.now</code></td>
+<td>Submission timestamp</td>
+</tr>
+<tr>
+<td><code>grade</code></td>
+<td>Number</td>
+<td>default: <code>null</code></td>
+<td>Assigned score</td>
+</tr>
+<tr>
+<td><code>feedback</code></td>
+<td>String</td>
+<td>default: <code>""</code></td>
+<td>Instructor comments</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>String</td>
+<td>enum: <code>['submitted', 'graded', 'resubmit']</code>, default: <code>'submitted'</code></td>
+<td>Grading state</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="group-5-real-time-live-classes-attendance-2-models">Group 5: Real-time Live Classes &amp; Attendance (2 Models)</h3>
+<h4 id="17-liveclass-liveclasses">17. <code>LiveClass</code> (<code>liveclasses</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>course</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Course</code>, required, index</td>
+<td>Parent course</td>
+</tr>
+<tr>
+<td><code>instructor</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Host instructor</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td>String</td>
+<td>required, trim</td>
+<td>Class title</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>String</td>
+<td>default: <code>""</code></td>
+<td>Agenda summary</td>
+</tr>
+<tr>
+<td><code>scheduledStartTime</code></td>
+<td>Date</td>
+<td>required, index</td>
+<td>Scheduled start</td>
+</tr>
+<tr>
+<td><code>scheduledEndTime</code></td>
+<td>Date</td>
+<td>required</td>
+<td>Scheduled end</td>
+</tr>
+<tr>
+<td><code>roomId</code></td>
+<td>String</td>
+<td>required, unique</td>
+<td>Stream.io call ID</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>String</td>
+<td>enum: <code>['scheduled', 'live', 'completed', 'cancelled']</code>, default: <code>'scheduled'</code></td>
+<td>Session state</td>
+</tr>
+<tr>
+<td><code>recordingUrl</code></td>
+<td>String</td>
+<td>default: <code>null</code></td>
+<td>Cloud video recording</td>
+</tr>
+</tbody>
+</table>
+<h4 id="18-liveclassattendance-liveclassattendances">18. <code>LiveClassAttendance</code> (<code>liveclassattendances</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>liveClass</code></td>
+<td>ObjectId</td>
+<td>ref: <code>LiveClass</code>, required, index</td>
+<td>Target session</td>
+</tr>
+<tr>
+<td><code>student</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Attendee</td>
+</tr>
+<tr>
+<td><code>joinedAt</code></td>
+<td>Date</td>
+<td>required</td>
+<td>Join timestamp</td>
+</tr>
+<tr>
+<td><code>leftAt</code></td>
+<td>Date</td>
+<td>default: <code>null</code></td>
+<td>Leave timestamp</td>
+</tr>
+<tr>
+<td><code>durationMinutes</code></td>
+<td>Number</td>
+<td>default: 0</td>
+<td>Time spent</td>
+</tr>
+<tr>
+<td><code>attended</code></td>
+<td>Boolean</td>
+<td>default: <code>true</code></td>
+<td>Minimum attendance qualification</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="group-6-announcements-read-receipts-2-models">Group 6: Announcements &amp; Read Receipts (2 Models)</h3>
+<h4 id="19-announcement-announcements">19. <code>Announcement</code> (<code>announcements</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>course</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Course</code>, default: <code>null</code>, index</td>
+<td>Course scope (null = platform-wide)</td>
+</tr>
+<tr>
+<td><code>instructor</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Author</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td>String</td>
+<td>required, trim</td>
+<td>Subject line</td>
+</tr>
+<tr>
+<td><code>content</code></td>
+<td>String</td>
+<td>required</td>
+<td>Markdown body</td>
+</tr>
+<tr>
+<td><code>isPinned</code></td>
+<td>Boolean</td>
+<td>default: <code>false</code></td>
+<td>Sticky post toggle</td>
+</tr>
+</tbody>
+</table>
+<h4 id="20-announcementread-announcementreads">20. <code>AnnouncementRead</code> (<code>announcementreads</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>announcement</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Announcement</code>, required, index</td>
+<td>Target announcement</td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Reader</td>
+</tr>
+<tr>
+<td><code>readAt</code></td>
+<td>Date</td>
+<td>default: <code>Date.now</code></td>
+<td>Read receipt timestamp</td>
+</tr>
+<tr>
+<td><strong>Index</strong></td>
+<td>Compound</td>
+<td><code>{ announcement: 1, user: 1 }</code> (unique: true)</td>
+<td>Single receipt per user</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="group-7-community-discussions-moderation-4-models">Group 7: Community Discussions &amp; Moderation (4 Models)</h3>
+<h4 id="21-discussion-discussions">21. <code>Discussion</code> (<code>discussions</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>course</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Course</code>, required, index</td>
+<td>Course forum</td>
+</tr>
+<tr>
+<td><code>author</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Thread creator</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td>String</td>
+<td>required, trim</td>
+<td>Thread subject</td>
+</tr>
+<tr>
+<td><code>content</code></td>
+<td>String</td>
+<td>required</td>
+<td>Question / issue body</td>
+</tr>
+<tr>
+<td><code>tags</code></td>
+<td>[String]</td>
+<td>default: <code>[]</code></td>
+<td>Category tags</td>
+</tr>
+<tr>
+<td><code>upvotesCount</code></td>
+<td>Number</td>
+<td>default: 0</td>
+<td>Total upvotes</td>
+</tr>
+<tr>
+<td><code>repliesCount</code></td>
+<td>Number</td>
+<td>default: 0</td>
+<td>Total replies</td>
+</tr>
+<tr>
+<td><code>isPinned</code></td>
+<td>Boolean</td>
+<td>default: <code>false</code></td>
+<td>Pinned by instructor</td>
+</tr>
+<tr>
+<td><code>isSolved</code></td>
+<td>Boolean</td>
+<td>default: <code>false</code></td>
+<td>Has accepted answer</td>
+</tr>
+</tbody>
+</table>
+<h4 id="22-discussionreply-discussionreplies">22. <code>DiscussionReply</code> (<code>discussionreplies</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>discussion</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Discussion</code>, required, index</td>
+<td>Parent thread</td>
+</tr>
+<tr>
+<td><code>author</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Reply author</td>
+</tr>
+<tr>
+<td><code>content</code></td>
+<td>String</td>
+<td>required</td>
+<td>Reply body</td>
+</tr>
+<tr>
+<td><code>isInstructorReply</code></td>
+<td>Boolean</td>
+<td>default: <code>false</code></td>
+<td>Instructor badge</td>
+</tr>
+<tr>
+<td><code>isAcceptedAnswer</code></td>
+<td>Boolean</td>
+<td>default: <code>false</code></td>
+<td>Marked as solution</td>
+</tr>
+<tr>
+<td><code>upvotesCount</code></td>
+<td>Number</td>
+<td>default: 0</td>
+<td>Reply upvotes</td>
+</tr>
+</tbody>
+</table>
+<h4 id="23-discussionvote-discussionvotes">23. <code>DiscussionVote</code> (<code>discussionvotes</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>itemType</code></td>
+<td>String</td>
+<td>enum: <code>['discussion', 'reply']</code>, required</td>
+<td>Target entity</td>
+</tr>
+<tr>
+<td><code>itemId</code></td>
+<td>ObjectId</td>
+<td>required, index</td>
+<td>Target entity ID</td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Voter</td>
+</tr>
+<tr>
+<td><strong>Index</strong></td>
+<td>Compound</td>
+<td><code>{ itemType: 1, itemId: 1, user: 1 }</code> (unique: true)</td>
+<td>One vote per item</td>
+</tr>
+</tbody>
+</table>
+<h4 id="24-discussionreport-discussionreports">24. <code>DiscussionReport</code> (<code>discussionreports</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>reportedItemType</code></td>
+<td>String</td>
+<td>enum: <code>['discussion', 'reply']</code>, required</td>
+<td>Target entity</td>
+</tr>
+<tr>
+<td><code>reportedItemId</code></td>
+<td>ObjectId</td>
+<td>required, index</td>
+<td>Reported ID</td>
+</tr>
+<tr>
+<td><code>reporter</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Reporting user</td>
+</tr>
+<tr>
+<td><code>reason</code></td>
+<td>String</td>
+<td>required, trim</td>
+<td>Reason for report</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>String</td>
+<td>enum: <code>['pending', 'resolved', 'dismissed']</code>, default: <code>'pending'</code></td>
+<td>Moderation state</td>
+</tr>
+<tr>
+<td><code>resolvedBy</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, default: <code>null</code></td>
+<td>Admin who resolved</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="group-8-notifications-1-model">Group 8: Notifications (1 Model)</h3>
+<h4 id="25-notification-notifications">25. <code>Notification</code> (<code>notifications</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>recipient</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Receiver</td>
+</tr>
+<tr>
+<td><code>sender</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, default: <code>null</code></td>
+<td>Initiator</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td>String</td>
+<td>required, index</td>
+<td>Event type (<code>'announcement'</code>, <code>'grade'</code>, etc.)</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td>String</td>
+<td>required</td>
+<td>Notification header</td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td>String</td>
+<td>required</td>
+<td>Notification body</td>
+</tr>
+<tr>
+<td><code>link</code></td>
+<td>String</td>
+<td>default: <code>""</code></td>
+<td>In-app navigation URL</td>
+</tr>
+<tr>
+<td><code>isRead</code></td>
+<td>Boolean</td>
+<td>default: <code>false</code>, index</td>
+<td>Read status</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="group-9-e-commerce-cart-wishlist-orders-coupons-6-models">Group 9: E-Commerce, Cart, Wishlist, Orders &amp; Coupons (6 Models)</h3>
+<h4 id="26-cartitem-cartitems">26. <code>CartItem</code> (<code>cartitems</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>user</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Cart owner</td>
+</tr>
+<tr>
+<td><code>course</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Course</code>, required, index</td>
+<td>Target course</td>
+</tr>
+<tr>
+<td><strong>Index</strong></td>
+<td>Compound</td>
+<td><code>{ user: 1, course: 1 }</code> (unique: true)</td>
+<td>Single item per course in cart</td>
+</tr>
+</tbody>
+</table>
+<h4 id="27-wishlist-wishlists">27. <code>Wishlist</code> (<code>wishlists</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>user</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Wishlist owner</td>
+</tr>
+<tr>
+<td><code>course</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Course</code>, required, index</td>
+<td>Target course</td>
+</tr>
+<tr>
+<td><strong>Index</strong></td>
+<td>Compound</td>
+<td><code>{ user: 1, course: 1 }</code> (unique: true)</td>
+<td>Single item per course in wishlist</td>
+</tr>
+</tbody>
+</table>
+<h4 id="28-order-orders">28. <code>Order</code> (<code>orders</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>orderNumber</code></td>
+<td>String</td>
+<td>required, unique</td>
+<td>Human-readable order reference</td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Purchasing customer</td>
+</tr>
+<tr>
+<td><code>items</code></td>
+<td>Array</td>
+<td><code>[{ course: ref, price: Number }]</code></td>
+<td>Course items</td>
+</tr>
+<tr>
+<td><code>subtotal</code></td>
+<td>Number</td>
+<td>required</td>
+<td>Total before discount</td>
+</tr>
+<tr>
+<td><code>discountAmount</code></td>
+<td>Number</td>
+<td>default: 0</td>
+<td>Deducted discount</td>
+</tr>
+<tr>
+<td><code>totalAmount</code></td>
+<td>Number</td>
+<td>required</td>
+<td>Final paid price</td>
+</tr>
+<tr>
+<td><code>coupon</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Coupon</code>, default: <code>null</code></td>
+<td>Used coupon</td>
+</tr>
+<tr>
+<td><code>paymentGateway</code></td>
+<td>String</td>
+<td>default: <code>'razorpay'</code></td>
+<td>Gateway name</td>
+</tr>
+<tr>
+<td><code>paymentId</code></td>
+<td>String</td>
+<td>default: <code>null</code></td>
+<td>Razorpay payment ID</td>
+</tr>
+<tr>
+<td><code>razorpayOrderId</code></td>
+<td>String</td>
+<td>default: <code>null</code></td>
+<td>Razorpay order ID</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>String</td>
+<td>enum: <code>['pending', 'completed', 'failed', 'refunded']</code>, default: <code>'pending'</code></td>
+<td>Payment status</td>
+</tr>
+</tbody>
+</table>
+<h4 id="29-coupon-coupons">29. <code>Coupon</code> (<code>coupons</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>code</code></td>
+<td>String</td>
+<td>required, unique, uppercase, trim</td>
+<td>Promo code</td>
+</tr>
+<tr>
+<td><code>discountType</code></td>
+<td>String</td>
+<td>enum: <code>['percentage', 'flat']</code>, required</td>
+<td>Math discount model</td>
+</tr>
+<tr>
+<td><code>discountValue</code></td>
+<td>Number</td>
+<td>required, min: 1</td>
+<td>% or INR value</td>
+</tr>
+<tr>
+<td><code>minOrderAmount</code></td>
+<td>Number</td>
+<td>default: 0</td>
+<td>Threshold spend</td>
+</tr>
+<tr>
+<td><code>maxDiscountAmount</code></td>
+<td>Number</td>
+<td>default: 0</td>
+<td>Cap for percentage discounts</td>
+</tr>
+<tr>
+<td><code>validFrom</code></td>
+<td>Date</td>
+<td>required</td>
+<td>Start validity</td>
+</tr>
+<tr>
+<td><code>validUntil</code></td>
+<td>Date</td>
+<td>required</td>
+<td>Expiration</td>
+</tr>
+<tr>
+<td><code>usageLimit</code></td>
+<td>Number</td>
+<td>default: 100</td>
+<td>Total allowed claims</td>
+</tr>
+<tr>
+<td><code>usedCount</code></td>
+<td>Number</td>
+<td>default: 0</td>
+<td>Number of times claimed</td>
+</tr>
+<tr>
+<td><code>isActive</code></td>
+<td>Boolean</td>
+<td>default: <code>true</code>, index</td>
+<td>Active toggle</td>
+</tr>
+</tbody>
+</table>
+<h4 id="30-couponusage-couponusages">30. <code>CouponUsage</code> (<code>couponusages</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>coupon</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Coupon</code>, required, index</td>
+<td>Target coupon</td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Redeeming student</td>
+</tr>
+<tr>
+<td><code>order</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Order</code>, required, index</td>
+<td>Associated order</td>
+</tr>
+<tr>
+<td><code>usedAt</code></td>
+<td>Date</td>
+<td>default: <code>Date.now</code></td>
+<td>Timestamp of use</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="group-10-certificates-1-model">Group 10: Certificates (1 Model)</h3>
+<h4 id="31-certificate-certificates">31. <code>Certificate</code> (<code>certificates</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>verificationCode</code></td>
+<td>String</td>
+<td>required, unique, index</td>
+<td>Cryptographic UUID</td>
+</tr>
+<tr>
+<td><code>student</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Recipient</td>
+</tr>
+<tr>
+<td><code>course</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Course</code>, required, index</td>
+<td>Completed course</td>
+</tr>
+<tr>
+<td><code>issueDate</code></td>
+<td>Date</td>
+<td>default: <code>Date.now</code></td>
+<td>Award timestamp</td>
+</tr>
+<tr>
+<td><code>pdfUrl</code></td>
+<td>String</td>
+<td>required</td>
+<td>Cloud PDF URL</td>
+</tr>
+<tr>
+<td><code>qrCodeUrl</code></td>
+<td>String</td>
+<td>required</td>
+<td>Cloud QR URL</td>
+</tr>
+<tr>
+<td><code>gradeAverage</code></td>
+<td>Number</td>
+<td>default: 100</td>
+<td>Final grade average</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="group-11-ai-assistant-multimodal-rag-engine-4-models">Group 11: AI Assistant &amp; Multimodal RAG Engine (4 Models)</h3>
+<h4 id="32-aiconversation-aiconversations">32. <code>AiConversation</code> (<code>aiconversations</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>user</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Owner</td>
+</tr>
+<tr>
+<td><code>course</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Course</code>, default: <code>null</code>, index</td>
+<td>Scope</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td>String</td>
+<td>default: <code>'New Conversation'</code></td>
+<td>Topic summary</td>
+</tr>
+</tbody>
+</table>
+<h4 id="33-aimessage-aimessages">33. <code>AiMessage</code> (<code>aimessages</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>conversation</code></td>
+<td>ObjectId</td>
+<td>ref: <code>AiConversation</code>, required, index</td>
+<td>Thread ref</td>
+</tr>
+<tr>
+<td><code>role</code></td>
+<td>String</td>
+<td>enum: <code>['user', 'assistant', 'system']</code>, required</td>
+<td>Origin</td>
+</tr>
+<tr>
+<td><code>content</code></td>
+<td>String</td>
+<td>required</td>
+<td>Markdown text</td>
+</tr>
+<tr>
+<td><code>citations</code></td>
+<td>Array</td>
+<td><code>[{ lectureId, timestamp, text }]</code></td>
+<td>Verified citations</td>
+</tr>
+</tbody>
+</table>
+<h4 id="34-ragchunk-ragchunks">34. <code>RagChunk</code> (<code>ragchunks</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>course</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Course</code>, required, index</td>
+<td>Course scope</td>
+</tr>
+<tr>
+<td><code>lecture</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Lecture</code>, default: <code>null</code>, index</td>
+<td>Origin lecture</td>
+</tr>
+<tr>
+<td><code>sourceType</code></td>
+<td>String</td>
+<td>enum: <code>['transcript', 'document', 'description']</code></td>
+<td>Content type</td>
+</tr>
+<tr>
+<td><code>content</code></td>
+<td>String</td>
+<td>required</td>
+<td>Text chunk (&lt;= 500 tokens)</td>
+</tr>
+<tr>
+<td><code>embedding</code></td>
+<td>[Number]</td>
+<td>required</td>
+<td>1024-dim float vector</td>
+</tr>
+<tr>
+<td><code>startSeconds</code></td>
+<td>Number</td>
+<td>default: 0</td>
+<td>Start seek timestamp</td>
+</tr>
+<tr>
+<td><code>endSeconds</code></td>
+<td>Number</td>
+<td>default: 0</td>
+<td>End seek timestamp</td>
+</tr>
+</tbody>
+</table>
+<h4 id="35-ragindexingjob-ragindexingjobs">35. <code>RagIndexingJob</code> (<code>ragindexingjobs</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>course</code></td>
+<td>ObjectId</td>
+<td>ref: <code>Course</code>, required, index</td>
+<td>Course</td>
+</tr>
+<tr>
+<td><code>resourceType</code></td>
+<td>String</td>
+<td>enum: <code>['course', 'module', 'lecture', 'document', 'note']</code></td>
+<td>Ingestion type</td>
+</tr>
+<tr>
+<td><code>resourceId</code></td>
+<td>ObjectId</td>
+<td>required, index</td>
+<td>Target resource</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>String</td>
+<td>enum: <code>['pending', 'processing', 'completed', 'failed']</code>, default: <code>'pending'</code></td>
+<td>Job status</td>
+</tr>
+<tr>
+<td><code>chunksCreated</code></td>
+<td>Number</td>
+<td>default: 0</td>
+<td>Extracted chunks</td>
+</tr>
+<tr>
+<td><code>retryCount</code></td>
+<td>Number</td>
+<td>default: 0</td>
+<td>Retries</td>
+</tr>
+<tr>
+<td><code>lastError</code></td>
+<td>String</td>
+<td>default: <code>null</code></td>
+<td>Error traceback</td>
+</tr>
+<tr>
+<td><code>createdBy</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required</td>
+<td>Initiator</td>
+</tr>
+<tr>
+<td><code>isActive</code></td>
+<td>Boolean</td>
+<td>default: <code>true</code>, index</td>
+<td>Active job</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="group-12-audit-logging-1-model">Group 12: Audit Logging (1 Model)</h3>
+<h4 id="36-auditlog-auditlogs">36. <code>AuditLog</code> (<code>auditlogs</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Modifiers / Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>actor</code></td>
+<td>ObjectId</td>
+<td>ref: <code>User</code>, required, index</td>
+<td>Performing user</td>
+</tr>
+<tr>
+<td><code>action</code></td>
+<td>String</td>
+<td>required</td>
+<td>Action type</td>
+</tr>
+<tr>
+<td><code>targetModel</code></td>
+<td>String</td>
+<td>required</td>
+<td>Modified collection</td>
+</tr>
+<tr>
+<td><code>targetId</code></td>
+<td>ObjectId</td>
+<td>required</td>
+<td>Modified document ID</td>
+</tr>
+<tr>
+<td><code>details</code></td>
+<td>Object</td>
+<td>default: <code>{}</code></td>
+<td>Change diff</td>
+</tr>
+<tr>
+<td><code>ipAddress</code></td>
+<td>String</td>
+<td>default: <code>""</code></td>
+<td>Client IP</td>
+</tr>
+<tr>
+<td><code>userAgent</code></td>
+<td>String</td>
+<td>default: <code>""</code></td>
+<td>User Agent</td>
+</tr>
+<tr>
+<td><code>createdAt</code></td>
+<td>Date</td>
+<td>index</td>
+<td>Event timestamp</td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API_WORKFLOW.md</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; }
+        h1, h2, h3, h4, h5, h6 { color: #2c3e50; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; border: 1px solid #e9ecef; }
+        code { background: #f8f9fa; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace; font-size: 0.9em; border: 1px solid #e9ecef; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        img { max-width: 100%; height: auto; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        blockquote { border-left: 4px solid #007bff; padding-left: 15px; color: #6c757d; margin-left: 0; font-style: italic; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<h1 id="navgujarat-academy-api-workflows-data-pipelines">NavGujarat Academy — API Workflows &amp; Data Pipelines</h1>
+<p>This document details the step-by-step internal workflow for the core APIs in the backend. It traces the journey of a request from the client, through the middlewares, into the controller logic, database interactions, and the final response.</p>
+<hr />
+<h2 id="1-authentication-security-workflow">1. Authentication &amp; Security Workflow</h2>
+<h3 id="11-user-registration-post-apiauthregister">1.1 User Registration (<code>POST /api/auth/register</code>)</h3>
+<p><strong>Trigger:</strong> User submits the registration form on the frontend.
+<strong>Workflow:</strong>
+1. <strong>Middleware (<code>registerValidator</code>):</strong> Validates input format (email regex, password strength).
+2. <strong>Controller (<code>registerController</code>):</strong>
+   - Checks if a user with the normalized email already exists (<code>User.findOne</code>).
+   - Hashes the password using <code>bcryptjs</code> (salt rounds: 12).
+   - Generates a random <code>emailVerificationToken</code> and hashes it (SHA256) for DB storage.
+   - Generates a unique referral code.
+   - Saves the user to MongoDB (<code>User.create</code>) with <code>isEmailVerified: false</code> and <code>role: "student"</code>.
+3. <strong>External Service:</strong> Calls <code>sendVerificationEmail</code> (via Nodemailer/Resend) to send the verification link to the user.
+4. <strong>Response:</strong> Returns <code>201 Created</code> with a success message (excluding sensitive data).</p>
+<h3 id="12-user-login-post-apiauthlogin">1.2 User Login (<code>POST /api/auth/login</code>)</h3>
+<p><strong>Trigger:</strong> User submits login credentials.
+<strong>Workflow:</strong>
+1. <strong>Middleware:</strong> Rate limiter (<code>authLimiter</code>) prevents brute-force attacks.
+2. <strong>Controller (<code>loginController</code>):</strong>
+   - Finds user by email, explicitly selecting hidden fields like <code>password</code>, <code>loginAttempts</code>, <code>lockoutUntil</code>, and <code>knownIPs</code>.
+   - <strong>Layer 1 Security (Account Lockout):</strong> Checks if <code>lockoutUntil</code> is in the future. If yes, blocks access (<code>423 Locked</code>).
+   - Compares the password hash using <code>bcrypt.compare</code>.
+   - If incorrect: Increments <code>loginAttempts</code>. If attempts reach <code>MAX_LOGIN_ATTEMPTS</code>, sets <code>lockoutUntil</code> for 15 minutes. Returns <code>401 Unauthorized</code>.
+   - If correct: Checks <code>isEmailVerified</code> and <code>isActive</code>.
+   - <strong>Layer 3 Security (IP Anomaly):</strong> Extracts client IP. If the IP is not in <code>knownIPs</code>, adds it. If the user is an Admin/Instructor logging in from a new IP, fires an asynchronous alert email (<code>sendAdminLoginAlertEmail</code>).
+   - Resets <code>loginAttempts</code> and <code>lockoutUntil</code>. Updates <code>lastLoginAt</code>.
+3. <strong>Session Generation:</strong>
+   - Generates a JWT (<code>generateToken</code>).
+   - If Admin/Instructor, generates a second elevated JWT (<code>generateElevatedToken</code>).
+4. <strong>Response:</strong> Attaches HTTP-Only, Secure cookies (<code>token</code>, <code>admin_session</code>) and returns <code>200 OK</code> with the user profile.</p>
+<hr />
+<h2 id="2-course-curriculum-workflow">2. Course &amp; Curriculum Workflow</h2>
+<h3 id="21-course-creation-post-apicourses">2.1 Course Creation (<code>POST /api/courses</code>)</h3>
+<p><strong>Trigger:</strong> Instructor/Admin creates a new course draft.
+<strong>Workflow:</strong>
+1. <strong>Middleware:</strong> <code>authMiddleware</code> (validates JWT), <code>roleMiddleware(['instructor', 'admin'])</code>.
+2. <strong>Controller (<code>createCourseController</code>):</strong>
+   - Validates required fields (title, category).
+   - Generates a URL-friendly unique slug from the title using the <code>slugify</code> library.
+   - Saves the course to MongoDB (<code>Course.create</code>) linking it to the instructor's <code>_id</code>. Default status is 'draft'.
+3. <strong>Response:</strong> Returns <code>201 Created</code> with the new course object.</p>
+<h3 id="22-adding-lectures-with-video-upload-post-apilecturesmoduleidcreate-lecture-patch-apilectureslectureidupload-video">2.2 Adding Lectures with Video Upload (<code>POST /api/lectures/:moduleId/create-lecture</code> &amp; <code>PATCH /api/lectures/:lectureId/upload-video</code>)</h3>
+<p><strong>Trigger:</strong> Instructor adds a lecture and uploads a video file.
+<strong>Workflow:</strong>
+1. <strong>Middleware:</strong> <code>authMiddleware</code>, <code>roleMiddleware</code>. For the upload route, <code>multer</code> processes the <code>multipart/form-data</code>.
+2. <strong>Controller:</strong>
+   - Validates ownership (instructor must own the parent course).
+   - The video is processed. The backend may stream the upload directly to ImageKit or a cloud bucket via <code>imagekit.js</code> service.
+   - Upon successful upload, the returned URL and fileId are saved to the lecture document.
+3. <strong>Response:</strong> Returns <code>200 OK</code> with the updated lecture object.</p>
+<hr />
+<h2 id="3-order-enrollment-workflow">3. Order &amp; Enrollment Workflow</h2>
+<h3 id="31-checkout-initialization-post-apicheckoutcreate-order">3.1 Checkout Initialization (<code>POST /api/checkout/create-order</code>)</h3>
+<p><strong>Trigger:</strong> Student initiates checkout from the cart.
+<strong>Workflow:</strong>
+1. <strong>Middleware:</strong> <code>authMiddleware</code>, <code>orderLimiter</code> (prevents spamming order creations).
+2. <strong>Controller (<code>createOrderController</code>):</strong>
+   - Retrieves the user's cart from DB.
+   - Calculates total price. If a <code>couponCode</code> is provided, fetches it, validates applicability (expiry, usage limits, minimum spend), and applies the discount.
+   - <strong>Payment Gateway Integration:</strong> Calls <code>razorpay.orders.create</code> with the final amount (in paise).
+   - Creates a pending <code>Order</code> document in MongoDB storing the Razorpay Order ID and cart snapshot.
+3. <strong>Response:</strong> Returns <code>200 OK</code> with Razorpay credentials (key, orderId) to open the frontend payment modal.</p>
+<h3 id="32-payment-verification-enrollment-post-apicheckoutverify-payment">3.2 Payment Verification &amp; Enrollment (<code>POST /api/checkout/verify-payment</code>)</h3>
+<p><strong>Trigger:</strong> Razorpay triggers the success callback on the frontend, which calls this API.
+<strong>Workflow:</strong>
+1. <strong>Middleware:</strong> <code>authMiddleware</code>.
+2. <strong>Controller (<code>verifyPaymentController</code>):</strong>
+   - Verifies the HMAC SHA256 signature using the Razorpay API secret to ensure the payload wasn't tampered with.
+   - Finds the corresponding <code>Order</code> in DB and updates its status to <code>completed</code>.
+   - Iterates through the ordered courses and creates <code>Enrollment</code> documents for the student.
+   - If a coupon was used, increments its <code>usageCount</code>.
+   - Emits a notification to the student ("Course Purchased Successfully").
+3. <strong>Response:</strong> Returns <code>200 OK</code>. The frontend redirects the user to the "My Learning" dashboard.</p>
+<hr />
+<h2 id="4-learning-progress-certification-workflow">4. Learning Progress &amp; Certification Workflow</h2>
+<h3 id="41-tracking-lecture-progress-post-apilecture-progressupdate-complete">4.1 Tracking Lecture Progress (<code>POST /api/lecture-progress/update</code> &amp; <code>complete</code>)</h3>
+<p><strong>Trigger:</strong> Video player sends heartbeat requests every X seconds, or when the video finishes.
+<strong>Workflow:</strong>
+1. <strong>Middleware:</strong> <code>authMiddleware</code>.
+2. <strong>Controller (<code>updateLectureProgressController</code>):</strong>
+   - Upserts a <code>LectureProgress</code> document for the specific student and lecture, updating <code>watchTime</code>.
+   - When marked <code>complete</code>, the system triggers an asynchronous recalculation of the total course progress.
+   - It counts completed lectures vs total published lectures in the course.
+   - Updates the <code>progressPercentage</code> on the <code>Enrollment</code> document.
+3. <strong>Certificate Check:</strong> If <code>progressPercentage</code> reaches 100%, the system automatically flags the enrollment as completed.</p>
+<h3 id="42-certificate-generation-get-apicertificatescourseiddownload">4.2 Certificate Generation (<code>GET /api/certificates/:courseId/download</code>)</h3>
+<p><strong>Trigger:</strong> Student clicks "Download Certificate".
+<strong>Workflow:</strong>
+1. <strong>Middleware:</strong> <code>authMiddleware</code>.
+2. <strong>Controller (<code>downloadCertificateController</code>):</strong>
+   - Verifies the enrollment is 100% complete.
+   - Uses <code>pdfkit</code> (Certificate Service) to generate a PDF certificate on the fly.
+   - Embeds a unique verification QR Code generated via the <code>qrcode</code> library.
+   - Streams the PDF buffer directly back to the client as a downloadable file, or uploads it to storage and returns the URL.</p>
+<hr />
+<h2 id="5-ai-assistant-rag-retrieval-augmented-generation-workflow">5. AI Assistant &amp; RAG (Retrieval-Augmented Generation) Workflow</h2>
+<h3 id="51-rag-document-indexing-post-apiaiindexingprocess">5.1 RAG Document Indexing (<code>POST /api/ai/indexing/process</code>)</h3>
+<p><strong>Trigger:</strong> Admin/Instructor uploads a transcript or PDF for the AI to learn.
+<strong>Workflow:</strong>
+1. <strong>Data Parsing:</strong> <code>unpdf</code> extracts text from PDFs, or <code>ffmpeg</code> + Mistral extracts audio transcripts.
+2. <strong>Chunking:</strong> Text is broken into ~500 token chunks with overlap.
+3. <strong>Embedding:</strong> Chunks are sent to the Mistral Embeddings API (<code>mistral-embed</code>) to generate vector arrays.
+4. <strong>Vector Storage:</strong> The vectors and metadata (courseId, timestamps) are stored in MongoDB.</p>
+<h3 id="52-ai-chat-query-post-apiairagquery">5.2 AI Chat Query (<code>POST /api/ai/rag/query</code>)</h3>
+<p><strong>Trigger:</strong> Student asks a question in the AI Chat pane.
+<strong>Workflow:</strong>
+1. <strong>Middleware:</strong> <code>authMiddleware</code>, <code>aiLimiter</code> (strict rate limiting to prevent API abuse).
+2. <strong>Controller (<code>ragQueryController</code>):</strong>
+   - Generates an embedding vector for the user's prompt using Mistral API.
+   - Performs a Cosine Similarity Vector Search in MongoDB against the chunks related to the current course.
+   - Retrieves the top 5 most relevant context chunks.
+   - Assembles a system prompt: <em>"You are an AI tutor... Use this context to answer... [Context Data]"</em>.
+   - Sends the assembled prompt to the Mistral LLM endpoint.
+3. <strong>Response:</strong> The LLM's response is optionally streamed back to the client, complete with markdown formatting and timestamp citations linked to the exact video frame.</p>
+<hr />
+<h2 id="6-live-class-webrtc-workflow">6. Live Class (WebRTC) Workflow</h2>
+<h3 id="61-starting-a-live-class-get-apiinstructorlive-classesidjoin-token">6.1 Starting a Live Class (<code>GET /api/instructor/live-classes/:id/join-token</code>)</h3>
+<p><strong>Trigger:</strong> Instructor clicks "Start Class".
+<strong>Workflow:</strong>
+1. <strong>Middleware:</strong> <code>authMiddleware</code>, <code>roleMiddleware(['instructor'])</code>.
+2. <strong>Controller:</strong>
+   - Validates the class belongs to the instructor.
+   - Calls the <code>Stream.io SDK</code> to generate an Admin Token for the specific call/room ID.
+   - Updates the LiveClass document status to <code>live</code>.
+3. <strong>Response:</strong> Returns the <code>streamToken</code>, which the React client uses to initialize the WebRTC publisher connection.</p>
+<h3 id="62-student-joining-get-apistudentlive-classesidjoin-token">6.2 Student Joining (<code>GET /api/student/live-classes/:id/join-token</code>)</h3>
+<p><strong>Trigger:</strong> Student enters the live class room.
+<strong>Workflow:</strong>
+1. <strong>Middleware:</strong> <code>authMiddleware</code>.
+2. <strong>Controller:</strong>
+   - Verifies the student is enrolled in the associated course.
+   - Generates a Participant/Viewer Token via <code>Stream.io SDK</code>.
+   - Creates a <code>LiveClassAttendance</code> record indicating join time.
+3. <strong>Response:</strong> Returns the token allowing the student client to subscribe to the WebRTC video/audio tracks.</p>
+</body>
+</html>

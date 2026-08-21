@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRD.md</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; }
+        h1, h2, h3, h4, h5, h6 { color: #2c3e50; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; border: 1px solid #e9ecef; }
+        code { background: #f8f9fa; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace; font-size: 0.9em; border: 1px solid #e9ecef; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        img { max-width: 100%; height: auto; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        blockquote { border-left: 4px solid #007bff; padding-left: 15px; color: #6c757d; margin-left: 0; font-style: italic; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<h1 id="navgujarat-academy-product-requirements-document-prd">NavGujarat Academy — Product Requirements Document (PRD)</h1>
+<p><strong>Document Version:</strong> 2.0.0<br />
+<strong>Target Product:</strong> NavGujarat Academy Next-Gen LMS Platform<br />
+<strong>Owner:</strong> Product &amp; Engineering Teams<br />
+<strong>Status:</strong> Approved for Production  </p>
+<hr />
+<h2 id="1-product-overview-vision">1. Product Overview &amp; Vision</h2>
+<p>NavGujarat Academy is a modern, full-lifecycle Learning Management System (LMS) designed to deliver interactive, community-driven, and AI-powered education. Unlike traditional LMS platforms, NavGujarat Academy bridges asynchronous recorded video courses, synchronous live WebRTC streaming classrooms, conversational AI tutoring backed by Retrieval-Augmented Generation (RAG), gamified progress tracking, and instant verifiable credentialing.</p>
+<hr />
+<h2 id="2-target-user-personas">2. Target User Personas</h2>
+<table>
+<thead>
+<tr>
+<th>Persona</th>
+<th>Role</th>
+<th>Key Objectives &amp; Pain Points</th>
+<th>Primary Features Used</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Learner (Student)</strong></td>
+<td>End-User Student / Professional</td>
+<td>Wants self-paced learning, interactive quizzes, instant AI clarification when stuck on code/concepts, live mentor sessions, verifiable certificates, and bookmarkable notes.</td>
+<td>Course Player, AI Tutor Chat, Quizzes/Assignments, Live Classroom, Code Playground, Notes, Certificate Verification.</td>
+</tr>
+<tr>
+<td><strong>Instructor (Creator)</strong></td>
+<td>Course Author / Live Mentor</td>
+<td>Wants intuitive course builder, video lecture uploads, auto-transcription, quiz/assignment authoring, live class scheduling with attendance tracking, student analytics, and announcement broadcasting.</td>
+<td>Instructor Dashboard, Curriculum Builder, Quiz &amp; Assignment Manager, Live Class Host Portal, Announcement Center.</td>
+</tr>
+<tr>
+<td><strong>Administrator</strong></td>
+<td>Platform Operator / Superuser</td>
+<td>Requires complete oversight of users, revenue, transactions, refund requests, course approvals, platform-wide announcements, coupon promotions, moderation of discussion reports, and immutable audit logs.</td>
+<td>Admin Dashboard, User Management, Course Moderation, Financial &amp; Order Analytics, Audit Logs, Coupon Engine, Dispute Moderation.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-core-feature-pillars-functional-scope">3. Core Feature Pillars &amp; Functional Scope</h2>
+<h3 id="pillar-1-identity-authentication-role-based-access-control-rbac">Pillar 1: Identity, Authentication &amp; Role-Based Access Control (RBAC)</h3>
+<ul>
+<li><strong>Email &amp; Password Authentication:</strong> Secure registration, bcrypt password hashing, JWT authentication stored in HttpOnly cookies, email verification workflows with expiring tokens.</li>
+<li><strong>Session &amp; Profile Management:</strong> Profile avatar uploads via ImageKit, password updates, biographical info, multi-device session revocation, account deactivation/suspension.</li>
+<li><strong>Role Enforcement:</strong> Strict three-tier RBAC (<code>student</code>, <code>instructor</code>, <code>admin</code>) with middleware guards on API routes and client-side router navigation guards.</li>
+</ul>
+<h3 id="pillar-2-course-catalog-content-authoring-curriculum-management">Pillar 2: Course Catalog, Content Authoring &amp; Curriculum Management</h3>
+<ul>
+<li><strong>Hierarchical Curriculum:</strong> Course -&gt; Modules -&gt; Lectures.</li>
+<li><strong>Rich Media Support:</strong> Video streaming (HLS/MP4), downloadable PDF resources, lecture text descriptions, previewable trial lessons.</li>
+<li><strong>Course Discovery &amp; Filtering:</strong> Full-text search, multi-category taxonomy filters, difficulty filters (Beginner, Intermediate, Advanced), price sorting, and rating aggregations.</li>
+<li><strong>Instructor Curriculum Builder:</strong> Drag-and-drop or sequential reordering of modules/lectures, bulk uploads, draft/publish lifecycle states.</li>
+</ul>
+<h3 id="pillar-3-interactive-video-player-learning-progression">Pillar 3: Interactive Video Player &amp; Learning Progression</h3>
+<ul>
+<li><strong>Distraction-Free Course Player:</strong> Fullscreen video player with playback rate controls, picture-in-picture, keyboard shortcuts, module drawer, and active lecture highlight.</li>
+<li><strong>Granular Progress Tracking:</strong> Auto-saved progress percentages, resume-from-last-watched position, automated completion triggers when 100% of lectures are viewed.</li>
+<li><strong>Timestamped Student Notes:</strong> Ability for students to capture private or public notes tied to exact video timestamps, exportable as Markdown/PDF.</li>
+</ul>
+<h3 id="pillar-4-assessment-evaluation-engine">Pillar 4: Assessment &amp; Evaluation Engine</h3>
+<ul>
+<li><strong>Quizzes:</strong> Timed assessments with multiple-choice, multiple-answer, true/false, and short-answer questions. Automated grading, immediate score computation, detailed answer explanations, and attempt limits.</li>
+<li><strong>Assignments:</strong> Instructors define homework tasks with rubric criteria and deadline dates. Students upload submission files (PDF, ZIP, DOCX); instructors grade with qualitative feedback.</li>
+<li><strong>AI Quiz Generation:</strong> One-click automated quiz generation from lecture transcripts using Mistral AI.</li>
+</ul>
+<h3 id="pillar-5-real-time-live-classroom-webrtc-streaming">Pillar 5: Real-Time Live Classroom (WebRTC Streaming)</h3>
+<ul>
+<li><strong>Live Video Broadcasting:</strong> Powered by Stream.io Video SDK for high-definition, low-latency audio/video communication.</li>
+<li><strong>Interactive Classroom Tools:</strong> Screen sharing, live chat, hand raising, mic/camera controls, and participant roster.</li>
+<li><strong>Attendance &amp; Reminders:</strong> Automated attendance tracking (join time, duration, completion status) and background cron email reminders sent 15 minutes before scheduled start time.</li>
+</ul>
+<h3 id="pillar-6-ai-tutor-multimodal-rag-assistant">Pillar 6: AI Tutor &amp; Multimodal RAG Assistant</h3>
+<ul>
+<li><strong>Context-Aware AI Tutor:</strong> Chat interface integrated into every course with Mistral AI integration.</li>
+<li><strong>Multimodal RAG Pipeline:</strong> Automatically indexes PDF documents and lecture video transcripts into vector embeddings. When a student asks a question, the engine retrieves the most relevant lecture timestamps and context to generate accurate answers with citations.</li>
+<li><strong>Interactive Code Playground:</strong> In-browser code editor with syntax highlighting, multi-language support (JavaScript, Python, HTML/CSS), and live execution preview.</li>
+</ul>
+<h3 id="pillar-7-social-community-discussions-gamification">Pillar 7: Social Community, Discussions &amp; Gamification</h3>
+<ul>
+<li><strong>Course &amp; Platform Discussions:</strong> Nested thread discussions, code snippet formatting, upvoting, "Accepted Answer" designation by instructors.</li>
+<li><strong>Moderation Engine:</strong> Community reporting system with reason classification (spam, offensive, plagiarism) and admin review workflows.</li>
+<li><strong>Gamification &amp; Badges:</strong> Learning streaks, points for lecture completions, quiz excellence badges, and leaderboards.</li>
+</ul>
+<h3 id="pillar-8-e-commerce-checkout-automated-invoicing">Pillar 8: E-Commerce, Checkout &amp; Automated Invoicing</h3>
+<ul>
+<li><strong>Shopping Cart &amp; Wishlist:</strong> Multi-item cart, cross-device persistence, saved wishlist with instant move-to-cart.</li>
+<li><strong>Dynamic Coupon Engine:</strong> Percentage or flat-rate discounts, minimum spend thresholds, usage limits, user-specific eligibility, and real-time coupon validation.</li>
+<li><strong>Razorpay Payment Gateway:</strong> Secure checkout modal, signature verification, webhook reconciliation, and automated digital receipts.</li>
+</ul>
+<h3 id="pillar-9-verifiable-pdf-certificates">Pillar 9: Verifiable PDF Certificates</h3>
+<ul>
+<li><strong>Automated Issuance:</strong> Triggered upon 100% course completion and meeting minimum passing scores on required assessments.</li>
+<li><strong>Cryptographic Verification:</strong> Each certificate has a unique UUID verification code and embedded QR code pointing to public verification URL (<code>/verify-certificate/:code</code>).</li>
+<li><strong>High-Resolution PDF Generation:</strong> Programmatically generated vector certificates using PDFKit with stylized borders and instructor signatures.</li>
+</ul>
+<h3 id="pillar-10-admin-command-center-business-intelligence">Pillar 10: Admin Command Center &amp; Business Intelligence</h3>
+<ul>
+<li><strong>Executive Analytics:</strong> Total platform revenue, active student count, course enrollment velocity, instructor earnings breakdown, and churn trends.</li>
+<li><strong>User &amp; Content Governance:</strong> User role elevation/demotion, account ban/unban, course approval/rejection, review moderation.</li>
+<li><strong>Immutable Audit Trail:</strong> Comprehensive event logging recording administrative actions, source IPs, affected documents, and timestamped diffs.</li>
+</ul>
+<hr />
+<h2 id="4-non-functional-requirements-nfrs">4. Non-Functional Requirements (NFRs)</h2>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Specification &amp; Acceptance Criteria</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Performance</strong></td>
+<td>API response times <code>&lt; 200ms</code> for 95th percentile requests (excluding AI generation and video transcoding). Page load Time-to-Interactive (TTI) <code>&lt; 1.8s</code>.</td>
+</tr>
+<tr>
+<td><strong>Scalability</strong></td>
+<td>Stateless Express backend capable of horizontal auto-scaling behind reverse proxies; MongoDB replica sets with read-write separation.</td>
+</tr>
+<tr>
+<td><strong>Security &amp; Privacy</strong></td>
+<td>OWASP Top 10 compliance: Bcrypt hashing, HttpOnly secure cookies, parameterized queries to prevent NoSQL injection, HPP protection, CORS restrictions, rate limiting on sensitive routes.</td>
+</tr>
+<tr>
+<td><strong>Availability &amp; Reliability</strong></td>
+<td>99.9% uptime SLA. Graceful fallback on AI service timeouts or payment gateway failures.</td>
+</tr>
+<tr>
+<td><strong>Responsive Design</strong></td>
+<td>100% fluid responsive UI across Mobile (320px+), Tablet (768px+), Laptop (1024px+), and Desktop (1440px+).</td>
+</tr>
+<tr>
+<td><strong>Accessibility (a11y)</strong></td>
+<td>WCAG 2.1 AA compliance: Semantic HTML5 landmarks, keyboard navigation, color contrast ratios <code>&gt;= 4.5:1</code>, screen-reader aria attributes.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-success-metrics-key-performance-indicators-kpis">5. Success Metrics &amp; Key Performance Indicators (KPIs)</h2>
+<ul>
+<li><strong>Course Completion Rate:</strong> Target <code>&gt; 65%</code> (industry average is ~15%).</li>
+<li><strong>AI Tutor Resolution Rate:</strong> <code>&gt; 80%</code> student queries answered without needing instructor intervention.</li>
+<li><strong>Checkout Conversion Rate:</strong> <code>&gt; 85%</code> of initiated cart checkouts successfully completed.</li>
+<li><strong>Live Class Attendance:</strong> <code>&gt; 75%</code> registered student attendance rate driven by automated cron reminders.</li>
+</ul>
+</body>
+</html>

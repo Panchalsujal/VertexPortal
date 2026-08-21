@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRD.md</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; }
+        h1, h2, h3, h4, h5, h6 { color: #2c3e50; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; border: 1px solid #e9ecef; }
+        code { background: #f8f9fa; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace; font-size: 0.9em; border: 1px solid #e9ecef; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        img { max-width: 100%; height: auto; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        blockquote { border-left: 4px solid #007bff; padding-left: 15px; color: #6c757d; margin-left: 0; font-style: italic; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<h1 id="navgujarat-academy-technical-requirements-document-trd">NavGujarat Academy — Technical Requirements Document (TRD)</h1>
+<p><strong>Document Version:</strong> 2.0.0<br />
+<strong>Target System:</strong> NavGujarat Academy Micro-Monorepo Architecture<br />
+<strong>Owner:</strong> Principal System Architect &amp; Engineering Leads<br />
+<strong>Status:</strong> Approved for Production  </p>
+<hr />
+<h2 id="1-system-architecture-overview">1. System Architecture Overview</h2>
+<p>NavGujarat Academy is designed as a decoupled client-server architecture with an asynchronous event-driven service layer and specialized edge integrations for video WebRTC and AI processing.</p>
+<pre class="codehilite"><code>                                  +---------------------------------------+
+                                  |         Client Applications           |
+                                  |   (React 19 / Vite SPA, Responsive)  |
+                                  +-------------------+-------------------+
+                                                      |
+                                      HTTPS / WSS / REST API (JWT HttpOnly)
+                                                      |
+                                  +-------------------v-------------------+
+                                  |          Express 5.2 API Server       |
+                                  |  (Security: Helmet, HPP, Sanitizers)  |
+                                  +-------------------+-------------------+
+                                                      |
+                   +----------------------------------+----------------------------------+
+                   |                                  |                                  |
+         +---------v---------+              +---------v---------+              +---------v---------+
+         |  Business Logic   |              | Background Jobs   |              |  Real-Time &amp; Edge |
+         |  Services Layer   |              |  (Cron Schedulers)|              |  Integration Hub  |
+         +---------+---------+              +---------+---------+              +---------+---------+
+                   |                                  |                                  |
+     +-------------+-------------+                    |                    +-------------+-------------+
+     |             |             |                    |                    |             |             |
++----v----+   +----v----+   +----v----+          +----v----+          +----v----+   +----v----+   +----v----+
+| Mongo   |   | ImageKit|   | Razorpay|          | Class   |          | Stream  |   | Mistral |   | PDFKit  |
+| DB Atlas|   | Media   |   | Gateway |          | Reminder|          | WebRTC  |   | AI RAG  |   | / QRCode|
++---------+   +---------+   +---------+          +---------+          +---------+   +---------+   +---------+
+</code></pre>
+
+<hr />
+<h2 id="2-frontend-technical-architecture">2. Frontend Technical Architecture</h2>
+<h3 id="21-core-framework-tooling">2.1 Core Framework &amp; Tooling</h3>
+<ul>
+<li><strong>React 19.2.8 &amp; Vite 8.2.0:</strong> Utilizing modern JSX runtime, Suspense boundaries, and zero-bundle-overhead development server with ES Modules (ESM).</li>
+<li><strong>React Router DOM 7.18.2:</strong> Client-side route tree featuring declarative layout wrappers and route guards (<code>ProtectedRoute</code>).</li>
+<li><strong>TailwindCSS v4.3.3 &amp; CSS Variables:</strong> Next-gen CSS-first Tailwind engine with CSS custom properties (<code>--vp-primary</code>, <code>--vp-bg</code>, <code>--vp-surface</code>) powering uniform design tokens.</li>
+</ul>
+<h3 id="22-state-management-pattern-redux-toolkit-2120">2.2 State Management Pattern (Redux Toolkit 2.12.0)</h3>
+<ul>
+<li>The global store is partitioned into domain-specific slices:</li>
+<li><code>authSlice</code>: Handles user credentials, login/register thunks, and auto-session verification (<code>fetchMe</code>).</li>
+<li><code>coursesSlice</code>: Caches public and enrolled course catalogs, active filters, and search results.</li>
+<li><code>discussionsSlice</code>: Handles Q&amp;A threads, live upvoting, pagination, and comment submissions.</li>
+<li><code>notesSlice</code>: Manages lecture timestamped notes with optimistic state updates.</li>
+<li><code>aiSlice</code>: Manages multi-turn conversation states, active course context, and streaming response buffers.</li>
+<li>Domain sub-slices: <code>instructor/*</code>, <code>student/*</code>, and <code>admin/*</code>.</li>
+</ul>
+<h3 id="23-network-layer-axios-interceptors-frontendsrcapiaxiosjs">2.3 Network Layer &amp; Axios Interceptors (<code>frontend/src/api/axios.js</code>)</h3>
+<ul>
+<li>Single pre-configured Axios instance with <code>baseURL: import.meta.env.VITE_API_URL || '/api'</code> and <code>withCredentials: true</code>.</li>
+<li><strong>Response Interceptor:</strong> Automatically catches <code>401 Unauthorized</code> responses and cleans auth state, redirecting to <code>/login</code> when token expires.</li>
+</ul>
+<hr />
+<h2 id="3-backend-technical-architecture">3. Backend Technical Architecture</h2>
+<h3 id="31-server-routing-pattern-express-521">3.1 Server &amp; Routing Pattern (Express 5.2.1)</h3>
+<ul>
+<li><strong>Native Async Error Handling:</strong> Express 5 eliminates the need for async-wrap boilerplate; thrown errors automatically propagate to the global error middleware.</li>
+<li><strong>Route Mounting Hierarchy:</strong> Specific administrative sub-routes (e.g., <code>/api/admin/dashboard</code>, <code>/api/admin/users</code>, <code>/api/admin/orders</code>) are mounted before wildcard <code>/api/admin</code> routes to prevent route collisions.</li>
+</ul>
+<h3 id="32-security-pipeline-backendsrcmiddlewares">3.2 Security Pipeline (<code>backend/src/middlewares/</code>)</h3>
+<ol>
+<li><strong><code>helmet</code></strong>: Sets secure HTTP response headers (<code>X-Content-Type-Options: nosniff</code>, <code>X-Frame-Options: SAMEORIGIN</code>).</li>
+<li><strong><code>cors</code></strong>: Dynamic origin resolver validating against whitelist and regex matching Vercel preview environments.</li>
+<li><strong><code>express-rate-limit</code></strong>:</li>
+<li><code>globalLimiter</code>: 300 requests per 15 minutes per IP.</li>
+<li><code>authLimiter</code>: 15 requests per 15 minutes per IP (protects <code>/login</code> and <code>/register</code>).</li>
+<li><code>aiLimiter</code>: 30 requests per minute per IP (protects LLM endpoints from token exhaustion).</li>
+<li><code>orderLimiter</code>: 20 requests per 15 minutes per IP (prevents payment spam).</li>
+<li><strong><code>hpp</code></strong>: Protects against HTTP Parameter Pollution.</li>
+<li><strong><code>sanitizeInput</code></strong>: Recursively removes <code>$</code>, <code>.</code>, and MongoDB query operators from <code>req.body</code>, <code>req.query</code>, and <code>req.params</code>.</li>
+<li><strong><code>auth.middleware.js</code></strong>: Extracts JWT from <code>req.cookies.token</code> or <code>Bearer</code> header, verifies signature, and attaches <code>req.user</code>.</li>
+<li><strong><code>authorize.middleware.js</code> &amp; <code>role.middleware.js</code></strong>: Enforces role access (<code>student</code>, <code>instructor</code>, <code>admin</code>).</li>
+</ol>
+<hr />
+<h2 id="4-specialized-subsystem-engineering">4. Specialized Subsystem Engineering</h2>
+<h3 id="41-live-webrtc-classroom-streamio-integration">4.1 Live WebRTC Classroom (Stream.io Integration)</h3>
+<ul>
+<li><strong>Token Generation:</strong> <code>stream.service.js</code> generates cryptographically signed user tokens using <code>StreamClient(STREAM_API_KEY, STREAM_API_SECRET)</code>.</li>
+<li><strong>Channel Provisioning:</strong> Automatic creation of audio/video rooms with call types <code>default</code> or <code>livestream</code>.</li>
+<li><strong>Attendance Worker:</strong> Tracks client join/leave events, computes participant active duration, and marks attendance status.</li>
+</ul>
+<h3 id="42-multimodal-ai-rag-engine-mistral-ai">4.2 Multimodal AI &amp; RAG Engine (Mistral AI)</h3>
+<ul>
+<li><strong>Audio Extraction &amp; Transcription:</strong> Uploaded lecture videos are processed using <code>ffmpeg-static</code> to isolate 16kHz mono audio streams. The audio is transcribed using Mistral's Voxtral model.</li>
+<li><strong>Document Text Extraction:</strong> Lecture PDF attachments are parsed using <code>unpdf</code> to extract raw text pages.</li>
+<li><strong>Chunking &amp; Vectorization:</strong> Text is segmented into 500-token chunks with 50-token overlap. Vector embeddings are generated using Mistral Embedding API (<code>mistral-embed</code>) and stored in the <code>ragchunks</code> MongoDB collection.</li>
+<li><strong>Context Retrieval &amp; Generation:</strong> Queries calculate Cosine Similarity between the prompt vector and indexed chunks. The top-k matching chunks are injected into the system prompt for high-precision, hallucination-free answers.</li>
+</ul>
+<h3 id="43-payment-invoicing-pipeline-razorpay">4.3 Payment &amp; Invoicing Pipeline (Razorpay)</h3>
+<ul>
+<li><strong>Order Creation:</strong> Verifies course pricing, validates active coupon discounts, calculates total payable amount, and generates Razorpay Order ID.</li>
+<li><strong>Signature Verification:</strong> Computes HMAC SHA-256 signature using <code>RAZORPAY_SECRET_ID</code> to verify payment authenticity before creating <code>Order</code> and <code>Enrollment</code> records.</li>
+</ul>
+<h3 id="44-automated-pdf-certificate-qr-verification">4.4 Automated PDF Certificate &amp; QR Verification</h3>
+<ul>
+<li><strong>Dynamic Vector Engine:</strong> Uses <code>pdfkit</code> to render vector certificates containing student name, course title, completion date, and instructor signatures.</li>
+<li><strong>QR Code Generation:</strong> Generates high-density QR code via <code>qrcode</code> that resolves directly to <code>https://&lt;domain&gt;/verify-certificate/&lt;verificationCode&gt;</code>.</li>
+</ul>
+<hr />
+<h2 id="5-standardized-api-response-protocol">5. Standardized API Response Protocol</h2>
+<p>All API responses follow a strict envelope structure:</p>
+<h3 id="success-response-200-201">Success Response (<code>200</code>, <code>201</code>)</h3>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Resource retrieved successfully&quot;,
+  &quot;data&quot;: { ... },
+  &quot;pagination&quot;: {
+    &quot;page&quot;: 1,
+    &quot;limit&quot;: 20,
+    &quot;total&quot;: 150,
+    &quot;pages&quot;: 8
+  }
+}
+</code></pre>
+
+<h3 id="error-response-400-401-403-404-422-500">Error Response (<code>400</code>, <code>401</code>, <code>403</code>, <code>404</code>, <code>422</code>, <code>500</code>)</h3>
+<pre class="codehilite"><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;message&quot;: &quot;Detailed error message explaining the failure&quot;,
+  &quot;errors&quot;: [
+    {
+      &quot;field&quot;: &quot;email&quot;,
+      &quot;message&quot;: &quot;Email is already registered&quot;
+    }
+  ]
+}
+</code></pre>
+
+<hr />
+<h2 id="6-environment-configuration-specifications">6. Environment &amp; Configuration Specifications</h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Description</th>
+<th>Required Environment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MONGO_URI</code></td>
+<td>MongoDB Connection URI (Atlas / Local)</td>
+<td>Backend</td>
+</tr>
+<tr>
+<td><code>JWT_SECRET</code></td>
+<td>Secret key for signing JWT tokens</td>
+<td>Backend</td>
+</tr>
+<tr>
+<td><code>JWT_EXPIRES_IN</code></td>
+<td>Token lifespan (e.g., <code>7d</code>)</td>
+<td>Backend</td>
+</tr>
+<tr>
+<td><code>EMAIL_USER</code></td>
+<td>Gmail/SMTP email address for notifications</td>
+<td>Backend</td>
+</tr>
+<tr>
+<td><code>GOOGLE_CLIENT_ID</code> / <code>GOOGLE_CLIENT_SECRET</code> / <code>GOOGLE_REFRESH_TOKEN</code></td>
+<td>Google OAuth2 credentials for transactional emails</td>
+<td>Backend</td>
+</tr>
+<tr>
+<td><code>IMAGEKIT_PUBLIC_KEY</code> / <code>IMAGEKIT_PRIVATE_KEY</code> / <code>IMAGEKIT_URL_ENDPOINT</code></td>
+<td>ImageKit CDN media storage</td>
+<td>Backend</td>
+</tr>
+<tr>
+<td><code>RAZORPAY_KEY_ID</code> / <code>RAZORPAY_SECRET_ID</code></td>
+<td>Razorpay payment credentials</td>
+<td>Backend</td>
+</tr>
+<tr>
+<td><code>MISTRAL_API_KEY</code></td>
+<td>Mistral AI API key for embeddings, chat, and transcription</td>
+<td>Backend</td>
+</tr>
+<tr>
+<td><code>STREAM_API_KEY</code> / <code>STREAM_API_SECRET</code></td>
+<td>Stream.io credentials for live WebRTC video</td>
+<td>Backend</td>
+</tr>
+<tr>
+<td><code>VITE_API_URL</code></td>
+<td>Base API URL pointing to Express backend</td>
+<td>Frontend</td>
+</tr>
+<tr>
+<td><code>VITE_STREAM_API_KEY</code></td>
+<td>Public Stream.io key for client video SDK</td>
+<td>Frontend</td>
+</tr>
+<tr>
+<td><code>VITE_RAZORPAY_KEY_ID</code></td>
+<td>Public Razorpay key ID for checkout modal</td>
+<td>Frontend</td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>
