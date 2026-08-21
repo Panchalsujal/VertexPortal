@@ -2,6 +2,7 @@
 
 > **Base URL:** `http://localhost:<PORT>/api`
 > **Authentication:** Cookie-based JWT (`token` cookie set on login)
+> **Workflow Documentation:** See [docs/API_WORKFLOW.md](./docs/API_WORKFLOW.md) for detailed data flows and internal pipelines.
 
 ---
 
