@@ -34,6 +34,39 @@
                                 },
                                 'code::before': { content: 'none' },
                                 'code::after': { content: 'none' },
+                                pre: {
+                                    backgroundColor: '#1e293b',
+                                    color: '#f8fafc',
+                                }
+                            }
+                        },
+                        invert: {
+                            css: {
+                                color: '#94a3b8',
+                                h1: { color: '#f1f5f9' },
+                                h2: { color: '#f1f5f9' },
+                                h3: { color: '#e2e8f0' },
+                                h4: { color: '#e2e8f0' },
+                                strong: { color: '#f1f5f9' },
+                                code: {
+                                    backgroundColor: '#1e293b',
+                                    color: '#e2e8f0',
+                                },
+                                blockquote: {
+                                    color: '#94a3b8',
+                                    borderLeftColor: '#3b82f6',
+                                },
+                                tbody: {
+                                    tr: {
+                                        borderBottomColor: '#1e293b',
+                                    }
+                                },
+                                thead: {
+                                    borderBottomColor: '#1e293b',
+                                    th: {
+                                        color: '#cbd5e1',
+                                    }
+                                }
                             }
                         }
                     }
@@ -50,8 +83,9 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        .dark ::-webkit-scrollbar-thumb { background: #334155; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .dark ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
         .sidebar-link.active {
             background-color: #eff6ff;
@@ -61,6 +95,7 @@
         .dark .sidebar-link.active {
             background-color: #1e293b;
             color: #60a5fa;
+            border-right: 3px solid #3b82f6;
         }
         
         /* Layout */
@@ -75,25 +110,26 @@
             border-radius: 0.75rem;
             margin: 1.5em 0;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            background-color: #0f172a !important; /* Richer dark code background */
         }
     </style>
 </head>
-<body class="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-300 antialiased selection:bg-blue-200 selection:text-blue-900 dark:selection:bg-blue-900 dark:selection:text-blue-100 transition-colors duration-300">
+<body class="bg-white dark:bg-[#0b1120] text-slate-900 dark:text-slate-300 antialiased selection:bg-blue-200 selection:text-blue-900 dark:selection:bg-blue-900/50 dark:selection:text-blue-100 transition-colors duration-300">
 
     <div class="flex min-h-screen max-w-[90rem] mx-auto">
         <!-- Sidebar -->
-        <aside class="sidebar w-72 border-r border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 hidden md:block backdrop-blur-xl">
+        <aside class="sidebar w-72 border-r border-slate-200 dark:border-slate-800/60 bg-slate-50/50 dark:bg-[#0f172a] hidden md:block">
             <div class="p-8">
                 <div class="flex items-center justify-between mb-10">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                         </div>
-                        <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 tracking-tight">VertexPortal</span>
+                        <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 tracking-tight">VertexPortal</span>
                     </div>
                     
                     <!-- Dark Mode Toggle -->
-                    <button id="theme-toggle" class="p-2.5 rounded-xl bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-sm border border-slate-200 dark:border-slate-700 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Toggle Dark Mode">
+                    <button id="theme-toggle" class="p-2.5 rounded-xl bg-white dark:bg-[#1e293b] text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-sm border border-slate-200 dark:border-slate-700 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Toggle Dark Mode">
                         <svg id="theme-toggle-dark-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
                         </svg>
@@ -105,17 +141,17 @@
                 <nav class="space-y-2">
                     <p class="px-4 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Documentation</p>
                     <ul class="space-y-1">
-          <li><a href="#api_workflow" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-slate-800 transition-all duration-200">Api Workflow</a></li>
-          <li><a href="#app_flow" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-slate-800 transition-all duration-200">App Flow</a></li>
-          <li><a href="#audit" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-slate-800 transition-all duration-200">Audit</a></li>
-          <li><a href="#apis" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-slate-800 transition-all duration-200">Apis</a></li>
-          <li><a href="#backend_schema" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-slate-800 transition-all duration-200">Backend Schema</a></li>
-          <li><a href="#frontend_routes" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-slate-800 transition-all duration-200">Frontend Routes</a></li>
-          <li><a href="#frontend_workflow" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-slate-800 transition-all duration-200">Frontend Workflow</a></li>
-          <li><a href="#implementation_plan" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-slate-800 transition-all duration-200">Implementation Plan</a></li>
-          <li><a href="#prd" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-slate-800 transition-all duration-200">Prd</a></li>
-          <li><a href="#trd" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-slate-800 transition-all duration-200">Trd</a></li>
-          <li><a href="#ui_ux_design_brief" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-slate-800 transition-all duration-200">Ui Ux Design Brief</a></li>
+          <li><a href="#api_workflow" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-[#1e2330] transition-all duration-200">Api Workflow</a></li>
+          <li><a href="#app_flow" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-[#1e2330] transition-all duration-200">App Flow</a></li>
+          <li><a href="#audit" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-[#1e2330] transition-all duration-200">Audit</a></li>
+          <li><a href="#apis" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-[#1e2330] transition-all duration-200">Apis</a></li>
+          <li><a href="#backend_schema" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-[#1e2330] transition-all duration-200">Backend Schema</a></li>
+          <li><a href="#frontend_routes" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-[#1e2330] transition-all duration-200">Frontend Routes</a></li>
+          <li><a href="#frontend_workflow" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-[#1e2330] transition-all duration-200">Frontend Workflow</a></li>
+          <li><a href="#implementation_plan" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-[#1e2330] transition-all duration-200">Implementation Plan</a></li>
+          <li><a href="#prd" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-[#1e2330] transition-all duration-200">Prd</a></li>
+          <li><a href="#trd" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-[#1e2330] transition-all duration-200">Trd</a></li>
+          <li><a href="#ui_ux_design_brief" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-[#1e2330] transition-all duration-200">Ui Ux Design Brief</a></li>
 
                     </ul>
                 </nav>
@@ -123,11 +159,11 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 min-w-0 bg-white dark:bg-slate-950">
+        <main class="flex-1 min-w-0 bg-white dark:bg-[#0b1120]">
             <div class="px-8 py-12 lg:px-24 lg:py-20 mx-auto max-w-5xl">
 <section id="api_workflow" class="doc-section mb-24 scroll-mt-24">
   <div class="prose prose-slate max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-2xl prose-a:text-blue-600 hover:prose-a:text-blue-500 prose-img:rounded-xl prose-img:shadow-lg">
-    <h1 class="text-slate-900 dark:text-white mb-10 pb-4 border-b border-slate-200 dark:border-slate-800">Api Workflow</h1>
+    <h1 class="text-slate-900 dark:text-slate-100 mb-10 pb-4 border-b border-slate-200 dark:border-[#30363d]">Api Workflow</h1>
     <h1 id="navgujarat-academy-api-workflows-data-pipelines">NavGujarat Academy — API Workflows &amp; Data Pipelines</h1>
 <p>This document details the step-by-step internal workflow for the core APIs in the backend. It traces the journey of a request from the client, through the middlewares, into the controller logic, database interactions, and the final response.</p>
 <hr />
@@ -269,7 +305,7 @@
 
 <section id="app_flow" class="doc-section mb-24 scroll-mt-24">
   <div class="prose prose-slate max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-2xl prose-a:text-blue-600 hover:prose-a:text-blue-500 prose-img:rounded-xl prose-img:shadow-lg">
-    <h1 class="text-slate-900 dark:text-white mb-10 pb-4 border-b border-slate-200 dark:border-slate-800">App Flow</h1>
+    <h1 class="text-slate-900 dark:text-slate-100 mb-10 pb-4 border-b border-slate-200 dark:border-[#30363d]">App Flow</h1>
     <h1 id="navgujarat-academy-application-flows-user-journeys">NavGujarat Academy — Application Flows &amp; User Journeys</h1>
 <p><strong>Document Version:</strong> 2.0.0<br />
 <strong>Target:</strong> Visual &amp; Architectural User Flows across All Roles<br />
@@ -492,7 +528,7 @@
 
 <section id="audit" class="doc-section mb-24 scroll-mt-24">
   <div class="prose prose-slate max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-2xl prose-a:text-blue-600 hover:prose-a:text-blue-500 prose-img:rounded-xl prose-img:shadow-lg">
-    <h1 class="text-slate-900 dark:text-white mb-10 pb-4 border-b border-slate-200 dark:border-slate-800">Audit</h1>
+    <h1 class="text-slate-900 dark:text-slate-100 mb-10 pb-4 border-b border-slate-200 dark:border-[#30363d]">Audit</h1>
     <h1 id="navgujarat-academy-comprehensive-system-audit-frontend-backend">NavGujarat Academy — Comprehensive System Audit (Frontend &amp; Backend)</h1>
 <p><strong>Audit Version:</strong> 2.1.0<br />
 <strong>Date:</strong> 2026-08-16<br />
@@ -859,7 +895,7 @@
 
 <section id="apis" class="doc-section mb-24 scroll-mt-24">
   <div class="prose prose-slate max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-2xl prose-a:text-blue-600 hover:prose-a:text-blue-500 prose-img:rounded-xl prose-img:shadow-lg">
-    <h1 class="text-slate-900 dark:text-white mb-10 pb-4 border-b border-slate-200 dark:border-slate-800">Apis</h1>
+    <h1 class="text-slate-900 dark:text-slate-100 mb-10 pb-4 border-b border-slate-200 dark:border-[#30363d]">Apis</h1>
     <h1 id="navgujarat-academy-api-documentation">NavGujarat Academy — API Documentation</h1>
 <blockquote>
 <p><strong>Base URL:</strong> <code>http://localhost:&lt;PORT&gt;/api</code>
@@ -4480,7 +4516,7 @@
 
 <section id="backend_schema" class="doc-section mb-24 scroll-mt-24">
   <div class="prose prose-slate max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-2xl prose-a:text-blue-600 hover:prose-a:text-blue-500 prose-img:rounded-xl prose-img:shadow-lg">
-    <h1 class="text-slate-900 dark:text-white mb-10 pb-4 border-b border-slate-200 dark:border-slate-800">Backend Schema</h1>
+    <h1 class="text-slate-900 dark:text-slate-100 mb-10 pb-4 border-b border-slate-200 dark:border-[#30363d]">Backend Schema</h1>
     <h1 id="navgujarat-academy-backend-database-schema-reference-36-models">NavGujarat Academy — Backend Database Schema Reference (36 Models)</h1>
 <p><strong>Document Version:</strong> 2.1.0<br />
 <strong>Database Engine:</strong> MongoDB 7.0+ with Mongoose 9.8.0 ORM<br />
@@ -6552,7 +6588,7 @@
 
 <section id="frontend_routes" class="doc-section mb-24 scroll-mt-24">
   <div class="prose prose-slate max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-2xl prose-a:text-blue-600 hover:prose-a:text-blue-500 prose-img:rounded-xl prose-img:shadow-lg">
-    <h1 class="text-slate-900 dark:text-white mb-10 pb-4 border-b border-slate-200 dark:border-slate-800">Frontend Routes</h1>
+    <h1 class="text-slate-900 dark:text-slate-100 mb-10 pb-4 border-b border-slate-200 dark:border-[#30363d]">Frontend Routes</h1>
     <h1 id="navgujarat-academy-frontend-routes-structure">NavGujarat Academy — Frontend Routes &amp; Structure</h1>
 <p>This document outlines the React-based frontend architecture, including the routing configuration, component structure, and state management strategies used across the application.</p>
 <hr />
@@ -6847,7 +6883,7 @@
 
 <section id="frontend_workflow" class="doc-section mb-24 scroll-mt-24">
   <div class="prose prose-slate max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-2xl prose-a:text-blue-600 hover:prose-a:text-blue-500 prose-img:rounded-xl prose-img:shadow-lg">
-    <h1 class="text-slate-900 dark:text-white mb-10 pb-4 border-b border-slate-200 dark:border-slate-800">Frontend Workflow</h1>
+    <h1 class="text-slate-900 dark:text-slate-100 mb-10 pb-4 border-b border-slate-200 dark:border-[#30363d]">Frontend Workflow</h1>
     <h1 id="navgujarat-academy-frontend-client-workflows">NavGujarat Academy — Frontend Client Workflows</h1>
 <p>This document outlines the core client-side logic, React component lifecycles, and data-flow for major features in the NavGujarat Academy frontend. It acts as the frontend counterpart to <code>API_WORKFLOW.md</code>.</p>
 <hr />
@@ -6927,7 +6963,7 @@
 
 <section id="implementation_plan" class="doc-section mb-24 scroll-mt-24">
   <div class="prose prose-slate max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-2xl prose-a:text-blue-600 hover:prose-a:text-blue-500 prose-img:rounded-xl prose-img:shadow-lg">
-    <h1 class="text-slate-900 dark:text-white mb-10 pb-4 border-b border-slate-200 dark:border-slate-800">Implementation Plan</h1>
+    <h1 class="text-slate-900 dark:text-slate-100 mb-10 pb-4 border-b border-slate-200 dark:border-[#30363d]">Implementation Plan</h1>
     <h1 id="navgujarat-academy-master-implementation-plan-engineering-roadmap">NavGujarat Academy — Master Implementation Plan &amp; Engineering Roadmap</h1>
 <p><strong>Document Version:</strong> 2.0.0<br />
 <strong>Target:</strong> Engineering, QA, DevOps &amp; Product Operations<br />
@@ -7077,7 +7113,7 @@
 
 <section id="prd" class="doc-section mb-24 scroll-mt-24">
   <div class="prose prose-slate max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-2xl prose-a:text-blue-600 hover:prose-a:text-blue-500 prose-img:rounded-xl prose-img:shadow-lg">
-    <h1 class="text-slate-900 dark:text-white mb-10 pb-4 border-b border-slate-200 dark:border-slate-800">Prd</h1>
+    <h1 class="text-slate-900 dark:text-slate-100 mb-10 pb-4 border-b border-slate-200 dark:border-[#30363d]">Prd</h1>
     <h1 id="navgujarat-academy-product-requirements-document-prd">NavGujarat Academy — Product Requirements Document (PRD)</h1>
 <p><strong>Document Version:</strong> 2.0.0<br />
 <strong>Target Product:</strong> NavGujarat Academy Next-Gen LMS Platform<br />
@@ -7230,7 +7266,7 @@
 
 <section id="trd" class="doc-section mb-24 scroll-mt-24">
   <div class="prose prose-slate max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-2xl prose-a:text-blue-600 hover:prose-a:text-blue-500 prose-img:rounded-xl prose-img:shadow-lg">
-    <h1 class="text-slate-900 dark:text-white mb-10 pb-4 border-b border-slate-200 dark:border-slate-800">Trd</h1>
+    <h1 class="text-slate-900 dark:text-slate-100 mb-10 pb-4 border-b border-slate-200 dark:border-[#30363d]">Trd</h1>
     <h1 id="navgujarat-academy-technical-requirements-document-trd">NavGujarat Academy — Technical Requirements Document (TRD)</h1>
 <p><strong>Document Version:</strong> 2.0.0<br />
 <strong>Target System:</strong> NavGujarat Academy Micro-Monorepo Architecture<br />
@@ -7440,7 +7476,7 @@
 
 <section id="ui_ux_design_brief" class="doc-section mb-24 scroll-mt-24">
   <div class="prose prose-slate max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-2xl prose-a:text-blue-600 hover:prose-a:text-blue-500 prose-img:rounded-xl prose-img:shadow-lg">
-    <h1 class="text-slate-900 dark:text-white mb-10 pb-4 border-b border-slate-200 dark:border-slate-800">Ui Ux Design Brief</h1>
+    <h1 class="text-slate-900 dark:text-slate-100 mb-10 pb-4 border-b border-slate-200 dark:border-[#30363d]">Ui Ux Design Brief</h1>
     <h1 id="navgujarat-academy-ui-ux-design-brief-design-system">NavGujarat Academy — UI / UX Design Brief &amp; Design System</h1>
 <p><strong>Document Version:</strong> 2.0.0<br />
 <strong>Design Standard:</strong> LearnOVA / NavGujarat Academy Design Language System (DLS)<br />

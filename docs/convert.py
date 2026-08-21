@@ -20,7 +20,7 @@ for filename in md_files:
     section_id = filename.replace('.md', '').replace(' ', '_').lower()
     section_title = filename.replace('.md', '').replace('_', ' ').title()
     
-    sidebar_html += f'          <li><a href="#{section_id}" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-slate-800 transition-all duration-200">{section_title}</a></li>\n'
+    sidebar_html += f'          <li><a href="#{section_id}" class="sidebar-link block py-2.5 px-4 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-[#1e2330] transition-all duration-200">{section_title}</a></li>\n'
     
     in_path = os.path.join(docs_dir, filename)
     with open(in_path, 'r', encoding='utf-8') as f:
@@ -30,7 +30,7 @@ for filename in md_files:
     
     content_html += f'<section id="{section_id}" class="doc-section mb-24 scroll-mt-24">\n'
     content_html += f'  <div class="prose prose-slate max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-2xl prose-a:text-blue-600 hover:prose-a:text-blue-500 prose-img:rounded-xl prose-img:shadow-lg">\n'
-    content_html += f'    <h1 class="text-slate-900 dark:text-white mb-10 pb-4 border-b border-slate-200 dark:border-slate-800">{section_title}</h1>\n'
+    content_html += f'    <h1 class="text-slate-900 dark:text-slate-100 mb-10 pb-4 border-b border-slate-200 dark:border-[#30363d]">{section_title}</h1>\n'
     content_html += f'    {html}\n'
     content_html += f'  </div>\n'
     content_html += '</section>\n\n'
@@ -72,6 +72,39 @@ html_content = f"""<!DOCTYPE html>
                                 }},
                                 'code::before': {{ content: 'none' }},
                                 'code::after': {{ content: 'none' }},
+                                pre: {{
+                                    backgroundColor: '#1e293b',
+                                    color: '#f8fafc',
+                                }}
+                            }}
+                        }},
+                        invert: {{
+                            css: {{
+                                color: '#94a3b8',
+                                h1: {{ color: '#f1f5f9' }},
+                                h2: {{ color: '#f1f5f9' }},
+                                h3: {{ color: '#e2e8f0' }},
+                                h4: {{ color: '#e2e8f0' }},
+                                strong: {{ color: '#f1f5f9' }},
+                                code: {{
+                                    backgroundColor: '#1e293b',
+                                    color: '#e2e8f0',
+                                }},
+                                blockquote: {{
+                                    color: '#94a3b8',
+                                    borderLeftColor: '#3b82f6',
+                                }},
+                                tbody: {{
+                                    tr: {{
+                                        borderBottomColor: '#1e293b',
+                                    }}
+                                }},
+                                thead: {{
+                                    borderBottomColor: '#1e293b',
+                                    th: {{
+                                        color: '#cbd5e1',
+                                    }}
+                                }}
                             }}
                         }}
                     }}
@@ -88,8 +121,9 @@ html_content = f"""<!DOCTYPE html>
         ::-webkit-scrollbar {{ width: 6px; height: 6px; }}
         ::-webkit-scrollbar-track {{ background: transparent; }}
         ::-webkit-scrollbar-thumb {{ background: #cbd5e1; border-radius: 4px; }}
-        .dark ::-webkit-scrollbar-thumb {{ background: #475569; }}
+        .dark ::-webkit-scrollbar-thumb {{ background: #334155; }}
         ::-webkit-scrollbar-thumb:hover {{ background: #94a3b8; }}
+        .dark ::-webkit-scrollbar-thumb:hover {{ background: #475569; }}
 
         .sidebar-link.active {{
             background-color: #eff6ff;
@@ -99,6 +133,7 @@ html_content = f"""<!DOCTYPE html>
         .dark .sidebar-link.active {{
             background-color: #1e293b;
             color: #60a5fa;
+            border-right: 3px solid #3b82f6;
         }}
         
         /* Layout */
@@ -113,25 +148,26 @@ html_content = f"""<!DOCTYPE html>
             border-radius: 0.75rem;
             margin: 1.5em 0;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            background-color: #0f172a !important; /* Richer dark code background */
         }}
     </style>
 </head>
-<body class="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-300 antialiased selection:bg-blue-200 selection:text-blue-900 dark:selection:bg-blue-900 dark:selection:text-blue-100 transition-colors duration-300">
+<body class="bg-white dark:bg-[#0b1120] text-slate-900 dark:text-slate-300 antialiased selection:bg-blue-200 selection:text-blue-900 dark:selection:bg-blue-900/50 dark:selection:text-blue-100 transition-colors duration-300">
 
     <div class="flex min-h-screen max-w-[90rem] mx-auto">
         <!-- Sidebar -->
-        <aside class="sidebar w-72 border-r border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 hidden md:block backdrop-blur-xl">
+        <aside class="sidebar w-72 border-r border-slate-200 dark:border-slate-800/60 bg-slate-50/50 dark:bg-[#0f172a] hidden md:block">
             <div class="p-8">
                 <div class="flex items-center justify-between mb-10">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                         </div>
-                        <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 tracking-tight">VertexPortal</span>
+                        <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 tracking-tight">VertexPortal</span>
                     </div>
                     
                     <!-- Dark Mode Toggle -->
-                    <button id="theme-toggle" class="p-2.5 rounded-xl bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-sm border border-slate-200 dark:border-slate-700 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Toggle Dark Mode">
+                    <button id="theme-toggle" class="p-2.5 rounded-xl bg-white dark:bg-[#1e293b] text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-sm border border-slate-200 dark:border-slate-700 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Toggle Dark Mode">
                         <svg id="theme-toggle-dark-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
                         </svg>
@@ -150,7 +186,7 @@ html_content = f"""<!DOCTYPE html>
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 min-w-0 bg-white dark:bg-slate-950">
+        <main class="flex-1 min-w-0 bg-white dark:bg-[#0b1120]">
             <div class="px-8 py-12 lg:px-24 lg:py-20 mx-auto max-w-5xl">
 {content_html}
             </div>
