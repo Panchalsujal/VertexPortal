@@ -95,10 +95,10 @@ export default function AdminUsers() {
     }
   };
 
-  const totalUsers        = analytics?.totalUsers         ?? analytics?.overview?.totalUsers        ?? 0;
-  const activeUsers       = analytics?.activeUsers        ?? analytics?.statusBreakdown?.active      ?? 0;
-  const suspendedUsers    = analytics?.suspendedUsers     ?? analytics?.statusBreakdown?.suspended   ?? 0;
-  const instructorsAdmins = (analytics?.roleBreakdown?.instructor ?? 0) + (analytics?.roleBreakdown?.admin ?? 0);
+  const totalUsers        = analytics?.overview?.totalUsers ?? analytics?.totalUsers ?? 0;
+  const activeUsers       = analytics?.overview?.activeUsers ?? analytics?.activeUsers ?? 0;
+  const suspendedUsers    = analytics?.overview?.suspendedUsers ?? analytics?.suspendedUsers ?? 0;
+  const instructorsAdmins = (analytics?.overview?.instructors ?? 0) + (analytics?.overview?.admins ?? 0);
 
   return (
     <AdminLayout
