@@ -36,7 +36,7 @@ const sidebarSections = [
   {
     label: 'CONTENT',
     items: [
-      { to: '/admin/courses',          icon: FileText,        label: 'Lectures & Course Content' },
+      { to: '/admin/courses',          icon: FileText,        label: 'Lectures & Content' },
       { to: '/discussions',            icon: MessageSquare,   label: 'Discussions & Q&A' },
       { to: '/admin/notes',            icon: Bell,            label: 'Notes & Documents' },
       { to: '/instructor/announcements', icon: Zap,           label: 'Announcements' },
@@ -111,11 +111,11 @@ function AdminLayoutInner({ children, title, subtitle, actions, showBack = false
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 font-[Inter,sans-serif] w-full max-w-full overflow-x-hidden">
-      {/* Mobile overlay backdrop when sidebar is open */}
+    <div className="flex min-h-screen bg-gray-50 dark:bg-neutral-950 font-[Inter,sans-serif] w-full max-w-full overflow-x-hidden">
+      {/* Mobile overlay backdrop */}
       {open && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-xs transition-opacity"
+          className="fixed inset-0 bg-neutral-900/60 z-40 lg:hidden backdrop-blur-sm transition-opacity"
           onClick={() => setOpen(false)}
         />
       )}
@@ -123,186 +123,170 @@ function AdminLayoutInner({ children, title, subtitle, actions, showBack = false
       {/* Sidebar Navigation */}
       <Sidebar>
         <SidebarHeader>
-          <Link to="/admin" className="flex items-center gap-2 no-underline" onClick={closeSidebarOnMobile}>
-            <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center shadow-md shrink-0"
-              style={{ background: 'linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%)' }}
-            >
-              <GraduationCap className="w-4.5 h-4.5 text-white" />
+          <Link to="/admin" className="flex items-center gap-2.5 no-underline py-2" onClick={closeSidebarOnMobile}>
+            <div className="w-7 h-7 bg-gray-900 dark:bg-white flex items-center justify-center shrink-0">
+              <GraduationCap className="w-4 h-4 text-white dark:text-gray-900" />
             </div>
             <div>
-              <p className="text-sm font-extrabold text-gray-900 dark:text-white leading-tight">NavGujarat Academy</p>
-              <p className="text-[10px] text-purple-500 font-semibold">Admin Panel</p>
+              <p className="text-sm font-bold text-gray-900 dark:text-white leading-none tracking-tight">NavGujarat</p>
+              <p className="text-[11px] text-gray-500 font-medium mt-0.5">Admin Console</p>
             </div>
           </Link>
         </SidebarHeader>
 
         <SidebarContent>
-          {sidebarSections.map((section) => (
-            <div key={section.label} className="mb-1">
-              <p className="text-[9px] font-bold tracking-widest uppercase text-gray-400 dark:text-gray-500 px-3 py-2">
-                {section.label}
-              </p>
-              {section.items.map(({ to, icon: Icon, label, end }) => (
-                <NavLink
-                  key={`${to}-${label}`}
-                  to={to}
-                  end={end}
-                  onClick={closeSidebarOnMobile}
-                  className={({ isActive }) =>
-                    `flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium rounded-xl transition-colors ${
-                      isActive
-                        ? 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 font-semibold shadow-2xs'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-gray-50 dark:hover:bg-gray-800'
-                    }`
-                  }
-                >
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span>{label}</span>
-                </NavLink>
-              ))}
-            </div>
-          ))}
+          <div className="py-2">
+            {sidebarSections.map((section) => (
+              <div key={section.label} className="mb-4 last:mb-0">
+                <p className="text-[10px] font-bold tracking-wider uppercase text-gray-500 dark:text-neutral-500 px-3 mb-1.5">
+                  {section.label}
+                </p>
+                <div className="space-y-0.5">
+                  {section.items.map(({ to, icon: Icon, label, end }) => (
+                    <NavLink
+                      key={`${to}-${label}`}
+                      to={to}
+                      end={end}
+                      onClick={closeSidebarOnMobile}
+                      className={({ isActive }) =>
+                        `flex items-center gap-2.5 px-3 py-1.5 text-[13px] font-medium rounded-sm transition-colors border-l-2 ${
+                          isActive
+                            ? 'text-gray-900 dark:text-white bg-gray-200/50 dark:bg-neutral-800/50 border-gray-900 dark:border-white font-semibold'
+                            : 'text-gray-600 dark:text-neutral-400 border-transparent hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-900'
+                        }`
+                      }
+                    >
+                      <Icon className="w-4 h-4 shrink-0" />
+                      <span>{label}</span>
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </SidebarContent>
 
         <SidebarFooter>
-          <Link
-            to="/"
-            onClick={closeSidebarOnMobile}
-            className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-xl transition-colors no-underline"
-          >
-            <Globe className="w-4 h-4" />
-            <span>Visit Website</span>
-            <ArrowUpRight className="w-3.5 h-3.5 ml-auto" />
-          </Link>
-          <button
-            type="button"
-            onClick={() => {
-              closeSidebarOnMobile();
-              handleLogout();
-            }}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-colors cursor-pointer"
-          >
-            <LogOut className="w-4 h-4" /> Logout
-          </button>
+          <div className="border-t border-gray-200 dark:border-neutral-800 pt-3 space-y-1">
+            <Link
+              to="/"
+              onClick={closeSidebarOnMobile}
+              className="flex items-center gap-2.5 px-3 py-1.5 text-[13px] font-medium text-gray-600 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-sm transition-colors"
+            >
+              <Globe className="w-4 h-4" />
+              <span>Live Website</span>
+              <ArrowUpRight className="w-3.5 h-3.5 ml-auto opacity-50" />
+            </Link>
+            <button
+              type="button"
+              onClick={() => {
+                closeSidebarOnMobile();
+                handleLogout();
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[13px] font-medium text-gray-600 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-sm transition-colors cursor-pointer text-left"
+            >
+              <LogOut className="w-4 h-4" /> Sign Out
+            </button>
+          </div>
         </SidebarFooter>
       </Sidebar>
 
       {/* Main Content Area */}
       <main className="flex-1 min-w-0 w-full max-w-full lg:ml-60 min-h-screen flex flex-col overflow-x-hidden">
-        {/* Top Header */}
-        <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-30 w-full max-w-full">
-          <div className="flex items-center gap-2 sm:gap-3 px-3.5 sm:px-6 py-3 sm:py-3.5 max-w-full">
-            <SidebarTrigger className="lg:hidden" />
+        
+        {/* Topbar */}
+        <header className="bg-white dark:bg-neutral-950 border-b border-gray-200 dark:border-neutral-800 sticky top-0 z-30 w-full">
+          <div className="flex items-center gap-3 px-4 h-14">
+            <SidebarTrigger className="lg:hidden shrink-0" />
 
-            {/* Back Button */}
-            <button
-              type="button"
-              onClick={() => {
-                if (window.history.length > 1 && window.history.state?.idx > 0) {
-                  navigate(-1);
-                } else {
-                  navigate('/admin');
-                }
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200 transition cursor-pointer shrink-0"
-              title="Go back to previous page"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" /> Back
-            </button>
+            {/* Breadcrumb / Back */}
+            {showBack && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.history.length > 1 && window.history.state?.idx > 0) {
+                    navigate(-1);
+                  } else {
+                    navigate('/admin');
+                  }
+                }}
+                className="flex items-center gap-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white transition-colors"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" /> Back
+              </button>
+            )}
 
-            {/* Search */}
-            <div className="relative flex-1 max-w-sm hidden sm:block">
-              <svg className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <circle cx="11" cy="11" r="8" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35" />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search portal..."
-                className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
-              />
-            </div>
+            <div className="flex-1"></div>
 
-            <div className="flex items-center gap-1 sm:gap-2 ml-auto shrink-0">
-              <Link to="/discussions" className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition" title="Discussions">
+            {/* Actions / Utilities */}
+            <div className="flex items-center gap-2 shrink-0">
+              <Link to="/discussions" className="p-1.5 text-gray-500 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white transition-colors" title="Discussions">
                 <MessageSquare className="w-4 h-4" />
               </Link>
-              <Link to="/notifications" className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition relative" title="Notifications">
+              <Link to="/notifications" className="p-1.5 text-gray-500 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white transition-colors relative" title="Notifications">
                 <Bell className="w-4 h-4" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-purple-600 rounded-full" />
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-gray-900 dark:bg-white rounded-full" />
               </Link>
 
-              {/* User Dropdown */}
-              <div className="relative" ref={userMenuRef}>
+              {/* User Menu */}
+              <div className="relative ml-2 pl-4 border-l border-gray-200 dark:border-neutral-800" ref={userMenuRef}>
                 <button
                   type="button"
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-2 sm:gap-2.5 ml-1 sm:ml-2 pl-2 sm:pl-3 border-l border-gray-200 dark:border-gray-700 hover:opacity-80 transition cursor-pointer text-left shrink-0"
+                  className="flex items-center gap-2 hover:opacity-80 transition cursor-pointer text-left"
                 >
-                  <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm shrink-0 overflow-hidden border border-purple-200 dark:border-purple-800"
-                    style={{ background: 'linear-gradient(135deg, #6C5CE7, #a29bfe)' }}
-                  >
+                  <div className="w-7 h-7 bg-gray-100 dark:bg-neutral-800 flex items-center justify-center text-gray-900 dark:text-white font-bold text-xs shrink-0 overflow-hidden">
                     {user?.avatarUrl ? (
                       <img
                         src={user.avatarUrl}
                         alt={user.fullName || 'Admin'}
-                        className="w-full h-full object-cover rounded-full"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { e.target.style.display = 'none'; }}
                       />
                     ) : (
                       user?.fullName?.[0]?.toUpperCase() || 'A'
                     )}
                   </div>
                   <div className="hidden sm:block">
-                    <p className="text-xs font-semibold text-gray-900 dark:text-white leading-tight">{user?.fullName || 'Admin'}</p>
-                    <p className="text-[10px] text-purple-500 font-semibold capitalize">{user?.role || 'Super Admin'}</p>
+                    <p className="text-[13px] font-semibold text-gray-900 dark:text-white leading-tight">
+                      {user?.fullName || 'Admin'}
+                    </p>
                   </div>
                   <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
 
-                {/* Dropdown Menu Popover */}
+                {/* Dropdown Menu */}
                 {userMenuOpen && (
-                  <div className="absolute right-0 top-11 w-52 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 py-2 z-50 animate-in fade-in slide-in-from-top-2">
-                    <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-800">
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-neutral-900 rounded-md shadow-lg border border-gray-200 dark:border-neutral-800 py-1.5 z-50 animate-in fade-in slide-in-from-top-1">
+                    <div className="px-4 py-2 border-b border-gray-100 dark:border-neutral-800 mb-1">
                       <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{user?.fullName || 'Admin'}</p>
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+                      <p className="text-[11px] text-gray-500 dark:text-neutral-400 truncate">{user?.email}</p>
                     </div>
 
                     <Link
                       to="/profile"
                       onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/30 transition-colors no-underline"
+                      className="flex items-center gap-2.5 px-4 py-1.5 text-[13px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
                     >
-                      <User className="w-4 h-4 text-purple-600" /> My Profile &amp; Settings
-                    </Link>
-
-                    <Link
-                      to="/admin"
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/30 transition-colors no-underline"
-                    >
-                      <LayoutDashboard className="w-4 h-4 text-purple-600" /> Admin Dashboard
+                      <User className="w-3.5 h-3.5" /> Profile Settings
                     </Link>
 
                     <Link
                       to="/"
                       onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/30 transition-colors no-underline"
+                      className="flex items-center gap-2.5 px-4 py-1.5 text-[13px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
                     >
-                      <Globe className="w-4 h-4 text-purple-600" /> Visit Main Website
+                      <Globe className="w-3.5 h-3.5" /> View Live Site
                     </Link>
 
-                    <div className="border-t border-gray-100 dark:border-gray-800 my-1" />
+                    <div className="border-t border-gray-100 dark:border-neutral-800 my-1" />
 
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-left cursor-pointer"
+                      className="w-full flex items-center gap-2.5 px-4 py-1.5 text-[13px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors text-left cursor-pointer"
                     >
-                      <LogOut className="w-4 h-4" /> Logout Account
+                      <LogOut className="w-3.5 h-3.5" /> Sign Out
                     </button>
                   </div>
                 )}
@@ -311,19 +295,19 @@ function AdminLayoutInner({ children, title, subtitle, actions, showBack = false
           </div>
         </header>
 
-        {/* Page Title Row (if provided) */}
+        {/* Page Content Header */}
         {(title || actions) && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-3.5 sm:px-6 pt-4 sm:pt-5 pb-2 w-full max-w-full">
-            <div className="min-w-0 flex-1">
-              {title && <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white leading-snug break-words">{title}</h1>}
-              {subtitle && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed break-words">{subtitle}</p>}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-5 w-full bg-white dark:bg-neutral-950 border-b border-gray-200 dark:border-neutral-800">
+            <div className="min-w-0">
+              {title && <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">{title}</h1>}
+              {subtitle && <p className="text-[13px] text-gray-500 dark:text-neutral-400 mt-1">{subtitle}</p>}
             </div>
-            {actions && <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">{actions}</div>}
+            {actions && <div className="flex items-center gap-2">{actions}</div>}
           </div>
         )}
 
-        {/* Page Content */}
-        <div className="flex-1 p-3.5 sm:p-6 w-full max-w-full min-w-0 overflow-hidden">
+        {/* Main Workspace */}
+        <div className="flex-1 p-6 w-full min-w-0">
           {children}
         </div>
       </main>

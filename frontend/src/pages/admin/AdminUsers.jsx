@@ -11,25 +11,13 @@ import {
   selectAdminUsersLoading,
 } from '../../store/slices/admin/usersSlice';
 import {
-  Users, UserCheck, UserX, Shield, Search, Plus, Check, X, ChevronDown, UserPlus, GraduationCap, UserCog
+  Users, UserCheck, UserX, Shield, Search, UserPlus, X
 } from 'lucide-react';
 import { register as registerApi } from '../../api/auth.api';
 import { SkeletonTable } from '../../components/ui/Spinner';
 import AdminLayout from '../../components/admin/AdminLayout';
 import CustomSelect from '../../components/ui/CustomSelect';
 import toast from 'react-hot-toast';
-
-const ROLE_COLORS = {
-  admin:      { bg: 'rgba(108,92,231,0.1)', text: '#6C5CE7', border: 'rgba(108,92,231,0.2)' },
-  instructor: { bg: 'rgba(0,184,148,0.1)',  text: '#00856a', border: 'rgba(0,184,148,0.2)' },
-  student:    { bg: 'rgba(9,132,227,0.1)',  text: '#0760a8', border: 'rgba(9,132,227,0.2)' },
-};
-
-const STATUS_COLORS = {
-  active:    { bg: 'rgba(0,184,148,0.1)',  text: '#00856a' },
-  inactive:  { bg: 'rgba(148,163,184,0.1)', text: '#6b7280' },
-  suspended: { bg: 'rgba(214,48,49,0.1)',   text: '#d63031' },
-};
 
 export default function AdminUsers() {
   const dispatch  = useAppDispatch();
@@ -115,53 +103,48 @@ export default function AdminUsers() {
 
   return (
     <AdminLayout
-      title="User Management & Role Delegation"
-      subtitle="Manage platform registered users, assign roles (Student, Instructor, Admin), and update access statuses"
+      title="User Management"
+      subtitle="Manage registered users, assign roles, and control access"
       actions={
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs text-white shadow-md transition-all hover:opacity-90 cursor-pointer shrink-0"
-          style={{ background: 'linear-gradient(135deg, #6C5CE7 0%, #5046d4 100%)' }}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-sm bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 text-[13px] font-semibold transition-colors shrink-0"
         >
-          <UserPlus size={15} /> Add User
+          <UserPlus size={14} /> Add User
         </button>
       }
     >
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { icon: <Users className="w-4 h-4 sm:w-5 sm:h-5" />, color: '#6C5CE7', bg: 'rgba(108,92,231,0.1)', label: 'Total Users', val: totalUsers },
-          { icon: <UserCheck className="w-4 h-4 sm:w-5 sm:h-5" />, color: '#00b894', bg: 'rgba(0,184,148,0.1)', label: 'Active Users', val: activeUsers },
-          { icon: <UserX className="w-4 h-4 sm:w-5 sm:h-5" />, color: '#d63031', bg: 'rgba(214,48,49,0.1)', label: 'Suspended', val: suspendedUsers },
-          { icon: <Shield className="w-4 h-4 sm:w-5 sm:h-5" />, color: '#0984e3', bg: 'rgba(9,132,227,0.1)', label: 'Instructors/Admins', val: instructorsAdmins },
+          { label: 'Total Users', val: totalUsers },
+          { label: 'Active Users', val: activeUsers },
+          { label: 'Suspended', val: suspendedUsers },
+          { label: 'Instructors/Admins', val: instructorsAdmins },
         ].map((c) => (
-          <div key={c.label} className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 p-3 sm:p-4.5 flex items-center gap-2.5 sm:gap-4 shadow-sm">
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: c.bg }}>
-              <span style={{ color: c.color }}>{c.icon}</span>
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate">{c.label}</p>
-              <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">{c.val.toLocaleString()}</p>
-            </div>
+          <div key={c.label} className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-sm p-4">
+            <p className="text-[13px] font-medium text-gray-500 dark:text-neutral-400 mb-2">{c.label}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight">{c.val.toLocaleString()}</p>
           </div>
         ))}
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-3 sm:p-4 flex flex-col sm:flex-row gap-2.5 sm:gap-3 mb-5">
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by name or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+            className="w-full bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-sm pl-9 pr-3 py-1.5 text-[13px] text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gray-400 dark:focus:border-neutral-600 transition-colors"
           />
         </div>
-        <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 sm:gap-3 min-w-0 max-w-full">
+        <div className="grid grid-cols-2 sm:flex sm:flex-row gap-3 min-w-0">
           <div className="w-full sm:w-36 min-w-0">
             <CustomSelect
+              size="sm"
               value={roleFilter}
               onChange={(val) => handleRoleFilterChange(val)}
               options={[
@@ -175,6 +158,7 @@ export default function AdminUsers() {
           </div>
           <div className="w-full sm:w-36 min-w-0">
             <CustomSelect
+              size="sm"
               value={statusFilter}
               onChange={(val) => setStatusFilter(val)}
               options={[
@@ -193,158 +177,131 @@ export default function AdminUsers() {
       {loading ? (
         <SkeletonTable rows={6} cols={5} />
       ) : (
-        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden w-full max-w-full min-w-0">
-          <div className="overflow-x-auto w-full max-w-full">
-            <table className="w-full min-w-[620px] text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
-                  <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
-                  <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
-                  <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                  <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joined</th>
-                  <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">Actions</th>
+        <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-sm overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[700px]">
+            <thead>
+              <tr className="border-b border-gray-200 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-800/30">
+                <th className="px-4 py-3 text-[12px] font-semibold text-gray-600 dark:text-neutral-400 uppercase tracking-wider">User</th>
+                <th className="px-4 py-3 text-[12px] font-semibold text-gray-600 dark:text-neutral-400 uppercase tracking-wider">Role</th>
+                <th className="px-4 py-3 text-[12px] font-semibold text-gray-600 dark:text-neutral-400 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-[12px] font-semibold text-gray-600 dark:text-neutral-400 uppercase tracking-wider">Joined</th>
+                <th className="px-4 py-3 text-[12px] font-semibold text-gray-600 dark:text-neutral-400 uppercase tracking-wider text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-neutral-800/80">
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-10 text-[13px] text-gray-500">
+                    No users found matching your criteria
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-sm">
-                {users.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="text-center py-12 text-gray-400">
-                      <Users className="w-10 h-10 mx-auto mb-2 opacity-50 text-purple-400" />
-                      <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">No users found</p>
+              ) : (
+              users.map((u) => {
+                const isSuspended = u.status === 'suspended';
+                return (
+                  <tr key={u._id} className="hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors group">
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col">
+                        <span className="text-[13px] font-semibold text-gray-900 dark:text-white leading-tight">{u.fullName || 'User'}</span>
+                        <span className="text-[11px] text-gray-500 dark:text-neutral-400">{u.email}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={u.role}
+                        onChange={(e) => handleRoleChange(u._id, e.target.value)}
+                        className="text-[11px] font-semibold px-2 py-1 rounded-sm border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-gray-700 dark:text-neutral-300 focus:outline-none focus:border-gray-400 cursor-pointer"
+                      >
+                        <option value="student">Student</option>
+                        <option value="instructor">Instructor</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    </td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={u.status || 'active'}
+                        onChange={(e) => handleStatusChange(u._id, e.target.value)}
+                        className={`text-[11px] font-semibold px-2 py-1 rounded-sm border focus:outline-none cursor-pointer ${
+                          isSuspended
+                            ? 'bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-400'
+                            : 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400'
+                        }`}
+                      >
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="suspended">Suspended</option>
+                      </select>
+                    </td>
+                    <td className="px-4 py-3 text-[12px] text-gray-500 dark:text-neutral-400 font-mono">
+                      {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => handleStatusChange(u._id, isSuspended ? 'active' : 'suspended')}
+                        className={`text-[11px] font-semibold px-2 py-1 rounded-sm border transition-colors ${
+                          isSuspended
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:border-emerald-900 dark:text-emerald-400 dark:hover:bg-emerald-900/50'
+                            : 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/30 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-900/50'
+                        }`}
+                      >
+                        {isSuspended ? 'Restore' : 'Suspend'}
+                      </button>
                     </td>
                   </tr>
-                ) : (
-                users.map((u) => {
-                  const roleStyle   = ROLE_COLORS[u.role]   || ROLE_COLORS.student;
-                  const statusStyle = STATUS_COLORS[u.status || 'active'] || STATUS_COLORS.active;
-                  const initials    = u.fullName ? u.fullName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase() : 'U';
-
-                  return (
-                    <tr key={u._id} className="hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition-colors">
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm"
-                            style={{ background: 'linear-gradient(135deg, #6C5CE7, #a29bfe)' }}
-                          >
-                            {initials}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-gray-900 dark:text-white leading-tight">{u.fullName}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">{u.email}</p>
-                          </div>
-                        </div>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <select
-                          value={u.role}
-                          onChange={(e) => handleRoleChange(u._id, e.target.value)}
-                          className="text-xs font-bold px-2.5 py-1 rounded-full border cursor-pointer focus:outline-none transition-colors"
-                          style={{
-                            backgroundColor: roleStyle.bg,
-                            color: roleStyle.text,
-                            borderColor: roleStyle.border,
-                          }}
-                        >
-                          <option value="student">Student</option>
-                          <option value="instructor">Instructor</option>
-                          <option value="admin">Admin</option>
-                        </select>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <select
-                          value={u.status || 'active'}
-                          onChange={(e) => handleStatusChange(u._id, e.target.value)}
-                          className="text-xs font-bold px-2.5 py-1 rounded-full border-0 cursor-pointer focus:outline-none capitalize"
-                          style={{
-                            backgroundColor: statusStyle.bg,
-                            color: statusStyle.text,
-                          }}
-                        >
-                          <option value="active">Active</option>
-                          <option value="inactive">Inactive</option>
-                          <option value="suspended">Suspended</option>
-                        </select>
-                      </td>
-
-                      <td className="px-5 py-4 text-xs text-gray-500 dark:text-gray-400">
-                        {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}
-                      </td>
-
-                      <td className="px-5 py-4 text-right">
-                        <button
-                          onClick={() => handleStatusChange(u._id, u.status === 'suspended' ? 'active' : 'suspended')}
-                          className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
-                            u.status === 'suspended'
-                              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 hover:bg-emerald-100'
-                              : 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300 hover:bg-red-100'
-                          }`}
-                        >
-                          {u.status === 'suspended' ? 'Unsuspend' : 'Suspend'}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
+                );
+              })
+            )}
             </tbody>
           </table>
-          </div>
         </div>
       )}
 
       {/* Create User Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-md w-full p-6 border border-gray-100 dark:border-gray-800 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Create New User</h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600">
-                <X size={18} />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-neutral-900 rounded-md border border-gray-200 dark:border-neutral-800 w-full max-w-sm shadow-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
+              <h3 className="text-[14px] font-bold text-gray-900 dark:text-white">New User</h3>
+              <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <X size={16} />
               </button>
             </div>
-
-            <form onSubmit={handleCreateUser} className="space-y-4">
+            <form onSubmit={handleCreateUser} className="p-5 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
+                <label className="block text-[12px] font-semibold text-gray-700 dark:text-neutral-300 mb-1.5">Full Name</label>
                 <input
                   type="text"
                   required
-                  placeholder="John Doe"
+                  placeholder="Jane Doe"
                   value={createForm.fullName}
                   onChange={(e) => setCreateForm((f) => ({ ...f, fullName: e.target.value }))}
-                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm"
+                  className="w-full bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-sm px-3 py-2 text-[13px] text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gray-500"
                 />
               </div>
-
               <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
+                <label className="block text-[12px] font-semibold text-gray-700 dark:text-neutral-300 mb-1.5">Email</label>
                 <input
                   type="email"
                   required
-                  placeholder="john@example.com"
+                  placeholder="jane@example.com"
                   value={createForm.email}
                   onChange={(e) => setCreateForm((f) => ({ ...f, email: e.target.value }))}
-                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm"
+                  className="w-full bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-sm px-3 py-2 text-[13px] text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gray-500"
                 />
               </div>
-
               <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                <label className="block text-[12px] font-semibold text-gray-700 dark:text-neutral-300 mb-1.5">Password</label>
                 <input
                   type="password"
                   required
-                  placeholder="At least 6 characters"
+                  placeholder="Minimum 6 characters"
                   value={createForm.password}
                   onChange={(e) => setCreateForm((f) => ({ ...f, password: e.target.value }))}
-                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm"
+                  className="w-full bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-sm px-3 py-2 text-[13px] text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gray-500"
                 />
               </div>
-
               <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Initial Role</label>
+                <label className="block text-[12px] font-semibold text-gray-700 dark:text-neutral-300 mb-1.5">Role</label>
                 <CustomSelect
                   value={createForm.role}
                   onChange={(val) => setCreateForm((f) => ({ ...f, role: val }))}
@@ -356,22 +313,20 @@ export default function AdminUsers() {
                   placeholder="Select Role"
                 />
               </div>
-
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-50"
+                  className="flex-1 py-2 rounded-sm border border-gray-300 dark:border-neutral-700 text-[13px] font-semibold text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={creating}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white shadow-md transition-all hover:opacity-90"
-                  style={{ background: 'linear-gradient(135deg, #6C5CE7 0%, #5046d4 100%)' }}
+                  className="flex-1 py-2 rounded-sm bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-[13px] font-semibold text-white dark:text-gray-900 transition-colors disabled:opacity-50"
                 >
-                  {creating ? 'Creating...' : 'Create Account'}
+                  {creating ? 'Saving...' : 'Save User'}
                 </button>
               </div>
             </form>
