@@ -62,7 +62,7 @@ function getNotificationUrl(item) {
       try {
         const parsed = new URL(url);
         url = parsed.pathname + parsed.search;
-      } catch (_err) {}
+      } catch (_err) { /* ignore */ }
     }
     return url;
   }

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ChevronDown, PlayCircle, FileText, CheckCircle2, Circle } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronDown, PlayCircle, FileText, CheckCircle2 } from 'lucide-react';
 
 function formatDuration(s) {
   if (!s || s <= 0) return '';

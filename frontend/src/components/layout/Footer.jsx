@@ -6,8 +6,6 @@ import {
   ShieldCheck,
   Zap,
   MessageSquare,
-  BookOpen,
-  Video,
   Sparkles,
   GraduationCap,
   Globe,
@@ -18,7 +16,7 @@ import toast from 'react-hot-toast';
 export function Footer() {
   const [email, setEmail] = useState('');
   const location = useLocation();
-  const isHome = location.pathname === '/';
+  
 
   const handleSubscribe = (e) => {
     e.preventDefault();

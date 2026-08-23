@@ -609,10 +609,10 @@ function DeviceSettingsModal({
     return () => {
       if (animId) cancelAnimationFrame(animId);
       if (source) {
-        try { source.disconnect(); } catch (_e) {}
+        try { source.disconnect(); } catch (_e) { /* ignore */ }
       }
       if (audioCtx) {
-        try { audioCtx.close(); } catch (_e) {}
+        try { audioCtx.close(); } catch (_e) { /* ignore */ }
       }
     };
   }, [isOpen, call, isMicMuted]);
@@ -855,13 +855,13 @@ function StreamConnectedStage({
     if (call?.speaker?.setVolume) {
       try {
         call.speaker.setVolume(vol);
-      } catch (_e) {}
+      } catch (_e) { /* ignore */ }
     }
     document.querySelectorAll('audio').forEach((audio) => {
       try {
         audio.muted = isMutedAll;
         audio.volume = vol;
-      } catch (_e) {}
+      } catch (_e) { /* ignore */ }
     });
   }, [masterVolume, isMutedAll, call]);
 
@@ -871,7 +871,7 @@ function StreamConnectedStage({
     if (call?.speaker?.setParticipantVolume) {
       try {
         call.speaker.setParticipantVolume(sessionId, volumePercent / 100);
-      } catch (_e) {}
+      } catch (_e) { /* ignore */ }
     }
   };
 
@@ -921,10 +921,10 @@ function StreamConnectedStage({
     return () => {
       if (animId) cancelAnimationFrame(animId);
       if (source) {
-        try { source.disconnect(); } catch (_e) {}
+        try { source.disconnect(); } catch (_e) { /* ignore */ }
       }
       if (audioCtx) {
-        try { audioCtx.close(); } catch (_e) {}
+        try { audioCtx.close(); } catch (_e) { /* ignore */ }
       }
     };
   }, [call, isMicMuted]);
@@ -978,9 +978,9 @@ function StreamConnectedStage({
           audio.muted = isMutedAll;
           audio.volume = isMutedAll ? 0 : masterVolume / 100;
           if (audio.paused) {
-            audio.play().catch(() => {});
+            audio.play().catch(() => { /* ignore */ });
           }
-        } catch (_e) {}
+        } catch (_e) { /* ignore */ }
       });
     };
 

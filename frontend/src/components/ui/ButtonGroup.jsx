@@ -1,4 +1,4 @@
-import React from 'react';
+// ButtonGroup Component
 
 /**
  * Shadcn-style ButtonGroup component

@@ -26,7 +26,7 @@ export function CourseCard({ course, wishlisted = false, onWishlistChange }) {
   const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(wishlisted);
   const [cartLoading, setCartLoading] = useState(false);
-  const [wishLoading, setWishLoading] = useState(false);
+  const [wishLoading] = useState(false);
 
   const effectivePrice = course.discountPrice ?? course.price;
 
