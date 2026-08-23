@@ -5,8 +5,8 @@ import { getAllCourses } from '../../api/course.api';
 import { Star, Search, Trash2, MessageSquare, Award, ThumbsUp, Shield } from 'lucide-react';
 import { StarRating } from '../../components/ui/StarRating';
 import { SkeletonTable } from '../../components/ui/Spinner';
+import { SkeletonTable } from '../../components/ui/Spinner';
 import AdminLayout from '../../components/admin/AdminLayout';
-import CustomSelect from '../../components/ui/CustomSelect';
 import toast from 'react-hot-toast';
 
 export default function AdminReviews() {
@@ -80,74 +80,53 @@ export default function AdminReviews() {
       subtitle="Inspect, filter, and moderate student ratings and course feedback platform-wide"
     >
       {/* Analytics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-5">
-        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4.5 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-2.5 sm:gap-4">
-          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-500 flex items-center justify-center shrink-0">
-            <Star className="w-4 h-4 sm:w-5 sm:h-5 fill-amber-400 text-amber-400" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate">Avg Rating</p>
-            <p className="text-lg sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">{avgRating} / 5.0</p>
-          </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+          <p className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-neutral-400 mb-2">Avg Rating</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight tabular-nums">{avgRating} / 5.0</p>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4.5 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-2.5 sm:gap-4">
-          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 flex items-center justify-center shrink-0">
-            <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate">Total Reviews</p>
-            <p className="text-lg sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">{totalReviews}</p>
-          </div>
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+          <p className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-neutral-400 mb-2">Total Reviews</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight tabular-nums">{totalReviews}</p>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4.5 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-2.5 sm:gap-4">
-          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center shrink-0">
-            <ThumbsUp className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate">5★ Reviews</p>
-            <p className="text-lg sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">{fiveStars}</p>
-          </div>
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+          <p className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-neutral-400 mb-2">5★ Reviews</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight tabular-nums">{fiveStars}</p>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4.5 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-2.5 sm:gap-4">
-          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center shrink-0">
-            <Award className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate">Positive (4★+)</p>
-            <p className="text-lg sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">{fourStarsPlus}</p>
-          </div>
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+          <p className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-neutral-400 mb-2">Positive (4★+)</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight tabular-nums">{fourStarsPlus}</p>
         </div>
       </div>
 
-      {/* Filter Bar */}
-      <div className="bg-white dark:bg-gray-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm mb-5 flex flex-col sm:flex-row gap-2.5 sm:gap-3">
+      {/* Filter Bar (Unified Toolbar) */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg shadow-sm mb-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 dark:divide-white/10">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search reviews by student, course, or text..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+            className="w-full bg-transparent border-none pl-10 pr-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-slate-400 focus:ring-0 focus:outline-none"
           />
         </div>
-        <div className="w-full sm:w-48 min-w-0">
-          <CustomSelect
+        <div className="w-48">
+          <select
             value={ratingFilter}
-            onChange={(val) => setRatingFilter(val)}
-            options={[
-              { value: '', label: 'All Ratings' },
-              { value: '5', label: '5 Stars (Excellent)' },
-              { value: '4', label: '4 Stars (Very Good)' },
-              { value: '3', label: '3 Stars (Average)' },
-              { value: '2', label: '2 Stars (Poor)' },
-              { value: '1', label: '1 Star (Very Poor)' },
-            ]}
-            placeholder="All Ratings"
-          />
+            onChange={(e) => setRatingFilter(e.target.value)}
+            className="w-full bg-transparent border-none px-4 py-2.5 text-sm text-slate-700 dark:text-neutral-300 focus:ring-0 focus:outline-none appearance-none cursor-pointer"
+          >
+            <option value="">All Ratings</option>
+            <option value="5">5 Stars (Excellent)</option>
+            <option value="4">4 Stars (Very Good)</option>
+            <option value="3">3 Stars (Average)</option>
+            <option value="2">2 Stars (Poor)</option>
+            <option value="1">1 Star (Very Poor)</option>
+          </select>
         </div>
       </div>
 
@@ -155,84 +134,80 @@ export default function AdminReviews() {
       {loading ? (
         <SkeletonTable rows={6} cols={5} />
       ) : (
-        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden w-full max-w-full min-w-0">
-          <div className="overflow-x-auto w-full max-w-full">
-            <table className="w-full min-w-[620px] text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
-                  <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Student</th>
-                  <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Course</th>
-                  <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rating</th>
-                  <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Review Comment</th>
-                  <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">Actions</th>
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg shadow-sm overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[700px]">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#202020]">
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Student</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Course</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Rating</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Review Comment</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+              {filteredReviews.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-10 text-sm text-slate-500">
+                    No course reviews found.
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
-                {filteredReviews.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="text-center py-12 text-gray-400">
-                      <MessageSquare className="w-10 h-10 mx-auto mb-2 opacity-50 text-purple-400" />
-                      <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">No course reviews found</p>
-                      <p className="text-xs text-gray-400 mt-1">Student reviews will appear here automatically.</p>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredReviews.map((r) => {
-                    const studentName = r.student?.fullName || r.user?.fullName || 'Anonymous Student';
-                    const studentEmail = r.student?.email || r.user?.email || '';
-                    const courseTitle = r.course?.title || r.courseTitle || 'Course';
-                    const initials = studentName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+              ) : (
+                filteredReviews.map((r) => {
+                  const studentName = r.student?.fullName || r.user?.fullName || 'Anonymous Student';
+                  const studentEmail = r.student?.email || r.user?.email || '';
+                  const courseTitle = r.course?.title || r.courseTitle || 'Course';
+                  const initials = studentName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
-                    return (
-                      <tr key={r._id} className="hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition-colors">
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-3">
-                            <div
-                              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm"
-                              style={{ background: 'linear-gradient(135deg, #6C5CE7, #a29bfe)' }}
-                            >
-                              {initials}
-                            </div>
-                            <div>
-                              <p className="text-sm font-semibold text-gray-900 dark:text-white">{studentName}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">{studentEmail}</p>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <span className="text-sm font-medium text-purple-600 dark:text-purple-400 hover:underline">
-                            {courseTitle}
-                          </span>
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-1">
-                            <StarRating rating={r.rating} size={14} />
-                            <span className="text-xs font-bold text-gray-700 dark:text-gray-300 ml-1">{r.rating}.0</span>
-                          </div>
-                        </td>
-
-                        <td className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300 max-w-md">
-                          <p className="line-clamp-2">{r.comment || r.content || 'No text comment provided'}</p>
-                        </td>
-
-                        <td className="px-5 py-4 text-right">
-                          <button
-                            onClick={() => handleDelete(r._id)}
-                            className="p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors inline-flex items-center gap-1 text-xs font-semibold"
-                            title="Delete Review"
+                  return (
+                    <tr key={r._id} className="hover:bg-slate-50/50 dark:hover:bg-[#202020]/30 transition-colors group bg-white dark:bg-[#181818]">
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 shadow-sm"
+                            style={{ background: 'linear-gradient(135deg, #6C5CE7, #a29bfe)' }}
                           >
-                            <Trash2 className="w-4 h-4" /> Delete
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+                            {initials}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">{studentName}</p>
+                            <p className="text-xs text-slate-500 dark:text-neutral-400">{studentEmail}</p>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="px-4 py-2.5">
+                        <span className="text-sm font-medium text-purple-600 dark:text-purple-400 hover:underline">
+                          {courseTitle}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-1.5">
+                          <StarRating rating={r.rating} size={14} />
+                          <span className="text-xs font-bold text-gray-700 dark:text-gray-300 tabular-nums">{r.rating}.0</span>
+                        </div>
+                      </td>
+
+                      <td className="px-4 py-2.5 text-sm text-slate-700 dark:text-neutral-300 max-w-md">
+                        <p className="line-clamp-2">{r.comment || r.content || 'No text comment provided'}</p>
+                      </td>
+
+                      <td className="px-4 py-2.5 text-right">
+                        <button
+                          onClick={() => handleDelete(r._id)}
+                          className="text-xs font-medium px-3 py-1.5 rounded-md border bg-white dark:bg-[#202020] border-slate-200 dark:border-white/10 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors shadow-sm inline-flex items-center gap-1.5"
+                          title="Delete Review"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Delete
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       )}
     </AdminLayout>

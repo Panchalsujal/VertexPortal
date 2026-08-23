@@ -16,7 +16,6 @@ import {
 import { register as registerApi } from '../../api/auth.api';
 import { SkeletonTable } from '../../components/ui/Spinner';
 import AdminLayout from '../../components/admin/AdminLayout';
-import CustomSelect from '../../components/ui/CustomSelect';
 import toast from 'react-hot-toast';
 
 export default function AdminUsers() {
@@ -108,7 +107,7 @@ export default function AdminUsers() {
       actions={
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-sm bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 text-[13px] font-semibold transition-colors shrink-0"
+          className="flex items-center gap-2 px-4 py-2 rounded-md bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium shadow-sm transition-colors shrink-0"
         >
           <UserPlus size={14} /> Add User
         </button>
@@ -122,53 +121,49 @@ export default function AdminUsers() {
           { label: 'Suspended', val: suspendedUsers },
           { label: 'Instructors/Admins', val: instructorsAdmins },
         ].map((c) => (
-          <div key={c.label} className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-sm p-4">
-            <p className="text-[13px] font-medium text-gray-500 dark:text-neutral-400 mb-2">{c.label}</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight">{c.val.toLocaleString()}</p>
+          <div key={c.label} className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+            <p className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-neutral-400 mb-2">{c.label}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight tabular-nums">{c.val.toLocaleString()}</p>
           </div>
         ))}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+      {/* Filters (Unified Toolbar) */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg shadow-sm mb-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 dark:divide-white/10">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by name or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-sm pl-9 pr-3 py-1.5 text-[13px] text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gray-400 dark:focus:border-neutral-600 transition-colors"
+            className="w-full bg-transparent border-none pl-10 pr-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-slate-400 focus:ring-0 focus:outline-none"
           />
         </div>
-        <div className="grid grid-cols-2 sm:flex sm:flex-row gap-3 min-w-0">
-          <div className="w-full sm:w-36 min-w-0">
-            <CustomSelect
-              size="sm"
+        <div className="flex flex-row divide-x divide-slate-200 dark:divide-white/10">
+          <div className="w-40">
+            <select
               value={roleFilter}
-              onChange={(val) => handleRoleFilterChange(val)}
-              options={[
-                { value: '', label: 'All Roles' },
-                { value: 'student', label: 'Student' },
-                { value: 'instructor', label: 'Instructor' },
-                { value: 'admin', label: 'Admin' },
-              ]}
-              placeholder="All Roles"
-            />
+              onChange={(e) => handleRoleFilterChange(e.target.value)}
+              className="w-full bg-transparent border-none px-4 py-2.5 text-sm text-slate-700 dark:text-neutral-300 focus:ring-0 focus:outline-none appearance-none cursor-pointer"
+            >
+              <option value="">All Roles</option>
+              <option value="student">Student</option>
+              <option value="instructor">Instructor</option>
+              <option value="admin">Admin</option>
+            </select>
           </div>
-          <div className="w-full sm:w-36 min-w-0">
-            <CustomSelect
-              size="sm"
+          <div className="w-40">
+            <select
               value={statusFilter}
-              onChange={(val) => setStatusFilter(val)}
-              options={[
-                { value: '', label: 'All Statuses' },
-                { value: 'active', label: 'Active' },
-                { value: 'inactive', label: 'Inactive' },
-                { value: 'suspended', label: 'Suspended' },
-              ]}
-              placeholder="All Statuses"
-            />
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full bg-transparent border-none px-4 py-2.5 text-sm text-slate-700 dark:text-neutral-300 focus:ring-0 focus:outline-none appearance-none cursor-pointer"
+            >
+              <option value="">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="suspended">Suspended</option>
+            </select>
           </div>
         </div>
       </div>
@@ -177,21 +172,21 @@ export default function AdminUsers() {
       {loading ? (
         <SkeletonTable rows={6} cols={5} />
       ) : (
-        <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-sm overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[700px]">
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg shadow-sm overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[800px]">
             <thead>
-              <tr className="border-b border-gray-200 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-800/30">
-                <th className="px-4 py-3 text-[12px] font-semibold text-gray-600 dark:text-neutral-400 uppercase tracking-wider">User</th>
-                <th className="px-4 py-3 text-[12px] font-semibold text-gray-600 dark:text-neutral-400 uppercase tracking-wider">Role</th>
-                <th className="px-4 py-3 text-[12px] font-semibold text-gray-600 dark:text-neutral-400 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-[12px] font-semibold text-gray-600 dark:text-neutral-400 uppercase tracking-wider">Joined</th>
-                <th className="px-4 py-3 text-[12px] font-semibold text-gray-600 dark:text-neutral-400 uppercase tracking-wider text-right">Actions</th>
+              <tr className="border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#202020]">
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">User</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Role</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Joined</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-neutral-800/80">
+            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
               {users.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-10 text-[13px] text-gray-500">
+                  <td colSpan={5} className="text-center py-10 text-sm text-slate-500">
                     No users found matching your criteria
                   </td>
                 </tr>
@@ -199,31 +194,31 @@ export default function AdminUsers() {
               users.map((u) => {
                 const isSuspended = u.status === 'suspended';
                 return (
-                  <tr key={u._id} className="hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors group">
-                    <td className="px-4 py-3">
+                  <tr key={u._id} className="hover:bg-slate-50/50 dark:hover:bg-[#202020]/30 transition-colors group bg-white dark:bg-[#181818]">
+                    <td className="px-4 py-2.5">
                       <div className="flex flex-col">
-                        <span className="text-[13px] font-semibold text-gray-900 dark:text-white leading-tight">{u.fullName || 'User'}</span>
-                        <span className="text-[11px] text-gray-500 dark:text-neutral-400">{u.email}</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white leading-tight">{u.fullName || 'User'}</span>
+                        <span className="text-xs text-slate-500 dark:text-neutral-400">{u.email}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-2.5">
                       <select
                         value={u.role}
                         onChange={(e) => handleRoleChange(u._id, e.target.value)}
-                        className="text-[11px] font-semibold px-2 py-1 rounded-sm border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-gray-700 dark:text-neutral-300 focus:outline-none focus:border-gray-400 cursor-pointer"
+                        className="text-xs font-medium px-2 py-1 rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-[#202020] text-slate-700 dark:text-neutral-300 focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer"
                       >
                         <option value="student">Student</option>
                         <option value="instructor">Instructor</option>
                         <option value="admin">Admin</option>
                       </select>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-2.5">
                       <select
                         value={u.status || 'active'}
                         onChange={(e) => handleStatusChange(u._id, e.target.value)}
-                        className={`text-[11px] font-semibold px-2 py-1 rounded-sm border focus:outline-none cursor-pointer ${
+                        className={`text-xs font-medium px-2 py-1 rounded-md border focus:outline-none cursor-pointer ${
                           isSuspended
-                            ? 'bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-400'
+                            ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400'
                             : 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400'
                         }`}
                       >
@@ -232,16 +227,16 @@ export default function AdminUsers() {
                         <option value="suspended">Suspended</option>
                       </select>
                     </td>
-                    <td className="px-4 py-3 text-[12px] text-gray-500 dark:text-neutral-400 font-mono">
+                    <td className="px-4 py-2.5 text-xs text-slate-500 dark:text-neutral-400 tabular-nums">
                       {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-2.5 text-right">
                       <button
                         onClick={() => handleStatusChange(u._id, isSuspended ? 'active' : 'suspended')}
-                        className={`text-[11px] font-semibold px-2 py-1 rounded-sm border transition-colors ${
+                        className={`text-xs font-medium px-3 py-1.5 rounded-md border transition-colors shadow-sm ${
                           isSuspended
-                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:border-emerald-900 dark:text-emerald-400 dark:hover:bg-emerald-900/50'
-                            : 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/30 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-900/50'
+                            ? 'bg-white dark:bg-[#202020] border-slate-200 dark:border-white/10 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30'
+                            : 'bg-white dark:bg-[#202020] border-slate-200 dark:border-white/10 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30'
                         }`}
                       >
                         {isSuspended ? 'Restore' : 'Suspend'}
@@ -258,73 +253,72 @@ export default function AdminUsers() {
 
       {/* Create User Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-neutral-900 rounded-md border border-gray-200 dark:border-neutral-800 w-full max-w-sm shadow-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
-              <h3 className="text-[14px] font-bold text-gray-900 dark:text-white">New User</h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                <X size={16} />
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#181818] rounded-xl border border-slate-200 dark:border-white/10 w-full max-w-sm shadow-xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">New User</h3>
+              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                <X size={18} />
               </button>
             </div>
-            <form onSubmit={handleCreateUser} className="p-5 space-y-4">
+            <form onSubmit={handleCreateUser} className="p-6 space-y-4">
               <div>
-                <label className="block text-[12px] font-semibold text-gray-700 dark:text-neutral-300 mb-1.5">Full Name</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-neutral-300 mb-1.5">Full Name</label>
                 <input
                   type="text"
                   required
                   placeholder="Jane Doe"
                   value={createForm.fullName}
                   onChange={(e) => setCreateForm((f) => ({ ...f, fullName: e.target.value }))}
-                  className="w-full bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-sm px-3 py-2 text-[13px] text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gray-500"
+                  className="w-full bg-white dark:bg-[#202020] border border-slate-200 dark:border-white/10 rounded-md px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-900/50 focus:border-purple-500"
                 />
               </div>
               <div>
-                <label className="block text-[12px] font-semibold text-gray-700 dark:text-neutral-300 mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-neutral-300 mb-1.5">Email</label>
                 <input
                   type="email"
                   required
                   placeholder="jane@example.com"
                   value={createForm.email}
                   onChange={(e) => setCreateForm((f) => ({ ...f, email: e.target.value }))}
-                  className="w-full bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-sm px-3 py-2 text-[13px] text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gray-500"
+                  className="w-full bg-white dark:bg-[#202020] border border-slate-200 dark:border-white/10 rounded-md px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-900/50 focus:border-purple-500"
                 />
               </div>
               <div>
-                <label className="block text-[12px] font-semibold text-gray-700 dark:text-neutral-300 mb-1.5">Password</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-neutral-300 mb-1.5">Password</label>
                 <input
                   type="password"
                   required
                   placeholder="Minimum 6 characters"
                   value={createForm.password}
                   onChange={(e) => setCreateForm((f) => ({ ...f, password: e.target.value }))}
-                  className="w-full bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-sm px-3 py-2 text-[13px] text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gray-500"
+                  className="w-full bg-white dark:bg-[#202020] border border-slate-200 dark:border-white/10 rounded-md px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-900/50 focus:border-purple-500"
                 />
               </div>
               <div>
-                <label className="block text-[12px] font-semibold text-gray-700 dark:text-neutral-300 mb-1.5">Role</label>
-                <CustomSelect
+                <label className="block text-sm font-medium text-slate-700 dark:text-neutral-300 mb-1.5">Role</label>
+                <select
                   value={createForm.role}
-                  onChange={(val) => setCreateForm((f) => ({ ...f, role: val }))}
-                  options={[
-                    { value: 'student', label: 'Student' },
-                    { value: 'instructor', label: 'Instructor' },
-                    { value: 'admin', label: 'Admin' },
-                  ]}
-                  placeholder="Select Role"
-                />
+                  onChange={(e) => setCreateForm((f) => ({ ...f, role: e.target.value }))}
+                  className="w-full bg-white dark:bg-[#202020] border border-slate-200 dark:border-white/10 rounded-md px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-900/50 focus:border-purple-500"
+                >
+                  <option value="student">Student</option>
+                  <option value="instructor">Instructor</option>
+                  <option value="admin">Admin</option>
+                </select>
               </div>
-              <div className="flex gap-2 pt-2">
+              <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-white/10 mt-6">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 py-2 rounded-sm border border-gray-300 dark:border-neutral-700 text-[13px] font-semibold text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+                  className="flex-1 py-2 rounded-md border border-slate-200 dark:border-white/10 text-sm font-medium text-slate-700 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-[#202020] transition-colors shadow-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={creating}
-                  className="flex-1 py-2 rounded-sm bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-[13px] font-semibold text-white dark:text-gray-900 transition-colors disabled:opacity-50"
+                  className="flex-1 py-2 rounded-md bg-purple-600 hover:bg-purple-700 text-sm font-medium text-white shadow-sm transition-colors disabled:opacity-50"
                 >
                   {creating ? 'Saving...' : 'Save User'}
                 </button>

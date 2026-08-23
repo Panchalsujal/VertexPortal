@@ -111,7 +111,7 @@ function AdminLayoutInner({ children, title, subtitle, actions, showBack = false
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-neutral-950 font-[Inter,sans-serif] w-full max-w-full overflow-x-hidden">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-[#111111] font-[Inter,sans-serif] w-full max-w-full overflow-x-hidden">
       {/* Mobile overlay backdrop */}
       {open && (
         <div
@@ -129,7 +129,7 @@ function AdminLayoutInner({ children, title, subtitle, actions, showBack = false
             </div>
             <div>
               <p className="text-sm font-bold text-gray-900 dark:text-white leading-none tracking-tight">NavGujarat</p>
-              <p className="text-[11px] text-gray-500 font-medium mt-0.5">Admin Console</p>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">Admin Console</p>
             </div>
           </Link>
         </SidebarHeader>
@@ -138,7 +138,7 @@ function AdminLayoutInner({ children, title, subtitle, actions, showBack = false
           <div className="py-2">
             {sidebarSections.map((section) => (
               <div key={section.label} className="mb-4 last:mb-0">
-                <p className="text-[10px] font-bold tracking-wider uppercase text-gray-500 dark:text-neutral-500 px-3 mb-1.5">
+                <p className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-neutral-500 px-3 mb-2">
                   {section.label}
                 </p>
                 <div className="space-y-0.5">
@@ -149,10 +149,10 @@ function AdminLayoutInner({ children, title, subtitle, actions, showBack = false
                       end={end}
                       onClick={closeSidebarOnMobile}
                       className={({ isActive }) =>
-                        `flex items-center gap-2.5 px-3 py-1.5 text-[13px] font-medium rounded-sm transition-colors border-l-2 ${
+                        `flex items-center gap-2.5 px-3 py-1.5 text-sm font-medium rounded-sm transition-colors border-l-2 ${
                           isActive
-                            ? 'text-gray-900 dark:text-white bg-gray-200/50 dark:bg-neutral-800/50 border-gray-900 dark:border-white font-semibold'
-                            : 'text-gray-600 dark:text-neutral-400 border-transparent hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-900'
+                            ? 'text-purple-700 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-900/20 border-purple-600'
+                            : 'text-slate-600 dark:text-neutral-400 border-transparent hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#181818]'
                         }`
                       }
                     >
@@ -167,11 +167,11 @@ function AdminLayoutInner({ children, title, subtitle, actions, showBack = false
         </SidebarContent>
 
         <SidebarFooter>
-          <div className="border-t border-gray-200 dark:border-neutral-800 pt-3 space-y-1">
+          <div className="border-t border-slate-200 dark:border-white/10 pt-3 space-y-1">
             <Link
               to="/"
               onClick={closeSidebarOnMobile}
-              className="flex items-center gap-2.5 px-3 py-1.5 text-[13px] font-medium text-gray-600 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-sm transition-colors"
+              className="flex items-center gap-2.5 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#181818] rounded-sm transition-colors"
             >
               <Globe className="w-4 h-4" />
               <span>Live Website</span>
@@ -195,7 +195,7 @@ function AdminLayoutInner({ children, title, subtitle, actions, showBack = false
       <main className="flex-1 min-w-0 w-full max-w-full lg:ml-60 min-h-screen flex flex-col overflow-x-hidden">
         
         {/* Topbar */}
-        <header className="bg-white dark:bg-neutral-950 border-b border-gray-200 dark:border-neutral-800 sticky top-0 z-30 w-full">
+        <header className="bg-white dark:bg-[#181818] border-b border-slate-200 dark:border-white/10 sticky top-0 z-30 w-full">
           <div className="flex items-center gap-3 px-4 h-14">
             <SidebarTrigger className="lg:hidden shrink-0" />
 
@@ -229,7 +229,7 @@ function AdminLayoutInner({ children, title, subtitle, actions, showBack = false
               </Link>
 
               {/* User Menu */}
-              <div className="relative ml-2 pl-4 border-l border-gray-200 dark:border-neutral-800" ref={userMenuRef}>
+              <div className="relative ml-2 pl-4 border-l border-slate-200 dark:border-white/10" ref={userMenuRef}>
                 <button
                   type="button"
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
@@ -257,10 +257,10 @@ function AdminLayoutInner({ children, title, subtitle, actions, showBack = false
 
                 {/* Dropdown Menu */}
                 {userMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-neutral-900 rounded-md shadow-lg border border-gray-200 dark:border-neutral-800 py-1.5 z-50 animate-in fade-in slide-in-from-top-1">
-                    <div className="px-4 py-2 border-b border-gray-100 dark:border-neutral-800 mb-1">
-                      <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{user?.fullName || 'Admin'}</p>
-                      <p className="text-[11px] text-gray-500 dark:text-neutral-400 truncate">{user?.email}</p>
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-[#202020] rounded-md shadow-lg border border-slate-200 dark:border-white/10 py-1.5 z-50 animate-in fade-in slide-in-from-top-1">
+                    <div className="px-4 py-2 border-b border-slate-100 dark:border-white/10 mb-1">
+                      <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{user?.fullName || 'Admin'}</p>
+                      <p className="text-xs text-slate-500 dark:text-neutral-400 truncate">{user?.email}</p>
                     </div>
 
                     <Link
@@ -297,10 +297,10 @@ function AdminLayoutInner({ children, title, subtitle, actions, showBack = false
 
         {/* Page Content Header */}
         {(title || actions) && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-5 w-full bg-white dark:bg-neutral-950 border-b border-gray-200 dark:border-neutral-800">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-5 w-full bg-white dark:bg-[#181818] border-b border-slate-200 dark:border-white/10">
             <div className="min-w-0">
-              {title && <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">{title}</h1>}
-              {subtitle && <p className="text-[13px] text-gray-500 dark:text-neutral-400 mt-1">{subtitle}</p>}
+              {title && <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">{title}</h1>}
+              {subtitle && <p className="text-sm text-slate-500 dark:text-neutral-400 mt-1">{subtitle}</p>}
             </div>
             {actions && <div className="flex items-center gap-2">{actions}</div>}
           </div>

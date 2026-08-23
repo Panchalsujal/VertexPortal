@@ -9,7 +9,6 @@ import {
   Eye, Clock, Trash2, Shield, User, MessageSquare, RefreshCw, X
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
-import CustomSelect from '../../components/ui/CustomSelect';
 import { SkeletonTable } from '../../components/ui/Spinner';
 import { useAdminGuard } from '../../hooks/useAdminGuard';
 import { useInactivityLogout } from '../../hooks/useInactivityLogout';
@@ -117,100 +116,76 @@ export default function AdminDiscussionReports() {
       subtitle="Review and resolve flagged community discussions and user-reported content"
     >
       {/* Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-5">
-        <div className="bg-white dark:bg-gray-900 p-3.5 sm:p-4.5 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center shrink-0">
-            <Clock className="w-5 h-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] sm:text-xs text-gray-500 font-medium truncate">Pending Review</p>
-            <p className="text-lg sm:text-2xl font-extrabold text-amber-600 leading-tight">{pendingCount}</p>
-          </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+          <p className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-neutral-400 mb-2">Pending Review</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight tabular-nums">{pendingCount}</p>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 p-3.5 sm:p-4.5 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center shrink-0">
-            <Eye className="w-5 h-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] sm:text-xs text-gray-500 font-medium truncate">Under Review</p>
-            <p className="text-lg sm:text-2xl font-extrabold text-blue-600 leading-tight">{reviewingCount}</p>
-          </div>
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+          <p className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-neutral-400 mb-2">Under Review</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight tabular-nums">{reviewingCount}</p>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 p-3.5 sm:p-4.5 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center shrink-0">
-            <CheckCircle className="w-5 h-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] sm:text-xs text-gray-500 font-medium truncate">Resolved</p>
-            <p className="text-lg sm:text-2xl font-extrabold text-emerald-600 leading-tight">{resolvedCount}</p>
-          </div>
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+          <p className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-neutral-400 mb-2">Resolved</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight tabular-nums">{resolvedCount}</p>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 p-3.5 sm:p-4.5 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 flex items-center justify-center shrink-0">
-            <ShieldAlert className="w-5 h-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] sm:text-xs text-gray-500 font-medium truncate">Total Reports</p>
-            <p className="text-lg sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">{totalCount}</p>
-          </div>
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+          <p className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-neutral-400 mb-2">Total Reports</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight tabular-nums">{totalCount}</p>
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="bg-white dark:bg-gray-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs mb-5 flex flex-col md:flex-row items-center justify-between gap-3">
-        <div className="flex flex-1 w-full md:w-auto items-center gap-2.5">
+      {/* Filter & Search Bar (Unified Toolbar) */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg shadow-sm flex-1 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 dark:divide-white/10">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search reports by user, reason, note..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+              className="w-full bg-transparent border-none pl-10 pr-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-slate-400 focus:ring-0 focus:outline-none"
             />
           </div>
-
-          <div className="w-36 sm:w-44 shrink-0">
-            <CustomSelect
+          <div className="w-44 shrink-0">
+            <select
               value={statusFilter}
-              onChange={(val) => setStatusFilter(val)}
-              options={[
-                { value: '', label: 'All Statuses' },
-                { value: 'pending', label: 'Pending' },
-                { value: 'reviewing', label: 'Reviewing' },
-                { value: 'resolved', label: 'Resolved' },
-                { value: 'rejected', label: 'Dismissed' },
-              ]}
-              placeholder="All Statuses"
-            />
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full bg-transparent border-none px-4 py-2.5 text-sm text-slate-700 dark:text-neutral-300 focus:ring-0 focus:outline-none appearance-none cursor-pointer"
+            >
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="reviewing">Reviewing</option>
+              <option value="resolved">Resolved</option>
+              <option value="rejected">Dismissed</option>
+            </select>
           </div>
-
-          <div className="w-40 sm:w-48 shrink-0">
-            <CustomSelect
+          <div className="w-48 shrink-0">
+            <select
               value={reasonFilter}
-              onChange={(val) => setReasonFilter(val)}
-              options={[
-                { value: '', label: 'All Reasons' },
-                { value: 'spam', label: 'Spam' },
-                { value: 'harassment', label: 'Harassment' },
-                { value: 'abusive_language', label: 'Abusive Language' },
-                { value: 'inappropriate_content', label: 'Inappropriate Content' },
-                { value: 'misinformation', label: 'Misinformation' },
-                { value: 'plagiarism', label: 'Plagiarism' },
-                { value: 'other', label: 'Other' },
-              ]}
-              placeholder="All Reasons"
-            />
+              onChange={(e) => setReasonFilter(e.target.value)}
+              className="w-full bg-transparent border-none px-4 py-2.5 text-sm text-slate-700 dark:text-neutral-300 focus:ring-0 focus:outline-none appearance-none cursor-pointer"
+            >
+              <option value="">All Reasons</option>
+              <option value="spam">Spam</option>
+              <option value="harassment">Harassment</option>
+              <option value="abusive_language">Abusive Language</option>
+              <option value="inappropriate_content">Inappropriate Content</option>
+              <option value="misinformation">Misinformation</option>
+              <option value="plagiarism">Plagiarism</option>
+              <option value="other">Other</option>
+            </select>
           </div>
         </div>
 
         <button
           onClick={() => fetchReports(false)}
           disabled={isRefreshing}
-          className="p-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-600 dark:text-gray-300 transition shrink-0"
+          className="p-1.5 bg-white dark:bg-[#181818] hover:bg-slate-50 dark:hover:bg-white/5 border border-slate-200 dark:border-white/10 rounded-md text-slate-600 dark:text-neutral-300 transition-colors shadow-sm shrink-0 cursor-pointer"
           title="Refresh reports"
         >
           <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-purple-600' : ''}`} />
@@ -221,149 +196,152 @@ export default function AdminDiscussionReports() {
       {loading ? (
         <SkeletonTable rows={6} cols={6} />
       ) : (
-        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs overflow-hidden">
-          <div className="overflow-x-auto w-full">
-            <table className="w-full min-w-[760px] text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  <th className="px-4 py-3.5">Target</th>
-                  <th className="px-4 py-3.5">Report Reason</th>
-                  <th className="px-4 py-3.5">Reported By</th>
-                  <th className="px-4 py-3.5">Target Author</th>
-                  <th className="px-4 py-3.5">Status</th>
-                  <th className="px-4 py-3.5 text-right">Moderation Actions</th>
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg shadow-sm overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[800px]">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#202020]">
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Target</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Report Reason</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Reported By</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Target Author</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Moderation Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+              {reports.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-10 text-sm text-slate-500">
+                    No discussion reports found.
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-sm">
-                {reports.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="text-center py-12 text-gray-400">
-                      <ShieldAlert className="w-10 h-10 mx-auto mb-2 opacity-50 text-purple-400" />
-                      <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">No discussion reports found</p>
-                    </td>
-                  </tr>
-                ) : (
-                  reports.map((report) => {
-                    const reporterName = report.reporter?.fullName || report.reporter?.name || 'Student';
-                    const targetAuthorName = report.targetAuthor?.fullName || report.targetAuthor?.name || 'Author';
-                    const targetType = report.targetType || 'discussion';
-                    const reason = (report.reason || 'other').replace(/_/g, ' ');
-                    const status = report.status || 'pending';
+              ) : (
+                reports.map((report) => {
+                  const reporterName = report.reporter?.fullName || report.reporter?.name || 'Student';
+                  const targetAuthorName = report.targetAuthor?.fullName || report.targetAuthor?.name || 'Author';
+                  const targetType = report.targetType || 'discussion';
+                  const reason = (report.reason || 'other').replace(/_/g, ' ');
+                  const status = report.status || 'pending';
 
-                    const statusStyles = {
-                      pending: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300',
-                      reviewing: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300',
-                      resolved: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300',
-                      rejected: 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400',
-                    }[status] || 'bg-gray-50 text-gray-600';
+                  const getStatusDetails = (s) => {
+                    switch (s) {
+                      case 'pending': return { color: 'bg-amber-500', label: 'Pending' };
+                      case 'reviewing': return { color: 'bg-blue-500', label: 'Reviewing' };
+                      case 'resolved': return { color: 'bg-emerald-500', label: 'Resolved' };
+                      case 'rejected': return { color: 'bg-slate-400', label: 'Dismissed' };
+                      default: return { color: 'bg-slate-400', label: 'Unknown' };
+                    }
+                  };
+                  
+                  const statusDetails = getStatusDetails(status);
 
-                    return (
-                      <tr key={report._id} className="hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition-colors">
-                        <td className="px-4 py-3.5">
-                          <div className="flex items-center gap-2">
-                            <span className="px-2 py-0.5 rounded text-[11px] font-bold uppercase font-mono bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-                              {targetType}
-                            </span>
-                            <span className="text-xs text-gray-500 font-mono">
-                              {new Date(report.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <span className="px-2.5 py-1 rounded-md text-xs font-bold capitalize bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-100 dark:border-rose-900/50">
-                            {reason}
+                  return (
+                    <tr key={report._id} className="hover:bg-slate-50/50 dark:hover:bg-[#202020]/30 transition-colors group bg-white dark:bg-[#181818]">
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase font-mono bg-slate-100 dark:bg-[#202020] text-slate-700 dark:text-neutral-300">
+                            {targetType}
                           </span>
-                        </td>
-                        <td className="px-4 py-3.5 text-xs text-gray-700 dark:text-gray-300 font-medium">
-                          {reporterName}
-                        </td>
-                        <td className="px-4 py-3.5 text-xs text-gray-900 dark:text-white font-semibold">
-                          {targetAuthorName}
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold capitalize border ${statusStyles}`}>
-                            {status}
+                          <span className="text-xs text-slate-500 dark:text-neutral-400 font-mono tabular-nums">
+                            {new Date(report.createdAt).toLocaleDateString()}
                           </span>
-                        </td>
-                        <td className="px-4 py-3.5 text-right">
-                          <div className="inline-flex items-center gap-1.5 justify-end">
+                        </div>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span className="px-2.5 py-1 rounded-md text-[11px] font-bold capitalize bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50">
+                          {reason}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5 text-sm text-slate-700 dark:text-neutral-300 font-medium">
+                        {reporterName}
+                      </td>
+                      <td className="px-4 py-2.5 text-sm text-gray-900 dark:text-white font-medium">
+                        {targetAuthorName}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full ${statusDetails.color}`} />
+                          <span className="text-sm text-gray-900 dark:text-white capitalize">{statusDetails.label}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-2.5 text-right">
+                        <div className="inline-flex items-center gap-2 justify-end">
+                          <button
+                            onClick={() => setSelectedReport(report)}
+                            className="px-3 py-1.5 bg-white dark:bg-[#202020] hover:bg-slate-50 dark:hover:bg-white/5 border border-slate-200 dark:border-white/10 rounded-md text-xs font-medium text-slate-700 dark:text-neutral-300 transition-colors shadow-sm inline-flex items-center gap-1.5"
+                            title="Inspect details"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> Inspect
+                          </button>
+
+                          {status === 'pending' && (
                             <button
-                              onClick={() => setSelectedReport(report)}
-                              className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-xs font-semibold text-gray-700 dark:text-gray-300 transition inline-flex items-center gap-1"
-                              title="Inspect details"
+                              onClick={() => handleStartReview(report._id)}
+                              className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-md text-xs font-semibold transition-colors"
                             >
-                              <Eye className="w-3.5 h-3.5" /> Inspect
+                              Review
                             </button>
+                          )}
 
-                            {status === 'pending' && (
-                              <button
-                                onClick={() => handleStartReview(report._id)}
-                                className="px-2.5 py-1 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 hover:bg-blue-100 rounded-lg text-xs font-bold transition"
-                              >
-                                Review
-                              </button>
-                            )}
-
-                            {['pending', 'reviewing'].includes(status) && (
-                              <button
-                                onClick={() => openResolveModal(report)}
-                                className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition shadow-xs"
-                              >
-                                Resolve
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+                          {['pending', 'reviewing'].includes(status) && (
+                            <button
+                              onClick={() => openResolveModal(report)}
+                              className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-md text-xs font-semibold transition-colors shadow-sm"
+                            >
+                              Resolve
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       )}
 
       {/* Inspect Modal */}
       {selectedReport && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-lg w-full p-6 border border-gray-100 dark:border-gray-800 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
-              <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <Shield className="w-5 h-5 text-purple-600" /> Report Details
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in">
+          <div className="bg-white dark:bg-[#181818] rounded-xl max-w-lg w-full p-6 border border-slate-200 dark:border-white/10 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <Shield className="w-5 h-5 text-purple-600 dark:text-purple-400" /> Report Details
               </h3>
               <button
                 onClick={() => setSelectedReport(null)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl text-xs font-mono space-y-2">
-              <p><span className="text-gray-400">Target Type:</span> {selectedReport.targetType}</p>
-              <p><span className="text-gray-400">Target ID:</span> {selectedReport.targetId}</p>
-              <p><span className="text-gray-400">Reason:</span> {selectedReport.reason}</p>
-              <p><span className="text-gray-400">Reporter:</span> {selectedReport.reporter?.fullName || selectedReport.reporter?.name} ({selectedReport.reporter?.email || 'N/A'})</p>
-              <p><span className="text-gray-400">Target Author:</span> {selectedReport.targetAuthor?.fullName || selectedReport.targetAuthor?.name} ({selectedReport.targetAuthor?.email || 'N/A'})</p>
-              <p><span className="text-gray-400">Description / Note:</span></p>
-              <p className="text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-900 p-2.5 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="bg-slate-50 dark:bg-[#202020] border border-slate-200 dark:border-white/10 p-4 rounded-md text-sm font-mono space-y-3">
+              <p><span className="text-slate-500 dark:text-neutral-400">Target Type:</span> {selectedReport.targetType}</p>
+              <p><span className="text-slate-500 dark:text-neutral-400">Target ID:</span> {selectedReport.targetId}</p>
+              <p><span className="text-slate-500 dark:text-neutral-400">Reason:</span> {selectedReport.reason}</p>
+              <p><span className="text-slate-500 dark:text-neutral-400">Reporter:</span> {selectedReport.reporter?.fullName || selectedReport.reporter?.name} ({selectedReport.reporter?.email || 'N/A'})</p>
+              <p><span className="text-slate-500 dark:text-neutral-400">Target Author:</span> {selectedReport.targetAuthor?.fullName || selectedReport.targetAuthor?.name} ({selectedReport.targetAuthor?.email || 'N/A'})</p>
+              <p><span className="text-slate-500 dark:text-neutral-400">Description / Note:</span></p>
+              <p className="text-gray-800 dark:text-neutral-300 bg-white dark:bg-[#111111] p-3 rounded-md border border-slate-200 dark:border-white/10 text-xs">
                 {selectedReport.description || 'No additional note provided by reporter.'}
               </p>
               {selectedReport.resolutionNote && (
                 <>
-                  <p className="text-gray-400 mt-2">Resolution Note:</p>
-                  <p className="text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                  <p className="text-slate-500 dark:text-neutral-400 mt-4">Resolution Note:</p>
+                  <p className="text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-md border border-emerald-200 dark:border-emerald-800/50 text-xs">
                     {selectedReport.resolutionNote}
                   </p>
                 </>
               )}
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end pt-2">
               <button
                 onClick={() => setSelectedReport(null)}
-                className="px-4 py-2 bg-purple-600 text-white rounded-xl text-xs font-bold hover:bg-purple-700 transition"
+                className="px-4 py-2 bg-white dark:bg-[#202020] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-white/5 rounded-md text-sm font-medium transition shadow-sm cursor-pointer"
               >
                 Close
               </button>
@@ -374,30 +352,30 @@ export default function AdminDiscussionReports() {
 
       {/* Resolve / Moderation Action Modal */}
       {resolveModalOpen && activeReport && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-md w-full p-6 border border-gray-100 dark:border-gray-800 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
-              <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5 text-purple-600" /> Resolve Report
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in">
+          <div className="bg-white dark:bg-[#181818] rounded-xl max-w-md w-full p-6 border border-slate-200 dark:border-white/10 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5 text-purple-600 dark:text-purple-400" /> Resolve Report
               </h3>
               <button
                 onClick={() => setResolveModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleResolveSubmit} className="space-y-3.5 text-xs">
+            <form onSubmit={handleResolveSubmit} className="space-y-4 text-sm">
               <div>
-                <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block font-medium text-slate-700 dark:text-neutral-300 mb-1.5">
                   Resolution Decision *
                 </label>
                 <select
                   required
                   value={resolveStatus}
                   onChange={(e) => setResolveStatus(e.target.value)}
-                  className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-xs bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                  className="w-full border border-slate-200 dark:border-white/10 rounded-md px-3 py-2 text-sm bg-white dark:bg-[#111111] text-gray-900 dark:text-white focus:ring-1 focus:ring-purple-500 focus:outline-none"
                 >
                   <option value="resolved">Resolved (Violation Found & Handled)</option>
                   <option value="rejected">Dismissed (No Violation / Invalid Report)</option>
@@ -406,14 +384,14 @@ export default function AdminDiscussionReports() {
 
               {resolveStatus === 'resolved' && (
                 <div>
-                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block font-medium text-slate-700 dark:text-neutral-300 mb-1.5">
                     Moderation Action *
                   </label>
                   <select
                     required
                     value={moderationAction}
                     onChange={(e) => setModerationAction(e.target.value)}
-                    className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-xs bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                    className="w-full border border-slate-200 dark:border-white/10 rounded-md px-3 py-2 text-sm bg-white dark:bg-[#111111] text-gray-900 dark:text-white focus:ring-1 focus:ring-purple-500 focus:outline-none"
                   >
                     <option value="hide_content">Hide / Remove Content</option>
                     <option value="delete_content">Permanently Delete Content</option>
@@ -424,7 +402,7 @@ export default function AdminDiscussionReports() {
               )}
 
               <div>
-                <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block font-medium text-slate-700 dark:text-neutral-300 mb-1.5">
                   Resolution Note (Internal)
                 </label>
                 <textarea
@@ -432,23 +410,23 @@ export default function AdminDiscussionReports() {
                   placeholder="Record justification or notes on moderation decision..."
                   value={resolutionNote}
                   onChange={(e) => setResolutionNote(e.target.value)}
-                  className="w-full border border-gray-200 dark:border-gray-700 rounded-xl p-2.5 text-xs bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                  className="w-full border border-slate-200 dark:border-white/10 rounded-md p-3 text-sm bg-white dark:bg-[#111111] text-gray-900 dark:text-white focus:ring-1 focus:ring-purple-500 focus:outline-none placeholder:text-slate-400"
                   maxLength={1000}
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+              <div className="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-white/10">
                 <button
                   type="button"
                   onClick={() => setResolveModalOpen(false)}
-                  className="px-3.5 py-2 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 font-semibold"
+                  className="px-4 py-2 rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-[#202020] text-slate-700 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-white/5 font-medium transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isProcessing}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold transition disabled:opacity-50 inline-flex items-center gap-1.5 shadow-sm"
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium transition disabled:opacity-50 inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   {isProcessing ? 'Processing...' : 'Confirm Resolution'}
                 </button>

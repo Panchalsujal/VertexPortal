@@ -22,7 +22,6 @@ import { deleteReview, getCourseReviews } from '../../api/review.api';
 import { StarRating } from '../../components/ui/StarRating';
 import { Modal } from '../../components/ui/Modal';
 import { Spinner, SkeletonTable, SkeletonFeed } from '../../components/ui/Spinner';
-import CustomSelect from '../../components/ui/CustomSelect';
 import {
   FolderPlus, Tag, Edit3, Trash2, ToggleLeft, ToggleRight, Plus, Shield,
   Award, Download, RefreshCw, XCircle, RotateCcw, Send, Star
@@ -331,37 +330,34 @@ export default function AdminPanel() {
         <div className="flex items-center gap-2 flex-wrap">
           {activeTab === 'categories' && (
             <button
-              className="flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs text-white shadow-md transition-all hover:opacity-90 cursor-pointer shrink-0"
-              style={{ background: 'linear-gradient(135deg, #6C5CE7 0%, #5046d4 100%)' }}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-md font-semibold text-sm text-white bg-purple-600 hover:bg-purple-700 transition-colors shadow-sm cursor-pointer shrink-0"
               onClick={() => { setActiveCat(null); setCatForm({ name: '', description: '' }); setCatModalOpen(true); }}
             >
-              <FolderPlus size={15} /> Add Category
+              <FolderPlus size={16} /> Add Category
             </button>
           )}
           {activeTab === 'coupons' && (
             <button
-              className="flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs text-white shadow-md transition-all hover:opacity-90 cursor-pointer shrink-0"
-              style={{ background: 'linear-gradient(135deg, #6C5CE7 0%, #5046d4 100%)' }}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-md font-semibold text-sm text-white bg-purple-600 hover:bg-purple-700 transition-colors shadow-sm cursor-pointer shrink-0"
               onClick={() => { setActiveCoupon(null); setCouponForm({ code: '', discountType: 'percentage', discountValue: 10, maxDiscountAmount: '', minOrderAmount: 0, usageLimit: 100, expiresAt: '' }); setCouponModalOpen(true); }}
             >
-              <Plus size={15} /> Create Coupon
+              <Plus size={16} /> Create Coupon
             </button>
           )}
           {activeTab === 'certificates' && (
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-3 flex-wrap">
               <button
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 transition cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-md text-sm font-medium border border-slate-200 dark:border-white/10 bg-white dark:bg-[#181818] text-slate-700 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer shadow-sm"
                 onClick={handleRetryBulk}
                 title="Retry Failed Issuances"
               >
-                <RotateCcw size={14} /> Bulk Retry
+                <RotateCcw size={16} /> Bulk Retry
               </button>
               <button
-                className="flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs text-white shadow-md transition-all hover:opacity-90 cursor-pointer shrink-0"
-                style={{ background: 'linear-gradient(135deg, #6C5CE7 0%, #5046d4 100%)' }}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-md font-semibold text-sm text-white bg-purple-600 hover:bg-purple-700 transition-colors shadow-sm cursor-pointer shrink-0"
                 onClick={() => { setIssueForm({ courseId: '', userEmail: '', enrollmentId: '' }); setIssueModalOpen(true); }}
               >
-                <Award size={15} /> Issue Certificate
+                <Award size={16} /> Issue Certificate
               </button>
             </div>
           )}
@@ -370,18 +366,18 @@ export default function AdminPanel() {
     >
       <div className="w-full max-w-full min-w-0 overflow-hidden">
         {/* Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar whitespace-nowrap pb-2 mb-5 border-b border-gray-100 dark:border-gray-800 w-full max-w-full">
-          <button className={`tab-btn shrink-0 ${activeTab === 'categories' ? 'active' : ''}`} onClick={() => handleTabChange('categories')}>
+        <div className="flex items-center gap-6 overflow-x-auto no-scrollbar whitespace-nowrap pb-3 mb-6 border-b border-slate-200 dark:border-white/10 w-full max-w-full">
+          <button className={`shrink-0 font-medium text-sm transition-colors cursor-pointer border-b-2 ${activeTab === 'categories' ? 'text-purple-600 dark:text-purple-400 border-purple-600 dark:border-purple-400' : 'text-slate-500 dark:text-neutral-400 border-transparent hover:text-slate-800 dark:hover:text-white'}`} onClick={() => handleTabChange('categories')}>
             Categories ({categories.length})
           </button>
-          <button className={`tab-btn shrink-0 ${activeTab === 'coupons' ? 'active' : ''}`} onClick={() => handleTabChange('coupons')}>
+          <button className={`shrink-0 font-medium text-sm transition-colors cursor-pointer border-b-2 ${activeTab === 'coupons' ? 'text-purple-600 dark:text-purple-400 border-purple-600 dark:border-purple-400' : 'text-slate-500 dark:text-neutral-400 border-transparent hover:text-slate-800 dark:hover:text-white'}`} onClick={() => handleTabChange('coupons')}>
             Coupons ({coupons.length})
           </button>
-          <button className={`tab-btn shrink-0 ${activeTab === 'certificates' ? 'active' : ''}`} onClick={() => handleTabChange('certificates')}>
-            <Award size={15} /> Certificates ({certificates.length})
+          <button className={`shrink-0 font-medium text-sm transition-colors cursor-pointer border-b-2 flex items-center gap-1.5 ${activeTab === 'certificates' ? 'text-purple-600 dark:text-purple-400 border-purple-600 dark:border-purple-400' : 'text-slate-500 dark:text-neutral-400 border-transparent hover:text-slate-800 dark:hover:text-white'}`} onClick={() => handleTabChange('certificates')}>
+            <Award size={16} /> Certificates ({certificates.length})
           </button>
-          <button className={`tab-btn shrink-0 ${activeTab === 'reviews' ? 'active' : ''}`} onClick={() => handleTabChange('reviews')}>
-            <Star size={15} className="fill-amber-400 text-amber-400 inline" /> Reviews &amp; Ratings ({adminReviews.length})
+          <button className={`shrink-0 font-medium text-sm transition-colors cursor-pointer border-b-2 flex items-center gap-1.5 ${activeTab === 'reviews' ? 'text-purple-600 dark:text-purple-400 border-purple-600 dark:border-purple-400' : 'text-slate-500 dark:text-neutral-400 border-transparent hover:text-slate-800 dark:hover:text-white'}`} onClick={() => handleTabChange('reviews')}>
+            <Star size={16} className="text-amber-400 fill-amber-400" /> Reviews ({adminReviews.length})
           </button>
         </div>
 
@@ -391,18 +387,18 @@ export default function AdminPanel() {
             {catLoading ? (
               <SkeletonFeed count={3} />
             ) : categories.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5 min-w-0 max-w-full">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 min-w-0 max-w-full">
                 {categories.map(cat => (
-                  <div key={cat._id} className="bg-white dark:bg-gray-900 p-4 sm:p-5 flex flex-col justify-between rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm min-w-0 max-w-full">
+                  <div key={cat._id} className="bg-white dark:bg-[#181818] p-5 flex flex-col justify-between rounded-lg border border-slate-200 dark:border-white/10 shadow-sm min-w-0 max-w-full">
                     <div className="min-w-0">
-                      <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-1.5 truncate">{cat.name}</h3>
-                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-clamp-3 break-words">{cat.description || 'No description'}</p>
+                      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1.5 truncate">{cat.name}</h3>
+                      <p className="text-sm text-slate-500 dark:text-neutral-400 line-clamp-3 break-words">{cat.description || 'No description'}</p>
                     </div>
-                    <div className="flex justify-end items-center gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
-                      <button className="btn btn-ghost btn-sm" onClick={() => { setActiveCat(cat); setCatForm({ name: cat.name, description: cat.description || '' }); setCatModalOpen(true); }}>
+                    <div className="flex justify-end items-center gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-white/10">
+                      <button className="px-3 py-1.5 bg-white dark:bg-[#202020] hover:bg-slate-50 dark:hover:bg-white/5 border border-slate-200 dark:border-white/10 rounded-md text-xs font-medium text-slate-700 dark:text-neutral-300 transition-colors shadow-sm inline-flex items-center gap-1.5 cursor-pointer" onClick={() => { setActiveCat(cat); setCatForm({ name: cat.name, description: cat.description || '' }); setCatModalOpen(true); }}>
                         <Edit3 size={14} /> Edit
                       </button>
-                      <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-error)' }} onClick={() => handleDeleteCategory(cat._id)}>
+                      <button className="px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800/50 hover:bg-rose-100 dark:hover:bg-rose-900/40 rounded-md text-xs font-semibold transition-colors inline-flex items-center gap-1.5 cursor-pointer" onClick={() => handleDeleteCategory(cat._id)}>
                         <Trash2 size={14} /> Delete
                       </button>
                     </div>
@@ -424,36 +420,36 @@ export default function AdminPanel() {
             {couponLoading ? (
               <SkeletonFeed count={3} />
             ) : coupons.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5 min-w-0 max-w-full">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 min-w-0 max-w-full">
                 {coupons.map(cop => (
-                  <div key={cop._id} className="bg-white dark:bg-gray-900 p-4 sm:p-5 flex flex-col justify-between rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm min-w-0 max-w-full">
+                  <div key={cop._id} className="bg-white dark:bg-[#181818] p-5 flex flex-col justify-between rounded-lg border border-slate-200 dark:border-white/10 shadow-sm min-w-0 max-w-full">
                     <div className="min-w-0">
-                      <div className="flex justify-between items-center mb-2 gap-2">
-                        <span className="font-extrabold text-base tracking-wider text-purple-600 dark:text-purple-400 truncate">
+                      <div className="flex justify-between items-center mb-3 gap-2">
+                        <span className="font-bold text-base tracking-wider text-purple-600 dark:text-purple-400 truncate">
                           {cop.code}
                         </span>
-                        <span className={`badge shrink-0 ${cop.isActive ? 'badge-success' : 'badge-warning'}`}>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${cop.isActive ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50' : 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50'}`}>
                           {cop.isActive ? 'Active' : 'Disabled'}
                         </span>
                       </div>
-                      <p className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white tabular-nums">
                         {cop.discountType === 'percentage' ? `${cop.discountValue}% OFF` : `₹${cop.discountValue} OFF`}
                       </p>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 space-y-0.5">
+                      <div className="text-xs text-slate-500 dark:text-neutral-400 mt-2 space-y-1 tabular-nums">
                         <div>Min Order: ₹{cop.minOrderAmount || 0}</div>
                         {cop.usageLimit && <div>Limit: {cop.timesUsed || 0} / {cop.usageLimit}</div>}
                       </div>
                     </div>
 
-                    <div className="flex justify-end items-center gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
-                      <button className="btn btn-ghost btn-sm" onClick={() => handleToggleCoupon(cop._id, cop.isActive)}>
-                        {cop.isActive ? <ToggleRight size={18} color="var(--color-success)" /> : <ToggleLeft size={18} />}
+                    <div className="flex justify-end items-center gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-white/10">
+                      <button className="px-3 py-1.5 bg-white dark:bg-[#202020] hover:bg-slate-50 dark:hover:bg-white/5 border border-slate-200 dark:border-white/10 rounded-md text-xs font-medium text-slate-700 dark:text-neutral-300 transition-colors shadow-sm inline-flex items-center gap-1.5 cursor-pointer" onClick={() => handleToggleCoupon(cop._id, cop.isActive)}>
+                        {cop.isActive ? <ToggleRight size={16} className="text-emerald-500" /> : <ToggleLeft size={16} className="text-slate-400" />} {cop.isActive ? 'Disable' : 'Enable'}
                       </button>
-                      <button className="btn btn-ghost btn-sm" onClick={() => { setActiveCoupon(cop); setCouponForm({ code: cop.code, discountType: cop.discountType, discountValue: cop.discountValue, maxDiscountAmount: cop.maxDiscountAmount || '', minOrderAmount: cop.minOrderAmount || 0, usageLimit: cop.usageLimit || '', expiresAt: cop.expiresAt ? cop.expiresAt.split('T')[0] : '' }); setCouponModalOpen(true); }}>
-                        <Edit3 size={14} />
+                      <button className="px-3 py-1.5 bg-white dark:bg-[#202020] hover:bg-slate-50 dark:hover:bg-white/5 border border-slate-200 dark:border-white/10 rounded-md text-xs font-medium text-slate-700 dark:text-neutral-300 transition-colors shadow-sm inline-flex items-center gap-1.5 cursor-pointer" onClick={() => { setActiveCoupon(cop); setCouponForm({ code: cop.code, discountType: cop.discountType, discountValue: cop.discountValue, maxDiscountAmount: cop.maxDiscountAmount || '', minOrderAmount: cop.minOrderAmount || 0, usageLimit: cop.usageLimit || '', expiresAt: cop.expiresAt ? cop.expiresAt.split('T')[0] : '' }); setCouponModalOpen(true); }}>
+                        <Edit3 size={14} /> Edit
                       </button>
-                      <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-error)' }} onClick={() => handleDeleteCoupon(cop._id)}>
-                        <Trash2 size={14} />
+                      <button className="px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800/50 hover:bg-rose-100 dark:hover:bg-rose-900/40 rounded-md text-xs font-semibold transition-colors inline-flex items-center gap-1.5 cursor-pointer" onClick={() => handleDeleteCoupon(cop._id)}>
+                        <Trash2 size={14} /> Delete
                       </button>
                     </div>
                   </div>
@@ -474,50 +470,50 @@ export default function AdminPanel() {
             {certLoading ? (
               <SkeletonFeed count={4} />
             ) : certificates.length > 0 ? (
-              <div className="flex flex-col gap-3 sm:gap-4 min-w-0 max-w-full">
+              <div className="flex flex-col gap-4 min-w-0 max-w-full">
                 {certificates.map(cert => (
-                  <div key={cert._id} className="bg-white dark:bg-gray-900 p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3 sm:gap-4 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm min-w-0 max-w-full overflow-hidden">
+                  <div key={cert._id} className="bg-white dark:bg-[#181818] p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-4 rounded-lg border border-slate-200 dark:border-white/10 shadow-sm min-w-0 max-w-full overflow-hidden">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-2 flex-wrap min-w-0">
-                        <span className="inline-block px-2.5 py-1 rounded-xl text-xs font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-100 dark:border-purple-900/40 break-words max-w-full">
+                        <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold uppercase tracking-wider bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400 border border-purple-200 dark:border-purple-800/50 break-words max-w-full">
                           {cert.course?.title || cert.courseTitle || 'Course'}
                         </span>
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold shrink-0 ${
-                          cert.isRevoked ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200' : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200'
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold uppercase tracking-wider shrink-0 ${
+                          cert.isRevoked ? 'bg-rose-50 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400 border border-rose-200 dark:border-rose-800/50' : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50'
                         }`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${cert.isRevoked ? 'bg-rose-500' : 'bg-emerald-500'}`} />
                           {cert.isRevoked ? 'Revoked' : 'Active'}
                         </span>
                       </div>
-                      <h4 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white truncate">
+                      <h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                         {cert.user?.fullName || cert.userEmail || cert.userName || 'Student'}
                       </h4>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 space-y-1 min-w-0">
+                      <div className="text-xs text-slate-500 dark:text-neutral-400 mt-1.5 space-y-1 min-w-0 tabular-nums">
                         <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-                          <span className="shrink-0 text-gray-400">Code:</span>
-                          <code className="text-purple-600 dark:text-purple-400 font-semibold font-mono text-[11px] break-all bg-purple-50/60 dark:bg-purple-950/40 px-1.5 py-0.5 rounded max-w-full">
+                          <span className="shrink-0 text-slate-400 dark:text-neutral-500">Code:</span>
+                          <code className="text-purple-600 dark:text-purple-400 font-semibold font-mono text-[11px] break-all">
                             {cert.verificationCode || cert._id}
                           </code>
                         </div>
-                        <p className="text-[11px] text-gray-400">
+                        <p className="text-[11px] text-slate-400 dark:text-neutral-500">
                           Issued: {new Date(cert.issuedAt || cert.createdAt).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 flex-wrap shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100 dark:border-gray-800">
-                      <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 transition cursor-pointer" onClick={() => handleDownloadAdminPdf(cert._id, cert.course?.title)} title="Download PDF">
+                    <div className="flex items-center gap-2 flex-wrap shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-white/10">
+                      <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border border-slate-200 dark:border-white/10 bg-white dark:bg-[#202020] text-slate-700 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors shadow-sm cursor-pointer" onClick={() => handleDownloadAdminPdf(cert._id, cert.course?.title)} title="Download PDF">
                         <Download size={14} /> PDF
                       </button>
-                      <button className="p-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition cursor-pointer" onClick={() => handleRegeneratePdf(cert._id)} title="Regenerate PDF">
-                        <RefreshCw size={14} />
+                      <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border border-slate-200 dark:border-white/10 bg-white dark:bg-[#202020] text-slate-700 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors shadow-sm cursor-pointer" onClick={() => handleRegeneratePdf(cert._id)} title="Regenerate PDF">
+                        <RefreshCw size={14} /> Refresh
                       </button>
                       {cert.isRevoked ? (
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-emerald-200 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 transition cursor-pointer" onClick={() => handleRestore(cert._id)}>
+                        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 transition-colors shadow-sm cursor-pointer" onClick={() => handleRestore(cert._id)}>
                           <RotateCcw size={14} /> Restore
                         </button>
                       ) : (
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-rose-200 bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 hover:bg-rose-100 transition cursor-pointer" onClick={() => { setSelectedCert(cert); setRevokeReason(''); setRevokeModalOpen(true); }}>
+                        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold border border-rose-200 dark:border-rose-800/50 bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors shadow-sm cursor-pointer" onClick={() => { setSelectedCert(cert); setRevokeReason(''); setRevokeModalOpen(true); }}>
                           <XCircle size={14} /> Revoke
                         </button>
                       )}
@@ -541,34 +537,34 @@ export default function AdminPanel() {
             {reviewLoading ? (
               <SkeletonTable rows={5} cols={5} />
             ) : adminReviews.length > 0 ? (
-              <div className="bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-xs overflow-x-auto">
-                <table className="w-full min-w-[620px] text-left border-collapse">
+              <div className="bg-white dark:bg-[#181818] rounded-lg border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm overflow-x-auto">
+                <table className="w-full min-w-[700px] text-left border-collapse">
                   <thead>
-                    <tr className="bg-gray-50 dark:bg-slate-800/60 border-b border-gray-200 dark:border-slate-800 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      <th className="p-3.5 sm:p-4">Student</th>
-                      <th className="p-3.5 sm:p-4">Course</th>
-                      <th className="p-3.5 sm:p-4">Rating</th>
-                      <th className="p-3.5 sm:p-4">Comment</th>
-                      <th className="p-3.5 sm:p-4 text-right">Actions</th>
+                    <tr className="bg-slate-50 dark:bg-[#202020] border-b border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      <th className="px-4 py-2.5">Student</th>
+                      <th className="px-4 py-2.5">Course</th>
+                      <th className="px-4 py-2.5">Rating</th>
+                      <th className="px-4 py-2.5">Comment</th>
+                      <th className="px-4 py-2.5 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-slate-800/60 text-sm text-gray-900 dark:text-white">
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-sm text-gray-900 dark:text-white">
                     {adminReviews.map((rev) => (
-                      <tr key={rev._id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/40 transition">
-                        <td className="p-3.5 sm:p-4">
-                          <div className="font-semibold text-gray-900 dark:text-white">{rev.student?.fullName || rev.user?.fullName || 'Student'}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">{rev.student?.email || rev.user?.email || 'N/A'}</div>
+                      <tr key={rev._id} className="hover:bg-slate-50/50 dark:hover:bg-[#202020]/30 transition-colors bg-white dark:bg-[#181818]">
+                        <td className="px-4 py-2.5">
+                          <div className="font-medium text-sm text-gray-900 dark:text-white">{rev.student?.fullName || rev.user?.fullName || 'Student'}</div>
+                          <div className="text-xs text-slate-500 dark:text-neutral-400">{rev.student?.email || rev.user?.email || 'N/A'}</div>
                         </td>
-                        <td className="p-3.5 sm:p-4 text-xs font-medium text-purple-600 dark:text-purple-400">
+                        <td className="px-4 py-2.5 text-xs font-medium text-purple-600 dark:text-purple-400">
                           {rev.course?.title || rev.courseTitle || 'Course'}
                         </td>
-                        <td className="p-3.5 sm:p-4">
+                        <td className="px-4 py-2.5">
                           <StarRating rating={rev.rating || 5} size={14} />
                         </td>
-                        <td className="p-3.5 sm:p-4 text-xs text-gray-700 dark:text-gray-300 max-w-xs sm:max-w-sm truncate">
+                        <td className="px-4 py-2.5 text-xs text-slate-700 dark:text-neutral-300 max-w-xs sm:max-w-sm truncate">
                           {rev.comment || rev.content || 'No review comment text'}
                         </td>
-                        <td className="p-3.5 sm:p-4 text-right">
+                        <td className="px-4 py-2.5 text-right">
                           <button
                             onClick={async () => {
                               if (window.confirm('Delete this student review?')) {
@@ -581,10 +577,10 @@ export default function AdminPanel() {
                                 }
                               }
                             }}
-                            className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition cursor-pointer"
+                            className="px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800/50 hover:bg-rose-100 dark:hover:bg-rose-900/40 rounded-md text-xs font-semibold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                             title="Delete Review"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" /> Delete
                           </button>
                         </td>
                       </tr>
@@ -628,15 +624,14 @@ export default function AdminPanel() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div className="input-group">
               <label className="input-label">Discount Type</label>
-              <CustomSelect
+              <select
                 value={couponForm.discountType}
-                onChange={(val) => setCouponForm((f) => ({ ...f, discountType: val }))}
-                options={[
-                  { value: 'percentage', label: 'Percentage (%)' },
-                  { value: 'fixed', label: 'Fixed Amount (₹)' },
-                ]}
-                placeholder="Discount Type"
-              />
+                onChange={(e) => setCouponForm((f) => ({ ...f, discountType: e.target.value }))}
+                className="input-field"
+              >
+                <option value="percentage">Percentage (%)</option>
+                <option value="fixed">Fixed Amount (₹)</option>
+              </select>
             </div>
             <div className="input-group">
               <label className="input-label">Discount Value *</label>
@@ -666,12 +661,16 @@ export default function AdminPanel() {
         <form onSubmit={handleIssueCertificate} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div className="input-group">
             <label className="input-label">Select Course *</label>
-            <CustomSelect
+            <select
               value={issueForm.courseId}
-              onChange={(val) => setIssueForm((f) => ({ ...f, courseId: val }))}
-              options={allCourses.map((c) => ({ value: c._id, label: c.title }))}
-              placeholder="-- Select Course --"
-            />
+              onChange={(e) => setIssueForm((f) => ({ ...f, courseId: e.target.value }))}
+              className="input-field"
+            >
+              <option value="">-- Select Course --</option>
+              {allCourses.map((c) => (
+                <option key={c._id} value={c._id}>{c.title}</option>
+              ))}
+            </select>
           </div>
           <div className="input-group">
             <label className="input-label">User Email *</label>

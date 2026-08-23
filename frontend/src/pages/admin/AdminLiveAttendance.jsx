@@ -243,24 +243,27 @@ export default function AdminLiveAttendance() {
         </button>
       }
     >
-      {/* Platform Level Stats Cards (Responsive 2x2 on Mobile, 4x1 on Desktop) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-5">
-        {[
-          { label: 'Total Sessions', value: liveClasses.length, icon: Video, color: '#6C5CE7', bg: '#ede9fe' },
-          { label: 'Live Now', value: liveCount, icon: TrendingUp, color: '#ef4444', bg: '#fee2e2' },
-          { label: 'Scheduled', value: scheduledCount, icon: Calendar, color: '#10b981', bg: '#d1fae5' },
-          { label: 'Attendance Logs', value: totalAttended, icon: Users, color: '#f59e0b', bg: '#fef3c7' },
-        ].map(({ label, value, icon: Icon, color, bg }) => (
-          <div key={label} className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 p-2.5 sm:p-4 flex items-center gap-2 sm:gap-4 shadow-xs">
-            <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: bg }}>
-              <Icon className="w-4 h-4 sm:w-5 sm:h-5" style={{ color }} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-semibold truncate">{label}</p>
-              <p className="text-base sm:text-2xl font-black text-gray-900 dark:text-white leading-tight">{value}</p>
-            </div>
-          </div>
-        ))}
+      {/* Platform Level Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+          <p className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-neutral-400 mb-2">Total Sessions</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight tabular-nums">{liveClasses.length}</p>
+        </div>
+
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+          <p className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-neutral-400 mb-2">Live Now</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight tabular-nums">{liveCount}</p>
+        </div>
+
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+          <p className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-neutral-400 mb-2">Scheduled</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight tabular-nums">{scheduledCount}</p>
+        </div>
+
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+          <p className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-neutral-400 mb-2">Attendance Logs</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight tabular-nums">{totalAttended}</p>
+        </div>
       </div>
 
       {/* Mobile Switcher Tab Bar (Visible only on screens below lg) */}
@@ -298,15 +301,15 @@ export default function AdminLiveAttendance() {
         {/* Left Column: Live Class Sessions List */}
         <div className={`lg:col-span-2 flex flex-col gap-3 sm:gap-4 ${mobileView === 'attendance' ? 'hidden lg:flex' : 'flex'}`}>
           {/* Search & Filter Bar */}
-          <div className="space-y-2">
+          <div className="space-y-3 mb-4">
             <div className="relative">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search live sessions or course..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full border border-gray-200 dark:border-gray-700 rounded-xl pl-9 pr-3 py-2 text-xs sm:text-sm bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full border border-slate-200 dark:border-white/10 rounded-md pl-9 pr-3 py-2 text-sm bg-white dark:bg-[#181818] text-gray-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500"
               />
             </div>
 
@@ -322,10 +325,10 @@ export default function AdminLiveAttendance() {
                   key={t.id}
                   type="button"
                   onClick={() => setStatusFilter(t.id)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors cursor-pointer border ${
                     statusFilter === t.id
-                      ? 'bg-purple-600 text-white shadow-xs'
-                      : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800 hover:bg-gray-50'
+                      ? 'bg-slate-100 dark:bg-[#202020] text-gray-900 dark:text-white border-slate-200 dark:border-white/10 shadow-sm'
+                      : 'bg-white dark:bg-[#181818] text-slate-500 dark:text-neutral-400 border-transparent hover:bg-slate-50 dark:hover:bg-white/5'
                   }`}
                 >
                   {t.label}
@@ -353,10 +356,10 @@ export default function AdminLiveAttendance() {
                     key={lc._id}
                     type="button"
                     onClick={() => handleClassClick(lc)}
-                    className={`w-full text-left p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer group ${
+                    className={`w-full text-left p-4 rounded-lg border transition-colors cursor-pointer group mb-2 ${
                       isSelected
-                        ? 'bg-purple-50/90 dark:bg-purple-950/50 border-purple-400 dark:border-purple-600 shadow-sm'
-                        : 'bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 hover:border-purple-200 dark:hover:border-purple-800 hover:bg-purple-50/30'
+                        ? 'bg-slate-50 dark:bg-[#202020] border-slate-300 dark:border-white/20 shadow-sm'
+                        : 'bg-white dark:bg-[#181818] border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2 mb-1.5">
@@ -402,21 +405,21 @@ export default function AdminLiveAttendance() {
         {/* Right Column: Attendance Records & Session Analytics */}
         <div className={`lg:col-span-3 ${mobileView === 'sessions' ? 'hidden lg:block' : 'block'}`}>
           {selectedClass ? (
-            <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden w-full max-w-full min-w-0">
+            <div className="bg-white dark:bg-[#181818] rounded-lg border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden flex flex-col h-full">
               {/* Session Header Card */}
-              <div className="p-3.5 sm:p-5 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-purple-50/80 via-indigo-50/50 to-blue-50/40 dark:from-purple-950/40 dark:via-indigo-950/30 dark:to-blue-950/20">
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+              <div className="p-5 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#202020]">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-sm sm:text-base font-extrabold text-gray-900 dark:text-white leading-snug">
+                    <div className="flex items-center gap-3 flex-wrap mb-1">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
                         {selectedClass.title}
                       </h3>
-                      <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border shrink-0 ${statusColors[getTimingStatus(selectedClass)]}`}>
+                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border shrink-0 ${statusColors[getTimingStatus(selectedClass)]}`}>
                         {statusLabels[getTimingStatus(selectedClass)]}
                       </span>
                     </div>
-                    <p className="text-xs text-purple-600 dark:text-purple-400 font-semibold mt-0.5 flex items-center gap-1">
-                      <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                    <p className="text-sm text-purple-600 dark:text-purple-400 font-medium flex items-center gap-1.5">
+                      <BookOpen className="w-4 h-4 shrink-0" />
                       <span className="truncate">{selectedClass.course?.title || 'Course Session'}</span>
                     </p>
                   </div>
@@ -427,7 +430,7 @@ export default function AdminLiveAttendance() {
                       type="button"
                       onClick={handleExportCSV}
                       disabled={attendance.length === 0}
-                      className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-xs font-bold transition cursor-pointer shadow-xs"
+                      className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-[#202020] hover:bg-slate-50 dark:hover:bg-white/5 disabled:opacity-50 text-slate-700 dark:text-neutral-300 text-xs font-semibold transition cursor-pointer shadow-sm"
                       title="Download attendance sheet"
                     >
                       <Download className="w-3.5 h-3.5" /> Export CSV
@@ -437,7 +440,7 @@ export default function AdminLiveAttendance() {
                       href={`/live-class/${selectedClass._id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition no-underline cursor-pointer shadow-xs"
+                      className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold transition no-underline cursor-pointer shadow-sm"
                       title="Open Live Class Room"
                     >
                       <ExternalLink className="w-3.5 h-3.5" /> Join Room
@@ -446,46 +449,46 @@ export default function AdminLiveAttendance() {
                 </div>
 
                 {/* Timing & Details Meta */}
-                <div className="flex flex-wrap gap-2.5 sm:gap-4 mt-3 pt-3 border-t border-purple-200/50 dark:border-purple-900/50 text-xs text-gray-600 dark:text-gray-300">
-                  <span className="flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-purple-500" />
-                    <strong>Starts:</strong> {formatDateTime(getStartTime(selectedClass))}
+                <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-slate-200 dark:border-white/10 text-sm text-slate-600 dark:text-neutral-400">
+                  <span className="flex items-center gap-1.5 tabular-nums">
+                    <Calendar className="w-4 h-4 text-slate-400" />
+                    <strong className="text-gray-900 dark:text-white">Starts:</strong> {formatDateTime(getStartTime(selectedClass))}
                   </span>
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-purple-500" />
-                    <strong>Ends:</strong> {formatDateTime(getEndTime(selectedClass))}
+                  <span className="flex items-center gap-1.5 tabular-nums">
+                    <Clock className="w-4 h-4 text-slate-400" />
+                    <strong className="text-gray-900 dark:text-white">Ends:</strong> {formatDateTime(getEndTime(selectedClass))}
                   </span>
                   {selectedClass.instructor && (
                     <span className="flex items-center gap-1.5">
-                      <UserCheck className="w-3.5 h-3.5 text-purple-500" />
-                      <strong>Instructor:</strong> {selectedClass.instructor.fullName || selectedClass.instructor.name || 'Assigned Instructor'}
+                      <UserCheck className="w-4 h-4 text-slate-400" />
+                      <strong className="text-gray-900 dark:text-white">Instructor:</strong> {selectedClass.instructor.fullName || selectedClass.instructor.name || 'Assigned Instructor'}
                     </span>
                   )}
                 </div>
 
                 {/* Session Specific Quick Metrics */}
-                <div className="grid grid-cols-3 gap-2 mt-3 pt-2">
-                  <div className="bg-white/80 dark:bg-gray-900/80 rounded-xl p-2 sm:p-2.5 border border-purple-100 dark:border-gray-800 text-center">
-                    <span className="text-[9px] sm:text-[10px] text-gray-400 uppercase font-bold block truncate">Total Attendees</span>
-                    <span className="text-sm sm:text-base font-black text-purple-600 dark:text-purple-400">
+                <div className="grid grid-cols-3 gap-4 mt-4 pt-2">
+                  <div className="bg-white dark:bg-[#181818] rounded-md p-3 border border-slate-200 dark:border-white/10 shadow-sm text-center">
+                    <span className="text-xs text-slate-500 dark:text-neutral-400 uppercase font-semibold block truncate">Total Attendees</span>
+                    <span className="text-xl font-bold text-gray-900 dark:text-white mt-1 block tabular-nums">
                       {analytics?.summary?.totalJoinedStudents ?? analytics?.totalAttendees ?? attendance.filter(a => isStudentPresent(a)).length}
                     </span>
                   </div>
-                  <div className="bg-white/80 dark:bg-gray-900/80 rounded-xl p-2 sm:p-2.5 border border-purple-100 dark:border-gray-800 text-center">
-                    <span className="text-[9px] sm:text-[10px] text-gray-400 uppercase font-bold block truncate">Avg Stay Time</span>
-                    <span className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400">
+                  <div className="bg-white dark:bg-[#181818] rounded-md p-3 border border-slate-200 dark:border-white/10 shadow-sm text-center">
+                    <span className="text-xs text-slate-500 dark:text-neutral-400 uppercase font-semibold block truncate">Avg Stay Time</span>
+                    <span className="text-xl font-bold text-gray-900 dark:text-white mt-1 block tabular-nums">
                       {analytics?.summary?.averageDurationInSeconds
-                        ? `${Math.round(analytics.summary.averageDurationInSeconds / 60)} min`
+                        ? `${Math.round(analytics.summary.averageDurationInSeconds / 60)}m`
                         : analytics?.avgDurationMinutes
-                        ? `${Math.round(analytics.avgDurationMinutes)} min`
+                        ? `${Math.round(analytics.avgDurationMinutes)}m`
                         : attendance.filter(a => isStudentPresent(a)).length > 0
-                        ? `${Math.round(attendance.filter(a => isStudentPresent(a)).reduce((acc, a) => acc + getDurationMinutes(a), 0) / attendance.filter(a => isStudentPresent(a)).length)} min`
-                        : '0 min'}
+                        ? `${Math.round(attendance.filter(a => isStudentPresent(a)).reduce((acc, a) => acc + getDurationMinutes(a), 0) / attendance.filter(a => isStudentPresent(a)).length)}m`
+                        : '0m'}
                     </span>
                   </div>
-                  <div className="bg-white/80 dark:bg-gray-900/80 rounded-xl p-2 sm:p-2.5 border border-purple-100 dark:border-gray-800 text-center">
-                    <span className="text-[9px] sm:text-[10px] text-gray-400 uppercase font-bold block truncate">Status</span>
-                    <span className="text-[11px] sm:text-xs font-black text-blue-600 dark:text-blue-400 uppercase mt-0.5 block truncate">
+                  <div className="bg-white dark:bg-[#181818] rounded-md p-3 border border-slate-200 dark:border-white/10 shadow-sm text-center">
+                    <span className="text-xs text-slate-500 dark:text-neutral-400 uppercase font-semibold block truncate">Status</span>
+                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase mt-2.5 block truncate">
                       {getTimingStatus(selectedClass)}
                     </span>
                   </div>
@@ -493,25 +496,25 @@ export default function AdminLiveAttendance() {
               </div>
 
               {/* Attendance Filter & Table Header */}
-              <div className="p-3.5 sm:p-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <div className="p-5 flex-1 flex flex-col min-h-0 bg-white dark:bg-[#181818]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                   <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-purple-600" />
-                    <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
+                    <Users className="w-5 h-5 text-slate-400" />
+                    <h4 className="text-sm font-bold text-gray-900 dark:text-white">
                       Student Attendance Logs ({filteredAttendance.length})
                     </h4>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                  <div className="flex items-center gap-0 border border-slate-200 dark:border-white/10 rounded-md shadow-sm divide-x divide-slate-200 dark:divide-white/10 bg-white dark:bg-[#181818]">
                     {/* Student Search */}
-                    <div className="relative flex-1 sm:flex-initial">
-                      <Search className="w-3 h-3.5 text-gray-400 absolute left-2.5 top-2" />
+                    <div className="relative flex-1 sm:w-48">
+                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="text"
                         placeholder="Filter student..."
                         value={studentSearch}
                         onChange={(e) => setStudentSearch(e.target.value)}
-                        className="w-full text-xs border border-gray-200 dark:border-gray-700 rounded-lg pl-7 pr-2 py-1 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none"
+                        className="w-full text-xs border-none bg-transparent rounded-l-md pl-9 pr-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-0 placeholder:text-slate-400"
                       />
                     </div>
 
@@ -519,7 +522,7 @@ export default function AdminLiveAttendance() {
                     <select
                       value={attStatusFilter}
                       onChange={(e) => setAttStatusFilter(e.target.value)}
-                      className="text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none"
+                      className="text-xs border-none bg-transparent rounded-none px-3 py-2 text-slate-700 dark:text-neutral-300 focus:outline-none focus:ring-0 appearance-none cursor-pointer sm:w-32"
                     >
                       <option value="all">All Status</option>
                       <option value="present">Present Only</option>
@@ -529,7 +532,7 @@ export default function AdminLiveAttendance() {
                     <button
                       type="button"
                       onClick={() => fetchAttendance(selectedClass._id)}
-                      className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-purple-600 transition cursor-pointer"
+                      className="px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-neutral-300 transition-colors cursor-pointer rounded-r-md"
                       title="Refresh attendance"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
@@ -540,68 +543,70 @@ export default function AdminLiveAttendance() {
                 {attendanceLoading ? (
                   <SkeletonTable rows={5} cols={4} />
                 ) : filteredAttendance.length > 0 ? (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Student Name</TableHead>
-                        <TableHead>Joined Time</TableHead>
-                        <TableHead>Active Duration</TableHead>
-                        <TableHead>Attendance Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredAttendance.map((att, idx) => {
-                        const present = isStudentPresent(att);
-                        const durMinutes = getDurationMinutes(att);
-                        const joinTime = getStudentJoinTime(att);
+                  <div className="border border-slate-200 dark:border-white/10 rounded-md overflow-hidden bg-white dark:bg-[#181818] shadow-sm">
+                    <Table>
+                      <TableHeader className="bg-slate-50 dark:bg-[#202020] border-b border-slate-200 dark:border-white/10">
+                        <TableRow>
+                          <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-2.5">Student Name</TableHead>
+                          <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-2.5">Joined Time</TableHead>
+                          <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-2.5">Active Duration</TableHead>
+                          <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-2.5">Attendance Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody className="divide-y divide-slate-100 dark:divide-white/5">
+                        {filteredAttendance.map((att, idx) => {
+                          const present = isStudentPresent(att);
+                          const durMinutes = getDurationMinutes(att);
+                          const joinTime = getStudentJoinTime(att);
 
-                        return (
-                          <TableRow key={att._id || `att-${idx}`}>
-                            <TableCell>
-                              <div className="flex items-center gap-2.5">
-                                <div className="w-7 h-7 rounded-full bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-bold text-xs flex items-center justify-center shrink-0">
-                                  {(att.student?.fullName || att.studentName || 'S')?.[0]?.toUpperCase()}
+                          return (
+                            <TableRow key={att._id || `att-${idx}`} className="hover:bg-slate-50/50 dark:hover:bg-white/5 border-0">
+                              <TableCell className="px-4 py-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-[#202020] text-slate-700 dark:text-neutral-300 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 dark:border-white/10">
+                                    {(att.student?.fullName || att.studentName || 'S')?.[0]?.toUpperCase()}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                      {att.student?.fullName || att.studentName || 'Student'}
+                                    </p>
+                                    <p className="text-xs text-slate-500 dark:text-neutral-400 truncate">
+                                      {att.student?.email || att.studentEmail || ''}
+                                    </p>
+                                  </div>
                                 </div>
-                                <div className="min-w-0">
-                                  <p className="text-xs font-bold text-gray-900 dark:text-white truncate max-w-[120px] sm:max-w-[200px]">
-                                    {att.student?.fullName || att.studentName || 'Student'}
-                                  </p>
-                                  <p className="text-[11px] text-gray-400 truncate max-w-[120px] sm:max-w-[200px]">
-                                    {att.student?.email || att.studentEmail || ''}
-                                  </p>
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-xs font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">
-                              {joinTime
-                                ? new Date(joinTime).toLocaleString('en-IN', { timeStyle: 'short', dateStyle: 'short' })
-                                : '-'}
-                            </TableCell>
-                            <TableCell className="text-xs font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">
-                              {durMinutes > 0 ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-mono text-[11px]">
-                                  <Clock className="w-3 h-3 text-purple-500" /> {durMinutes} mins
-                                </span>
-                              ) : (
-                                <span className="text-gray-400">-</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="whitespace-nowrap">
-                              {present ? (
-                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
-                                  <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Present
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/60 px-2.5 py-1 rounded-full border border-red-200 dark:border-red-800">
-                                  <XCircle className="w-3 h-3 text-red-500" /> Absent
-                                </span>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-sm font-medium text-slate-600 dark:text-neutral-300 tabular-nums whitespace-nowrap">
+                                {joinTime
+                                  ? new Date(joinTime).toLocaleString('en-IN', { timeStyle: 'short', dateStyle: 'short' })
+                                  : '-'}
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-sm font-medium text-slate-600 dark:text-neutral-300 whitespace-nowrap">
+                                {durMinutes > 0 ? (
+                                  <span className="inline-flex items-center gap-1.5 tabular-nums">
+                                    <Clock className="w-3.5 h-3.5 text-slate-400" /> {durMinutes} mins
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-400">-</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="px-4 py-3 whitespace-nowrap">
+                                {present ? (
+                                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500" /> Present
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 dark:text-red-400">
+                                    <span className="w-2 h-2 rounded-full bg-red-500" /> Absent
+                                  </span>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
                 ) : (
                   <Empty
                     icon={Users}

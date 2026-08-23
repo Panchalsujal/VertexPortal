@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import { SkeletonTable } from '../../components/ui/Spinner';
 import AdminLayout from '../../components/admin/AdminLayout';
-import CustomSelect from '../../components/ui/CustomSelect';
 import toast from 'react-hot-toast';
 
 export default function AdminOrders() {
@@ -72,35 +71,35 @@ export default function AdminOrders() {
     switch (normalized) {
       case 'paid':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium border bg-slate-50 dark:bg-[#202020] text-slate-600 dark:text-neutral-300 border-slate-200 dark:border-white/10">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             Paid
           </span>
         );
       case 'refunded':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium border bg-slate-50 dark:bg-[#202020] text-slate-600 dark:text-neutral-300 border-slate-200 dark:border-white/10">
             <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
             Refunded
           </span>
         );
       case 'cancelled':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300 border border-red-200 dark:border-red-800">
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium border bg-slate-50 dark:bg-[#202020] text-slate-600 dark:text-neutral-300 border-slate-200 dark:border-white/10">
             <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
             Cancelled
           </span>
         );
       case 'failed':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium border bg-slate-50 dark:bg-[#202020] text-slate-600 dark:text-neutral-300 border-slate-200 dark:border-white/10">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
             Failed
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium border bg-slate-50 dark:bg-[#202020] text-slate-600 dark:text-neutral-300 border-slate-200 dark:border-white/10">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
             Pending
           </span>
@@ -114,82 +113,61 @@ export default function AdminOrders() {
       subtitle="Track platform sales, view user enrollments, and manage order statuses"
     >
       {/* Analytics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-5">
-        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-2.5 sm:gap-3.5 min-w-0">
-          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 flex items-center justify-center shrink-0">
-            <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate">Total Orders</p>
-            <p className="text-base sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-tight truncate">
-              {overview.totalOrders ?? analytics?.totalOrders ?? orders.length}
-            </p>
-          </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+          <p className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-neutral-400 mb-2">Total Orders</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight tabular-nums">
+            {overview.totalOrders ?? analytics?.totalOrders ?? orders.length}
+          </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-2.5 sm:gap-3.5 min-w-0">
-          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center shrink-0">
-            <DollarSign className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate">Total Revenue</p>
-            <p className="text-base sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-tight truncate">
-              ₹{(revenue.totalRevenue ?? analytics?.totalRevenue ?? 0).toLocaleString()}
-            </p>
-          </div>
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+          <p className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-neutral-400 mb-2">Total Revenue</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight tabular-nums">
+            ₹{(revenue.totalRevenue ?? analytics?.totalRevenue ?? 0).toLocaleString()}
+          </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-2.5 sm:gap-3.5 min-w-0">
-          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center shrink-0">
-            <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate">Pending Orders</p>
-            <p className="text-base sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-tight truncate">
-              {overview.pendingOrders ?? analytics?.pendingOrders ?? 0}
-            </p>
-          </div>
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+          <p className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-neutral-400 mb-2">Pending Orders</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight tabular-nums">
+            {overview.pendingOrders ?? analytics?.pendingOrders ?? 0}
+          </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-2.5 sm:gap-3.5 min-w-0">
-          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center shrink-0">
-            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate">Paid Orders</p>
-            <p className="text-base sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-tight truncate">
-              {overview.paidOrders ?? analytics?.paidOrders ?? 0}
-            </p>
-          </div>
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+          <p className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-neutral-400 mb-2">Paid Orders</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight tabular-nums">
+            {overview.paidOrders ?? analytics?.paidOrders ?? 0}
+          </p>
         </div>
       </div>
 
-      {/* Search & Filter */}
-      <div className="bg-white dark:bg-gray-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm mb-5 flex flex-col sm:flex-row gap-2.5 sm:gap-3">
+      {/* Search & Filter (Unified Toolbar) */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg shadow-sm mb-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 dark:divide-white/10">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by Order ID, User, Email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+            className="w-full bg-transparent border-none pl-10 pr-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-slate-400 focus:ring-0 focus:outline-none"
           />
         </div>
-        <div className="w-full sm:w-44 min-w-0">
-          <CustomSelect
+        <div className="w-48">
+          <select
             value={statusFilter}
-            onChange={(val) => setStatusFilter(val)}
-            options={[
-              { value: '', label: 'All Statuses' },
-              { value: 'paid', label: 'Paid' },
-              { value: 'pending', label: 'Pending' },
-              { value: 'cancelled', label: 'Cancelled' },
-              { value: 'refunded', label: 'Refunded' },
-              { value: 'failed', label: 'Failed' },
-            ]}
-            placeholder="All Statuses"
-          />
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="w-full bg-transparent border-none px-4 py-2.5 text-sm text-slate-700 dark:text-neutral-300 focus:ring-0 focus:outline-none appearance-none cursor-pointer"
+          >
+            <option value="">All Statuses</option>
+            <option value="paid">Paid</option>
+            <option value="pending">Pending</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="refunded">Refunded</option>
+            <option value="failed">Failed</option>
+          </select>
         </div>
       </div>
 
@@ -197,27 +175,24 @@ export default function AdminOrders() {
       {loading ? (
         <SkeletonTable rows={6} cols={7} />
       ) : (
-        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden w-full max-w-full min-w-0">
-          <div className="overflow-x-auto w-full max-w-full">
-            <table className="w-full min-w-[700px] text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  <th className="px-4 sm:px-5 py-3 sm:py-3.5">Order ID</th>
-                  <th className="px-4 sm:px-5 py-3 sm:py-3.5">User</th>
-                  <th className="px-4 sm:px-5 py-3 sm:py-3.5">Courses</th>
-                  <th className="px-4 sm:px-5 py-3 sm:py-3.5">Amount</th>
-                  <th className="px-4 sm:px-5 py-3 sm:py-3.5">Status</th>
-                  <th className="px-4 sm:px-5 py-3 sm:py-3.5">Date</th>
-                  <th className="px-4 sm:px-5 py-3 sm:py-3.5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-sm">
+        <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg shadow-sm overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[900px]">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#202020]">
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Order ID</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">User</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Courses</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Amount</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
               {orders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-gray-400">
-                    <ShoppingBag className="w-10 h-10 mx-auto mb-2 opacity-50 text-purple-400" />
-                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">No orders found</p>
-                    <p className="text-xs text-gray-400 mt-1">Try adjusting your search or filter parameters</p>
+                  <td colSpan={7} className="text-center py-10 text-sm text-slate-500">
+                    No orders found matching your criteria.
                   </td>
                 </tr>
               ) : (
@@ -242,12 +217,12 @@ export default function AdminOrders() {
                   return (
                     <tr
                       key={o._id}
-                      className="hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition-colors cursor-pointer group"
+                      className="hover:bg-slate-50/50 dark:hover:bg-[#202020]/30 transition-colors cursor-pointer group bg-white dark:bg-[#181818]"
                       onClick={() => setSelectedOrder(o)}
                     >
-                      <td className="px-5 py-4">
+                      <td className="px-4 py-2.5">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-purple-600 dark:text-purple-400 font-mono text-xs">
+                          <span className="font-bold text-gray-900 dark:text-white font-mono text-xs tabular-nums">
                             {o._id?.slice(-8) || o._id}
                           </span>
                           <button
@@ -256,7 +231,7 @@ export default function AdminOrders() {
                               e.stopPropagation();
                               copyToClipboard(o._id, `Order ID (${o._id})`);
                             }}
-                            className="text-gray-400 hover:text-purple-600 transition p-1 rounded"
+                            className="text-slate-400 hover:text-purple-600 transition p-1 rounded-md"
                             title="Copy full Order ID"
                           >
                             {copiedField === `Order ID (${o._id})` ? (
@@ -267,62 +242,62 @@ export default function AdminOrders() {
                           </button>
                         </div>
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="px-4 py-2.5">
                         <div className="flex items-center gap-3">
                           {userAvatar && userAvatar !== 'https://ik.imagekit.io/Sujalpanchal/default.avif' ? (
                             <img
                               src={userAvatar}
                               alt={userName}
-                              className="w-9 h-9 rounded-full object-cover border border-gray-200 dark:border-gray-700 shrink-0"
+                              className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-white/10 shrink-0"
                             />
                           ) : (
                             <div
-                              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm"
+                              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 shadow-sm"
                               style={{ background: 'linear-gradient(135deg, #6C5CE7, #a29bfe)' }}
                             >
                               {initials}
                             </div>
                           )}
                           <div className="min-w-0">
-                            <p className="font-semibold text-gray-900 dark:text-white truncate">{userName}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{userEmail}</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{userName}</p>
+                            <p className="text-xs text-slate-500 dark:text-neutral-400 truncate">{userEmail}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-5 py-4 max-w-[200px]">
+                      <td className="px-4 py-2.5 max-w-[200px]">
                         <div className="flex items-center gap-1.5">
-                          <BookOpen className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-                          <p className="text-xs font-medium text-gray-800 dark:text-gray-200 truncate" title={primaryCourseTitle}>
+                          <BookOpen className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate" title={primaryCourseTitle}>
                             {primaryCourseTitle}
                           </p>
                         </div>
                         {coursesCount > 1 && (
-                          <span className="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-300">
+                          <span className="inline-block mt-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#202020] text-slate-600 dark:text-neutral-400">
                             +{coursesCount - 1} more course{coursesCount > 2 ? 's' : ''}
                           </span>
                         )}
                       </td>
-                      <td className="px-5 py-4">
-                        <div className="font-bold text-gray-900 dark:text-white">
+                      <td className="px-4 py-2.5">
+                        <div className="font-bold text-gray-900 dark:text-white tabular-nums">
                           ₹{(o.totalAmount ?? o.amount ?? 0).toLocaleString()}
                         </div>
                         {o.discountAmount > 0 && (
-                          <div className="text-[11px] text-emerald-600 font-medium line-through">
+                          <div className="text-xs text-emerald-600 font-medium line-through tabular-nums">
                             ₹{(o.subtotal || 0).toLocaleString()}
                           </div>
                         )}
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="px-4 py-2.5">
                         {getStatusBadge(status)}
                       </td>
-                      <td className="px-5 py-4 text-xs text-gray-500 dark:text-gray-400">
+                      <td className="px-4 py-2.5 text-xs text-slate-500 dark:text-neutral-400 tabular-nums">
                         {dateStr}
                       </td>
-                      <td className="px-5 py-4 text-right space-x-1.5" onClick={(e) => e.stopPropagation()}>
+                      <td className="px-4 py-2.5 text-right space-x-1.5" onClick={(e) => e.stopPropagation()}>
                         <button
                           type="button"
                           onClick={() => setSelectedOrder(o)}
-                          className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 dark:hover:text-purple-300 font-semibold px-2.5 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1"
+                          className="text-xs font-medium px-3 py-1.5 rounded-md border bg-white dark:bg-[#202020] border-slate-200 dark:border-white/10 text-slate-700 dark:text-neutral-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-50 dark:hover:bg-purple-900/30 transition-colors shadow-sm inline-flex items-center gap-1.5"
                           title="View Order Details"
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -332,7 +307,7 @@ export default function AdminOrders() {
                           <button
                             type="button"
                             onClick={() => handleRefund(o._id)}
-                            className="text-xs bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 hover:bg-purple-100 font-bold px-2.5 py-1.5 rounded-lg transition-colors"
+                            className="text-xs font-medium px-3 py-1.5 rounded-md border bg-white dark:bg-[#202020] border-slate-200 dark:border-white/10 text-slate-700 dark:text-neutral-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-50 dark:hover:bg-purple-900/30 transition-colors shadow-sm inline-flex items-center gap-1.5"
                           >
                             Refund
                           </button>
@@ -341,7 +316,7 @@ export default function AdminOrders() {
                           <button
                             type="button"
                             onClick={() => handleCancel(o._id)}
-                            className="text-xs bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300 hover:bg-red-100 font-bold px-2.5 py-1.5 rounded-lg transition-colors"
+                            className="text-xs font-medium px-3 py-1.5 rounded-md border bg-white dark:bg-[#202020] border-slate-200 dark:border-white/10 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors shadow-sm inline-flex items-center gap-1.5"
                           >
                             Cancel
                           </button>
@@ -353,32 +328,31 @@ export default function AdminOrders() {
               )}
             </tbody>
           </table>
-          </div>
         </div>
       )}
 
       {/* Order Details Modal */}
       {selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-gray-800 shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 min-w-0">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white dark:bg-[#181818] rounded-xl border border-slate-200 dark:border-white/10 shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden min-w-0">
             {/* Modal Header */}
-            <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between gap-2 bg-gradient-to-r from-purple-50/50 to-white dark:from-purple-950/20 dark:to-gray-900 shrink-0">
-              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-md shrink-0">
-                  <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
+            <div className="px-6 py-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between gap-2 shrink-0">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-[#202020] border border-slate-200 dark:border-white/10 text-slate-500 dark:text-neutral-400 flex items-center justify-center shrink-0">
+                  <ShoppingBag className="w-5 h-5" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate">Order Details</h2>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white truncate">Order Details</h2>
                     {getStatusBadge(selectedOrder.orderStatus || selectedOrder.paymentStatus || selectedOrder.status)}
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
-                    <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-mono truncate">
+                    <p className="text-xs text-slate-500 dark:text-neutral-400 font-mono truncate">
                       ID: {selectedOrder._id}
                     </p>
                     <button
                       onClick={() => copyToClipboard(selectedOrder._id, 'Order ID')}
-                      className="text-gray-400 hover:text-purple-600 transition shrink-0 cursor-pointer"
+                      className="text-slate-400 hover:text-purple-600 transition shrink-0 cursor-pointer"
                       title="Copy Order ID"
                     >
                       {copiedField === 'Order ID' ? (
@@ -392,14 +366,14 @@ export default function AdminOrders() {
               </div>
               <button
                 onClick={() => setSelectedOrder(null)}
-                className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition shrink-0 cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition shrink-0 cursor-pointer"
               >
-                <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-6 min-w-0 flex-1">
+            <div className="p-6 overflow-y-auto space-y-6 min-w-0 flex-1">
               {/* Customer / Student Information */}
               <div className="bg-gray-50 dark:bg-gray-800/60 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-700/60 min-w-0">
                 <p className="text-[11px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
@@ -611,12 +585,12 @@ export default function AdminOrders() {
             </div>
 
             {/* Modal Footer Actions */}
-            <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/40 flex flex-wrap items-center justify-between gap-2 shrink-0">
-              <div className="flex items-center gap-2 flex-wrap">
+            <div className="px-6 py-4 border-t border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-[#111111] flex flex-wrap items-center justify-between gap-2 shrink-0">
+              <div className="flex items-center gap-3 flex-wrap">
                 {(selectedOrder.orderStatus === 'paid' || selectedOrder.paymentStatus === 'paid') && (
                   <button
                     onClick={() => handleRefund(selectedOrder._id)}
-                    className="text-xs bg-purple-600 text-white hover:bg-purple-700 font-bold px-3.5 sm:px-4 py-2 rounded-xl transition shadow-sm cursor-pointer"
+                    className="text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 px-4 py-2 rounded-md transition shadow-sm cursor-pointer"
                   >
                     Mark as Refunded
                   </button>
@@ -624,7 +598,7 @@ export default function AdminOrders() {
                 {selectedOrder.orderStatus !== 'cancelled' && selectedOrder.orderStatus !== 'refunded' && selectedOrder.orderStatus !== 'paid' && (
                   <button
                     onClick={() => handleCancel(selectedOrder._id)}
-                    className="text-xs bg-red-600 text-white hover:bg-red-700 font-bold px-3.5 sm:px-4 py-2 rounded-xl transition shadow-sm cursor-pointer"
+                    className="text-sm font-medium bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md transition shadow-sm cursor-pointer"
                   >
                     Cancel Order
                   </button>
@@ -632,7 +606,7 @@ export default function AdminOrders() {
               </div>
               <button
                 onClick={() => setSelectedOrder(null)}
-                className="text-xs font-semibold px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition cursor-pointer ml-auto"
+                className="text-sm font-medium px-4 py-2 rounded-md bg-white dark:bg-[#202020] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-white/5 transition shadow-sm cursor-pointer ml-auto"
               >
                 Close
               </button>

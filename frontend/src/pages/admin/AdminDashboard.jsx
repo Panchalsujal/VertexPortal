@@ -16,60 +16,53 @@ import { selectUser } from '../../store/slices/authSlice';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { AnimatedThreeDots } from '../../components/ui/Spinner';
 
-// ── Stat Card Component ──────────────────────────────────────
 function StatCard({ title, value, sub, subUp = true }) {
   const isLoading = value === '...' || value === undefined || value === null;
   return (
-    <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-sm p-4 flex flex-col gap-2">
-      <p className="text-[13px] font-medium text-gray-500 dark:text-neutral-400">{title}</p>
-      <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight flex items-center min-h-[1.75rem]">
+    <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm flex flex-col gap-2">
+      <p className="text-xs font-semibold text-slate-500 dark:text-neutral-400 tracking-wider uppercase">{title}</p>
+      <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none tracking-tight tabular-nums flex items-center min-h-[1.75rem]">
         {isLoading ? <AnimatedThreeDots color="currentColor" /> : value}
       </div>
       {sub && (
-        <p className={`text-[11px] font-medium mt-1 flex items-center gap-1 ${subUp ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+        <p className={`text-xs font-medium mt-1 flex items-center gap-1 ${subUp ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
           {subUp ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-          <span>{sub}</span>
+          <span className="tabular-nums">{sub}</span>
         </p>
       )}
     </div>
   );
 }
 
-// ── System Status Row ─────────────────────────────────────────
 function StatusRow({ name, status = 'Online', detail }) {
   const online = status === 'Online' || status === 'Operational';
   return (
-    <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-neutral-800 last:border-0">
+    <div className="flex items-center justify-between py-2.5 border-b border-slate-100 dark:border-white/5 last:border-0 hover:bg-slate-50/50 dark:hover:bg-[#202020]/30 transition-colors px-2 -mx-2 rounded-md">
       <div>
-        <span className="text-[13px] font-medium text-gray-900 dark:text-white block">{name}</span>
-        {detail && <span className="text-[11px] text-gray-500 dark:text-neutral-400 block mt-0.5">{detail}</span>}
+        <span className="text-sm font-medium text-gray-900 dark:text-white block">{name}</span>
+        {detail && <span className="text-xs text-slate-500 dark:text-neutral-400 block mt-0.5">{detail}</span>}
       </div>
-      <span className={`text-[11px] font-semibold flex items-center gap-1.5 px-2 py-0.5 rounded-sm border ${
-        online 
-          ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/50' 
-          : 'bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400 border-rose-100 dark:border-rose-900/50'
-      }`}>
-        <span className={`w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-500' : 'bg-rose-500'} ${online ? 'animate-pulse' : ''}`} />
+      <span className="text-xs font-medium flex items-center gap-1.5 px-2 py-0.5 rounded-md border bg-slate-50 dark:bg-[#202020] text-slate-600 dark:text-neutral-300 border-slate-200 dark:border-white/10">
+        <span className={`w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-500' : 'bg-red-500'} ${online ? 'animate-pulse' : ''}`} />
         {status}
       </span>
     </div>
   );
 }
 
-// ── Recent User Row ───────────────────────────────────────────
 function RecentUserRow({ name, email, role, createdAt }) {
   return (
-    <div className="flex items-center gap-3 py-2 border-b border-gray-100 dark:border-neutral-800 last:border-0">
+    <div className="flex items-center gap-3 py-2.5 border-b border-slate-100 dark:border-white/5 last:border-0 hover:bg-slate-50/50 dark:hover:bg-[#202020]/30 transition-colors px-2 -mx-2 rounded-md">
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-medium text-gray-900 dark:text-white truncate">{name || 'User'}</p>
-        <p className="text-[11px] text-gray-500 dark:text-neutral-400 truncate">{email}</p>
+        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{name || 'User'}</p>
+        <p className="text-xs text-slate-500 dark:text-neutral-400 truncate">{email}</p>
       </div>
       <div className="text-right shrink-0">
-        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-sm capitalize border bg-gray-50 dark:bg-neutral-800 text-gray-700 dark:text-neutral-300 border-gray-200 dark:border-neutral-700">
+        <span className="text-xs font-medium px-2 py-0.5 rounded-md capitalize border bg-slate-50 dark:bg-[#202020] text-slate-700 dark:text-neutral-300 border-slate-200 dark:border-white/10">
           {role}
         </span>
         {createdAt && (
-          <p className="text-[10px] text-gray-400 dark:text-neutral-500 mt-1">
+          <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1.5 tabular-nums">
             {new Date(createdAt).toLocaleDateString()}
           </p>
         )}
@@ -78,20 +71,19 @@ function RecentUserRow({ name, email, role, createdAt }) {
   );
 }
 
-// ── Top Course Row ────────────────────────────────────────────
 function TopCourseRow({ rank, title, enrollments, price }) {
   return (
-    <div className="flex items-center gap-3 py-2 border-b border-gray-100 dark:border-neutral-800 last:border-0">
-      <span className="w-4 text-[11px] font-semibold text-gray-400 shrink-0">{rank}.</span>
+    <div className="flex items-center gap-3 py-2.5 border-b border-slate-100 dark:border-white/5 last:border-0 hover:bg-slate-50/50 dark:hover:bg-[#202020]/30 transition-colors px-2 -mx-2 rounded-md">
+      <span className="w-5 text-sm font-semibold text-slate-400 dark:text-neutral-500 shrink-0 tabular-nums">{rank}.</span>
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-medium text-gray-900 dark:text-white truncate">{title}</p>
+        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{title}</p>
         <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-[11px] text-gray-500 dark:text-neutral-400">
-            {enrollments} {enrollments === 1 ? 'student' : 'students'}
+          <span className="text-xs text-slate-500 dark:text-neutral-400">
+            <span className="tabular-nums">{enrollments}</span> {enrollments === 1 ? 'student' : 'students'}
           </span>
           {price !== undefined && (
-            <span className="text-[11px] text-gray-500 dark:text-neutral-400">
-              · {price === 0 ? 'Free' : `₹${price}`}
+            <span className="text-xs text-slate-500 dark:text-neutral-400">
+              · <span className="tabular-nums">{price === 0 ? 'Free' : `₹${price}`}</span>
             </span>
           )}
         </div>
@@ -216,10 +208,10 @@ export default function AdminDashboard() {
         {/* Middle Data Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Top Courses */}
-          <div className="lg:col-span-2 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-sm p-5">
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100 dark:border-neutral-800">
-              <h2 className="text-[14px] font-semibold text-gray-900 dark:text-white tracking-tight">Top Courses</h2>
-              <Link to="/admin/courses" className="text-[11px] font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
+          <div className="lg:col-span-2 bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 shadow-sm rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-200 dark:border-white/10">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white tracking-tight">Top Courses</h2>
+              <Link to="/admin/courses" className="text-sm font-medium text-slate-500 hover:text-purple-600 transition-colors">
                 View All →
               </Link>
             </div>
@@ -248,10 +240,10 @@ export default function AdminDashboard() {
           </div>
 
           {/* Recent Users */}
-          <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-sm p-5">
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100 dark:border-neutral-800">
-              <h2 className="text-[14px] font-semibold text-gray-900 dark:text-white tracking-tight">Recent Signups</h2>
-              <Link to="/admin/users" className="text-[11px] font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
+          <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 shadow-sm rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-200 dark:border-white/10">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white tracking-tight">Recent Signups</h2>
+              <Link to="/admin/users" className="text-sm font-medium text-slate-500 hover:text-purple-600 transition-colors">
                 View All →
               </Link>
             </div>
@@ -283,28 +275,28 @@ export default function AdminDashboard() {
         {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* User Distribution */}
-          <div className="lg:col-span-2 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-sm p-5">
-            <h2 className="text-[14px] font-semibold text-gray-900 dark:text-white mb-4 tracking-tight">Active Roles</h2>
+          <div className="lg:col-span-2 bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 shadow-sm rounded-lg p-6">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-6 tracking-tight">Active Roles</h2>
             
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-4 border border-gray-100 dark:border-neutral-800 rounded-sm bg-gray-50/50 dark:bg-neutral-800/30">
-                <p className="text-[11px] font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Students</p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">{loading ? '...' : studentsCount}</p>
+              <div className="p-4 border border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-[#202020]">
+                <p className="text-xs font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-wider mb-2">Students</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">{loading ? '...' : studentsCount}</p>
               </div>
-              <div className="p-4 border border-gray-100 dark:border-neutral-800 rounded-sm bg-gray-50/50 dark:bg-neutral-800/30">
-                <p className="text-[11px] font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Instructors</p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">{loading ? '...' : instructorsCount}</p>
+              <div className="p-4 border border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-[#202020]">
+                <p className="text-xs font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-wider mb-2">Instructors</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">{loading ? '...' : instructorsCount}</p>
               </div>
-              <div className="p-4 border border-gray-100 dark:border-neutral-800 rounded-sm bg-gray-50/50 dark:bg-neutral-800/30">
-                <p className="text-[11px] font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Admins</p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">{loading ? '...' : adminsCount}</p>
+              <div className="p-4 border border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-[#202020]">
+                <p className="text-xs font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-wider mb-2">Admins</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">{loading ? '...' : adminsCount}</p>
               </div>
             </div>
           </div>
 
           {/* System Health */}
-          <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-sm p-5">
-            <h2 className="text-[14px] font-semibold text-gray-900 dark:text-white mb-4 tracking-tight">System Status</h2>
+          <div className="bg-white dark:bg-[#181818] border border-slate-200 dark:border-white/10 shadow-sm rounded-lg p-6">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4 tracking-tight">System Status</h2>
             <div className="flex flex-col gap-1">
               <StatusRow
                 name="Database"
