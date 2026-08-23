@@ -803,13 +803,13 @@ function StreamConnectedStage({
   const isRecording = useIsCallRecordingInProgress();
   const { isMute: isMicMuted, devices: micDevices, selectedDevice: selectedMic } = useMicrophoneState() || {};
   const { isMute: isCamMuted, devices: camDevices, selectedDevice: selectedCam } = useCameraState() || {};
-  const { devices: speakerDevices, selectedDevice: selectedSpeaker } = useSpeakerState ? useSpeakerState() : {};
+  const { devices: speakerDevices, selectedDevice: selectedSpeaker } = useSpeakerState();
   const { isEnabled: isScreenSharing } = useScreenShareState() || {};
 
   // Permission hooks from Stream Video SDK
-  const hasScreenSharePermission = useHasPermissions ? useHasPermissions(OwnCapability.SCREENSHARE) : true;
-  const hasAudioPermission = useHasPermissions ? useHasPermissions(OwnCapability.SEND_AUDIO) : true;
-  const hasVideoPermission = useHasPermissions ? useHasPermissions(OwnCapability.SEND_VIDEO) : true;
+  const hasScreenSharePermission = useHasPermissions(OwnCapability.SCREENSHARE);
+  const hasAudioPermission = useHasPermissions(OwnCapability.SEND_AUDIO);
+  const hasVideoPermission = useHasPermissions(OwnCapability.SEND_VIDEO);
 
   // Track previous permissions to notify students when admin toggles them
   const prevScreenSharePerm = useRef(hasScreenSharePermission);

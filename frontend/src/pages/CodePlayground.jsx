@@ -391,7 +391,7 @@ export default function CodePlayground() {
 
     window.parent.postMessage({ type: 'VP_PLAYGROUND_DONE' }, '*');
   })();
-<\/script>
+</script>
 </body>
 </html>`;
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 /**
@@ -54,7 +54,6 @@ export function ThreeHeroCanvas({ className = '' }) {
 
     for (let i = 0; i < count; i++) {
       const u = (i % (gridX + 1)) / gridX;
-      const v = Math.floor(i / (gridX + 1)) / gridY;
 
       const mixed = new THREE.Color();
       if (u < 0.5) {
@@ -175,7 +174,7 @@ export function ThreeHeroCanvas({ className = '' }) {
       planeGeo.attributes.position.needsUpdate = true;
 
       // Animate ambient crystal orbs
-      orbs.forEach(({ mesh: oMesh, rotSpeed, speedY }) => {
+      orbs.forEach(({ mesh: oMesh, rotSpeed }) => {
         oMesh.rotation.x += rotSpeed;
         oMesh.rotation.y += rotSpeed * 0.8;
         oMesh.position.y += Math.sin(elapsedTime * 1.5 + oMesh.position.x) * 0.025;

@@ -14,13 +14,13 @@ export function PrivacyBanner() {
         const timer = setTimeout(() => setVisible(true), 4500);
         return () => clearTimeout(timer);
       }
-    } catch (_) {}
+    } catch (_) { /* ignore */ }
   }, []);
 
   const handleAccept = (type) => {
     try {
       localStorage.setItem('vp_cookie_consent', JSON.stringify({ type, timestamp: new Date().toISOString() }));
-    } catch (_) {}
+    } catch (_) { /* ignore */ }
     setVisible(false);
   };
 

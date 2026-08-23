@@ -3,8 +3,8 @@ import { NavLink, Link, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, BookOpen, Tag, UserCog, Video, ClipboardList,
   Star, FileText, Bell, ShoppingBag, Tag as CouponTag, BarChart2,
-  Settings, Globe, LogOut, ArrowUpRight, Menu, ChevronDown,
-  GraduationCap, DollarSign, Zap, ArrowLeft, User, MessageSquare, Flag
+  Settings, Globe, LogOut, ArrowUpRight, ChevronDown,
+  GraduationCap, Zap, ArrowLeft, User, MessageSquare, Flag
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { selectUser, logoutUser } from '../../store/slices/authSlice';

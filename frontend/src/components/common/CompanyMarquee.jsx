@@ -1,5 +1,4 @@
-import React from 'react';
-import { Sparkles, Building2 } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 const COMPANIES = [
   {
