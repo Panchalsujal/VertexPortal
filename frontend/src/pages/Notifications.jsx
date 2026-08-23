@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   fetchNotifications,
@@ -10,38 +11,50 @@ import {
   selectNotifications,
   selectUnreadCount,
   selectNotifLoading,
+  setNotificationsSnapshot
 } from '../store/slices/notificationsSlice';
 import {
   getNotificationPreferences,
   updateNotificationPreferences,
   restoreNotification,
 } from '../api/notification.api';
-import { Spinner, SkeletonFeed, SkeletonTable } from '../components/ui/Spinner';
+import { SkeletonFeed } from '../components/ui/Spinner';
 import { Switch } from '../components/ui/Switch';
-import { Table, TableHeader, TableHead, TableRow, TableCell, TableBody } from '../components/ui/Table';
-import { Empty } from '../components/ui/Empty';
-import { Marker } from '../components/ui/Marker';
-import { Tabs, TabsList, TabsTrigger } from '../components/ui/Tabs';
 import {
-  Bell, Check, CheckCheck, Trash2, Settings, AlertCircle,
-  Info, CheckCircle, ArrowLeft, Archive, Mail, Smartphone,
-  Megaphone, BookOpen, Award, Video, Shield, RefreshCw,
-  ExternalLink, Sparkles, Inbox, Clock, RotateCcw
+  CheckCheck, Trash2, Archive, Bell,
+  RefreshCw, Check, RotateCcw, ChevronDown, ArrowRight, X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const NOTIFICATION_CATEGORIES = [
-  { key: 'announcement', label: 'Course Announcements', desc: 'New announcements and updates from instructors', icon: Megaphone, color: '#8b5cf6', bg: '#f5f3ff' },
-  { key: 'assignment', label: 'New Assignments', desc: 'When new assignments or homework are published', icon: BookOpen, color: '#3b82f6', bg: '#eff6ff' },
-  { key: 'assignment_graded', label: 'Graded Assignments', desc: 'When your assignment submissions are evaluated', icon: CheckCircle, color: '#10b981', bg: '#ecfdf5' },
-  { key: 'quiz', label: 'Quizzes & Tests', desc: 'Upcoming quiz dates, deadlines, and requirements', icon: Award, color: '#f59e0b', bg: '#fffbeb' },
-  { key: 'quiz_result', label: 'Quiz Results', desc: 'Score breakdowns and feedback on completed quizzes', icon: Award, color: '#f59e0b', bg: '#fffbeb' },
-  { key: 'live_class', label: 'Live Classes', desc: 'Reminders for scheduled live sessions and webinars', icon: Video, color: '#ec4899', bg: '#fdf2f8' },
-  { key: 'certificate', label: 'Certificates', desc: 'Course completion and certificate issuances', icon: Award, color: '#14b8a6', bg: '#f0fdfa' },
-  { key: 'system', label: 'System & Security', desc: 'Important account, billing, and platform notices', icon: Shield, color: '#64748b', bg: '#f8fafc' },
+  { key: 'announcement', label: 'Announcements', desc: 'New announcements and updates from instructors.' },
+  { key: 'assignment', label: 'New Assignments', desc: 'When new assignments or homework are published.' },
+  { key: 'assignment_graded', label: 'Graded Assignments', desc: 'When your assignment submissions are evaluated.' },
+  { key: 'quiz', label: 'Quizzes & Tests', desc: 'Upcoming quiz dates, deadlines, and requirements.' },
+  { key: 'quiz_result', label: 'Quiz Results', desc: 'Score breakdowns and feedback on completed quizzes.' },
+  { key: 'live_class', label: 'Live Classes', desc: 'Reminders and changes for scheduled live classes.' },
+  { key: 'certificate', label: 'Certificates', desc: 'Course completion and certificate issuances.' },
+  { key: 'system', label: 'System & Security', desc: 'Important account, billing, and platform notices.' },
 ];
 
-// Intelligent URL resolver for notification redirection
+const PREF_GROUPS = [
+  {
+    title: 'COURSES',
+    desc: 'Updates from your enrolled courses.',
+    items: ['announcement', 'assignment', 'assignment_graded']
+  },
+  {
+    title: 'LEARNING',
+    desc: 'Live events and achievements.',
+    items: ['quiz', 'quiz_result', 'live_class', 'certificate']
+  },
+  {
+    title: 'ACCOUNT',
+    desc: 'Important platform notices.',
+    items: ['system']
+  }
+];
+
 function getNotificationUrl(item) {
   if (item.actionUrl && item.actionUrl.trim() && item.actionUrl !== '#') {
     let url = item.actionUrl.trim();
@@ -49,41 +62,50 @@ function getNotificationUrl(item) {
       try {
         const parsed = new URL(url);
         url = parsed.pathname + parsed.search;
-      } catch (_err) {
-        // Fallback to unparsed url
-      }
+      } catch (_err) {}
     }
     return url;
   }
-
   const type = (item.type || '').toLowerCase();
   const title = (item.title || '').toLowerCase();
   const msg = (item.message || '').toLowerCase();
 
-  if (type === 'certificate' || title.includes('certificate') || msg.includes('certificate')) {
-    return '/certificates';
-  }
+  if (type === 'certificate' || title.includes('certificate') || msg.includes('certificate')) return '/certificates';
   if (type === 'live_class' || title.includes('live class') || title.includes('live session') || msg.includes('live class')) {
-    if (item.resourceId) return `/live-class/${item.resourceId}`;
-    return '/student/live-classes';
+    return item.resourceId ? `/live-class/${item.resourceId}` : '/student/live-classes';
   }
-  if (type === 'quiz' || type === 'quiz_result' || title.includes('quiz') || title.includes('test') || msg.includes('quiz')) {
-    return '/student/quizzes';
-  }
-  if (type === 'assignment' || type === 'assignment_graded' || type === 'assignment_returned' || title.includes('assignment') || msg.includes('assignment')) {
-    return '/student/assignments';
-  }
-  if (type === 'announcement' || title.includes('announcement') || msg.includes('announcement')) {
-    return '/student/announcements';
-  }
-  if (type === 'discussion' || type === 'discussion_reply' || type === 'answer_accepted' || title.includes('discussion') || title.includes('replied') || msg.includes('replied')) {
-    return '/discussions';
-  }
-  if (item.courseId) {
-    return `/learn/${item.courseId}`;
-  }
+  if (type === 'quiz' || type === 'quiz_result' || title.includes('quiz') || title.includes('test') || msg.includes('quiz')) return '/student/quizzes';
+  if (type === 'assignment' || type === 'assignment_graded' || type === 'assignment_returned' || title.includes('assignment') || msg.includes('assignment')) return '/student/assignments';
+  if (type === 'announcement' || title.includes('announcement') || msg.includes('announcement')) return '/student/announcements';
+  if (type === 'discussion' || type === 'discussion_reply' || type === 'answer_accepted' || title.includes('discussion') || title.includes('replied') || msg.includes('replied')) return '/discussions';
+  if (item.courseId) return `/learn/${item.courseId}`;
   return '/dashboard';
 }
+
+const groupNotifications = (notifs) => {
+  const groups = { today: [], yesterday: [], earlierThisWeek: [], older: [] };
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+
+  notifs.forEach(item => {
+    const d = new Date(item.createdAt);
+    if (d >= today) groups.today.push(item);
+    else if (d >= yesterday) groups.yesterday.push(item);
+    else if (d >= startOfWeek) groups.earlierThisWeek.push(item);
+    else groups.older.push(item);
+  });
+
+  return [
+    { label: 'Today', items: groups.today },
+    { label: 'Yesterday', items: groups.yesterday },
+    { label: 'Earlier this week', items: groups.earlierThisWeek },
+    { label: 'Older', items: groups.older }
+  ].filter(g => g.items.length > 0);
+};
 
 export default function Notifications() {
   const dispatch = useAppDispatch();
@@ -92,21 +114,30 @@ export default function Notifications() {
   const unreadCount = useAppSelector(selectUnreadCount);
   const loading = useAppSelector(selectNotifLoading);
 
-  const [activeTab, setActiveTab] = useState('all'); // all, unread, archived, preferences
+  const [activeTab, setActiveTab] = useState('all'); 
   const [selectedTypeFilter, setSelectedTypeFilter] = useState('all');
   const [preferences, setPreferences] = useState({ email: {}, inApp: {} });
   const [prefLoading, setPrefLoading] = useState(false);
-  const [savingPrefs, setSavingPrefs] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const fetchPreferences = async () => {
     setPrefLoading(true);
     try {
       const res = await getNotificationPreferences();
       const prefs = res.data.preferences || res.data.data?.preferences || {};
-      setPreferences({
-        email: prefs.email || {},
-        inApp: prefs.inApp || {},
-      });
+      setPreferences({ email: prefs.email || {}, inApp: prefs.inApp || {} });
     } catch {
       toast.error('Failed to load notification preferences');
     } finally {
@@ -133,93 +164,52 @@ export default function Notifications() {
 
   const handleMarkRead = async (id, e) => {
     e?.stopPropagation();
-    toast.success('Marked as read');
     const res = await dispatch(markOneRead(id));
-    if (markOneRead.rejected.match(res)) {
-      toast.error(res.payload?.message || 'Failed to mark read. Action rolled back.');
-    }
+    if (markOneRead.rejected.match(res)) toast.error(res.payload?.message || 'Failed to mark read. Action rolled back.');
   };
 
   const handleMarkAllRead = async () => {
-    toast.success('All notifications marked as read');
     const res = await dispatch(markAllRead());
-    if (markAllRead.rejected.match(res)) {
-      toast.error(res.payload || 'Failed to mark all as read. Action rolled back.');
-    }
+    if (markAllRead.rejected.match(res)) toast.error(res.payload || 'Failed to mark all as read. Action rolled back.');
+    else toast.success('All notifications marked as read');
   };
 
   const handleArchive = async (id, e) => {
     e?.stopPropagation();
-    toast.success('Notification archived');
+    toast.success('Archived');
     const res = await dispatch(archiveOne(id));
-    if (archiveOne.rejected.match(res)) {
-      toast.error(res.payload?.message || 'Failed to archive. Action rolled back.');
-    }
+    if (archiveOne.rejected.match(res)) toast.error(res.payload?.message || 'Failed to archive. Action rolled back.');
   };
 
   const handleRestore = async (id, e) => {
     e?.stopPropagation();
-    // Optimistic removal from archived view
     const targetItem = notifications.find(x => x._id === id);
-    if (targetItem) {
-      dispatch(setNotificationsSnapshot({
-        items: notifications.filter(x => x._id !== id),
-      }));
-    }
-    toast.success('Notification unarchived');
-
+    if (targetItem) dispatch(setNotificationsSnapshot({ items: notifications.filter(x => x._id !== id) }));
+    toast.success('Unarchived');
     try {
       await restoreNotification(id);
     } catch (err) {
-      // Rollback
-      if (targetItem) {
-        dispatch(setNotificationsSnapshot({
-          items: notifications,
-        }));
-      }
-      toast.error(err.response?.data?.message || err.message || 'Failed to unarchive notification. Rolled back.');
+      if (targetItem) dispatch(setNotificationsSnapshot({ items: notifications }));
+      toast.error(err.response?.data?.message || err.message || 'Failed to unarchive. Rolled back.');
     }
   };
 
   const handleDelete = async (id, e) => {
     e?.stopPropagation();
-    toast.success('Notification removed');
+    toast.success('Deleted');
     const res = await dispatch(deleteOne(id));
-    if (deleteOne.rejected.match(res)) {
-      toast.error(res.payload?.message || 'Failed to delete notification. Action rolled back.');
-    }
+    if (deleteOne.rejected.match(res)) toast.error(res.payload?.message || 'Failed to delete. Action rolled back.');
   };
 
   const handleTogglePref = async (channel, typeKey, value) => {
     const updatedChannel = { ...(preferences[channel] || {}), [typeKey]: value };
-    const payload = {
-      [channel]: updatedChannel,
-    };
-
-    setPreferences(prev => ({
-      ...prev,
-      [channel]: updatedChannel,
-    }));
-
-    setSavingPrefs(true);
+    const payload = { [channel]: updatedChannel };
+    setPreferences(prev => ({ ...prev, [channel]: updatedChannel }));
     try {
       await updateNotificationPreferences(payload);
     } catch (err) {
       toast.error(err.message || 'Failed to update preference');
-    } finally {
-      setSavingPrefs(false);
     }
-  };
-
-  const getCategoryInfo = (typeKey) => {
-    return NOTIFICATION_CATEGORIES.find(c => c.key === typeKey) || {
-      key: typeKey || 'system',
-      label: 'Notification',
-      desc: 'Platform notification',
-      icon: Bell,
-      color: '#6366f1',
-      bg: '#eef2ff',
-    };
   };
 
   const formatRelativeTime = (dateStr) => {
@@ -232,383 +222,287 @@ export default function Notifications() {
     if (diffMin < 60) return `${diffMin}m ago`;
     const diffHours = Math.floor(diffMin / 60);
     if (diffHours < 24) return `${diffHours}h ago`;
-    const diffDays = Math.floor(diffHours / 24);
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return d.toLocaleDateString();
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
   };
 
-  return (
-    <div className="min-h-[calc(100vh-4rem)] bg-gray-50 dark:bg-[#0b0f17] font-[Inter,sans-serif] py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
-        {/* Header Bar */}
-        <div className="bg-white dark:bg-gray-900 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <button
-                onClick={() => {
-                  if (window.history.length > 1 && window.history.state?.idx > 0) {
-                    navigate(-1);
-                  } else {
-                    navigate('/dashboard');
-                  }
-                }}
-                className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 transition cursor-pointer shrink-0"
-                title="Go back"
-              >
-                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
-              <div className="min-w-0">
-                <h1 className="text-lg sm:text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-1.5 sm:gap-2 truncate">
-                  <span>Notifications</span>
-                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 shrink-0" />
-                </h1>
-                <p className="text-[11px] sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5 truncate sm:whitespace-normal">
-                  Stay updated on course announcements, quizzes, assignments, and live classes
-                </p>
-              </div>
-            </div>
+  const groupedNotifications = groupNotifications(notifications);
 
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                onClick={loadCurrentNotifications}
-                className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-gray-800 rounded-xl transition cursor-pointer"
-                title="Refresh notifications"
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              </button>
+  return (
+    <>
+      <Helmet>
+        <title>Notifications — NavGujarat Academy</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+
+      <div className="min-h-screen bg-[#fafafa] dark:bg-[#111111] font-[Inter,sans-serif] pt-8 sm:pt-12 pb-24">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          {/* HEADER */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Notifications</h1>
+              <p className="text-[14px] text-gray-500 dark:text-neutral-400 mt-1.5">Stay up to date with courses, classes and discussions.</p>
+            </div>
+            <div className="flex items-center gap-4">
               {unreadCount > 0 && activeTab !== 'preferences' && (
                 <button
                   onClick={handleMarkAllRead}
-                  className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-300 text-xs font-bold hover:bg-purple-100 transition cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-gray-600 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white transition-colors"
                 >
-                  <CheckCheck className="w-3.5 h-3.5" />
-                  <span>Mark all read</span>
+                  <CheckCheck className="w-4 h-4" /> Mark all as read
                 </button>
               )}
+              <button
+                onClick={loadCurrentNotifications}
+                className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-gray-600 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white transition-colors"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
+              </button>
             </div>
           </div>
 
-          {/* Mobile Mark all read button */}
-          {unreadCount > 0 && activeTab !== 'preferences' && (
-            <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 flex sm:hidden justify-end">
+          {/* NAVIGATION BAR */}
+          <div className="flex items-center gap-8 border-b border-gray-200 dark:border-neutral-800 overflow-x-auto scrollbar-none mb-8">
+            {['all', 'unread', 'archived', 'preferences'].map(tabKey => (
               <button
-                onClick={handleMarkAllRead}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-300 text-xs font-bold hover:bg-purple-100 transition cursor-pointer"
-              >
-                <CheckCheck className="w-3.5 h-3.5" />
-                <span>Mark all as read ({unreadCount})</span>
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="flex items-center gap-1 sm:gap-2 bg-white dark:bg-gray-900 p-1 sm:p-1.5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-x-auto scrollbar-none">
-          <button
-            onClick={() => setActiveTab('all')}
-            className={`flex-1 min-w-[70px] sm:min-w-[90px] py-2 sm:py-2.5 px-2.5 sm:px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0 ${
-              activeTab === 'all'
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
-            }`}
-          >
-            <Inbox className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span>All</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('unread')}
-            className={`flex-1 min-w-[80px] sm:min-w-[90px] py-2 sm:py-2.5 px-2.5 sm:px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0 ${
-              activeTab === 'unread'
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
-            }`}
-          >
-            <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span>Unread</span>
-            {unreadCount > 0 && (
-              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
-                activeTab === 'unread' ? 'bg-white text-purple-600' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/60 dark:text-purple-300'
-              }`}>
-                {unreadCount}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setActiveTab('archived')}
-            className={`flex-1 min-w-[80px] sm:min-w-[90px] py-2 sm:py-2.5 px-2.5 sm:px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0 ${
-              activeTab === 'archived'
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
-            }`}
-          >
-            <Archive className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span>Archived</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('preferences')}
-            className={`flex-1 min-w-[90px] sm:min-w-[100px] py-2 sm:py-2.5 px-2.5 sm:px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0 ${
-              activeTab === 'preferences'
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
-            }`}
-          >
-            <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span>Preferences</span>
-          </button>
-        </div>
-
-        {/* Category Filters */}
-        {activeTab !== 'preferences' && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs">
-            <button
-              onClick={() => setSelectedTypeFilter('all')}
-              className={`px-3 py-1.5 rounded-full font-bold transition shrink-0 cursor-pointer text-xs ${
-                selectedTypeFilter === 'all'
-                  ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
-                  : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800 hover:bg-gray-50'
-              }`}
-            >
-              All Types
-            </button>
-            {NOTIFICATION_CATEGORIES.map(cat => (
-              <button
-                key={cat.key}
-                onClick={() => setSelectedTypeFilter(cat.key)}
-                className={`px-3 py-1.5 rounded-full font-bold transition shrink-0 flex items-center gap-1.5 cursor-pointer text-xs ${
-                  selectedTypeFilter === cat.key
-                    ? 'bg-purple-600 text-white shadow-sm'
-                    : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800 hover:bg-gray-50'
+                key={tabKey}
+                onClick={() => setActiveTab(tabKey)}
+                className={`pb-3 text-[14px] transition-all border-b-2 whitespace-nowrap flex items-center gap-1.5 ${
+                  activeTab === tabKey 
+                    ? 'font-semibold border-gray-900 text-gray-900 dark:border-white dark:text-white' 
+                    : 'font-medium border-transparent text-gray-500 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white'
                 }`}
               >
-                <cat.icon className="w-3.5 h-3.5" />
-                <span>{cat.label}</span>
+                {tabKey === 'all' && 'All'}
+                {tabKey === 'unread' && 'Unread'}
+                {tabKey === 'archived' && 'Archived'}
+                {tabKey === 'preferences' && 'Preferences'}
+                {tabKey === 'unread' && unreadCount > 0 && (
+                  <span className={`text-[12px] font-medium px-1.5 py-0.5 rounded-sm ${
+                    activeTab === 'unread' 
+                      ? 'bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white' 
+                      : 'bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-400'
+                  } ml-0.5 transition-colors`}>
+                    {unreadCount}
+                  </span>
+                )}
               </button>
             ))}
           </div>
-        )}
 
-        {/* Main Content Area */}
-        {activeTab === 'preferences' ? (
-          /* Preferences Panel */
-          prefLoading ? (
-            <SkeletonTable rows={5} cols={3} />
-          ) : (
-            <div className="bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm p-4 sm:p-6 space-y-6">
-              <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-6 mb-6">
-                <div>
-                  <h2 className="text-base font-bold text-gray-900 dark:text-white">Notification Channels & Delivery</h2>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Choose how and when you want to receive alerts across channels
-                  </p>
+          {/* COMPACT CONTROL BAR */}
+          {activeTab !== 'preferences' && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+              <div className="text-[14px] text-gray-700 dark:text-neutral-300">
+                {selectedTypeFilter === 'all' 
+                  ? <span className="font-medium">Show: <span className="text-gray-500 dark:text-neutral-400">All notifications</span></span>
+                  : <span className="font-medium">Showing: <span className="text-gray-900 dark:text-white">{NOTIFICATION_CATEGORIES.find(c=>c.key===selectedTypeFilter)?.label}</span></span>
+                }
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <span className="text-[13px] text-gray-500 dark:text-neutral-400 font-medium">Filter by</span>
+                <div className="relative" ref={dropdownRef}>
+                  <button 
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center justify-between gap-3 w-[160px] px-3 h-[36px] bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-neutral-800 rounded-[4px] text-[13px] font-medium text-gray-900 dark:text-white hover:border-gray-300 dark:hover:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 transition-all"
+                  >
+                    <span className="truncate">{selectedTypeFilter === 'all' ? 'All types' : NOTIFICATION_CATEGORIES.find(c=>c.key===selectedTypeFilter)?.label}</span>
+                    <ChevronDown className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 top-full mt-1.5 w-[200px] bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-neutral-800 rounded-[6px] shadow-sm py-1.5 z-50 origin-top-right animate-in fade-in zoom-in-95 duration-100">
+                      <button
+                        onClick={() => { setSelectedTypeFilter('all'); setIsDropdownOpen(false); }}
+                        className={`w-full flex items-center justify-between px-3 py-2 text-[13px] ${selectedTypeFilter === 'all' ? 'bg-gray-50 dark:bg-neutral-800/50 font-semibold text-gray-900 dark:text-white' : 'font-medium text-gray-600 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800/50'} transition-colors`}
+                      >
+                        All types
+                        {selectedTypeFilter === 'all' && <Check className="w-3.5 h-3.5" />}
+                      </button>
+                      <div className="h-px bg-gray-100 dark:bg-neutral-800 my-1.5 mx-3" />
+                      {NOTIFICATION_CATEGORIES.map(c => (
+                        <button
+                          key={c.key}
+                          onClick={() => { setSelectedTypeFilter(c.key); setIsDropdownOpen(false); }}
+                          className={`w-full flex items-center justify-between px-3 py-2 text-[13px] ${selectedTypeFilter === c.key ? 'bg-gray-50 dark:bg-neutral-800/50 font-semibold text-gray-900 dark:text-white' : 'font-medium text-gray-600 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800/50'} transition-colors`}
+                        >
+                          {c.label}
+                          {selectedTypeFilter === c.key && <Check className="w-3.5 h-3.5" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                {savingPrefs && (
-                  <span className="text-xs font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-1.5 animate-pulse">
-                    <Check className="w-3.5 h-3.5" /> Saving...
-                  </span>
+              </div>
+            </div>
+          )}
+
+          {/* NOTIFICATION CONTENT */}
+          <div className="min-h-[400px]">
+            {activeTab === 'preferences' ? (
+              <div className="max-w-3xl pb-12">
+                {prefLoading ? (
+                  <div className="py-8"><SkeletonFeed count={3} /></div>
+                ) : (
+                  <div>
+                    <div className="mb-8">
+                      <h2 className="text-[18px] font-semibold text-gray-900 dark:text-white">Notification preferences</h2>
+                      <p className="text-[14px] text-gray-500 dark:text-neutral-400 mt-1">Choose which updates you want to receive.</p>
+                    </div>
+                    {PREF_GROUPS.map(group => (
+                      <div key={group.title} className="mb-12">
+                        <div className="mb-4">
+                          <h3 className="text-[12px] font-bold tracking-wider text-gray-500 dark:text-neutral-500 uppercase">{group.title}</h3>
+                        </div>
+                        <div className="border-t border-gray-200 dark:border-neutral-800">
+                          {group.items.map((itemKey) => {
+                            const cat = NOTIFICATION_CATEGORIES.find(c => c.key === itemKey);
+                            if (!cat) return null;
+                            const emailVal = preferences.email?.[cat.key] ?? true;
+                            const inAppVal = preferences.inApp?.[cat.key] ?? true;
+                            
+                            return (
+                              <div key={cat.key} className="py-5 border-b border-gray-200 dark:border-neutral-800 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                                <div className="pr-8">
+                                  <h4 className="text-[14px] font-medium text-gray-900 dark:text-white">{cat.label}</h4>
+                                </div>
+                                <div className="flex items-center gap-8 shrink-0">
+                                  <label className="flex items-center gap-2.5 text-[13px] font-medium text-gray-600 dark:text-neutral-400 cursor-pointer">
+                                    <Switch checked={!!emailVal} onCheckedChange={checked => handleTogglePref('email', cat.key, checked)} />
+                                    Email
+                                  </label>
+                                  <label className="flex items-center gap-2.5 text-[13px] font-medium text-gray-600 dark:text-neutral-400 cursor-pointer">
+                                    <Switch checked={!!inAppVal} onCheckedChange={checked => handleTogglePref('inApp', cat.key, checked)} />
+                                    In-App
+                                  </label>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
+            ) : loading ? (
+              <div className="py-8"><SkeletonFeed count={4} /></div>
+            ) : notifications.length > 0 ? (
+              <div className="pb-16 max-w-5xl">
+                {groupedNotifications.map(group => (
+                  <div key={group.label} className="mb-10 last:mb-0">
+                    <h3 className="text-[12px] font-bold tracking-wider text-gray-400 dark:text-neutral-500 uppercase mb-4">{group.label}</h3>
+                    <div className="border-t border-gray-200 dark:border-neutral-800">
+                      {group.items.map((item) => {
+                        const cat = NOTIFICATION_CATEGORIES.find(c => c.key === item.type) || { label: 'System' };
+                        const isUnread = !item.isRead;
+                        const targetUrl = getNotificationUrl(item);
 
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Category</TableHead>
-                    <TableHead className="text-center">
-                      <span className="inline-flex items-center gap-1">
-                        <Mail className="w-3.5 h-3.5" /> Email
-                      </span>
-                    </TableHead>
-                    <TableHead className="text-center">
-                      <span className="inline-flex items-center gap-1">
-                        <Smartphone className="w-3.5 h-3.5" /> In-App
-                      </span>
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {NOTIFICATION_CATEGORIES.map(item => {
-                    const emailVal = preferences.email?.[item.key] ?? true;
-                    const inAppVal = preferences.inApp?.[item.key] ?? true;
-
-                    return (
-                      <TableRow key={item.key}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div
-                              className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-                              style={{ backgroundColor: item.bg, color: item.color }}
-                            >
-                              <item.icon className="w-4 h-4" />
-                            </div>
-                            <div>
-                              <p className="font-bold text-gray-900 dark:text-white">{item.label}</p>
-                              <p className="text-[11px] text-gray-500 dark:text-gray-400">{item.desc}</p>
-                            </div>
-                          </div>
-                        </TableCell>
-
-                        <TableCell className="text-center">
-                          <div className="flex justify-center">
-                            <Switch
-                              checked={!!emailVal}
-                              onCheckedChange={checked => handleTogglePref('email', item.key, checked)}
+                        return (
+                          <div 
+                            key={item._id} 
+                            onClick={() => {
+                              if (isUnread) handleMarkRead(item._id);
+                              navigate(targetUrl);
+                            }}
+                            className="group relative flex items-start py-4 sm:py-5 px-4 sm:px-6 border-b border-gray-200 dark:border-neutral-800 cursor-pointer transition-colors hover:bg-gray-50/50 dark:hover:bg-[#1a1a1a]/50"
+                          >
+                            {/* Structural Unread Marker */}
+                            <div 
+                              className="absolute left-0 top-0 bottom-0 w-[3px] bg-gray-900 dark:bg-white rounded-r-[2px] transition-opacity duration-200" 
+                              style={{ opacity: isUnread ? 1 : 0 }} 
                             />
+
+                            {/* Content */}
+                            <div className="flex-1 min-w-0 pr-4 sm:pr-8">
+                              <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 sm:gap-4 mb-1">
+                                <span className="text-[13px] font-medium text-gray-500 dark:text-neutral-400">
+                                  {cat.label}
+                                </span>
+                                <span className="text-[12px] font-medium text-gray-400 dark:text-neutral-500 shrink-0">
+                                  {formatRelativeTime(item.createdAt)}
+                                </span>
+                              </div>
+                              
+                              <h4 className={`text-[15px] leading-snug mt-1 ${isUnread ? 'font-semibold text-gray-900 dark:text-white' : 'font-medium text-gray-700 dark:text-neutral-300'}`}>
+                                {item.title}
+                              </h4>
+                              
+                              {item.message && (
+                                <p className="text-[14px] text-gray-600 dark:text-neutral-400 mt-1.5 leading-relaxed max-w-3xl">
+                                  {item.message}
+                                </p>
+                              )}
+
+                              {/* Mobile Actions */}
+                              <div className="flex sm:hidden items-center gap-5 mt-4 pt-2 border-t border-transparent" onClick={e => e.stopPropagation()}>
+                                {isUnread && (
+                                  <button onClick={(e) => handleMarkRead(item._id, e)} className="inline-flex items-center gap-1.5 text-[12px] font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
+                                    <Check className="w-3.5 h-3.5" /> Mark read
+                                  </button>
+                                )}
+                                {activeTab === 'archived' ? (
+                                  <button onClick={(e) => handleRestore(item._id, e)} className="inline-flex items-center gap-1.5 text-[12px] font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
+                                    <RotateCcw className="w-3.5 h-3.5" /> Restore
+                                  </button>
+                                ) : (
+                                  <button onClick={(e) => handleArchive(item._id, e)} className="inline-flex items-center gap-1.5 text-[12px] font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
+                                    <Archive className="w-3.5 h-3.5" /> Archive
+                                  </button>
+                                )}
+                                <button onClick={(e) => handleDelete(item._id, e)} className="inline-flex items-center gap-1.5 text-[12px] font-medium text-gray-500 hover:text-red-600 transition-colors">
+                                  <Trash2 className="w-3.5 h-3.5" /> Delete
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Desktop Actions */}
+                            <div className="hidden sm:flex shrink-0 items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150" onClick={e => e.stopPropagation()}>
+                              {isUnread && (
+                                <button onClick={(e) => handleMarkRead(item._id, e)} className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-sm hover:bg-gray-100 dark:hover:bg-neutral-800" title="Mark Read">
+                                  <Check className="w-4 h-4" />
+                                </button>
+                              )}
+                              {activeTab === 'archived' ? (
+                                <button onClick={(e) => handleRestore(item._id, e)} className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-sm hover:bg-gray-100 dark:hover:bg-neutral-800" title="Restore">
+                                  <RotateCcw className="w-4 h-4" />
+                                </button>
+                              ) : (
+                                <button onClick={(e) => handleArchive(item._id, e)} className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-sm hover:bg-gray-100 dark:hover:bg-neutral-800" title="Archive">
+                                  <Archive className="w-4 h-4" />
+                                </button>
+                              )}
+                              <button onClick={(e) => handleDelete(item._id, e)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors rounded-sm" title="Delete">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
-                        </TableCell>
-
-                        <TableCell className="text-center">
-                          <div className="flex justify-center">
-                            <Switch
-                              checked={!!inAppVal}
-                              onCheckedChange={checked => handleTogglePref('inApp', item.key, checked)}
-                            />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          )
-        ) : loading ? (
-          <SkeletonFeed count={5} />
-        ) : notifications.length > 0 ? (
-          <div className="space-y-3">
-            {notifications.map(item => {
-              const cat = getCategoryInfo(item.type);
-              const Icon = cat.icon;
-              const isUnread = !item.isRead;
-              const targetUrl = getNotificationUrl(item);
-
-              return (
-                <div
-                  key={item._id}
-                  onClick={() => {
-                    if (isUnread) handleMarkRead(item._id);
-                    navigate(targetUrl);
-                  }}
-                  className={`bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl border p-4 sm:p-5 shadow-xs hover:shadow-md transition flex items-start gap-3 sm:gap-4 cursor-pointer group relative ${
-                    isUnread
-                      ? 'border-purple-200 dark:border-purple-900/60 bg-gradient-to-r from-purple-50/40 to-white dark:from-purple-950/20 dark:to-gray-900'
-                      : 'border-gray-100 dark:border-gray-800 hover:bg-gray-50/60 dark:hover:bg-gray-800/40'
-                  }`}
-                >
-                  <div
-                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 shadow-xs mt-0.5"
-                    style={{ backgroundColor: cat.bg, color: cat.color }}
-                  >
-                    <Icon className="w-5 h-5" />
-                  </div>
-
-                  <div className="flex-1 min-w-0 pr-1 sm:pr-0">
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-[11px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 truncate">
-                          {cat.label}
-                        </span>
-                        {isUnread && (
-                          <span className="w-2 h-2 rounded-full bg-purple-600 shrink-0" />
-                        )}
-                        <span className="text-[11px] text-gray-400 flex items-center gap-1 shrink-0 ml-1">
-                          <Clock className="w-3 h-3" />
-                          {formatRelativeTime(item.createdAt)}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                        {isUnread && (
-                          <button
-                            type="button"
-                            onClick={(e) => handleMarkRead(item._id, e)}
-                            className="p-1.5 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition cursor-pointer"
-                            title="Mark as read"
-                          >
-                            <Check className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-
-                        {activeTab === 'archived' ? (
-                          <button
-                            type="button"
-                            onClick={(e) => handleRestore(item._id, e)}
-                            className="p-1.5 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition cursor-pointer"
-                            title="Restore"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5" />
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={(e) => handleArchive(item._id, e)}
-                            className="p-1.5 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition cursor-pointer"
-                            title="Archive"
-                          >
-                            <Archive className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={(e) => handleDelete(item._id, e)}
-                          className="p-1.5 rounded-lg bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-300 hover:bg-red-100 transition cursor-pointer"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <h3 className={`text-xs sm:text-sm text-gray-900 dark:text-white leading-snug mt-1 ${isUnread ? 'font-black' : 'font-bold'}`}>
-                      {item.title || 'Notification'}
-                    </h3>
-
-                    {item.message && (
-                      <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 leading-relaxed whitespace-pre-line line-clamp-3">
-                        {item.message}
-                      </p>
-                    )}
-
-                    <div className="mt-2">
-                      <span
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (isUnread) handleMarkRead(item._id);
-                          navigate(targetUrl);
-                        }}
-                        className="inline-flex items-center gap-1 text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 underline cursor-pointer"
-                      >
-                        View details
-                        <ExternalLink className="w-3 h-3" />
-                      </span>
+                        );
+                      })}
                     </div>
                   </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center pt-16 pb-24 text-center">
+                <div className="w-10 h-10 mb-5 flex items-center justify-center">
+                  <Bell className="w-5 h-5 text-gray-300 dark:text-neutral-600" strokeWidth={2} />
                 </div>
-              );
-            })}
+                <h3 className="text-[15px] font-semibold text-gray-900 dark:text-white mb-2">
+                  No notifications yet
+                </h3>
+                <p className="text-[14px] text-gray-500 dark:text-neutral-400 max-w-sm mb-6 leading-relaxed">
+                  When something needs your attention, you'll find it here.
+                </p>
+                <Link to="/courses" className="inline-flex items-center gap-1.5 text-[14px] font-medium text-gray-900 dark:text-white hover:text-gray-600 dark:hover:text-neutral-300 transition-colors">
+                  Explore courses <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            )}
           </div>
-        ) : (
-          <Empty
-            icon={Bell}
-            title={
-              activeTab === 'unread'
-                ? 'No unread notifications'
-                : activeTab === 'archived'
-                ? 'No archived notifications'
-                : 'All caught up!'
-            }
-            description={
-              activeTab === 'unread'
-                ? 'You have read all your notifications. Great job!'
-                : activeTab === 'archived'
-                ? 'Notifications you archive will appear here for future reference.'
-                : 'When new course updates, quizzes, announcements, or grades arrive, they will show up here.'
-            }
-          />
-        )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
