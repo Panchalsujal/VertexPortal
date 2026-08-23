@@ -5,7 +5,6 @@ import { getAllCourses } from '../../api/course.api';
 import { Star, Search, Trash2, MessageSquare, Award, ThumbsUp, Shield } from 'lucide-react';
 import { StarRating } from '../../components/ui/StarRating';
 import { SkeletonTable } from '../../components/ui/Spinner';
-import { SkeletonTable } from '../../components/ui/Spinner';
 import AdminLayout from '../../components/admin/AdminLayout';
 import toast from 'react-hot-toast';
 
