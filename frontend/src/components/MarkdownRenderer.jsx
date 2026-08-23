@@ -57,7 +57,7 @@ export function CodeBlock({ language, codeText, children }) {
       </div>
 
       {/* Code Body */}
-      <pre className="p-4 overflow-x-auto text-xs leading-relaxed text-emerald-300 font-mono scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-900 selection:bg-indigo-500 selection:text-white">
+      <pre className="p-4 overflow-x-auto text-xs leading-relaxed text-emerald-300 font-mono scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-900">
         <code>{codeText || children}</code>
       </pre>
     </div>

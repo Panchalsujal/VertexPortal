@@ -760,7 +760,7 @@ export default function CodePlayground() {
               }}
               onKeyDown={handleKeyDown}
               spellCheck="false"
-              className="flex-1 h-full p-3 sm:p-4 bg-transparent text-gray-800 dark:text-[#e2e8f0] font-mono text-xs sm:text-sm resize-none focus:outline-none leading-relaxed selection:bg-purple-100 dark:selection:bg-purple-900 selection:text-purple-900 dark:selection:text-purple-100 overflow-y-auto"
+              className="flex-1 h-full p-3 sm:p-4 bg-transparent text-gray-800 dark:text-[#e2e8f0] font-mono text-xs sm:text-sm resize-none focus:outline-none leading-relaxed overflow-y-auto"
               placeholder="Write your code here..."
             />
           </div>
