@@ -40,14 +40,14 @@ function NavItem({ to, icon: Icon, children, onNavigate, end = false }) {
       end={end}
       onClick={onNavigate}
       className={({ isActive }) =>
-        `flex items-center gap-3 px-3.5 py-2.5 text-xs sm:text-sm font-semibold rounded-2xl transition-all ${
+        `flex items-center gap-3 px-3.5 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all ${
           isActive
-            ? 'text-purple-600 bg-purple-50 dark:bg-purple-950/50 dark:text-purple-400 font-bold shadow-xs'
-            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800/80 hover:text-gray-900 dark:hover:text-white'
+            ? 'text-gray-900 bg-gray-100 dark:bg-neutral-800 dark:text-white font-bold'
+            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800/80 hover:text-gray-900 dark:hover:text-white'
         }`
       }
     >
-      {Icon && <Icon className="w-4 h-4 shrink-0 text-purple-600 dark:text-purple-400" />}
+      {Icon && <Icon className="w-4 h-4 shrink-0 text-gray-500 dark:text-gray-400" />}
       <span>{children}</span>
     </NavLink>
   );
@@ -62,6 +62,8 @@ export function Navbar() {
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  
+  const isHome = location.pathname === '/';
 
   // Close mobile drawer upon route change
   useEffect(() => {
@@ -88,10 +90,10 @@ export function Navbar() {
   const closeMobile = () => setMobileOpen(false);
 
   const desktopLinkClass = ({ isActive }) =>
-    `relative px-3 py-1.5 text-xs xl:text-sm font-semibold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap ${
+    `relative px-3 py-1.5 text-xs xl:text-sm font-semibold rounded-md transition-all flex items-center gap-1.5 whitespace-nowrap ${
       isActive
-        ? 'text-purple-600 dark:text-purple-400 font-bold bg-purple-50/80 dark:bg-purple-950/40'
-        : 'text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100/70 dark:hover:bg-slate-800/70'
+        ? 'text-gray-900 dark:text-white font-bold bg-gray-100 dark:bg-neutral-800'
+        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/70 dark:hover:bg-neutral-800/70'
     }`;
 
   const adminLinks = [
@@ -107,8 +109,8 @@ export function Navbar() {
     <header
       className={`sticky top-0 z-40 transition-all duration-200 ${
         scrolled
-          ? 'bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-gray-200/80 dark:border-slate-800/80 shadow-xs'
-          : 'bg-white dark:bg-slate-950 border-b border-gray-100 dark:border-slate-900'
+          ? 'bg-white/90 dark:bg-neutral-950/90 backdrop-blur-md border-b border-gray-200 dark:border-neutral-800'
+          : 'bg-white dark:bg-neutral-950 border-b border-gray-100 dark:border-neutral-900'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -116,14 +118,14 @@ export function Navbar() {
           
           {/* Logo & Brand */}
           <Link to="/" className="flex items-center gap-2.5 shrink-0 group no-underline">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-purple-600/25 group-hover:scale-105 transition-transform duration-200">
+            <div className="w-9 h-9 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
               <GraduationCap className="w-5 h-5" />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-black tracking-tight text-gray-900 dark:text-white leading-none font-sans">
-                NavGujarat<span className="text-purple-600 dark:text-purple-400">Academy</span>
+              <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white leading-none">
+                NavGujarat Academy
               </span>
-              <span className="text-[9px] font-extrabold uppercase tracking-widest text-purple-600 dark:text-purple-400 mt-0.5">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-gray-500 dark:text-neutral-400 mt-0.5">
                 Online Learning
               </span>
             </div>
@@ -138,7 +140,7 @@ export function Navbar() {
               className="w-64 p-2"
               trigger={
                 <NavLink to="/courses" className={desktopLinkClass}>
-                  <Compass className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                  <Compass className="w-4 h-4 text-gray-500 dark:text-gray-400 shrink-0" />
                   <span>Explore Courses</span>
                   <ChevronDown className="w-3.5 h-3.5 opacity-60 ml-0.5" />
                 </NavLink>
@@ -147,16 +149,16 @@ export function Navbar() {
               <div className="space-y-1">
                 <Link
                   to="/courses"
-                  className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-950/40 text-gray-800 dark:text-slate-200 group transition"
+                  className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-800 dark:text-neutral-200 group transition"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-300 flex items-center justify-center shrink-0 border border-gray-200 dark:border-neutral-700">
                     <BookOpen className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold group-hover:text-purple-600 dark:group-hover:text-purple-400 transition">
+                    <p className="text-xs font-bold group-hover:text-gray-900 dark:group-hover:text-white transition">
                       All Courses
                     </p>
-                    <p className="text-[10px] text-gray-500 dark:text-slate-400">
+                    <p className="text-[10px] text-gray-500 dark:text-neutral-400">
                       Browse the complete catalog
                     </p>
                   </div>
@@ -164,16 +166,16 @@ export function Navbar() {
 
                 <Link
                   to="/courses?sort=popular"
-                  className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-950/40 text-gray-800 dark:text-slate-200 group transition"
+                  className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-800 dark:text-neutral-200 group transition"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-300 flex items-center justify-center shrink-0 border border-gray-200 dark:border-neutral-700">
                     <Sparkles className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold group-hover:text-purple-600 dark:group-hover:text-purple-400 transition">
+                    <p className="text-xs font-bold group-hover:text-gray-900 dark:group-hover:text-white transition">
                       Popular Masterclasses
                     </p>
-                    <p className="text-[10px] text-gray-500 dark:text-slate-400">
+                    <p className="text-[10px] text-gray-500 dark:text-neutral-400">
                       Top-rated courses by students
                     </p>
                   </div>
@@ -181,16 +183,16 @@ export function Navbar() {
 
                 <Link
                   to="/courses?price=free"
-                  className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-950/40 text-gray-800 dark:text-slate-200 group transition"
+                  className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-800 dark:text-neutral-200 group transition"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-300 flex items-center justify-center shrink-0 border border-gray-200 dark:border-neutral-700">
                     <Award className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold group-hover:text-purple-600 dark:group-hover:text-purple-400 transition">
+                    <p className="text-xs font-bold group-hover:text-gray-900 dark:group-hover:text-white transition">
                       Free Courses
                     </p>
-                    <p className="text-[10px] text-gray-500 dark:text-slate-400">
+                    <p className="text-[10px] text-gray-500 dark:text-neutral-400">
                       Start learning at zero cost
                     </p>
                   </div>
@@ -200,13 +202,13 @@ export function Navbar() {
 
             {/* Code Playground */}
             <NavLink to="/playground" className={desktopLinkClass}>
-              <Code2 className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+              <Code2 className="w-4 h-4 text-gray-500 dark:text-gray-400 shrink-0" />
               <span>Playground</span>
             </NavLink>
 
             {/* Community Discussions */}
             <NavLink to="/discussions" className={desktopLinkClass}>
-              <MessageSquare className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+              <MessageSquare className="w-4 h-4 text-gray-500 dark:text-gray-400 shrink-0" />
               <span>Discussions</span>
             </NavLink>
 
@@ -214,17 +216,17 @@ export function Navbar() {
             {user && user.role === 'student' && (
               <>
                 <NavLink to="/my-learning" className={desktopLinkClass}>
-                  <BookOpen className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                  <BookOpen className="w-4 h-4 text-gray-500 dark:text-gray-400 shrink-0" />
                   <span>My Learning</span>
                 </NavLink>
 
                 <NavLink to="/student/live-classes" className={desktopLinkClass}>
-                  <Video className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                  <Video className="w-4 h-4 text-gray-500 dark:text-gray-400 shrink-0" />
                   <span>Live Classes</span>
                 </NavLink>
 
                 <NavLink to="/ai-chat" className={desktopLinkClass}>
-                  <Brain className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                  <Brain className="w-4 h-4 text-gray-500 dark:text-gray-400 shrink-0" />
                   <span>AI Tutor</span>
                 </NavLink>
 
@@ -235,7 +237,7 @@ export function Navbar() {
                   trigger={
                     <button
                       type="button"
-                      className="cursor-pointer whitespace-nowrap px-2.5 py-1.5 text-xs xl:text-sm font-semibold rounded-xl text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100/70 dark:hover:bg-slate-800/70 transition-all flex items-center gap-1 focus:outline-none"
+                      className="cursor-pointer whitespace-nowrap px-2.5 py-1.5 text-xs xl:text-sm font-semibold rounded-xl text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/70 dark:hover:bg-neutral-800/70 transition-all flex items-center gap-1 focus:outline-none"
                     >
                       <span>More</span>
                       <ChevronDown className="w-3.5 h-3.5 opacity-70" />
@@ -244,23 +246,23 @@ export function Navbar() {
                 >
                   <div className="py-1">
                     <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-                      <LayoutDashboard className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <LayoutDashboard className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                       <span>Student Dashboard</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/discussions')}>
-                      <MessageSquare className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <MessageSquare className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                       <span>Discussions</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/student/notes')}>
-                      <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <FileText className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                       <span>My Notes</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/student/quizzes')}>
-                      <CheckSquare className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <CheckSquare className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                       <span>Quizzes</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/student/assignments')}>
-                      <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <FileText className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                       <span>Assignments</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -276,12 +278,12 @@ export function Navbar() {
             {user && user.role === 'instructor' && (
               <>
                 <NavLink to="/instructor/dashboard" className={desktopLinkClass}>
-                  <LayoutDashboard className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                  <LayoutDashboard className="w-4 h-4 text-gray-600 dark:text-gray-400 shrink-0" />
                   <span>Dashboard</span>
                 </NavLink>
 
                 <NavLink to="/instructor/courses/new" className={desktopLinkClass}>
-                  <PlusCircle className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                  <PlusCircle className="w-4 h-4 text-gray-600 dark:text-gray-400 shrink-0" />
                   <span>Create Course</span>
                 </NavLink>
 
@@ -292,7 +294,7 @@ export function Navbar() {
                   trigger={
                     <button
                       type="button"
-                      className="cursor-pointer whitespace-nowrap px-2.5 py-1.5 text-xs xl:text-sm font-semibold rounded-xl text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100/70 dark:hover:bg-slate-800/70 transition-all flex items-center gap-1 focus:outline-none"
+                      className="cursor-pointer whitespace-nowrap px-2.5 py-1.5 text-xs xl:text-sm font-semibold rounded-xl text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/70 dark:hover:bg-neutral-800/70 transition-all flex items-center gap-1 focus:outline-none"
                     >
                       <span>Teaching Tools</span>
                       <ChevronDown className="w-3.5 h-3.5 opacity-70" />
@@ -301,19 +303,19 @@ export function Navbar() {
                 >
                   <div className="py-1">
                     <DropdownMenuItem onClick={() => navigate('/instructor/quizzes')}>
-                      <CheckSquare className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <CheckSquare className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                       <span>Quizzes & AI Generator</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/instructor/live-classes')}>
-                      <Video className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <Video className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                       <span>Live Classes</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/instructor/assignments')}>
-                      <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <FileText className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                       <span>Assignments</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/instructor/announcements')}>
-                      <Megaphone className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <Megaphone className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                       <span>Announcements</span>
                     </DropdownMenuItem>
                   </div>
@@ -328,7 +330,7 @@ export function Navbar() {
                 trigger={
                   <button
                     type="button"
-                    className="cursor-pointer whitespace-nowrap px-2.5 py-1.5 text-xs xl:text-sm font-semibold rounded-xl text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-all flex items-center gap-1 focus:outline-none"
+                    className="cursor-pointer whitespace-nowrap px-2.5 py-1.5 text-xs xl:text-sm font-semibold rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-all flex items-center gap-1 focus:outline-none"
                   >
                     <span>Admin Portal</span>
                     <ChevronDown className="w-3.5 h-3.5 opacity-70" />
@@ -365,7 +367,7 @@ export function Navbar() {
             <button
               type="button"
               onClick={toggleTheme}
-              className="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer shrink-0"
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-xl transition-all cursor-pointer shrink-0"
               title={darkMode ? 'Switch to light theme' : 'Switch to dark theme'}
               aria-label="Toggle theme mode"
             >
@@ -380,12 +382,12 @@ export function Navbar() {
             {user && (
               <Link
                 to="/notifications"
-                className="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition-all relative shrink-0"
+                className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-xl transition-all relative shrink-0"
                 title="Notifications"
                 aria-label="Notifications"
               >
                 <Bell className="w-4.5 h-4.5" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-purple-600 rounded-full ring-2 ring-white dark:ring-slate-900" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-gray-900 rounded-full ring-2 ring-white dark:ring-neutral-900" />
               </Link>
             )}
 
@@ -394,7 +396,7 @@ export function Navbar() {
               <>
                 <Link
                   to="/cart"
-                  className="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition-all relative shrink-0"
+                  className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-xl transition-all relative shrink-0"
                   title="Cart"
                   aria-label="Shopping Cart"
                 >
@@ -402,7 +404,7 @@ export function Navbar() {
                 </Link>
                 <Link
                   to="/wishlist"
-                  className="hidden md:inline-flex p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition-all shrink-0"
+                  className="hidden md:inline-flex p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-xl transition-all shrink-0"
                   title="Wishlist"
                   aria-label="Saved Wishlist"
                 >
@@ -411,7 +413,7 @@ export function Navbar() {
               </>
             )}
 
-            <div className="h-5 w-px bg-gray-200 dark:bg-slate-800 hidden sm:block shrink-0 mx-1" />
+            <div className="h-5 w-px bg-gray-200 dark:bg-neutral-800 hidden sm:block shrink-0 mx-1" />
 
             {/* User Profile Dropdown or Auth Buttons */}
             {user ? (
@@ -420,10 +422,10 @@ export function Navbar() {
                 className="w-56"
                 trigger={
                   <div
-                    className="flex items-center gap-1.5 sm:gap-2 p-1.5 rounded-xl hover:bg-purple-50 dark:hover:bg-slate-800 transition-all cursor-pointer border border-transparent hover:border-purple-200 dark:hover:border-slate-700"
+                    className="flex items-center gap-1.5 sm:gap-2 p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-neutral-800 transition-all cursor-pointer border border-transparent hover:border-gray-300 dark:hover:border-neutral-700"
                     aria-label="User menu"
                   >
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 text-white font-bold flex items-center justify-center text-xs shadow-xs shrink-0 overflow-hidden">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-900 dark:bg-neutral-700 text-white font-bold flex items-center justify-center text-xs shadow-xs shrink-0 overflow-hidden">
                       {user.avatarUrl ? (
                         <img
                           src={user.avatarUrl}
@@ -444,25 +446,25 @@ export function Navbar() {
                   </div>
                 }
               >
-                <div className="px-3 py-2 border-b border-gray-100 dark:border-slate-800">
+                <div className="px-3 py-2 border-b border-gray-100 dark:border-neutral-800">
                   <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{user.fullName}</p>
-                  <p className="text-[11px] text-purple-600 dark:text-purple-400 font-bold capitalize mt-0.5">{user.role}</p>
+                  <p className="text-[11px] text-gray-600 dark:text-gray-400 font-bold capitalize mt-0.5">{user.role}</p>
                 </div>
 
                 <div className="py-1">
                   <DropdownMenuItem onClick={() => navigate('/profile')}>
-                    <User className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                     <span>Profile & Settings</span>
                   </DropdownMenuItem>
 
                   {user.role === 'student' && (
                     <>
                       <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-                        <LayoutDashboard className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        <LayoutDashboard className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
                         <span>Student Dashboard</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => navigate('/my-learning')}>
-                        <BookOpen className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        <BookOpen className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
                         <span>My Learning</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => navigate('/certificates')}>
@@ -475,27 +477,27 @@ export function Navbar() {
                   {user.role === 'instructor' && (
                     <>
                       <DropdownMenuItem onClick={() => navigate('/instructor/dashboard')}>
-                        <LayoutDashboard className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        <LayoutDashboard className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
                         <span>Instructor Dashboard</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => navigate('/instructor/courses/new')}>
-                        <PlusCircle className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        <PlusCircle className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
                         <span>Create New Course</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => navigate('/instructor/quizzes')}>
-                        <CheckSquare className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        <CheckSquare className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
                         <span>Quizzes & AI Generator</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => navigate('/instructor/assignments')}>
-                        <FileText className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        <FileText className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
                         <span>Assignments & Grading</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => navigate('/instructor/announcements')}>
-                        <Megaphone className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        <Megaphone className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
                         <span>Announcements</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => navigate('/instructor/live-classes')}>
-                        <Video className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        <Video className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
                         <span>Live Sessions</span>
                       </DropdownMenuItem>
                     </>
@@ -503,7 +505,7 @@ export function Navbar() {
 
                   {user.role === 'admin' && (
                     <DropdownMenuItem onClick={() => navigate('/admin')}>
-                      <Award className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                      <Award className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
                       <span>Admin Dashboard</span>
                     </DropdownMenuItem>
                   )}
@@ -520,13 +522,13 @@ export function Navbar() {
               <div className="hidden sm:flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <Link
                   to="/login"
-                  className="px-3 sm:px-4 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400 transition whitespace-nowrap shrink-0"
+                  className="px-3 sm:px-4 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white transition whitespace-nowrap shrink-0"
                 >
                   Log in
                 </Link>
                 <Link
                   to="/register"
-                  className="px-3.5 sm:px-4.5 py-2 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl shadow-md shadow-purple-950/20 transition whitespace-nowrap shrink-0"
+                  className="px-4 py-2 text-xs font-semibold text-white dark:text-gray-900 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 rounded-lg transition whitespace-nowrap shrink-0"
                 >
                   Sign up
                 </Link>
@@ -537,7 +539,7 @@ export function Navbar() {
             <button
               type="button"
               onClick={() => setMobileOpen(prev => !prev)}
-              className="lg:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-xl transition shrink-0 cursor-pointer flex items-center justify-center"
+              className="lg:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-xl transition shrink-0 cursor-pointer flex items-center justify-center"
               aria-label="Toggle Navigation Menu"
             >
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -548,20 +550,20 @@ export function Navbar() {
 
       {/* Mobile Drawer */}
       {mobileOpen && (
-        <div className="lg:hidden bg-white/98 dark:bg-slate-900/98 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 px-4 pt-3 pb-6 space-y-2 animate-in fade-in slide-in-from-top-2 max-h-[85vh] overflow-y-auto shadow-xl">
+        <div className="lg:hidden bg-white/98 dark:bg-neutral-900/98 backdrop-blur-md border-b border-gray-200 dark:border-neutral-800 px-4 pt-3 pb-6 space-y-2 animate-in fade-in slide-in-from-top-2 max-h-[85vh] overflow-y-auto shadow-xl">
           {!user && (
-            <div className="pb-3 mb-2 border-b border-gray-100 dark:border-slate-800 grid grid-cols-2 gap-2.5">
+            <div className="pb-3 mb-2 border-b border-gray-100 dark:border-neutral-800 grid grid-cols-2 gap-2.5">
               <Link
                 to="/login"
                 onClick={closeMobile}
-                className="w-full text-center py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition"
+                className="w-full text-center py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 Log in
               </Link>
               <Link
                 to="/register"
                 onClick={closeMobile}
-                className="w-full text-center py-2.5 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl shadow-xs transition"
+                className="w-full text-center py-2.5 text-xs font-bold text-white bg-gray-900 rounded-xl shadow-sm transition"
               >
                 Sign up
               </Link>
@@ -569,7 +571,7 @@ export function Navbar() {
           )}
 
           {user?.role === 'student' && (
-            <div className="pb-2 mb-2 border-b border-gray-100 dark:border-slate-800 space-y-1">
+            <div className="pb-2 mb-2 border-b border-gray-100 dark:border-neutral-800 space-y-1">
               <NavItem to="/dashboard" icon={LayoutDashboard} onNavigate={closeMobile}>Dashboard</NavItem>
               <NavItem to="/my-learning" icon={BookOpen} onNavigate={closeMobile}>My Learning</NavItem>
               <NavItem to="/certificates" icon={Award} onNavigate={closeMobile}>My Certificates</NavItem>
@@ -584,7 +586,7 @@ export function Navbar() {
           </div>
 
           {user?.role === 'student' && (
-            <div className="pt-2 mt-2 border-t border-gray-100 dark:border-slate-800 space-y-1">
+            <div className="pt-2 mt-2 border-t border-gray-100 dark:border-neutral-800 space-y-1">
               <NavItem to="/student/live-classes" icon={Video} onNavigate={closeMobile}>Live Classes</NavItem>
               <NavItem to="/student/quizzes" icon={CheckSquare} onNavigate={closeMobile}>Quizzes</NavItem>
               <NavItem to="/student/assignments" icon={FileText} onNavigate={closeMobile}>Assignments</NavItem>
@@ -595,7 +597,7 @@ export function Navbar() {
           )}
 
           {user?.role === 'instructor' && (
-            <div className="pt-2 mt-2 border-t border-gray-100 dark:border-slate-800 space-y-1">
+            <div className="pt-2 mt-2 border-t border-gray-100 dark:border-neutral-800 space-y-1">
               <NavItem to="/instructor/dashboard" icon={LayoutDashboard} onNavigate={closeMobile}>Instructor Dashboard</NavItem>
               <NavItem to="/instructor/live-classes" icon={Video} onNavigate={closeMobile}>Live Classes</NavItem>
               <NavItem to="/instructor/quizzes" icon={CheckSquare} onNavigate={closeMobile}>Quizzes</NavItem>
@@ -603,7 +605,7 @@ export function Navbar() {
           )}
 
           {user?.role === 'admin' && (
-            <div className="pt-2 mt-2 border-t border-gray-100 dark:border-slate-800 space-y-1">
+            <div className="pt-2 mt-2 border-t border-gray-100 dark:border-neutral-800 space-y-1">
               {adminLinks.map(({ to, label }) => (
                 <NavItem key={to} to={to} icon={LayoutDashboard} onNavigate={closeMobile}>{label}</NavItem>
               ))}
@@ -611,7 +613,7 @@ export function Navbar() {
           )}
 
           {user && (
-            <div className="pt-4 mt-3 border-t border-gray-100 dark:border-slate-800">
+            <div className="pt-4 mt-3 border-t border-gray-100 dark:border-neutral-800">
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-bold text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800/50 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer"

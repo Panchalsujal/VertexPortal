@@ -328,97 +328,45 @@ export function SkeletonLiveRoom() {
 }
 
 /**
- * ── Ultra-Modern High-End SaaS PageLoader ──────────────────────────────────────
+ * ── Minimal Global PageLoader ──────────────────────────────────────────────────
+ * Designed for the 'Learning Campus' aesthetic.
  * Features:
- * • Obsidian & Glass Card with Multi-layered Ambient Radial Glows
- * • Dual Synchronized Glowing Orbit Rings
- * • Breathing Brand Badge with Radiant Center Beacon
- * • Indeterminate Sleek Gradient Progress Track
- * • Hardware-Accelerated 60fps Animations (Zero CPU Lag)
+ * • No blocking flashes (fade-in delay-150)
+ * • Minimal 2px neutral progress track
+ * • Hardware accelerated smooth motion
+ * • motion-safe wrappers for reduced motion
  */
-export function PageLoader({ text = 'Preparing your learning space...' }) {
+export function PageLoader({ text = 'Loading...' }) {
   return (
-    <div className="min-h-[75vh] flex flex-col items-center justify-center p-4 relative overflow-hidden font-[Inter,sans-serif] select-none">
-      {/* Dynamic Ambient Background Glows */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-purple-600/20 via-indigo-500/15 to-transparent rounded-full blur-[100px] pointer-events-none -z-10" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-sky-500/10 rounded-full blur-[80px] pointer-events-none -z-10 animate-pulse" />
-
-      {/* Main Glassmorphic Loader Container */}
-      <div className="relative flex flex-col items-center max-w-xs text-center space-y-6">
+    <div 
+      className="min-h-[75vh] flex flex-col items-center justify-center p-4 bg-transparent font-[Inter,sans-serif] select-none"
+      role="status"
+      aria-label="Loading page"
+    >
+      <div className="flex flex-col items-center max-w-xs text-center space-y-4 opacity-0 animate-in fade-in duration-500 delay-150 fill-mode-forwards">
         
-        {/* Glowing Orbit Rings + Brand Beacon */}
-        <div className="relative w-24 h-24 flex items-center justify-center">
-          
-          {/* Outer Slow Rotating Gradient Ring */}
-          <div
-            className="absolute inset-0 rounded-full border border-dashed border-purple-400/40 dark:border-purple-500/40 animate-spin"
-            style={{ animationDuration: '10s' }}
-          />
-
-          {/* Middle Fast Conic Orbit Ring */}
-          <div
-            className="absolute inset-2 rounded-full p-[2px] bg-gradient-to-tr from-purple-600 via-indigo-500 to-transparent animate-spin"
-            style={{ animationDuration: '2s' }}
-          >
-            <div className="w-full h-full bg-[#f8fafc] dark:bg-[#0b0f19] rounded-full" />
-          </div>
-
-          {/* Central Glassmorphic Beacon */}
-          <div className="relative z-10 w-14 h-14 rounded-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-purple-200 dark:border-purple-800/80 shadow-xl shadow-purple-900/15 flex items-center justify-center text-purple-600 dark:text-purple-400 transition-transform duration-300">
-            <svg
-              className="w-7 h-7 animate-pulse text-purple-600 dark:text-purple-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 14l9-5-9-5-9 5 9 5z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
-              />
-            </svg>
-          </div>
+        {/* Simple Brand Wordmark */}
+        <div className="text-gray-900 dark:text-gray-100">
+          <span className="font-bold tracking-tight text-sm">NavGujarat Academy</span>
         </div>
 
-        {/* Brand Title & Status Pill */}
-        <div className="space-y-2.5">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50/80 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-800/40 text-purple-700 dark:text-purple-300 text-xs font-bold shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
-            <span>NavGujarat Academy</span>
-          </div>
-
-          <p className="text-xs font-medium text-gray-500 dark:text-slate-400 tracking-wide">
-            {text}
-          </p>
+        {/* Minimal Progress Track (Low Contrast) */}
+        <div className="w-32 h-[2px] bg-gray-200 dark:bg-neutral-800 overflow-hidden relative rounded-full">
+          <div className="absolute inset-y-0 w-1/3 bg-gray-500 dark:bg-neutral-400 rounded-full animate-[progress_2.5s_ease-in-out_infinite] motion-reduce:animate-none" />
         </div>
 
-        {/* Shimmering Indeterminate Progress Bar */}
-        <div className="w-44 h-1.5 rounded-full bg-gray-200/80 dark:bg-slate-800/80 overflow-hidden relative shadow-inner">
-          <div className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-purple-600 to-indigo-500 rounded-full animate-[progress_1.4s_ease-in-out_infinite]" />
-        </div>
+        {/* Minimal Text */}
+        <p className="text-[11px] font-medium text-gray-500 dark:text-neutral-500">
+          {text}
+        </p>
+
       </div>
 
-      {/* Embedded Hardware-Accelerated Animation Styles */}
       <style>{`
         @keyframes progress {
-          0% {
-            left: -50%;
-            width: 30%;
-          }
-          50% {
-            left: 25%;
-            width: 60%;
-          }
-          100% {
-            left: 100%;
-            width: 40%;
-          }
+          0% { left: -33%; width: 33%; }
+          50% { left: 33%; width: 50%; }
+          100% { left: 100%; width: 33%; }
         }
       `}</style>
     </div>
